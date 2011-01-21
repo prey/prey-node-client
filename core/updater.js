@@ -6,7 +6,8 @@ var sys = require('sys'),
 		util = require('util'),
 		fs = require('fs'),
 		path = require('path'),
-		unpack = require('../lib/unpack');
+		unpack = require('../lib/unpack'),
+		fs2 = require("../lib/wrench");
 
 var modules_server = "http://control.preyproject.com";
 
@@ -28,20 +29,24 @@ var ModuleUpdater = function(module){
 		dw.on('complete', function(filename, status){
 			// console.log('All done. ' + status.bytes + " transferred in " + status.time + " seconds.")
 
-			console.log("Moving paths...")
-			fs.rename(module.path, module.path + ".old", function(){
+			console.log(" -- Backing up files...")
+			fs.rename(module.path, module.path + ".old", function(err){
 
-				console.log("Unpacking new module...")
+				console.log(" -- Unpacking new module...")
 				var unzip = unpack.do(filename, module.path.replace("/" + module.name, ''));
 
 				unzip.on('success', function(){
-		 			self.emit('success', "Module in place and ready to roll!");
+					console.log(" -- Module successfully unpacked.")
+		 			self.emit('success');
 					fs.unlink(filename);
+					if(!err) fs2.rmdirSyncRecursive(module.path + ".old")
 				})
 
 				unzip.on('error', function(){
-		 			self.emit('error', "Couldn't update module. Unzip failed.");
+					console.log(" -- Couldn't update module. Unzip failed.")
+		 			self.emit('error');
 					fs.unlink(filename);
+					if(!err) fs.rename(module.path + ".old", module.path); // put it back
 				})
 
 			})

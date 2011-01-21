@@ -32,11 +32,11 @@ function Module(data) {
 		log(" ++ Downloading module " + this.name + " from server...")
 		var update = updater.module(self);
 		update.on('success', function(){
-			log(" -- Module updated.")
+			log(" ++ Module in place and ready to roll!")
 			self.ready();
 		});
 		update.on('error', function(){
-			log('Error downloading package.')
+			log(' !! Error downloading package.')
 			return false;
 		})
 	};
@@ -59,14 +59,13 @@ function Module(data) {
 	this.init = function(config, update){
 
 		self.options = self.default_options.merge(config);
-		var upstream_version = update ? data.version : false;
 
 		// download module in case it's not there
 		path.exists(this.path, function(exists) {
 			if(!exists)
 				self.download();
-			else if(upstream_version)
-				self.check_version(upstream_version);
+			else if(update)
+				self.check_version(data.version);
 			else
 				self.ready();
 		});

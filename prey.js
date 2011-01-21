@@ -177,11 +177,11 @@ var Prey = {
 
 		// log(" -- Got response:\n" + data);
 
-		if(data.indexOf('<device>') == -1){
+		if(data.indexOf('<device>') == -1)
 			self.decrypt_response(data, callback);
-		} else {
+		else
 			self.parse_xml(data, callback);
-		}
+
 	},
 
 	parse_xml: function(data, callback){
@@ -240,7 +240,7 @@ var Prey = {
 			log(" -- Got instructions for " + module.type + " module " + module.name);
 
 			delete module_config['@'];
-			module.init(module_config, auto_update);
+			module.init(module_config, true);
 
 			module.on('ready', function(){
 				// self.enqueue_module(module.type, module)
