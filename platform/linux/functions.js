@@ -1,15 +1,24 @@
-var system = require('./../../core/system'), util = require('util');
+//////////////////////////////////////////
+// Prey Evented System Command Runner
+// (c) 2011 - Fork Ltd.
+// by Tomas Pollak - http://usefork.com
+// GPLv3 Licensed
+//////////////////////////////////////////
+
+
+var command = require('./../../lib/command'), util = require('util');
 
 exports.check_current_delay = function(full_path, callback) {
+
 	var delay_value = false;
 
-	var cmd = new system.cmd('crontab -l');
+	var cmd = command.run('crontab -l');
 
 	cmd.on('return', function(output) {
 		output.split("\n").forEach(function(el){
 			if(el.indexOf(full_path) != -1){
 				delay_value = el.replace(/ \*.*/, '').replace('*/', '');
-				util.debug('Found Prey record in crontab: ' + el + ". Matched delay: " + delay_value);
+				// util.debug('Found Prey record in crontab: ' + el + ". Matched delay: " + delay_value);
 			}
 		});
 	});
@@ -19,9 +28,9 @@ exports.check_current_delay = function(full_path, callback) {
 exports.set_new_delay = function(new_delay, full_path){
 
 	// (crontab -l | grep -v prey; echo "${new_delay}" "${full_path}/prey.sh > /var/log/prey.log") | crontab -
-	var command = 'crontab -l | grep -v "' + full_path + '"; \
+	var str = 'crontab -l | grep -v "' + full_path + '"; \
 	echo "*/' + new_delay + " * * * * " + full_path + ' > /var/log/prey.log" | crontab -'
 
-	var cmd = new system.cmd(command);
+	var cmd = command.run(str);
 
 }

@@ -1,33 +1,45 @@
 #!/usr/local/bin/node
 
-/*
- * Prey JS Client
- * (c) 2011 - Fork Ltd.
- * by Tomas Pollak
- * http://usefork.com
- * GPLv3 Licensed
- */
+//////////////////////////////////////////
+// Prey JS Client
+// (c) 2011 - Fork Ltd.
+// by Tomas Pollak - http://usefork.com
+// GPLv3 Licensed
+//////////////////////////////////////////
+
+// base requires
+
+require('./lib/core_extensions');
 
 var path = require('path'),
 		fs = require("fs"),
 		crypto = require('crypto'),
 		tcp = require("net"),
-		http = require('http'),
 		sys = require("sys"),
 		util = require('util'),
+		url = require('url'),
 		child = require('child_process'),
-		system = require('./core/system'),
-		updater = require('./core/updater');
+		command = require('./lib/command'),
+		updater = require('./core/updater'),
+		crypto = require('crypto'),
+		http_client = require('./lib/http_client'),
+		// rest = require('./lib/restler');
+		Module = require('./core/module');
+
+// aliases
+
+var inspect = util.inspect,
+		exit = process.exit,
+		log = console.log;
 
 var base_path = __dirname;
 var full_path = __filename;
-var log = sys.puts;
 
-var config = {
-	auto_connect: true,
-	missing_status_code: 404,
-	device_key: 'ixd9tk'
-}
+var version = fs.readFileSync(base_path + '/version').toString().replace("\n", '');
+var args = require('./core/args').init(version);
+var config = require('./config').main;
+
+var crypto = require('crypto');
 
 var Status = {
 	connected: false
@@ -37,25 +49,40 @@ var Prey = {
 
 	check_mode: false,
 	last_response: true,
-	config: {},
 	modules: { action: [], report: []},
 	response: false,
+	traces: {},
 
-	setup: function(){
+	setup: function(callback){
 
-		this.version = fs.readFileSync(base_path + '/version').toString().replace("\n", '');
 		this.os = process.platform.replace("darwin", "mac");
 		this.platform = require('./platform/' + this.os + '/functions');
-		this.user_agent = "Prey/" + this.version + " ("  + this.os + ")";
+		this.user_agent = "Prey/" + version + " (NodeJS, "  + this.os + ")";
+
+		if(config.device_key == ""){
+			log(" -- No device key found.")
+			if(config.api_key == ""){
+				log(" -- No API key found! Please set up Prey and try again.")
+			} else{
+				self.register_to_account(callback)
+			}
+		} else {
+			callback()
+		}
+
+	},
+
+	register_to_account: function(){
+
 	},
 
 	go: function(){
 
 		self = this;
-		this.setup()
-		console.log("\n  PREY " + self.version + " spreads its wings!");
-		console.log()
-		this.check_mode ? this.check() : this.run()
+		self.setup(function(mode){
+			log("\n  PREY " + version + " spreads its wings!\n");
+			self.mode == "check" ? self.check() : self.run()
+		})
 
 	},
 
@@ -82,44 +109,92 @@ var Prey = {
 	},
 
 	no_connection: function(){
-		console.log(" -- No connection available. Exiting...")
+		log(" -- No connection available. Exiting...")
 		process.exit(1);
 	},
 
 	wake: function(){
 
-		self.fetch_instructions(function(data){
-			self.parse_instructions(data, function(){
-				self.process_main_config();
-				self.process_module_config();
+		self.fetch_instructions(function(body){
 
-				if(self.response.statusCode == config.missing_status_code){
-					console.log("HOLY GUACAMOLE!");
-					self.gather_report();
-				}
+			if(self.response.headers["content-type"].indexOf('/xml') != -1){
 
-				if(self.modules.action.length > 0){
-					self.run_pending_actions();
-				}
-			});
+				self.parse_response(body, function(results){
+
+					self.process_main_config();
+					self.process_module_config(function(){
+						// console.log(self.traces);
+
+						if (self.traces.count() > 0)
+							self.send_report(config.post_method);
+						else
+							log("No traces gathered. Nothing to send!")
+
+					});
+
+				});
+
+			} else {
+
+				self.run_instructions();
+
+			}
+
 		})
 
-		console.log(" -- Ready.")
+		log(" -- Ready.")
 
 	},
 
-	parse_instructions: function(data, callback){
+	decrypt_response: function(data, callback){
 
-		// console.log("Got instructions:" + data);
+		console.log(" -- Got encrypted response. Decrypting...")
+		var key = crypto.createHash('md5').update(config.api_key).digest("hex");
+
+//			var decipher = (new crypto.Decipher).init("bf-cbc", key);
+//			var txt = decipher.update(data, 'base64', 'utf-8');
+//			txt += decipher.final('utf-8');
+//			log("RESULT: " + txt);
+
+		var cmd_str = 'echo "' + data + '" | openssl bf-cbc -d -a -salt -k "' + key +'" 2> /dev/null'
+		var cmd = command.run(cmd_str);
+
+		cmd.on('error', function(message){
+			log(" !! Couldn't decrypt response. This shouldn't have happened!")
+			exit(1)
+		})
+
+		cmd.on('return', function(output){
+			// insert comments back on node attributes
+			xml = output.replace(/=([^\s>\/]+)/g, '="$1"');
+			// return xml;
+			self.parse_xml(xml, callback);
+		})
+
+	},
+
+	parse_response: function(data, callback){
+
+		// log(" -- Got response:\n" + data);
+
+		if(data.indexOf('<device>') == -1){
+			self.decrypt_response(data, callback);
+		} else {
+			self.parse_xml(data, callback);
+		}
+	},
+
+	parse_xml: function(data, callback){
+
+		log(' -- Parsing XML...')
 		xml2js = require('./lib/xml2js');
 
 		var parser = new xml2js.Parser();
 
 		parser.addListener('end', function(result) {
-				// console.log(sys.inspect(result));
-				console.log(' -- XML parsing complete.');
+				log(' -- XML parsing complete.');
 				self.requested = result;
-				callback();
+				callback(result);
 		});
 
 		parser.parseString(data);
@@ -127,107 +202,179 @@ var Prey = {
 	},
 
 	process_main_config: function(){
-		console.log(" -- Processing main config...")
+
+		log(" -- Processing main config...")
+		self.process_delay();
+
+	},
+
+	process_delay: function(){
 
 		var requested_delay = self.requested.configuration.delay;
 
 		self.platform.check_current_delay(full_path, function(current_delay){
 			util.debug("Current delay: " + current_delay + ", requested delay: " + requested_delay);
 			if(current_delay != requested_delay){
-				console.log(" -- Setting new delay!")
+				log(" -- Setting new delay!")
 				self.platform.set_new_delay(requested_delay, full_path);
 			}
 		});
 
 	},
 
-	process_module_config: function(){
-		console.log(" -- Processing module config...")
+	process_module_config: function(callback){
+
+		log(" -- Processing module config...")
+		var auto_update = self.requested.configuration.auto_update;
+		var requested_modules_count = self.requested.modules.module.length;
+		var modules_ran = 0;
 
 		for(id in self.requested.modules.module){
 
-			var module_data = self.requested.modules.module[id]['@']
+			var module_config = self.requested.modules.module[id];
+			if(typeof(module_config) !== "object") continue;
 
-			var module = new Module(module_data.name, module_data.type, upstream_version);
-			console.log(" -- Got instructions for " + module.type + " module " + module.name);
+			var module_attrs = module_config['@'];
+			var module = Module.new(module_attrs);
 
-			var upstream_version = self.requested.configuration.auto_update ? module_data.version : false;
+			log(" -- Got instructions for " + module.type + " module " + module.name);
 
-			module.init(upstream_version, function(){
-				self.enqueue_module(module.type, module.name)
+			delete module_config['@'];
+			module.init(module_config, auto_update);
+
+			module.on('ready', function(){
+				// self.enqueue_module(module.type, module)
+				this.run();
 			})
 
-//			if(!module.installed || !module.up_to_date){
-//				module.fetch(function(success){
-//					if(success) self.enqueue_module(module.type, module.name)
-//				});
-//			} else {
-//				self.enqueue_module(module.type, module.name)
-//			}
+			module.on('error', function(err_msg){
+				log(" !! " + err_msg);
+			})
+
+			module.on('end', function(traces){
+
+				// var msg = traces.empty ? "no traces" : "some traces";
+				// log(" -- Got " + msg + " from " + module.name + " module.");
+				var traces_count = traces.count();
+				log(" -- " + this.name + " returned. " + traces_count + " traces.");
+				if(traces_count > 0) self.traces[this.name] = traces;
+
+				modules_ran++;
+				if(modules_ran >= requested_modules_count){
+					log(" ++ All modules are done! Packing report...");
+					callback();
+				}
+
+			});
 
 		}
 
 	},
 
-	enqueue_module: function(type, name){
+	enqueue_module: function(type, module){
 
-		console.log(" -- Queueing module " + name + " for later execution...")
-		self.modules[type].push(name);
-
-	},
-
-	gather_report: function(){
-
-		console.log("\n >> Getting report...\n");
-		self.run_modules('report');
+		log(" -- Queueing module " + module.name + " for execution...")
+		self.modules[type].push(module);
 
 	},
 
-	run_pending_actions: function(){
+//	run_instructions: function(){
 
-		console.log("\n >> Running pending actions...\n");
-		self.run_modules('action');
+//		if(self.response.statusCode == config.missing_status_code){
+//			log(" !! HOLY GUACAMOLE!");
+//			self.gather_report();
+//		} else {
+//			log(" -- Nothing to worry about.")
+//		}
 
-	},
+//		if(self.modules.action.length > 0){
+//			self.run_pending_actions();
+//		}
+//	},
 
-	run_modules: function(type){
+//	gather_report: function(){
 
-		self.modules[type].forEach(function(module_name){
-			console.log(" -- Running " + module_name + " module...")
-			module_class = require('./modules/' + module_name + "/core");
-			current_module = new module_class.module();
+//		log("\n >> Getting report...\n");
+//		self.run_modules('report', function(){
+//			log("All report modules are ready");
+//		});
 
-			current_module.on('end', function(data){
-				self.traces[module] = data;
-			})
+//	},
 
-		});
+//	run_pending_actions: function(){
 
-	},
+//		log("\n >> Running pending actions...\n");
+//		self.run_modules('action', function(){
+//			log("All action modules are ready");
+//		});
+
+//	},
+
+//	run_modules: function(type, callback){
+
+//		var module_count = self.modules[type].length;
+//		var modules_ready = 0;
+
+//		self.modules[type].forEach(function(module){
+
+//			module.run();
+
+//			current_module.on('end', function(data){
+//				self.traces[module] = data;
+//				modules_ready++;
+//				if(modules_ready >= module_count){
+//					callback();
+//				}
+//			})
+
+//		});
+
+//	},
 
 	fetch_instructions: function(callback){
 
-		var http_client = http.createClient(80, 'control.preyproject.com');
+		var uri = config.check_url + '/devices/' + config.device_key + '.xml';
+		var headers = { "User-Agent": self.user_agent }
+
+//		rest.get(uri, {headers: headers, parser: self.parse_response}).addListener('complete', function(data){
+//			console.log(data)
+//			self.response = data;
+//		})
+
+		http_client.get(uri, headers, function(response, body){
+			self.response = response;
+			log(' -- Got status code: ' + response.statusCode);
+			callback(body);
+		})
+
+	},
+
+	send_report: function(method){
+
+		if(method == "http")
+			self.send_http_report(self.requested.configuration.post_url.replace(".xml", ""), self.traces);
+
+	},
+
+	base64_encode: function(string){
+		var base64_encode = require('./lib/base64').encode;
+		var Buffer = require('buffer').Buffer;
+		return base64_encode(new Buffer(string));
+	},
+
+	send_http_report: function(url, data){
+
+		var authorization_key = self.base64_encode(config.api_key + ":x")
 
 		var headers = {
-			"Host": 'www.google.com',
-			"User-Agent": "Prey/" + self.user_agent
+			"User-Agent": self.user_agent,
+			"Authorization": "Basic " + authorization_key
 		}
 
-		var request_path = '/devices/' + config.device_key + '.xml';
-		var request = http_client.request('GET', request_path, headers);
-		request.end();
-
-		request.on('response', function (response) {
-			self.response = response;
-			console.log(' -- Got status code: ' + response.statusCode);
-			// console.log('HEADERS: ' + JSON.stringify(response.headers));
-			response.setEncoding('utf8');
-			response.on('data', function (chunk) {
-				// console.log('BODY: ' + chunk);
-				callback(chunk);
-			});
-		});
+		http_client.post(url, data, headers, function(response, body){
+			log(' -- Got status code: ' + response.statusCode);
+			log(' -- ' + body);
+		})
 
 	},
 
@@ -241,65 +388,15 @@ var Prey = {
 
 }
 
-function Module(name, type) {
-
-	var self = this;
-	this.name = name;
-	this.type = type;
-	this.path = base_path + "/modules/" + name;
-
-	this.download = function(callback){
-		console.log("Updating module " + this.name + "!")
-		var update = updater.module(this.name);
-		update.on('success', function(){
-			console.log("all good!")
-		});
-		update.on('error', function(){
-			console.log('Error downloading package.')
-		})
-	};
-
-	this.check_version = function(upstream_version, callback){
-		console.log('Checking version...')
-		// get version and check if we need to update
-		fs.readFile(this.path + "/version", function(err, data){
-			if(err) return;
-			this.version = parseFloat(data);
-			if(upstream_version > this.version){
-				console.log(upstream_version + " is newer than installed version: " + this.version);
-				self.download(callback);
-			} else {
-				callback();
-			}
-		})
-	};
-
-	this.init = function(upstream_version, callback){
-
-		// download module in case it's not there
-		path.exists(this.path, function(exists) {
-			if(!exists)
-				self.download(callback);
-			else if(upstream_version)
-				self.check_version(upstream_version, callback);
-			else
-				callback();
-
-		});
-
-	}
-
-}
-
 var Check = {
 	installation: function(){
-		console.log("Verifying Prey installation...")
+		log("Verifying Prey installation...")
 	},
 	http_keys: function(){
-		console.log("Verifying API and Device keys...")
+		log("Verifying API and Device keys...")
 	},
 	smtp_settings: function(){
-		console.log("Verifying SMTP settings...")
+		log("Verifying SMTP settings...")
 	}
 }
 
@@ -310,18 +407,18 @@ var Connection = {
 	},
 
 	established: function(){
-		console.log("Checking connection...");
+		log("Checking connection...");
 		// create the TCP stream to the server
 		var stream = net.createConnection(port, address);
 
 		stream.on('connect', function() {
-			console.log('Connection success!');
+			log('Connection success!');
 			stream.end();
 		});
 
 		// listen for any errors
 		stream.on('error', function(error) {
-			console.log('error: ' + error);
+			log('error: ' + error);
 			stream.destroy(); // close the stream
 		})
 		return true;
@@ -330,7 +427,7 @@ var Connection = {
 
 var Wifi = {
 	autoconnect: function(){
-		console.log("Trying to connect...")
+		log("Trying to connect...")
 		return true;
 	}
 }
@@ -340,11 +437,11 @@ var Wifi = {
 /////////////////////////////////////////////////////////////
 
 process.on('exit', function () {
-	console.log(' -- Shutting down!');
+	log(" -- Shutting down!\n");
 });
 
 //process.on('uncaughtException', function (err) {
-//  console.log('Caught exception: ' + err);
+//  log('Caught exception: ' + err);
 //});
 
 /////////////////////////////////////////////////////////////
@@ -352,7 +449,7 @@ process.on('exit', function () {
 /////////////////////////////////////////////////////////////
 
 process.on('SIGINT', function () {
-  console.log('Got SIGINT.  Press Control-D to exit.');
+  log('Got SIGINT.  Press Control-D to exit.');
 });
 
 Prey.go()

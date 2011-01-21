@@ -1,18 +1,36 @@
+//////////////////////////////////////////
+// Prey JS Alarm Module
+// (c) 2011 - Fork Ltd.
+// by Tomas Pollak - http://usefork.com
+// GPLv3 Licensed
+//////////////////////////////////////////
+
+
 var sys = require('sys'), events = require('events');
 
-var Alarm = function(){
+var Alarm = function(config){
+
+	var options = {
+		hola: true,
+		nada: false
+	}
 
 	var self = this;
 	var data = {};
 
-	var run = function(){
-		data.hola = 'que tal';
-		self.emit('end', data);
+	this.run = function(){
+		self.emit('trace', 'foo', 'bar')
+		self.emit('end');
 	}
 
-	run();
+	this.scream = function(){
+		console.log("Screeeeeming")
+	}
 
 };
 
 sys.inherits(Alarm, events.EventEmitter);
-exports.module = Alarm;
+
+exports.init = function(config){
+	return new Alarm(config);
+}
