@@ -128,7 +128,7 @@ var Prey = {
 						if (self.traces.count() > 0)
 							self.send_report(config.post_method);
 						else
-							log("No traces gathered. Nothing to send!")
+							log(" -- No traces gathered. Nothing to send!")
 
 					});
 
@@ -167,6 +167,7 @@ var Prey = {
 		cmd.on('return', function(output){
 			// insert comments back on node attributes
 			xml = output.replace(/=([^\s>\/]+)/g, '="$1"');
+			// console.log(xml);
 			// return xml;
 			self.parse_xml(xml, callback);
 		})
@@ -225,7 +226,7 @@ var Prey = {
 	process_module_config: function(callback){
 
 		log(" -- Processing module config...")
-		var auto_update = self.requested.configuration.auto_update;
+		var auto_update = self.requested.configuration.auto_update || false;
 		var requested_modules_count = self.requested.modules.module.length;
 		var modules_ran = 0;
 
@@ -240,7 +241,7 @@ var Prey = {
 			log(" -- Got instructions for " + module.type + " module " + module.name);
 
 			delete module_config['@'];
-			module.init(module_config, true);
+			module.init(module_config, auto_update);
 
 			module.on('ready', function(){
 				// self.enqueue_module(module.type, module)
@@ -449,7 +450,8 @@ process.on('exit', function () {
 /////////////////////////////////////////////////////////////
 
 process.on('SIGINT', function () {
-  log('Got SIGINT.  Press Control-D to exit.');
+  log('Got SIGINT!');
+  process.exit(0);
 });
 
 Prey.go()

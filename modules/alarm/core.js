@@ -6,21 +6,24 @@
 //////////////////////////////////////////
 
 
-var sys = require('sys'), events = require('events');
+var sys = require('sys'), events = require('events'), command = require('../../lib/command');
 
 var Alarm = function(config){
 
 	var options = {
-		hola: true,
-		nada: false
+		sound: "siren.mp3"
 	}
 
 	var self = this;
 	var data = {};
 
 	this.run = function(){
-		self.emit('trace', 'foo', 'bar')
+		var sound_file = __dirname + "/lib/" + options.sound;
+		var cmd = command.run('mpg123 ' + sound_file);
+
+		// self.emit('trace', 'foo', 'bar')
 		self.emit('end');
+
 	}
 
 	this.scream = function(){

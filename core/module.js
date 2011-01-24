@@ -42,7 +42,7 @@ function Module(data) {
 	};
 
 	this.check_version = function(upstream_version){
-		log('Checking version...')
+
 		// get version and check if we need to update
 		fs.readFile(this.path + "/version", function(err, data){
 			if(err) return;
