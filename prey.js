@@ -28,9 +28,7 @@ var path = require('path'),
 
 // aliases
 
-var inspect = util.inspect,
-		exit = process.exit,
-		log = console.log;
+var inspect = util.inspect, log = console.log;
 
 var base_path = __dirname;
 var full_path = __filename;
@@ -40,6 +38,19 @@ var args = require('./core/args').init(version);
 var config = require('./config').main;
 
 var crypto = require('crypto');
+
+////////////////////////////////////////
+// helper methods
+////////////////////////////////////////
+
+function quit(msg){
+	log(" !! " + msg)
+	process.exit(1)
+}
+
+////////////////////////////////////////
+// models
+////////////////////////////////////////
 
 var Status = {
 	connected: false
@@ -109,13 +120,19 @@ var Prey = {
 	},
 
 	no_connection: function(){
-		log(" -- No connection available. Exiting...")
-		process.exit(1);
+		quit("No connection available.")
+	},
+
+	valid_status_code: function(){
+		return self.response.statusCode == 200 || self.response.statusCode == 404;
 	},
 
 	wake: function(){
 
 		self.fetch_instructions(function(body){
+
+			if(!self.valid_status_code())
+				quit("Unexpected status code received.")
 
 			if(self.response.headers["content-type"].indexOf('/xml') != -1){
 
@@ -156,12 +173,11 @@ var Prey = {
 //			txt += decipher.final('utf-8');
 //			log("RESULT: " + txt);
 
-		var cmd_str = 'echo "' + data + '" | openssl bf-cbc -d -a -salt -k "' + key +'" 2> /dev/null'
+		var cmd_str = 'echo "' + data + '" | openssl aes-128-cbc -d -a -salt -k "' + key +'" 2> /dev/null'
 		var cmd = command.run(cmd_str);
 
 		cmd.on('error', function(message){
-			log(" !! Couldn't decrypt response. This shouldn't have happened!")
-			exit(1)
+			quit("Couldn't decrypt response. This shouldn't have happened!")
 		})
 
 		cmd.on('return', function(output){
@@ -335,14 +351,14 @@ var Prey = {
 	fetch_instructions: function(callback){
 
 		var uri = config.check_url + '/devices/' + config.device_key + '.xml';
-		var headers = { "User-Agent": self.user_agent }
+		var options = { headers: { "User-Agent": self.user_agent } }
 
 //		rest.get(uri, {headers: headers, parser: self.parse_response}).addListener('complete', function(data){
 //			console.log(data)
 //			self.response = data;
 //		})
 
-		http_client.get(uri, headers, function(response, body){
+		http_client.get(uri, options, function(response, body){
 			self.response = response;
 			log(' -- Got status code: ' + response.statusCode);
 			callback(body);
@@ -357,22 +373,15 @@ var Prey = {
 
 	},
 
-	base64_encode: function(string){
-		var base64_encode = require('./lib/base64').encode;
-		var Buffer = require('buffer').Buffer;
-		return base64_encode(new Buffer(string));
-	},
-
 	send_http_report: function(url, data){
 
-		var authorization_key = self.base64_encode(config.api_key + ":x")
-
-		var headers = {
-			"User-Agent": self.user_agent,
-			"Authorization": "Basic " + authorization_key
+		var options = {
+			user: config.api_key,
+			pass: "x",
+			headers : { "User-Agent": self.user_agent }
 		}
 
-		http_client.post(url, data, headers, function(response, body){
+		http_client.post(url, data, options, function(response, body){
 			log(' -- Got status code: ' + response.statusCode);
 			log(' -- ' + body);
 		})
