@@ -7,6 +7,8 @@
 // GPLv3 Licensed
 //////////////////////////////////////////
 
+var config_file_path = './config'
+
 // base requires
 
 require('./lib/core_extensions');
@@ -35,9 +37,11 @@ var full_path = __filename;
 
 var version = fs.readFileSync(base_path + '/version').toString().replace("\n", '');
 var args = require('./core/args').init(version);
-var config = require('./config').main;
+var config = require(config_file_path).main;
 
 var crypto = require('crypto');
+
+var on_demand =  { host: 'localhost', port: 4490 }
 
 ////////////////////////////////////////
 // helper methods
@@ -45,7 +49,7 @@ var crypto = require('crypto');
 
 function quit(msg){
 	log(" !! " + msg)
-	process.exit(1)
+	// process.exit(1)
 }
 
 ////////////////////////////////////////
@@ -74,8 +78,8 @@ var Prey = {
 			log(" -- No device key found.")
 			if(config.api_key == ""){
 				log(" -- No API key found! Please set up Prey and try again.")
-			} else{
-				self.register_to_account(callback)
+			} else {
+				self.attach_to_account(callback)
 			}
 		} else {
 			callback()
@@ -83,7 +87,58 @@ var Prey = {
 
 	},
 
-	register_to_account: function(){
+	store_config_value: function(key_name){
+		var value = config[key_name];
+		this.replace_in_file(config_file_path, "\t" + key_name+"=.*", key_name + "='" + value + "';")
+	},
+
+	replace_in_file: function(file_name, from, to){
+		fs.readFile(file_name, function (err, data) {
+			if (err) throw err;
+			if(new_data != data) self.save_file_contents(file_name, new_data)
+		});
+	},
+
+	save_file_contents: function(file_name, data){
+		fs.writeFile(file_name, data, function (err) {
+			if (err) throw err;
+			console.log(' -- File saved.');
+		});
+	},
+
+	attach_to_account: function(callback){
+
+		var uri = config.check_url + '/devices.xml';
+
+		var options = {
+			user: config.api_key,
+			pass: "x",
+			headers : { "User-Agent": self.user_agent }
+		}
+
+		var data = {
+			device: {
+				title: 'My device',
+				device_type: 'Portable',
+				os: 'Linux',
+				os_version: 'ubuntu'
+			}
+		}
+
+		http_client.post(url, data, options, function(response, body){
+			log(' -- Got status code: ' + response.statusCode);
+			if(response.statusCode == 201){
+				log(" -- Device succesfully created.");
+				this.parse_xml(response, function(result){
+					if(result.key){
+						log("Assigning device key to configuration...")
+						config.device_key = result.key;
+						this.store_config_value('device_key');
+						callback()
+					}
+				})
+			}
+		})
 
 	},
 
@@ -134,28 +189,24 @@ var Prey = {
 			if(!self.valid_status_code())
 				quit("Unexpected status code received.")
 
-			if(self.response.headers["content-type"].indexOf('/xml') != -1){
+			if(self.response.headers["content-type"].indexOf('/xml') == -1)
+				quit("No valid instructions received.")
 
-				self.parse_response(body, function(results){
+			self.parse_response(body, function(results){
 
-					self.process_main_config();
-					self.process_module_config(function(){
-						// console.log(self.traces);
+				self.requested = results;
+				self.process_main_config();
+				self.process_module_config(function(){
+					// console.log(self.traces);
 
-						if (self.traces.count() > 0)
-							self.send_report(config.post_method);
-						else
-							log(" -- No traces gathered. Nothing to send!")
-
-					});
+					if (self.traces.count() > 0)
+						self.send_report(config.post_method);
+					else
+						log(" -- No traces gathered. Nothing to send!")
 
 				});
 
-			} else {
-
-				self.run_instructions();
-
-			}
+			});
 
 		})
 
@@ -210,7 +261,6 @@ var Prey = {
 
 		parser.addListener('end', function(result) {
 				log(' -- XML parsing complete.');
-				self.requested = result;
 				callback(result);
 		});
 
@@ -440,6 +490,55 @@ var Wifi = {
 		log("Trying to connect...")
 		return true;
 	}
+}
+
+
+var OnDemand = {
+
+	connect: function(host, port){
+		var self = this;
+		this.stream = tcp.createConnection(port, host);
+
+		this.stream.on("connect", function(){
+			self.handshake()
+			log("Connection established. Sending authentication.");
+		})
+
+		this.stream.on("data", function(data){
+			log("Data received:" + data);
+			var msg = JSON.parse(data);
+			if(msg.event == "ping")
+				this.pong();
+		})
+
+		this.stream.on("end", function(){
+			log("Connection ended");
+		})
+
+		this.stream.on("close", function(had_error){
+			log("Connection closed.")
+		})
+
+	},
+
+	register: function(){
+		var data = {
+			client_version: version,
+			key: config.device_key,
+			group: config.api_key,
+			protocol: 1
+		}
+		this.send({ action: 'connect', data: data} )
+	},
+
+	pong: function(){
+		this.send({ action: 'ping', data: {timestamp: Date.now().toString() }})
+	},
+
+	send: function(msg){
+		this.stream.write(JSON.stringify(msg))
+	}
+
 }
 
 /////////////////////////////////////////////////////////////
