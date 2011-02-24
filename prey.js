@@ -41,15 +41,13 @@ var config = require(config_file_path).main;
 
 var crypto = require('crypto');
 
-var on_demand =  { host: 'localhost', port: 4490 }
-
 ////////////////////////////////////////
 // helper methods
 ////////////////////////////////////////
 
 function quit(msg){
 	log(" !! " + msg)
-	// process.exit(1)
+	process.exit(1)
 }
 
 ////////////////////////////////////////
