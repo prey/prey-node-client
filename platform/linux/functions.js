@@ -1,10 +1,9 @@
 //////////////////////////////////////////
-// Prey Evented System Command Runner
+// Prey Linux Specific Functions
 // (c) 2011 - Fork Ltd.
 // by Tomas Pollak - http://usefork.com
 // GPLv3 Licensed
 //////////////////////////////////////////
-
 
 var command = require('./../../lib/command'), util = require('util');
 
@@ -38,8 +37,8 @@ exports.set_new_delay = function(new_delay, full_path){
 // restarts NetworkManager so it reconnects
 exports.auto_connect = function(){
 
-	var command = "killall nm-applet &> /dev/null; nm-applet --sm-disable & 2> /dev/null"
-	var cmd = command.run(command);
+	var str = "killall nm-applet &> /dev/null; nm-applet --sm-disable & 2> /dev/null"
+	var cmd = command.run(str);
 
 	cmd.on('return', function(output) {
 		console.log(output);
