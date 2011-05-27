@@ -21,6 +21,10 @@ var Alarm = function(config){
 		var sound_file = __dirname + "/lib/" + options.sound;
 		var cmd = command.run('mpg123 ' + sound_file);
 
+		cmd.on('error', function(e){
+			console.log(e.message);
+		});
+
 		self.emit('trace', 'foo', 'bar')
 		self.emit('end');
 

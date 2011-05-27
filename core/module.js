@@ -1,7 +1,15 @@
+//////////////////////////////////////////
+// Prey Module Class
+// (c) 2011 - Fork Ltd.
+// by Tomas Pollak - http://usefork.com
+// GPLv3 Licensed
+//////////////////////////////////////////
+
 var sys = require('sys'),
 		events = require('events'),
 		fs = require('fs'),
 		path = require('path'),
+		util = require('util'),
 		log = console.log,
 		updater = require('./updater');
 
@@ -73,13 +81,14 @@ function Module(data) {
 	}
 
 	this.run = function(method){
+
 		log(" -- Running " + self.name + " module...");
 
 		try {
 			var core = require(self.path + "/core");
 		} catch(e){
-			console.log(" !! Error: " + e.message);
-			self.emit('error', "Module not found");
+			util.debug(e.message);
+			self.emit('error', "Module not found!");
 			self.emit('end', {});
 			return false;
 		}
@@ -97,7 +106,7 @@ function Module(data) {
 		})
 
 		hook.on('trace', function(key, val){
-			log(" ++ Adding trace for " + self.name + ": " + key + " -> " + val);
+			log(" ++ Adding trace for module " + self.name + ": " + key + " -> " + val);
 			self.traces[key] = val;
 		})
 

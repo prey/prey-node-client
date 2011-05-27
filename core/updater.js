@@ -1,4 +1,9 @@
-/* by tomas pollak */
+//////////////////////////////////////////
+// Prey Updater Class
+// (c) 2011 - Fork Ltd.
+// by Tomas Pollak - http://usefork.com
+// GPLv3 Licensed
+//////////////////////////////////////////
 
 var sys = require('sys'),
 		events = require('events'),

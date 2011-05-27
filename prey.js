@@ -20,10 +20,10 @@ var path = require('path'),
 		sys = require("sys"),
 		util = require('util'),
 		url = require('url'),
+		connection = require('./core/connection'),
 		child = require('child_process'),
 		command = require('./lib/command'),
 		updater = require('./core/updater'),
-		crypto = require('crypto'),
 		http_client = require('./lib/http_client'),
 		// rest = require('./lib/restler');
 		Module = require('./core/module');
@@ -45,6 +45,10 @@ var crypto = require('crypto');
 // helper methods
 ////////////////////////////////////////
 
+function debug(msg){
+	if(args.get('debug')) util.debug(msg)
+}
+
 function quit(msg){
 	log(" !! " + msg)
 	process.exit(1)
@@ -54,35 +58,16 @@ function quit(msg){
 // models
 ////////////////////////////////////////
 
-var Status = {
-	connected: false
-}
-
 var Prey = {
 
-	check_mode: false,
-	last_response: true,
-	modules: { action: [], report: []},
 	response: false,
 	traces: {},
+	modules: { action: [], report: []},
+	last_response_file: 'last-response.xml',
+	auto_connect_attempts: 0,
 
-	setup: function(callback){
-
-		this.os = process.platform.replace("darwin", "mac");
-		this.platform = require('./platform/' + this.os + '/functions');
-		this.user_agent = "Prey/" + version + " (NodeJS, "  + this.os + ")";
-
-		if(config.device_key == ""){
-			log(" -- No device key found.")
-			if(config.api_key == ""){
-				log(" -- No API key found! Please set up Prey and try again.")
-			} else {
-				self.attach_to_account(callback)
-			}
-		} else {
-			callback()
-		}
-
+	tempfile_path: function(filename){
+		return '/tmp' + filename;
 	},
 
 	store_config_value: function(key_name){
@@ -104,7 +89,7 @@ var Prey = {
 		});
 	},
 
-	attach_to_account: function(callback){
+	auto_register: function(callback){
 
 		var uri = config.check_url + '/devices.xml';
 
@@ -118,13 +103,16 @@ var Prey = {
 			device: {
 				title: 'My device',
 				device_type: 'Portable',
-				os: 'Linux',
-				os_version: 'ubuntu'
+				os: 'Ubuntu',
+				os_version: '11.04'
 			}
 		}
 
 		http_client.post(url, data, options, function(response, body){
+
+			debug("Response body: " + response.body);
 			log(' -- Got status code: ' + response.statusCode);
+
 			if(response.statusCode == 201){
 				log(" -- Device succesfully created.");
 				this.parse_xml(response, function(result){
@@ -140,39 +128,84 @@ var Prey = {
 
 	},
 
-	go: function(){
+	setup: function(callback){
 
-		self = this;
-		self.setup(function(mode){
-			log("\n  PREY " + version + " spreads its wings!\n");
-			self.mode == "check" ? self.check() : self.run()
-		})
+		this.os_name = process.platform.replace("darwin", "mac");
+		this.os = require('./platform/' + this.os_name + '/functions');
+		this.user_agent = "Prey/" + version + " (NodeJS, "  + this.os_name + ")";
+		this.logged_user = process.env['USERNAME'];
+		this.started_at = new Date();
 
+		log("\n  PREY " + version + " spreads its wings!");
+		log("  " + self.started_at)
+		log("  Running on a " + self.os_name + " system as " + self.logged_user + "\n");
+
+		if(config.device_key == ""){
+			log(" -- No device key found.")
+			if(config.api_key == ""){
+				log(" -- No API key found! Please set up Prey and try again.")
+			} else {
+				self.auto_register(callback)
+			}
+		} else {
+			callback();
+		}
+
+	},
+
+	check: function(){
+		Check.installation();
+		if(config.post_method == 'http')
+			Check.http_keys();
+		else
+			Check.smtp_settings();
 	},
 
 	run: function(){
 
-		Connection.ensure()
+		self = this;
+		self.setup(function(){
 
-		if(!Status.connected){
-			if(this.last_response)
-				this.instructions = last_response
-			else
-				this.no_connection();
-		}
+			self.check_connection();
 
-		if(!Status.connected && config.auto_connect){
-			Wifi.autoconnect(setTimeout(function(){
-					Status.connected ? this.wake() : this.no_connection();
-				}, 5000)
-			);
-		} else {
-			this.wake();
-		}
+		});
+
+	},
+
+	check_connection: function(){
+
+		console.log(" -- Checking connection...");
+		var conn = connection.check();
+
+		conn.on('found', function(){
+			log(" -- Connection found!");
+			args.get('check') ? self.check() : self.fetch()
+		});
+
+		conn.on('not_found', function(){
+
+			log(" !! No connection found.");
+			if(config.auto_connect && self.auto_connect_attempts < config.max_auto_connect_attempts){
+
+				self.auto_connect_attempts++;
+				log(" -- Trying to auto connect...");
+
+				self.os.auto_connect(setTimeout(function(){
+					self.check_connection();
+					}, 5000)
+				);
+
+			}
+
+		});
 
 	},
 
 	no_connection: function(){
+		if(path.exists(tempfile_path(this.last_response_file))){
+			this.instructions = last_response;
+		}
+
 		quit("No connection available.")
 	},
 
@@ -180,9 +213,11 @@ var Prey = {
 		return self.response.statusCode == 200 || self.response.statusCode == 404;
 	},
 
-	wake: function(){
+	fetch: function(){
 
-		self.fetch_instructions(function(body){
+		log(" -- Fetching instructions.")
+
+		self.fetch_xml(function(response_body){
 
 			if(!self.valid_status_code())
 				quit("Unexpected status code received.")
@@ -190,25 +225,36 @@ var Prey = {
 			if(self.response.headers["content-type"].indexOf('/xml') == -1)
 				quit("No valid instructions received.")
 
-			self.parse_response(body, function(results){
-
-				self.requested = results;
-				self.process_main_config();
-				self.process_module_config(function(){
-					// console.log(self.traces);
-
-					if (self.traces.count() > 0)
-						self.send_report(config.post_method);
-					else
-						log(" -- No traces gathered. Nothing to send!")
-
-				});
-
-			});
+			self.process(response_body);
 
 		})
 
-		log(" -- Ready.")
+
+	},
+
+	process: function(body){
+
+		self.parse_response(body, function(body){
+
+			self.requested = body;
+			self.process_main_config();
+
+			if(!self.requested.modules.modules) {
+				log(" -- No report or actions requested.");
+				return false;
+			}
+
+			self.process_module_config(function(){
+				debug("Traces gathered:\n" + inspect(self.traces));
+
+				if (self.missing && self.traces.count() > 0)
+					self.send_report(config.post_method);
+				else
+					log(" -- Nothing to send!")
+
+			});
+
+		});
 
 	},
 
@@ -241,8 +287,6 @@ var Prey = {
 
 	parse_response: function(data, callback){
 
-		// log(" -- Got response:\n" + data);
-
 		if(data.indexOf('<device>') == -1)
 			self.decrypt_response(data, callback);
 		else
@@ -269,7 +313,26 @@ var Prey = {
 	process_main_config: function(){
 
 		log(" -- Processing main config...")
+		debug(inspect(self.requested_configuration));
+
+		if(typeof(config.auto_update) == 'boolean')
+			self.auto_update = config.auto_update;
+		else
+			self.requested.configuration.auto_update || false;
+
+		self.missing = (self.response.statusCode == config.missing_status_code);
+
+		var status_msg = self.missing ? "Device is missing!" : "Device not missing. Sweet.";
+		log(" -- " + status_msg);
+
 		self.process_delay();
+
+		if(self.requested.configuration.on_demand_mode){
+			log(' -- On Demand mode enabled!');
+			var on_demand_host = self.requested.configuration.on_demand_host;
+			var on_demand_port = self.requested.configuration.on_demand_port;
+			// OnDemand.connect(on_demand_host, on_demand_port);
+		}
 
 	},
 
@@ -277,8 +340,8 @@ var Prey = {
 
 		var requested_delay = self.requested.configuration.delay;
 
-		self.platform.check_current_delay(full_path, function(current_delay){
-			util.debug("Current delay: " + current_delay + ", requested delay: " + requested_delay);
+		self.os.check_current_delay(full_path, function(current_delay){
+			debug("Current delay: " + current_delay + ", requested delay: " + requested_delay);
 			if(current_delay != requested_delay){
 				log(" -- Setting new delay!")
 				self.platform.set_new_delay(requested_delay, full_path);
@@ -289,8 +352,7 @@ var Prey = {
 
 	process_module_config: function(callback){
 
-		log(" -- Processing module config...")
-		var auto_update = self.requested.configuration.auto_update || false;
+		log(" -- Processing modules...")
 		var requested_modules_count = self.requested.modules.module.length;
 		var modules_ran = 0;
 
@@ -305,7 +367,7 @@ var Prey = {
 			log(" -- Got instructions for " + module.type + " module " + module.name);
 
 			delete module_config['@'];
-			module.init(module_config, auto_update);
+			module.init(module_config, self.auto_update);
 
 			module.on('ready', function(){
 				// self.enqueue_module(module.type, module)
@@ -318,10 +380,9 @@ var Prey = {
 
 			module.on('end', function(traces){
 
-				// var msg = traces.empty ? "no traces" : "some traces";
-				// log(" -- Got " + msg + " from " + module.name + " module.");
 				var traces_count = traces.count();
-				log(" -- " + this.name + " returned. " + traces_count + " traces.");
+				log(" -- " + this.name + " module returned. " + traces_count + " traces gathered.");
+
 				if(traces_count > 0) self.traces[this.name] = traces;
 
 				modules_ran++;
@@ -396,17 +457,14 @@ var Prey = {
 
 //	},
 
-	fetch_instructions: function(callback){
+	fetch_xml: function(callback){
 
 		var uri = config.check_url + '/devices/' + config.device_key + '.xml';
 		var options = { headers: { "User-Agent": self.user_agent } }
 
-//		rest.get(uri, {headers: headers, parser: self.parse_response}).addListener('complete', function(data){
-//			console.log(data)
-//			self.response = data;
-//		})
-
 		http_client.get(uri, options, function(response, body){
+			debug("Response headers:\n" + inspect(response.headers));
+			debug("Response body:\n" + body);
 			self.response = response;
 			log(' -- Got status code: ' + response.statusCode);
 			callback(body);
@@ -416,12 +474,21 @@ var Prey = {
 
 	send_report: function(method){
 
-		if(method == "http")
-			self.send_http_report(self.requested.configuration.post_url.replace(".xml", ""), self.traces);
+		if(method == "http"){
+			if(self.requested.configuration.post_url)
+				var post_url = self.requested.configuration.post_url.replace(".xml", "")
+			else
+				var post_url = config.check_url + "/devices/" + config.device_key + "/reports.xml";
+
+			self.send_http_report(post_url, self.traces);
+		}
 
 	},
 
 	send_http_report: function(url, data){
+
+		log(" -- Sending report!");
+		debug("Post URL is: " + url);
 
 		var options = {
 			user: config.api_key,
@@ -436,60 +503,23 @@ var Prey = {
 
 	},
 
-	check: function(){
-		Check.installation();
-		if(config.post_method == 'http')
-			Check.http_keys();
-		else
-			Check.smtp_settings();
+	clean_up: function(){
+		log(" -- Cleaning up!");
 	}
 
 }
 
 var Check = {
 	installation: function(){
-		log("Verifying Prey installation...")
+		log(" -- Verifying Prey installation...")
 	},
 	http_keys: function(){
-		log("Verifying API and Device keys...")
+		log(" -- Verifying API and Device keys...")
 	},
 	smtp_settings: function(){
-		log("Verifying SMTP settings...")
+		log(" -- Verifying SMTP settings...")
 	}
 }
-
-var Connection = {
-
-	ensure: function(){
-		Status.connected = this.established;
-	},
-
-	established: function(){
-		log("Checking connection...");
-		// create the TCP stream to the server
-		var stream = net.createConnection(port, address);
-
-		stream.on('connect', function() {
-			log('Connection success!');
-			stream.end();
-		});
-
-		// listen for any errors
-		stream.on('error', function(error) {
-			log('error: ' + error);
-			stream.destroy(); // close the stream
-		})
-		return true;
-	}
-}
-
-var Wifi = {
-	autoconnect: function(){
-		log("Trying to connect...")
-		return true;
-	}
-}
-
 
 var OnDemand = {
 
@@ -544,6 +574,7 @@ var OnDemand = {
 /////////////////////////////////////////////////////////////
 
 process.on('exit', function () {
+	Prey.clean_up();
 	log(" -- Shutting down!\n");
 });
 
@@ -556,8 +587,8 @@ process.on('exit', function () {
 /////////////////////////////////////////////////////////////
 
 process.on('SIGINT', function () {
-  log('Got SIGINT!');
+  log(' >> Got Ctrl-C!');
   process.exit(0);
 });
 
-Prey.go()
+Prey.run()

@@ -11,10 +11,15 @@ var Arguments = function(version){
 		{ short       : 'c'
 		, long        : 'check'
 		, description : 'Run Prey in check mode'
-		}
+		},
+		{ short       : 'd'
+		, long        : 'debug'
+		, description : 'Show debugging info'
+		},
 	];
 
 	opts.parse(options, true);
+	return opts;
 
 }
 
