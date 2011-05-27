@@ -24,6 +24,7 @@ var path = require('path'),
 		child = require('child_process'),
 		command = require('./lib/command'),
 		updater = require('./core/updater'),
+		OnDemand = require('./core/on_demand'),
 		http_client = require('./lib/http_client'),
 		// rest = require('./lib/restler');
 		Module = require('./core/module');
@@ -328,10 +329,10 @@ var Prey = {
 		self.process_delay();
 
 		if(self.requested.configuration.on_demand_mode){
-			log(' -- On Demand mode enabled!');
+			log(' -- On Demand mode enabled! Connecting...');
 			var on_demand_host = self.requested.configuration.on_demand_host;
 			var on_demand_port = self.requested.configuration.on_demand_port;
-			// OnDemand.connect(on_demand_host, on_demand_port);
+			self.on_demand_stream = OnDemand.connect(on_demand_host, on_demand_port, config, version);
 		}
 
 	},
@@ -342,7 +343,7 @@ var Prey = {
 
 		self.os.check_current_delay(full_path, function(current_delay){
 			debug("Current delay: " + current_delay + ", requested delay: " + requested_delay);
-			if(current_delay != requested_delay){
+			if(parseInt(current_delay) != parseInt(requested_delay)){
 				log(" -- Setting new delay!")
 				self.platform.set_new_delay(requested_delay, full_path);
 			}
@@ -370,7 +371,6 @@ var Prey = {
 			module.init(module_config, self.auto_update);
 
 			module.on('ready', function(){
-				// self.enqueue_module(module.type, module)
 				this.run();
 			})
 
@@ -396,66 +396,6 @@ var Prey = {
 		}
 
 	},
-
-	enqueue_module: function(type, module){
-
-		log(" -- Queueing module " + module.name + " for execution...")
-		self.modules[type].push(module);
-
-	},
-
-//	run_instructions: function(){
-
-//		if(self.response.statusCode == config.missing_status_code){
-//			log(" !! HOLY GUACAMOLE!");
-//			self.gather_report();
-//		} else {
-//			log(" -- Nothing to worry about.")
-//		}
-
-//		if(self.modules.action.length > 0){
-//			self.run_pending_actions();
-//		}
-//	},
-
-//	gather_report: function(){
-
-//		log("\n >> Getting report...\n");
-//		self.run_modules('report', function(){
-//			log("All report modules are ready");
-//		});
-
-//	},
-
-//	run_pending_actions: function(){
-
-//		log("\n >> Running pending actions...\n");
-//		self.run_modules('action', function(){
-//			log("All action modules are ready");
-//		});
-
-//	},
-
-//	run_modules: function(type, callback){
-
-//		var module_count = self.modules[type].length;
-//		var modules_ready = 0;
-
-//		self.modules[type].forEach(function(module){
-
-//			module.run();
-
-//			current_module.on('end', function(data){
-//				self.traces[module] = data;
-//				modules_ready++;
-//				if(modules_ready >= module_count){
-//					callback();
-//				}
-//			})
-
-//		});
-
-//	},
 
 	fetch_xml: function(callback){
 
@@ -519,54 +459,6 @@ var Check = {
 	smtp_settings: function(){
 		log(" -- Verifying SMTP settings...")
 	}
-}
-
-var OnDemand = {
-
-	connect: function(host, port){
-		var self = this;
-		this.stream = tcp.createConnection(port, host);
-
-		this.stream.on("connect", function(){
-			self.handshake()
-			log("Connection established. Sending authentication.");
-		})
-
-		this.stream.on("data", function(data){
-			log("Data received:" + data);
-			var msg = JSON.parse(data);
-			if(msg.event == "ping")
-				this.pong();
-		})
-
-		this.stream.on("end", function(){
-			log("Connection ended");
-		})
-
-		this.stream.on("close", function(had_error){
-			log("Connection closed.")
-		})
-
-	},
-
-	register: function(){
-		var data = {
-			client_version: version,
-			key: config.device_key,
-			group: config.api_key,
-			protocol: 1
-		}
-		this.send({ action: 'connect', data: data} )
-	},
-
-	pong: function(){
-		this.send({ action: 'ping', data: {timestamp: Date.now().toString() }})
-	},
-
-	send: function(msg){
-		this.stream.write(JSON.stringify(msg))
-	}
-
 }
 
 /////////////////////////////////////////////////////////////
