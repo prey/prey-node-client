@@ -156,10 +156,10 @@ var Prey = {
 
 	check: function(){
 		Check.installation();
-		if(config.post_method == 'http')
-			Check.http_keys();
-		else
-			Check.smtp_settings();
+		if(config.post_methods.indexOf('http') != -1)
+			Check.http_config();
+		if(config.post_methods.indexOf('smtp') != -1)
+			Check.smtp_config();
 	},
 
 	run: function(){
@@ -240,7 +240,7 @@ var Prey = {
 			self.requested = body;
 			self.process_main_config();
 
-			if(!self.requested.modules.modules) {
+			if(!self.requested.modules || self.requested.modules.length == 0) {
 				log(" -- No report or actions requested.");
 				return false;
 			}
@@ -249,7 +249,7 @@ var Prey = {
 				debug("Traces gathered:\n" + inspect(self.traces));
 
 				if (self.missing && self.traces.count() > 0)
-					self.send_report(config.post_method);
+					self.send_report();
 				else
 					log(" -- Nothing to send!")
 
@@ -314,7 +314,7 @@ var Prey = {
 	process_main_config: function(){
 
 		log(" -- Processing main config...")
-		debug(inspect(self.requested_configuration));
+		debug(inspect(self.requested));
 
 		if(typeof(config.auto_update) == 'boolean')
 			self.auto_update = config.auto_update;
@@ -412,23 +412,23 @@ var Prey = {
 
 	},
 
-	send_report: function(method){
+	send_report: function(){
 
-		if(method == "http"){
-			if(self.requested.configuration.post_url)
-				var post_url = self.requested.configuration.post_url.replace(".xml", "")
-			else
-				var post_url = config.check_url + "/devices/" + config.device_key + "/reports.xml";
-
-			self.send_http_report(post_url, self.traces);
-		}
+		config.post_methods.forEach(function(post_method) {
+			var report_method = "send_" + post_method + "_report";
+			self[report_method](report_method, self.traces);
+		});
 
 	},
 
-	send_http_report: function(url, data){
+	send_http_report: function(data){
+
+		if(self.requested.configuration.post_url)
+			var post_url = self.requested.configuration.post_url.replace(".xml", "")
+		else
+			var post_url = config.check_url + "/devices/" + config.device_key + "/reports.xml";
 
 		log(" -- Sending report!");
-		debug("Post URL is: " + url);
 
 		var options = {
 			user: config.api_key,
@@ -436,10 +436,14 @@ var Prey = {
 			headers : { "User-Agent": self.user_agent }
 		}
 
-		http_client.post(url, data, options, function(response, body){
+		http_client.post(post_url, data, options, function(response, body){
 			log(' -- Got status code: ' + response.statusCode);
 			log(' -- ' + body);
 		})
+
+	},
+
+	send_smtp_report: function(data){
 
 	},
 
@@ -453,10 +457,10 @@ var Check = {
 	installation: function(){
 		log(" -- Verifying Prey installation...")
 	},
-	http_keys: function(){
+	http_config: function(){
 		log(" -- Verifying API and Device keys...")
 	},
-	smtp_settings: function(){
+	smtp_config: function(){
 		log(" -- Verifying SMTP settings...")
 	}
 }

@@ -40,7 +40,7 @@ function Module(data) {
 		log(" ++ Downloading module " + this.name + " from server...")
 		var update = updater.module(self);
 		update.on('success', function(){
-			log(" ++ Module in place and ready to roll!")
+			log(" ++ Module " + self.name + " in place and ready to roll!")
 			self.ready();
 		});
 		update.on('error', function(){
@@ -87,8 +87,8 @@ function Module(data) {
 		try {
 			var core = require(self.path + "/core");
 		} catch(e){
-			util.debug(e.message);
-			self.emit('error', "Module not found!");
+			// util.debug(e.message);
+			self.emit('error', "File not found! " + self.path);
 			self.emit('end', {});
 			return false;
 		}

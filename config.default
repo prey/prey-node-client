@@ -23,9 +23,9 @@ exports.main = {
 	// creating the URL (as before) instead of removing an existing one
 	missing_status_code: "404",
 
-	// you can use send the report via email or to the web service
+	// method(s) for sending reports 
 	// valid values: http, email, scp or sftp
-	post_method: "http",
+	post_methods: ["http"],
 
 	//////////////////////////////////////////////////////////////
 	// http posting configuration
@@ -59,7 +59,7 @@ exports.main = {
 
 	// if you're having trouble getting requests across your firewall or proxy,
 	// you can try adding '-0' to make curl perform HTTP 1.0 requests
-	curl_options: "--compress",
+	http_options: "--compress",
 
 	// this option prepends a random number as a subdomain to the check URL on http mode
 	// makes it harder for other programs to block Prey so its a good idea to be on
@@ -87,7 +87,6 @@ exports.main = {
 	sftp_user: "username",
 	sftp_server: "my.server.com",
 	sftp_path: ".",
-
 
 	//////////////////////////////////////////////////////////////
 	// SSH Tunnel config
