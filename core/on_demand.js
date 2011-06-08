@@ -5,7 +5,7 @@
 // GPLv3 Licensed
 //////////////////////////////////////////
 
-var fs = require('fs'), tls = require('tls'), sys = require('sys'), events = require('events');
+var fs = require('fs'), tls = require('tls'), sys = require('sys'), util = require('util'), events = require('events');
 
 // to generate:
 // openssl genrsa -out ssl/key.pem 1024
@@ -32,8 +32,8 @@ var OnDemand = {
 		// create and encrypted connection using ssl
 		self.stream = tls.connect(port, host, keys, function(){
 
-			console.log("Connection established.");
-			if(self.stream.authorized)console.log("Credentials were valid!");
+			console.log(" -- Connection established.");
+			self.stream.authorized ? util.debug("Credentials were valid!") : util.debug("Credentials were NOT valid!");
 
 			self.connected = true;
 			self.register(config, version);
@@ -42,7 +42,7 @@ var OnDemand = {
 		});
 
 		self.stream.on("data", function(data){
-			console.log("Data received:" + data);
+			console.log(" -- Data received:" + data);
 			var msg = JSON.parse(data);
 			if(msg.event == "ping")
 				self.pong();
@@ -56,11 +56,11 @@ var OnDemand = {
 		})
 
 		self.stream.on("end", function(){
-			console.log("Connection ended");
+			console.log(" -- Connection ended");
 		})
 
 		self.stream.on("close", function(had_error){
-			console.log("Connection closed.")
+			console.log(" -- Connection closed.")
 		});
 
 		return self.stream;
@@ -68,14 +68,14 @@ var OnDemand = {
 	},
 
 	register: function(config, version){
-		console.log("Registering...");
+		console.log(" -- Registering...");
 		var data = {
 			client_version: version,
 			key: config.device_key,
 			group: config.api_key,
 			protocol: 1
 		}
-		this.send('connecxxt', data)
+		this.send('connect', data)
 	},
 
 	pong: function(){
@@ -86,7 +86,7 @@ var OnDemand = {
 	},
 
 	send: function(action, data){
-		console.log("Sending action " + action);
+		util.debug("Sending action " + action);
 		this.stream.write(JSON.stringify({ action: action, data: data }))
 	}
 
