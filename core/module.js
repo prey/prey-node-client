@@ -6,29 +6,29 @@
 //////////////////////////////////////////
 
 var sys = require('sys'),
-		events = require('events'),
+		emitter = require('events').EventEmitter,
 		fs = require('fs'),
 		path = require('path'),
-		util = require('util'),
-		log = console.log,
 		updater = require('./updater');
 
-var base_path = path.dirname(__dirname);
-
-function Module(data) {
+function Module(name, options) {
 
 	var self = this;
-	this.name = data.name;
-	this.type = data.type;
-	this.path = base_path + "/modules/" + this.name;
+	this.name = name;
+	this.path = base_path + "/modules/" + name;
+
 	this.traces = {};
 
-	this.default_options = function(){
+	this.methods_total = null;
+	this.methods_returned = 0;
+
+	this.defaults = function(){
 		return require(this.path + "/config").default;
 	}
 
 	this.ready = function(){
-		self.emit('ready');
+		// console.log(" -- Module ready.");
+		if(options.method) self.run(options.method);
 	}
 
 	this.download = function(){
@@ -53,9 +53,8 @@ function Module(data) {
 
 		// get version and check if we need to update
 		fs.readFile(this.path + "/version", function(err, data){
-			if(err) return;
-			this.version = parseFloat(data);
-			if(upstream_version > this.version){
+			if(err) return false;
+			if(parseFloat(upstream_version) > parseFloat(this.version)){
 				log(upstream_version + " is newer than installed version: " + this.version);
 				self.update();
 			} else {
@@ -64,16 +63,18 @@ function Module(data) {
 		})
 	};
 
-	this.init = function(config, update){
+	this.init = function(options){
 
-		self.options = self.default_options.merge(config);
+		// log(" -- Initializing module...");
+		self.config = self.defaults.merge(options.config);
 
-		// download module in case it's not there
+		// download module in case it's not there,
+		// or check for updates in case option was selected
 		path.exists(this.path, function(exists) {
 			if(!exists)
 				self.download();
-			else if(update)
-				self.check_version(data.version);
+			else if(options.update)
+				self.check_version(options.upstream_version);
 			else
 				self.ready();
 		});
@@ -85,39 +86,83 @@ function Module(data) {
 		log(" -- Running " + self.name + " module...");
 
 		try {
-			var core = require(self.path + "/core");
+			var core = require(self.path);
 		} catch(e){
-			// util.debug(e.message);
-			self.emit('error', "File not found! " + self.path);
+			debug(e.message);
+			log(" !! Error loading module in " + self.path);
 			self.emit('end', {});
-			return false;
+			return;
 		}
 
 		var hook = core.init(self.options);
 
-		hook.on('end', function(){
-			console.log(' -- Module execution ended.')
-			self.emit('end', self.traces);
-		})
+		hook.on('error', function(msg){
+			log(' !! Method returned error: ' + msg)
+			hook.emit('method_returned'); // triggers event above
+		});
 
-		hook.on('error', function(){
-			console.log(' -- Module execution failed.')
-			self.emit('error');
-		})
-
+		// trace returned
 		hook.on('trace', function(key, val){
-			log(" ++ Adding trace for module " + self.name + ": " + key + " -> " + val);
+			log(" ++ Trace returned from " + self.name + ": " + key + " -> " + val);
 			self.traces[key] = val;
-		})
+			hook.emit('method_returned');
+		});
 
-		method ? hook.send(method) : hook.run()
+		// method returned
+		hook.on('method_returned', function(){
+			if(self.methods_total) {
+				self.methods_returned++;
+				if(self.methods_returned >= self.methods_total)
+					hook.emit('end');
+			}
+		});
+
+		// module is done
+		hook.on('end', function(){
+			debug(' -- Module execution ended.')
+			self.emit('end', self.traces); // returns to caller
+		});
+
+		if(method){ // specific method requested
+
+			hook[method]();
+
+		} else {
+
+			if(typeof hook.async_methods === 'undefined'){
+
+				hook.run();
+
+			} else {
+
+				self.methods_total = hook.async_methods.length;
+
+				hook.async_methods.forEach(function(method_name){
+					// try {
+						hook[method_name]();
+					// } catch (e) {
+						// console.log(e);
+					// }
+				});
+
+			}
+
+		}
 
 	}
 
+	this.init(options);
+
 }
 
-sys.inherits(Module, events.EventEmitter);
+sys.inherits(Module, emitter);
 
-exports.new = function(attrs){
-	return new Module(attrs);
+// initializes module
+exports.new = function(name, options){
+	return new Module(name, options);
+}
+
+// calls specific method on module with default settings
+exports.run = function(name, method){
+	return new Module(name, {method: method});
 }

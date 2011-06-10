@@ -7,7 +7,12 @@
 // GPLv3 Licensed
 //////////////////////////////////////////
 
-var config_file_path = './config'
+// set globals that are needed for all descendants
+GLOBAL.base_path = __dirname;
+GLOBAL.script_path = __filename;
+GLOBAL.os_name = process.platform.replace("darwin", "mac");
+
+require.paths.unshift(__dirname);
 
 // base requires
 
@@ -18,7 +23,6 @@ var path = require('path'),
 		crypto = require('crypto'),
 		tcp = require("net"),
 		sys = require("sys"),
-		util = require('util'),
 		url = require('url'),
 		connection = require('./core/connection'),
 		child = require('child_process'),
@@ -26,34 +30,22 @@ var path = require('path'),
 		updater = require('./core/updater'),
 		OnDemand = require('./core/on_demand'),
 		http_client = require('./lib/http_client'),
-		// rest = require('./lib/restler');
 		Module = require('./core/module');
 
 // aliases
 
-var inspect = util.inspect, log = console.log;
-
-var base_path = __dirname;
-var full_path = __filename;
-
-var version = fs.readFileSync(base_path + '/version').toString().replace("\n", '');
-var args = require('./core/args').init(version);
+var config_file_path = './config'
 var config = require(config_file_path).main;
 
-var crypto = require('crypto');
+var version = fs.readFileSync(base_path + '/version').toString().replace("\n", '');
+GLOBAL.args = require('./core/args').init(version);
+
+require('./lib/logger');
 
 ////////////////////////////////////////
 // helper methods
 ////////////////////////////////////////
 
-function debug(msg){
-	if(args.get('debug')) util.debug(msg)
-}
-
-function quit(msg){
-	log(" !! " + msg)
-	process.exit(1)
-}
 
 ////////////////////////////////////////
 // models
@@ -68,7 +60,7 @@ var Prey = {
 	auto_connect_attempts: 0,
 
 	tempfile_path: function(filename){
-		return '/tmp' + filename;
+		return os.temp_path + filename;
 	},
 
 	store_config_value: function(key_name){
@@ -76,12 +68,12 @@ var Prey = {
 		this.replace_in_file(config_file_path, "\t" + key_name+"=.*", key_name + "='" + value + "';")
 	},
 
-	replace_in_file: function(file_name, from, to){
-		fs.readFile(file_name, function (err, data) {
-			if (err) throw err;
-			if(new_data != data) self.save_file_contents(file_name, new_data)
-		});
-	},
+//	replace_in_file: function(file_name, from, to){
+//		fs.readFile(file_name, function (err, data) {
+//			if (err) throw err;
+//			if(new_data != data) self.save_file_contents(file_name, new_data)
+//		});
+//	},
 
 	save_file_contents: function(file_name, data){
 		fs.writeFile(file_name, data, function (err) {
@@ -131,15 +123,14 @@ var Prey = {
 
 	setup: function(callback){
 
-		this.os_name = process.platform.replace("darwin", "mac");
-		this.os = require('./platform/' + this.os_name + '/functions');
-		this.user_agent = "Prey/" + version + " (NodeJS, "  + this.os_name + ")";
+		this.os = require('./platform/' + os_name);
+		this.user_agent = "Prey/" + version + " (NodeJS, "  + os_name + ")";
 		this.logged_user = process.env['USERNAME'];
 		this.started_at = new Date();
 
 		log("\n  PREY " + version + " spreads its wings!");
 		log("  " + self.started_at)
-		log("  Running on a " + self.os_name + " system as " + self.logged_user + "\n");
+		log("  Running on a " + os_name + " system as " + self.logged_user + "\n");
 
 		if(config.device_key == ""){
 			log(" -- No device key found.")
@@ -298,7 +289,7 @@ var Prey = {
 	parse_xml: function(data, callback){
 
 		log(' -- Parsing XML...')
-		xml2js = require('./lib/xml2js');
+		xml2js = require('./vendor/xml2js');
 
 		var parser = new xml2js.Parser();
 
@@ -341,11 +332,11 @@ var Prey = {
 
 		var requested_delay = self.requested.configuration.delay;
 
-		self.os.check_current_delay(full_path, function(current_delay){
+		self.os.check_current_delay(script_path, function(current_delay){
 			debug("Current delay: " + current_delay + ", requested delay: " + requested_delay);
 			if(parseInt(current_delay) != parseInt(requested_delay)){
 				log(" -- Setting new delay!")
-				self.platform.set_new_delay(requested_delay, full_path);
+				self.platform.set_new_delay(requested_delay, script_path);
 			}
 		});
 
@@ -355,43 +346,42 @@ var Prey = {
 
 		log(" -- Processing modules...")
 		var requested_modules_count = self.requested.modules.module.length;
-		var modules_ran = 0;
+		var modules_returned = 0;
 
 		for(id in self.requested.modules.module){
 
 			var module_config = self.requested.modules.module[id];
 			if(typeof(module_config) !== "object") continue;
 
-			var module_attrs = module_config['@'];
-			var module = Module.new(module_attrs);
-
-			log(" -- Got instructions for " + module.type + " module " + module.name);
+			var module_data = module_config['@'];
+			log(" -- Got instructions for " + module_data.type + " module " + module_data.name);
 
 			delete module_config['@'];
-			module.init(module_config, self.auto_update);
 
-			module.on('ready', function(){
-				this.run();
-			})
+			var module_options = {
+				config: module_config,
+				upstream_version: module_data.version,
+				update: self.auto_update
+			}
 
-			module.on('error', function(err_msg){
-				log(" !! " + err_msg);
-			})
+			var prey_module = Module.new(module_data.name, module_options);
 
-			module.on('end', function(traces){
+			prey_module.on('end', function(traces){
 
 				var traces_count = traces.count();
 				log(" -- " + this.name + " module returned. " + traces_count + " traces gathered.");
 
 				if(traces_count > 0) self.traces[this.name] = traces;
 
-				modules_ran++;
-				if(modules_ran >= requested_modules_count){
+				modules_returned++;
+				if(modules_returned >= requested_modules_count){
 					log(" ++ All modules are done! Packing report...");
 					callback();
 				}
 
 			});
+
+			prey_module.run();
 
 		}
 

@@ -6,19 +6,15 @@
 //////////////////////////////////////////
 
 var sys = require('sys'),
-		events = require('events'),
-		download = require('../lib/download'),
+		emitter = require('events').EventEmitter,
+		download = require('lib/download'),
 		util = require('util'),
 		fs = require('fs'),
 		path = require('path'),
-		unpack = require('../lib/unpack'),
-		fs2 = require("../lib/wrench");
+		unpack = require('lib/unpack'),
+		fs2 = require("vendor/wrench");
 
 var modules_server = "http://control.preyproject.com";
-
-exports.module = function(module){
-	return new ModuleUpdater(module);
-}
 
 var ModuleUpdater = function(module){
 
@@ -68,4 +64,8 @@ var ModuleUpdater = function(module){
 
 }
 
-sys.inherits(ModuleUpdater, events.EventEmitter);
+exports.module = function(module){
+	return new ModuleUpdater(module);
+}
+
+sys.inherits(ModuleUpdater, emitter);

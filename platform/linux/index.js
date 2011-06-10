@@ -5,9 +5,11 @@
 // GPLv3 Licensed
 //////////////////////////////////////////
 
-var command = require('./../../lib/command'), util = require('util');
+var command = require('lib/command'), util = require('util');
 
-exports.check_current_delay = function(full_path, callback) {
+exports.temp_path = "/tmp";
+
+exports.check_current_delay = function(script_path, callback) {
 
 	var delay_value = false;
 
@@ -15,7 +17,7 @@ exports.check_current_delay = function(full_path, callback) {
 
 	cmd.on('return', function(output) {
 		output.split("\n").forEach(function(el){
-			if(el.indexOf(full_path) != -1){
+			if(el.indexOf(script_path) != -1){
 				delay_value = el.replace(/ \*.*/, '').replace('*/', '');
 				// util.debug('Found Prey record in crontab: ' + el + ". Matched delay: " + delay_value);
 			}
@@ -24,11 +26,11 @@ exports.check_current_delay = function(full_path, callback) {
 
 };
 
-exports.set_new_delay = function(new_delay, full_path){
+exports.set_new_delay = function(new_delay, script_path){
 
 	// (crontab -l | grep -v prey; echo "${new_delay}" "${full_path}/prey.sh > /var/log/prey.log") | crontab -
-	var str = 'crontab -l | grep -v "' + full_path + '"; \
-	echo "*/' + new_delay + " * * * * " + full_path + ' > /var/log/prey.log" | crontab -'
+	var str = 'crontab -l | grep -v "' + script_path + '"; \
+	echo "*/' + new_delay + " * * * * " + script_path + ' > /var/log/prey.log 2>&1" | crontab -'
 
 	var cmd = command.run(str);
 
