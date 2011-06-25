@@ -39,6 +39,7 @@ var path = require('path'),
 
 var config_file_path = './config'
 var config = require(config_file_path).main;
+var lockfile = "/tmp/prey.pid"; // where pid is stored
 
 var version = fs.readFileSync(base_path + '/version').toString().replace("\n", '');
 GLOBAL.args = require('./core/args').init(version);
@@ -51,11 +52,11 @@ require('./lib/logger');
 
 var Prey = {
 
-	response: false,
+	auto_connect_attempts: 0,
 	traces: {},
 	modules: { action: [], report: []},
-	last_response_file: 'last-response.xml',
-	auto_connect_attempts: 0,
+	response: false,
+	on_demand: null,
 
 	tempfile_path: function(filename){
 		return os.temp_path + filename;
@@ -163,6 +164,11 @@ var Prey = {
 
 	},
 
+	rerun: function(){
+		this.clean_up();
+		this.fetch();
+	},
+
 	check_connection: function(){
 
 		console.log(" -- Checking connection...");
@@ -193,8 +199,8 @@ var Prey = {
 	},
 
 	no_connection: function(){
-		if(path.exists(tempfile_path(this.last_response_file))){
-			this.instructions = last_response;
+		if(path.existsSync(tempfile_path(config.last_response_file))){
+			this.instructions = fs.readFileSync(config.last_response_file);
 		}
 
 		quit("No connection available.")
@@ -317,12 +323,9 @@ var Prey = {
 
 		self.process_delay();
 
-		if(self.requested.configuration.on_demand_mode){
-			log(' -- On Demand mode enabled! Connecting...');
-			var on_demand_host = self.requested.configuration.on_demand_host;
-			var on_demand_port = self.requested.configuration.on_demand_port;
-			self.on_demand_stream = OnDemand.connect(on_demand_host, on_demand_port, config, version);
-		}
+		if(self.on_demand == null && self.requested.configuration.on_demand_mode) self.setup_on_demand();
+
+		debug(self.requested);
 
 	},
 
@@ -436,7 +439,25 @@ var Prey = {
 
 	},
 
+	setup_on_demand: function(){
+
+		log(' -- On Demand mode enabled! Connecting...');
+		var on_demand_host = self.requested.configuration.on_demand_host;
+		var on_demand_port = self.requested.configuration.on_demand_port;
+		self.on_demand = OnDemand.connect(on_demand_host, on_demand_port, config, version, function(stream){
+
+			stream.on('event', function(event, data){
+				console.log(event);
+				console.log(data.msg);
+				if(data.msg == 'run_prey') Prey.rerun();
+			});
+
+		});
+
+	},
+
 	clean_up: function(){
+		this.traces = {},
 		log(" -- Cleaning up!");
 	}
 
@@ -472,8 +493,30 @@ process.on('exit', function () {
 /////////////////////////////////////////////////////////////
 
 process.on('SIGINT', function () {
-  log(' >> Got Ctrl-C!');
-  process.exit(0);
+	log(' >> Got Ctrl-C!');
+	process.exit(0);
 });
 
-Prey.run()
+process.on('SIGUSR1', function () {
+	log(' >> Received run instruction!');
+	Prey.rerun();
+});
+
+if(path.existsSync(lockfile)){
+
+	log("\n -- Prey seems to be running already!");
+	pid = parseInt(fs.readFileSync(lockfile));
+	try {
+		process.kill(pid, 'SIGWINCH')
+		process.exit(0);
+	} catch(e) {
+		log(" -- No sire. Pidfile was just lying around.");
+		fs.unlink(lockfile);
+	}
+
+}
+
+fs.writeFile(lockfile, process.pid.toString(), function (err) {
+	if (err) throw err;
+	Prey.run()
+});

@@ -5,49 +5,78 @@
 // GPLv3 Licensed
 //////////////////////////////////////////
 
-var fs = require('fs'), tls = require('tls'), sys = require('sys'), util = require('util'), events = require('events');
+var fs = require('fs'),
+		tls = require('tls'),
+		path = require('path'),
+		sys = require('sys'),
+		util = require('util');
 
-// to generate:
-// openssl genrsa -out ssl/key.pem 1024
-// openssl req -new -key ssl/key.pem -out ssl/csr.pem
-// openssl x509 -req -in ssl/csr.pem -signkey ssl/key.pem -out ssl/cert.pem
-
-var private_key_file = 'ssl/key.pem';
-var certificate_file = 'ssl/cert.pem';
-
-var keys = {
-	key: fs.readFileSync(private_key_file).toString(),
-	cert: fs.readFileSync(certificate_file).toString()
-};
+// to generate, run ./ssl/generate.sh
+var private_key_file = 'ssl/ssl.key';
+var certificate_file = 'ssl/ssl.cert';
 
 var OnDemand = {
 
 	stream: null,
+	keys: null,
 	connected: false,
 
-	connect: function(host, port, config, version){
+	start: function(host, port, config, version, callback){
+		this.self = this;
 
-		var self = this;
+		this.get_keys(function(){
+			OnDemand.connect(host, port, config, version, callback);
+		});
+
+	},
+
+	get_keys: function(callback){
+		if(OnDemand.keys == null){
+			if(!path.existsSync(private_key_file)){
+				console.log(" !! Keys not found! Generating...");
+				this.keys = true;
+				require('child_process').exec('ssl/generate.sh', function(error, stdout, error){
+					console.log(stdout);
+					if(!error) OnDemand.read_keys(callback);
+				});
+			} else OnDemand.read_keys(callback);
+		}
+	},
+
+	read_keys: function(callback){
+
+		util.debug("Reading keys...");
+
+		this.keys = {
+			key: fs.readFileSync(private_key_file).toString(),
+			cert: fs.readFileSync(certificate_file).toString()
+		};
+
+		callback();
+
+	},
+
+	connect: function(host, port, config, version, callback){
 
 		// create and encrypted connection using ssl
-		self.stream = tls.connect(port, host, keys, function(){
+		self.stream = tls.connect(4790, 'localhost', this.keys, function(){
 
 			console.log(" -- Connection established.");
-			self.stream.authorized ? util.debug("Credentials were valid!") : util.debug("Credentials were NOT valid!");
+			self.stream.authorized ? util.debug("Credentials were valid!") : util.debug("Credentials were NOT valid: " + self.stream.authorizationError);
 
 			self.connected = true;
-			self.register(config, version);
 			self.stream.setEncoding('utf8');
+			OnDemand.register(config, version);
 
 		});
 
 		self.stream.on("data", function(data){
-			console.log(" -- Data received:" + data);
+			util.debug(" -- Data received:" + data);
 			var msg = JSON.parse(data);
 			if(msg.event == "ping")
 				self.pong();
 			else
-				stream.emit('event', msg.event, msg.data);
+				self.stream.emit('event', msg.event, msg.data);
 		})
 
 		self.stream.on("error", function(error){
@@ -63,7 +92,7 @@ var OnDemand = {
 			console.log(" -- Connection closed.")
 		});
 
-		return self.stream;
+		callback(self.stream);
 
 	},
 
@@ -86,16 +115,20 @@ var OnDemand = {
 	},
 
 	send: function(action, data){
-		util.debug("Sending action " + action);
-		this.stream.write(JSON.stringify({ action: action, data: data }))
+		log("Sending action " + action);
+		if(self.stream.writable) {
+			self.stream.write(JSON.stringify({ action: action, data: data }) + "\n", 'utf8')
+		} else {
+			log("Stream not writable!!");
+		}
 	}
 
 }
 
-// sys.inherits(OnDemand, events.EventEmitter);
+// sys.inherits(OnDemand, emitter);
 
-exports.connect = function(host, port, config, version){
-	return OnDemand.connect(host, port, config, version);
+exports.connect = function(host, port, config, version, callback){
+	return OnDemand.start(host, port, config, version, callback);
 }
 
 exports.connected = function(){

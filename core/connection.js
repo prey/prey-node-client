@@ -5,7 +5,7 @@
 // GPLv3 Licensed
 //////////////////////////////////////////
 
-var net = require('net'), sys = require('sys'), events = require('events');
+var net = require('net'), sys = require('sys'), emitter = require('events').EventEmitter;
 
 var check_port = 80;
 var check_host = 'www.google.com';
@@ -39,7 +39,7 @@ var Connection = function(host, port){
 
 }
 
-sys.inherits(Connection, events.EventEmitter);
+sys.inherits(Connection, emitter);
 
 exports.check = function(){
 	return new Connection(check_host, check_port);

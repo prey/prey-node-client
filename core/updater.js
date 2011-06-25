@@ -64,8 +64,8 @@ var ModuleUpdater = function(module){
 
 }
 
+sys.inherits(ModuleUpdater, emitter);
+
 exports.module = function(module){
 	return new ModuleUpdater(module);
 }
-
-sys.inherits(ModuleUpdater, emitter);
