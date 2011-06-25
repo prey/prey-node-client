@@ -119,7 +119,7 @@ function Module(name, options) {
 
 		// trace returned
 		methods.on('trace', function(key, val){
-			self.add_trace(key, val);
+			if(val) self.add_trace(key, val);
 			methods.emit(key, val);
 			methods.emit('return', true);
 		});

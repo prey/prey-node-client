@@ -20,6 +20,7 @@ require('./lib/core_extensions');
 
 var path = require('path'),
 		fs = require("fs"),
+		util = require("util"),
 		crypto = require('crypto'),
 		tcp = require("net"),
 		sys = require("sys"),
@@ -235,7 +236,7 @@ var Prey = {
 			}
 
 			self.process_module_config(function(){
-				debug("Traces gathered:\n" + inspect(self.traces));
+				debug("Traces gathered:\n" + util.inspect(self.traces));
 
 				if (self.missing && self.traces.count() > 0)
 					self.send_report();
@@ -302,7 +303,7 @@ var Prey = {
 	process_main_config: function(){
 
 		log(" -- Processing main config...")
-		debug(inspect(self.requested));
+		debug(self.requested);
 
 		if(typeof(config.auto_update) == 'boolean')
 			self.auto_update = config.auto_update;
@@ -369,6 +370,7 @@ var Prey = {
 				log(" -- " + this.name + " module returned. " + traces_count + " traces gathered.");
 
 				if(traces_count > 0) self.traces[this.name] = traces;
+				util.inspect(self.traces);
 
 				modules_returned++;
 				if(modules_returned >= requested_modules_count){
@@ -391,7 +393,7 @@ var Prey = {
 
 		http_client.get(uri, options, function(response, body){
 			log(' -- Got status code: ' + response.statusCode);
-			debug("Response headers:\n" + inspect(response.headers));
+			debug("Response headers:\n" + util.inspect(response.headers));
 			debug("Response body:\n" + body);
 			self.response = response;
 			callback(body);
