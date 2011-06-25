@@ -11,6 +11,8 @@ var sys = require('sys'),
 		path = require('path'),
 		updater = require('./updater');
 
+var instances = {};
+
 function Module(name, options) {
 
 	var self = this;
@@ -19,6 +21,7 @@ function Module(name, options) {
 
 	this.traces = {};
 
+	this.methods = null;
 	this.methods_total = null;
 	this.methods_returned = 0;
 
@@ -65,7 +68,7 @@ function Module(name, options) {
 
 	this.init = function(options){
 
-		// log(" -- Initializing module...");
+		debug("Initializing " + self.name + " module...");
 		self.config = self.defaults.merge(options.config);
 
 		// download module in case it's not there,
@@ -79,11 +82,9 @@ function Module(name, options) {
 				self.ready();
 		});
 
-	}
+	};
 
-	this.run = function(method){
-
-		log(" -- Running " + self.name + " module...");
+	this.load_methods = function(){
 
 		try {
 			var core = require(self.path);
@@ -91,55 +92,74 @@ function Module(name, options) {
 			debug(e.message);
 			log(" !! Error loading module in " + self.path);
 			self.emit('end', {});
-			return;
+			return false;
 		}
 
-		var hook = core.init(self.options);
+		return self.methods = core.init(self.options);
 
-		hook.on('error', function(msg){
+	};
+
+	this.add_trace = function(key, val){
+		log(" ++ [" + self.name + "] Got trace: " + key + " -> " + val);
+		self.traces[key] = val;
+	}
+
+	this.run = function(method){
+
+		var methods = self.methods || self.load_methods();
+		if(!methods) return false;
+
+		log(" -- Running " + self.name + " module...");
+
+		methods.on('error', function(method, msg){
 			log(' !! Method returned error: ' + msg)
-			hook.emit('method_returned'); // triggers event above
+			methods.emit(method, false);
+			methods.emit('return', false);
 		});
 
 		// trace returned
-		hook.on('trace', function(key, val){
-			log(" ++ Trace returned from " + self.name + ": " + key + " -> " + val);
-			self.traces[key] = val;
-			hook.emit('method_returned');
+		methods.on('trace', function(key, val){
+			self.add_trace(key, val);
+			methods.emit(key, val);
+			methods.emit('return', true);
 		});
 
 		// method returned
-		hook.on('method_returned', function(){
+		methods.on('return', function(success){
 			if(self.methods_total) {
 				self.methods_returned++;
 				if(self.methods_returned >= self.methods_total)
-					hook.emit('end');
+					methods.emit('end');
 			}
 		});
 
 		// module is done
-		hook.on('end', function(){
-			debug(' -- Module execution ended.')
+		methods.on('end', function(){
+			debug(self.name + ' module execution ended.')
 			self.emit('end', self.traces); // returns to caller
 		});
 
 		if(method){ // specific method requested
 
-			hook[method]();
+			methods[method]();
 
 		} else {
 
-			if(typeof hook.async_methods === 'undefined'){
+			if(typeof methods.async === 'undefined'){
 
-				hook.run();
+				try {
+					methods.run();
+				} catch(e) {
+					methods.emit('error', e.message);
+				}
 
 			} else {
 
-				self.methods_total = hook.async_methods.length;
+				self.methods_total = methods.async.length;
 
-				hook.async_methods.forEach(function(method_name){
+				methods.async.forEach(function(method_name){
 					// try {
-						hook[method_name]();
+						methods[method_name]();
 					// } catch (e) {
 						// console.log(e);
 					// }
@@ -149,7 +169,25 @@ function Module(name, options) {
 
 		}
 
-	}
+	};
+
+	this.get = function(trace_name, callback){
+
+		if (!self.traces[trace_name]) {
+
+			self.methods.on(trace_name, function(val){
+				if(!val) callback(false);
+				else callback(true, self.traces[trace_name]);
+			});
+
+			self.run('get_' + trace_name);
+
+		} else {
+			callback(false, val);
+		}
+
+
+	};
 
 	this.init(options);
 
@@ -159,10 +197,18 @@ sys.inherits(Module, emitter);
 
 // initializes module
 exports.new = function(name, options){
-	return new Module(name, options);
+	if(!instances[name]) instances[name] = new Module(name, options);
+	return instances[name];
 }
 
 // calls specific method on module with default settings
 exports.run = function(name, method){
-	return new Module(name, {method: method});
+	exports.new(name, {method: method});
+	// return new Module(name, {method: method});
+}
+
+// calls specific method on module with default settings
+exports.get = function(name, trace_name){
+	exports.new(name, {}).get(trace_name);
+	// return new Module(name, {method: method});
 }

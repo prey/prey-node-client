@@ -1,5 +1,4 @@
 #!/usr/local/bin/node
-
 //////////////////////////////////////////
 // Prey JS Client
 // (c) 2011 - Fork Ltd.
@@ -12,10 +11,11 @@ GLOBAL.base_path = __dirname;
 GLOBAL.script_path = __filename;
 GLOBAL.os_name = process.platform.replace("darwin", "mac");
 
-require.paths.unshift(__dirname);
-
+////////////////////////////////////////
 // base requires
+////////////////////////////////////////
 
+require.paths.unshift(__dirname);
 require('./lib/core_extensions');
 
 var path = require('path'),
@@ -32,7 +32,9 @@ var path = require('path'),
 		http_client = require('./lib/http_client'),
 		Module = require('./core/module');
 
-// aliases
+////////////////////////////////////////
+// base initialization
+////////////////////////////////////////
 
 var config_file_path = './config'
 var config = require(config_file_path).main;
@@ -41,11 +43,6 @@ var version = fs.readFileSync(base_path + '/version').toString().replace("\n", '
 GLOBAL.args = require('./core/args').init(version);
 
 require('./lib/logger');
-
-////////////////////////////////////////
-// helper methods
-////////////////////////////////////////
-
 
 ////////////////////////////////////////
 // models
@@ -130,7 +127,8 @@ var Prey = {
 
 		log("\n  PREY " + version + " spreads its wings!");
 		log("  " + self.started_at)
-		log("  Running on a " + os_name + " system as " + self.logged_user + "\n");
+		log("  Running on a " + os_name + " system as " + self.logged_user);
+		log("  NodeJS version: " + process.version + "\n");
 
 		if(config.device_key == ""){
 			log(" -- No device key found.")
@@ -268,8 +266,7 @@ var Prey = {
 		})
 
 		cmd.on('return', function(output){
-			// insert comments back on node attributes
-			xml = output.replace(/=([^\s>\/]+)/g, '="$1"');
+			xml = output.replace(/=([^\s>\/]+)/g, '="$1"'); // insert comments back on node attributes
 			// console.log(xml);
 			// return xml;
 			self.parse_xml(xml, callback);
@@ -294,8 +291,8 @@ var Prey = {
 		var parser = new xml2js.Parser();
 
 		parser.addListener('end', function(result) {
-				log(' -- XML parsing complete.');
-				callback(result);
+			log(' -- XML parsing complete.');
+			callback(result);
 		});
 
 		parser.parseString(data);
@@ -393,10 +390,10 @@ var Prey = {
 		var options = { headers: { "User-Agent": self.user_agent } }
 
 		http_client.get(uri, options, function(response, body){
+			log(' -- Got status code: ' + response.statusCode);
 			debug("Response headers:\n" + inspect(response.headers));
 			debug("Response body:\n" + body);
 			self.response = response;
-			log(' -- Got status code: ' + response.statusCode);
 			callback(body);
 		})
 
