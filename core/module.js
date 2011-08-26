@@ -17,7 +17,7 @@ function Module(name, options) {
 
 	var self = this;
 	this.name = name;
-	this.path = base_path + "/modules/" + name;
+	this.path = base_path + "/prey_modules/" + name;
 
 	this.traces = {};
 

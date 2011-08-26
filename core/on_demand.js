@@ -45,7 +45,7 @@ var OnDemand = {
 
 	read_keys: function(callback){
 
-		util.debug("Reading keys...");
+		debug("Reading keys...");
 
 		this.keys = {
 			key: fs.readFileSync(private_key_file).toString(),

@@ -5,7 +5,7 @@
 // GPLv3 Licensed
 //////////////////////////////////////////
 
-var command = require('lib/command'), util = require('util');
+var command = require('command'), util = require('util');
 
 exports.temp_path = "/tmp";
 

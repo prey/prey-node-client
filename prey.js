@@ -10,41 +10,41 @@
 GLOBAL.base_path = __dirname;
 GLOBAL.script_path = __filename;
 GLOBAL.os_name = process.platform.replace("darwin", "mac");
+GLOBAL.os = require(base_path + '/platform/' + os_name);
 
 ////////////////////////////////////////
 // base requires
 ////////////////////////////////////////
 
-require.paths.unshift(__dirname);
-require('./lib/core_extensions');
+// require.paths.unshift(__dirname);
+require('core_extensions');
 
 var path = require('path'),
 		fs = require("fs"),
 		util = require("util"),
-		crypto = require('crypto'),
 		tcp = require("net"),
 		sys = require("sys"),
 		url = require('url'),
-		connection = require('./core/connection'),
 		child = require('child_process'),
-		command = require('./lib/command'),
-		updater = require('./core/updater'),
-		OnDemand = require('./core/on_demand'),
-		http_client = require('./lib/http_client'),
-		Module = require('./core/module');
+		command = require('command'),
+		http_client = require('http_client'),
+		Connection = require('./core/connection'),
+		Response = require('./core/response'),
+		Setup = require('./core/setup'),
+		Module = require('./core/module'),
+		Report = require('./core/report'),
+		OnDemand = require('./core/on_demand');
 
 ////////////////////////////////////////
 // base initialization
 ////////////////////////////////////////
 
-var config_file_path = './config'
-var config = require(config_file_path).main;
-var lockfile = "/tmp/prey.pid"; // where pid is stored
-
 var version = fs.readFileSync(base_path + '/version').toString().replace("\n", '');
+GLOBAL.config = require(base_path + '/config').main;
 GLOBAL.args = require('./core/args').init(version);
 
-require('./lib/logger');
+require('logger');
+require('./core/helpers');
 
 ////////////////////////////////////////
 // models
@@ -58,74 +58,15 @@ var Prey = {
 	response: false,
 	on_demand: null,
 
-	tempfile_path: function(filename){
-		return os.temp_path + filename;
-	},
+	initialize: function(callback){
 
-	store_config_value: function(key_name){
-		var value = config[key_name];
-		this.replace_in_file(config_file_path, "\t" + key_name+"=.*", key_name + "='" + value + "';")
-	},
-
-//	replace_in_file: function(file_name, from, to){
-//		fs.readFile(file_name, function (err, data) {
-//			if (err) throw err;
-//			if(new_data != data) self.save_file_contents(file_name, new_data)
-//		});
-//	},
-
-	save_file_contents: function(file_name, data){
-		fs.writeFile(file_name, data, function (err) {
-			if (err) throw err;
-			console.log(' -- File saved.');
-		});
-	},
-
-	auto_register: function(callback){
-
-		var uri = config.check_url + '/devices.xml';
-
-		var options = {
-			user: config.api_key,
-			pass: "x",
-			headers : { "User-Agent": self.user_agent }
-		}
-
-		var data = {
-			device: {
-				title: 'My device',
-				device_type: 'Portable',
-				os: 'Ubuntu',
-				os_version: '11.04'
-			}
-		}
-
-		http_client.post(url, data, options, function(response, body){
-
-			debug("Response body: " + response.body);
-			log(' -- Got status code: ' + response.statusCode);
-
-			if(response.statusCode == 201){
-				log(" -- Device succesfully created.");
-				this.parse_xml(response, function(result){
-					if(result.key){
-						log("Assigning device key to configuration...")
-						config.device_key = result.key;
-						this.store_config_value('device_key');
-						callback()
-					}
-				})
-			}
-		})
-
-	},
-
-	setup: function(callback){
-
-		this.os = require('./platform/' + os_name);
 		this.user_agent = "Prey/" + version + " (NodeJS, "  + os_name + ")";
 		this.logged_user = process.env['USERNAME'];
 		this.started_at = new Date();
+
+		var pidfile = tempfile_path("prey.pid");
+
+		this.check_and_store_pid(pidfile);
 
 		log("\n  PREY " + version + " spreads its wings!");
 		log("  " + self.started_at)
@@ -137,11 +78,36 @@ var Prey = {
 			if(config.api_key == ""){
 				log(" -- No API key found! Please set up Prey and try again.")
 			} else {
-				self.auto_register(callback)
+				Setup.auto_register(callback);
 			}
 		} else {
 			callback();
 		}
+
+	},
+
+	check_and_store_pid: function(pidfile){
+
+		console.log(process.pid.toString());
+
+		if(path.existsSync(pidfile)){
+
+			pid = parseInt(fs.readFileSync(pidfile));
+			log("\n -- Prey seems to be running already! PID: " + pid.toString());
+
+			try {
+				process.kill(pid, 'SIGWINCH')
+				process.exit(0);
+			} catch(e) {
+				log(" -- No sire. Pidfile was just lying around.");
+				fs.unlink(pidfile);
+			}
+
+		}
+
+		fs.writeFile(pidfile, process.pid.toString(), function (err) {
+			if (err) throw err;
+		});
 
 	},
 
@@ -156,7 +122,7 @@ var Prey = {
 	run: function(){
 
 		self = this;
-		self.setup(function(){
+		self.initialize(function(){
 
 			self.check_connection();
 
@@ -172,7 +138,7 @@ var Prey = {
 	check_connection: function(){
 
 		console.log(" -- Checking connection...");
-		var conn = connection.check();
+		var conn = Connection.check();
 
 		conn.on('found', function(){
 			log(" -- Connection found!");
@@ -187,7 +153,7 @@ var Prey = {
 				self.auto_connect_attempts++;
 				log(" -- Trying to auto connect...");
 
-				self.os.auto_connect(setTimeout(function(){
+				os.auto_connect(setTimeout(function(){
 					self.check_connection();
 					}, 5000)
 				);
@@ -231,7 +197,7 @@ var Prey = {
 
 	process: function(body){
 
-		self.parse_response(body, function(body){
+		Response.parse(body, function(body){
 
 			self.requested = body;
 			self.process_main_config();
@@ -252,57 +218,6 @@ var Prey = {
 			});
 
 		});
-
-	},
-
-	decrypt_response: function(data, callback){
-
-		console.log(" -- Got encrypted response. Decrypting...")
-		var key = crypto.createHash('md5').update(config.api_key).digest("hex");
-
-//			var decipher = (new crypto.Decipher).init("bf-cbc", key);
-//			var txt = decipher.update(data, 'base64', 'utf-8');
-//			txt += decipher.final('utf-8');
-//			log("RESULT: " + txt);
-
-		var cmd_str = 'echo "' + data + '" | openssl aes-128-cbc -d -a -salt -k "' + key +'" 2> /dev/null'
-		var cmd = command.run(cmd_str);
-
-		cmd.on('error', function(message){
-			quit("Couldn't decrypt response. This shouldn't have happened!")
-		})
-
-		cmd.on('return', function(output){
-			xml = output.replace(/=([^\s>\/]+)/g, '="$1"'); // insert comments back on node attributes
-			// console.log(xml);
-			// return xml;
-			self.parse_xml(xml, callback);
-		})
-
-	},
-
-	parse_response: function(data, callback){
-
-		if(data.indexOf('<device>') == -1)
-			self.decrypt_response(data, callback);
-		else
-			self.parse_xml(data, callback);
-
-	},
-
-	parse_xml: function(data, callback){
-
-		log(' -- Parsing XML...')
-		xml2js = require('./vendor/xml2js');
-
-		var parser = new xml2js.Parser();
-
-		parser.addListener('end', function(result) {
-			log(' -- XML parsing complete.');
-			callback(result);
-		});
-
-		parser.parseString(data);
 
 	},
 
@@ -333,7 +248,7 @@ var Prey = {
 
 		var requested_delay = self.requested.configuration.delay;
 
-		self.os.check_current_delay(script_path, function(current_delay){
+		os.check_current_delay(script_path, function(current_delay){
 			debug("Current delay: " + current_delay + ", requested delay: " + requested_delay);
 			if(parseInt(current_delay) != parseInt(requested_delay)){
 				log(" -- Setting new delay!")
@@ -345,8 +260,10 @@ var Prey = {
 
 	process_module_config: function(callback){
 
-		log(" -- Processing modules...")
-		var requested_modules_count = self.requested.modules.module.length;
+		var requested_modules_count = self.requested.modules.module.count();
+		log(" -- Got " + requested_modules_count + " modules!")
+
+		if(!requested_modules_count) return callback();
 		var modules_returned = 0;
 
 		for(id in self.requested.modules.module){
@@ -354,7 +271,11 @@ var Prey = {
 			var module_config = self.requested.modules.module[id];
 			if(typeof(module_config) !== "object") continue;
 
-			var module_data = module_config['@'];
+//			console.log(util.inspect(module_config));
+
+			var module_data = module_config['@'] || module_config;
+			if(!module_data) continue;
+
 			log(" -- Got instructions for " + module_data.type + " module " + module_data.name);
 
 			delete module_config['@'];
@@ -373,7 +294,6 @@ var Prey = {
 				log(" -- " + this.name + " module returned. " + traces_count + " traces gathered.");
 
 				if(traces_count > 0) self.traces[this.name] = traces;
-				util.inspect(self.traces);
 
 				modules_returned++;
 				if(modules_returned >= requested_modules_count){
@@ -406,36 +326,23 @@ var Prey = {
 
 	send_report: function(){
 
-		config.post_methods.forEach(function(post_method) {
-			var report_method = "send_" + post_method + "_report";
-			self[report_method](report_method, self.traces);
-		});
-
-	},
-
-	send_http_report: function(data){
-
-		if(self.requested.configuration.post_url)
-			var post_url = self.requested.configuration.post_url.replace(".xml", "")
-		else
-			var post_url = config.check_url + "/devices/" + config.device_key + "/reports.xml";
-
-		log(" -- Sending report!");
+		log(" -- Packing report!");
+		var report = new Report(self.traces);
 
 		var options = {
-			user: config.api_key,
-			pass: "x",
-			headers : { "User-Agent": self.user_agent }
+			api_key: config.api_key,
+			user_agent: self.user_agent
 		}
 
-		http_client.post(post_url, data, options, function(response, body){
-			log(' -- Got status code: ' + response.statusCode);
-			log(' -- ' + body);
-		})
+		if(self.requested.configuration.post_url)
+			options.post_url = self.requested.configuration.post_url.replace(".xml", "")
+		else
+			options.post_url = config.check_url + "/devices/" + config.device_key + "/reports.xml";
 
-	},
-
-	send_smtp_report: function(data){
+		config.post_methods.forEach(function(post_method) {
+			var report_method = "send_via_" + post_method;
+			report[report_method](options);
+		});
 
 	},
 
@@ -455,6 +362,8 @@ var Prey = {
 		});
 
 	},
+
+	// helpers
 
 	clean_up: function(){
 		this.traces = {},
@@ -502,21 +411,8 @@ process.on('SIGUSR1', function () {
 	Prey.rerun();
 });
 
-if(path.existsSync(lockfile)){
+/////////////////////////////////////////////////////////////
+// launcher
+/////////////////////////////////////////////////////////////
 
-	log("\n -- Prey seems to be running already!");
-	pid = parseInt(fs.readFileSync(lockfile));
-	try {
-		process.kill(pid, 'SIGWINCH')
-		process.exit(0);
-	} catch(e) {
-		log(" -- No sire. Pidfile was just lying around.");
-		fs.unlink(lockfile);
-	}
-
-}
-
-fs.writeFile(lockfile, process.pid.toString(), function (err) {
-	if (err) throw err;
-	Prey.run()
-});
+Prey.run();

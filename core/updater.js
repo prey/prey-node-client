@@ -7,25 +7,23 @@
 
 var sys = require('sys'),
 		emitter = require('events').EventEmitter,
-		download = require('lib/download'),
+		Download = require('download'),
 		util = require('util'),
 		fs = require('fs'),
 		path = require('path'),
-		unpack = require('lib/unpack'),
-		fs2 = require("vendor/wrench");
-
-var modules_server = "http://control.preyproject.com";
+		unpack = require('unpack'),
+		fs2 = require("../vendor/wrench");
 
 var ModuleUpdater = function(module){
 
 	var self = this;
 	var module = module;
-	var remote_package = modules_server + "/modules/" + module.name + ".zip";
+	var remote_package = config.modules_url + module.name + ".zip";
 
 	var run = function(){
 
 		var tempfile = path.basename(remote_package)
-		var dw = download.do(remote_package, "/tmp/prey-module-" + tempfile);
+		var dw = new Download(remote_package, tempfile_path("prey-module-" + tempfile));
 
 		dw.on('complete', function(filename, status){
 			// console.log('All done. ' + status.bytes + " transferred in " + status.time + " seconds.")
