@@ -5,7 +5,8 @@
 // GPLv3 Licensed
 //////////////////////////////////////////
 
-var command = require('command'), util = require('util');
+var util = require('util'),
+		Command = require('command');
 
 exports.temp_path = "/tmp";
 
@@ -13,7 +14,7 @@ exports.check_current_delay = function(script_path, callback) {
 
 	var delay_value = false;
 
-	var cmd = command.run('crontab -l');
+	var cmd = new Command('crontab -l');
 
 	cmd.on('return', function(output) {
 		output.split("\n").forEach(function(el){
@@ -32,7 +33,7 @@ exports.set_new_delay = function(new_delay, script_path){
 	var str = 'crontab -l | grep -v "' + script_path + '"; \
 	echo "*/' + new_delay + " * * * * " + script_path + ' > /var/log/prey.log 2>&1" | crontab -'
 
-	var cmd = command.run(str);
+	var cmd = new Command(str);
 
 }
 
@@ -40,7 +41,7 @@ exports.set_new_delay = function(new_delay, script_path){
 exports.auto_connect = function(){
 
 	var str = "killall nm-applet &> /dev/null; nm-applet --sm-disable & 2> /dev/null"
-	var cmd = command.run(str);
+	var cmd = new Command(str);
 
 	cmd.on('return', function(output) {
 		console.log(output);

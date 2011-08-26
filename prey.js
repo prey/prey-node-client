@@ -10,7 +10,7 @@
 GLOBAL.base_path = __dirname;
 GLOBAL.script_path = __filename;
 GLOBAL.os_name = process.platform.replace("darwin", "mac").replace('win32', 'windows');
-GLOBAL.os = require(base_path + '/platform/' + os_name);
+os = require(base_path + '/platform/' + os_name);
 
 ////////////////////////////////////////
 // base requires
@@ -25,8 +25,6 @@ var path = require('path'),
 		tcp = require("net"),
 		sys = require("sys"),
 		url = require('url'),
-		child = require('child_process'),
-		command = require('command'),
 		http_client = require('http_client'),
 		Connection = require('./core/connection'),
 		Response = require('./core/response'),
@@ -39,13 +37,15 @@ var path = require('path'),
 // base initialization
 ////////////////////////////////////////
 
-var pid_file = 'prey.pid';
 var version = fs.readFileSync(base_path + '/version').toString().replace("\n", '');
 GLOBAL.config = require(base_path + '/config').main;
 GLOBAL.args = require('./core/args').init(version);
+GLOBAL.user_agent = "Prey/" + version + " (NodeJS, "  + os_name + ")";
 
 require('logger');
 require('./core/helpers');
+
+var pid_file = tempfile_path('prey.pid');
 
 ////////////////////////////////////////
 // models
@@ -53,6 +53,7 @@ require('./core/helpers');
 
 var Prey = {
 
+	running: false,
 	auto_connect_attempts: 0,
 	traces: {},
 	modules: { action: [], report: []},
@@ -61,11 +62,9 @@ var Prey = {
 
 	initialize: function(callback){
 
-		this.user_agent = "Prey/" + version + " (NodeJS, "  + os_name + ")";
+		this.check_and_store_pid();
 		this.logged_user = process.env['USERNAME'];
 		this.started_at = new Date();
-
-		this.check_and_store_pid(tempfile_path(pid_file));
 
 		log("\n  PREY " + version + " spreads its wings!");
 		log("  " + self.started_at)
@@ -85,24 +84,25 @@ var Prey = {
 
 	},
 
-	check_and_store_pid: function(pidfile){
+	check_and_store_pid: function(){
 
-		if(path.existsSync(pidfile)){
+		if(path.existsSync(pid_file)){
 
-			pid = parseInt(fs.readFileSync(pidfile));
+			pid = parseInt(fs.readFileSync(pid_file));
 			log("\n -- Prey seems to be running already! PID: " + pid.toString());
 
 			try {
+				self.running = true;
 				process.kill(pid, 'SIGWINCH')
 				process.exit(0);
 			} catch(e) {
-				log(" -- No sire! Pidfile was just lying around.");
-				fs.unlink(pidfile);
+				log(" -- Not really! Pidfile was just lying around.");
+				fs.unlink(pid_file);
 			}
 
 		}
 
-		save_file_contents(pidfile, process.pid.toString());
+		save_file_contents(pid_file, process.pid.toString());
 
 	},
 
@@ -191,6 +191,21 @@ var Prey = {
 
 		})
 
+
+	},
+
+	fetch_xml: function(callback){
+
+		var uri = config.check_url + '/devices/' + config.device_key + '.xml';
+		var options = { headers: { "User-Agent": user_agent } }
+
+		http_client.get(uri, options, function(response, body){
+			log(' -- Got status code: ' + response.statusCode);
+			debug("Response headers:\n" + util.inspect(response.headers));
+			debug("Response body:\n" + body);
+			self.response = response;
+			callback(body);
+		})
 
 	},
 
@@ -288,65 +303,40 @@ var Prey = {
 
 			prey_module.on('end', function(traces){
 
+				modules_returned++;
+				var modules_to_go = requested_modules_count - modules_returned;
+
 				var traces_count = traces.count();
-				log(" -- " + this.name + " module returned. " + traces_count + " traces gathered.");
+				log(" -- [" + this.name + "] module returned, " + traces_count + " traces gathered. " + modules_to_go.toString() + " to go!");
 
 				if(traces_count > 0) self.traces[this.name] = traces;
 
-				modules_returned++;
-				if(modules_returned >= requested_modules_count){
+				if(modules_to_go <= 0){
 					log(" ++ All modules are done! Packing report...");
 					callback();
 				}
 
 			});
 
-			prey_module.run();
-
 		}
-
-	},
-
-	fetch_xml: function(callback){
-
-		var uri = config.check_url + '/devices/' + config.device_key + '.xml';
-		var options = { headers: { "User-Agent": self.user_agent } }
-
-		http_client.get(uri, options, function(response, body){
-			log(' -- Got status code: ' + response.statusCode);
-			debug("Response headers:\n" + util.inspect(response.headers));
-			debug("Response body:\n" + body);
-			self.response = response;
-			callback(body);
-		})
 
 	},
 
 	send_report: function(){
 
 		log(" -- Packing report!");
-		var report = new Report(self.traces);
-
-		var options = {
-			api_key: config.api_key,
-			user_agent: self.user_agent
-		}
-
-		if(self.requested.configuration.post_url)
-			options.post_url = self.requested.configuration.post_url.replace(".xml", "")
-		else
-			options.post_url = config.check_url + "/devices/" + config.device_key + "/reports.xml";
+		var report = new Report(self.traces, self.requested.configuration);
 
 		config.post_methods.forEach(function(post_method) {
 			var report_method = "send_via_" + post_method;
-			report[report_method](options);
+			report[report_method]();
 		});
 
 	},
 
 	setup_on_demand: function(){
 
-		log(' -- On Demand mode enabled! Connecting...');
+		log(' -- On Demand mode enabled! Trying to connect...');
 		var on_demand_host = self.requested.configuration.on_demand_host;
 		var on_demand_port = self.requested.configuration.on_demand_port;
 		self.on_demand = OnDemand.connect(on_demand_host, on_demand_port, config, version, function(stream){
@@ -364,7 +354,8 @@ var Prey = {
 	// helpers
 
 	clean_up: function(){
-		this.traces = {},
+		this.traces = {};
+		if(!self.running) fs.unlink(pid_file);
 		log(" -- Cleaning up!");
 	}
 

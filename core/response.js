@@ -1,4 +1,7 @@
-var sys = require('sys'), command = require('command'), xml2js = require('../vendor/xml2js'), crypto = require('crypto');
+var sys = require('sys'),
+		Command = require('command'),
+		xml2js = require('../vendor/xml2js'),
+		crypto = require('crypto');
 
 var ResponseParser = {
 
@@ -24,7 +27,7 @@ var ResponseParser = {
 //			log("RESULT: " + txt);
 
 		var cmd_str = 'echo "' + data + '" | openssl aes-128-cbc -d -a -salt -k "' + key +'" 2> /dev/null'
-		var cmd = command.run(cmd_str);
+		var cmd = new Command(cmd_str);
 
 		cmd.on('error', function(message){
 			quit("Couldn't decrypt response. This shouldn't have happened!")

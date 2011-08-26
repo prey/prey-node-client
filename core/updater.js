@@ -25,8 +25,8 @@ var ModuleUpdater = function(module){
 		var tempfile = path.basename(remote_package)
 		var dw = new Download(remote_package, tempfile_path("prey-module-" + tempfile));
 
-		dw.on('complete', function(filename, status){
-			// console.log('All done. ' + status.bytes + " transferred in " + status.time + " seconds.")
+		dw.on('complete', function(filename, stats){
+			// console.log('All done. ' + stats.bytes + " transferred in " + stats.time + " seconds.")
 
 			console.log(" -- Backing up files...")
 			fs.rename(module.path, module.path + ".old", function(err){
@@ -63,7 +63,4 @@ var ModuleUpdater = function(module){
 }
 
 sys.inherits(ModuleUpdater, emitter);
-
-exports.module = function(module){
-	return new ModuleUpdater(module);
-}
+exports.module = ModuleUpdater;
