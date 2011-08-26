@@ -39,6 +39,7 @@ var path = require('path'),
 // base initialization
 ////////////////////////////////////////
 
+var pid_file = 'prey.pid';
 var version = fs.readFileSync(base_path + '/version').toString().replace("\n", '');
 GLOBAL.config = require(base_path + '/config').main;
 GLOBAL.args = require('./core/args').init(version);
@@ -64,9 +65,7 @@ var Prey = {
 		this.logged_user = process.env['USERNAME'];
 		this.started_at = new Date();
 
-		var pidfile = tempfile_path("prey.pid");
-
-		this.check_and_store_pid(pidfile);
+		this.check_and_store_pid(tempfile_path(pid_file));
 
 		log("\n  PREY " + version + " spreads its wings!");
 		log("  " + self.started_at)
@@ -88,8 +87,6 @@ var Prey = {
 
 	check_and_store_pid: function(pidfile){
 
-		console.log(process.pid.toString());
-
 		if(path.existsSync(pidfile)){
 
 			pid = parseInt(fs.readFileSync(pidfile));
@@ -99,15 +96,13 @@ var Prey = {
 				process.kill(pid, 'SIGWINCH')
 				process.exit(0);
 			} catch(e) {
-				log(" -- No sire. Pidfile was just lying around.");
+				log(" -- No sire! Pidfile was just lying around.");
 				fs.unlink(pidfile);
 			}
 
 		}
 
-		fs.writeFile(pidfile, process.pid.toString(), function (err) {
-			if (err) throw err;
-		});
+		save_file_contents(pidfile, process.pid.toString());
 
 	},
 
@@ -158,6 +153,8 @@ var Prey = {
 					}, 5000)
 				);
 
+			} else {
+				this.no_connection();
 			}
 
 		});
@@ -165,8 +162,10 @@ var Prey = {
 	},
 
 	no_connection: function(){
+
 		if(path.existsSync(tempfile_path(config.last_response_file))){
-			this.instructions = fs.readFileSync(config.last_response_file);
+			response_body = fs.readFileSync(config.last_response_file);
+			this.process(response_body, true);
 		}
 
 		quit("No connection available.")
@@ -178,7 +177,7 @@ var Prey = {
 
 	fetch: function(){
 
-		log(" -- Fetching instructions.")
+		log(" -- Fetching instructions...")
 
 		self.fetch_xml(function(response_body){
 
@@ -188,24 +187,27 @@ var Prey = {
 			if(self.response.headers["content-type"].indexOf('/xml') == -1)
 				quit("No valid instructions received.")
 
-			self.process(response_body);
+			self.process(response_body, false);
 
 		})
 
 
 	},
 
-	process: function(body){
+	process: function(response_body, offline){
 
-		Response.parse(body, function(body){
+		Response.parse(response_body, function(parsed){
 
-			self.requested = body;
+			self.requested = parsed;
 			self.process_main_config();
 
-			if(!self.requested.modules || self.requested.modules.length == 0) {
+			if(!self.requested.modules || self.requested.modules.count() == 0) {
 				log(" -- No report or actions requested.");
 				return false;
 			}
+
+			if(offline == false && self.requested.configuration.offline_actions)
+				save_file_contents(config.last_response_file, response_body);
 
 			self.process_module_config(function(){
 				debug("Traces gathered:\n" + util.inspect(self.traces));
@@ -240,8 +242,6 @@ var Prey = {
 
 		if(self.on_demand == null && self.requested.configuration.on_demand_mode) self.setup_on_demand();
 
-		debug(self.requested);
-
 	},
 
 	process_delay: function(){
@@ -252,7 +252,7 @@ var Prey = {
 			debug("Current delay: " + current_delay + ", requested delay: " + requested_delay);
 			if(parseInt(current_delay) != parseInt(requested_delay)){
 				log(" -- Setting new delay!")
-				self.platform.set_new_delay(requested_delay, script_path);
+				os.set_new_delay(requested_delay, script_path);
 			}
 		});
 
@@ -263,9 +263,7 @@ var Prey = {
 		var requested_modules_count = self.requested.modules.module.count();
 		log(" -- Got " + requested_modules_count + " modules!")
 
-		if(!requested_modules_count) return callback();
 		var modules_returned = 0;
-
 		for(id in self.requested.modules.module){
 
 			var module_config = self.requested.modules.module[id];

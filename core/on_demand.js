@@ -1,7 +1,7 @@
 //////////////////////////////////////////
-// Prey Connection Class
+// Prey OnDemand Connection Class
 // (c) 2011 - Fork Ltd.
-// by Tomas Pollak - http://usefork.com
+// by Tomas Pollak - http://forkhq.com
 // GPLv3 Licensed
 //////////////////////////////////////////
 
@@ -31,16 +31,23 @@ var OnDemand = {
 	},
 
 	get_keys: function(callback){
+
 		if(OnDemand.keys == null){
+
 			if(!path.existsSync(private_key_file)){
+
 				console.log(" !! Keys not found! Generating...");
 				this.keys = true;
+
 				require('child_process').exec('ssl/generate.sh', function(error, stdout, error){
 					console.log(stdout);
 					if(!error) OnDemand.read_keys(callback);
 				});
+
 			} else OnDemand.read_keys(callback);
+
 		}
+
 	},
 
 	read_keys: function(callback){
@@ -59,10 +66,13 @@ var OnDemand = {
 	connect: function(host, port, config, version, callback){
 
 		// create and encrypted connection using ssl
-		self.stream = tls.connect(4790, 'localhost', this.keys, function(){
+		self.stream = tls.connect(port, host, this.keys, function(){
 
 			console.log(" -- Connection established.");
-			self.stream.authorized ? util.debug("Credentials were valid!") : util.debug("Credentials were NOT valid: " + self.stream.authorizationError);
+			if (self.stream.authorized)
+				debug("Credentials were valid!")
+			else
+				debug("Credentials were NOT valid: " + self.stream.authorizationError);
 
 			self.connected = true;
 			self.stream.setEncoding('utf8');
@@ -71,10 +81,10 @@ var OnDemand = {
 		});
 
 		self.stream.on("data", function(data){
-			util.debug(" -- Data received:" + data);
+			log(" -- Data received: " + data);
 			var msg = JSON.parse(data);
 			if(msg.event == "ping")
-				self.pong();
+				OnDemand.pong();
 			else
 				self.stream.emit('event', msg.event, msg.data);
 		})
@@ -104,7 +114,7 @@ var OnDemand = {
 			group: config.api_key,
 			protocol: 1
 		}
-		this.send('connect', data)
+		this.send('connect', data);
 	},
 
 	pong: function(){
@@ -115,12 +125,19 @@ var OnDemand = {
 	},
 
 	send: function(action, data){
-		log("Sending action " + action);
+		log(" -- Sending action " + action);
 		if(self.stream.writable) {
 			self.stream.write(JSON.stringify({ action: action, data: data }) + "\n", 'utf8')
 		} else {
-			log("Stream not writable!!");
+			log(" !! Stream not writable!");
+			OnDemand.disconnect();
 		}
+	},
+
+	disconnect: function(){
+		if(!self.connected) return;
+		log(" -- Closing connection upon request!");
+		self.stream.end();
 	}
 
 }
