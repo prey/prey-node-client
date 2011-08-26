@@ -318,6 +318,10 @@ var Prey = {
 
 			});
 
+//			prey_module.when_ready(function(){
+//				mod.run();
+//			});
+
 		}
 
 	},

@@ -19,6 +19,7 @@ function Module(name, options) {
 	this.name = name;
 	this.path = base_path + "/prey_modules/" + name;
 
+	this.loaded = false;
 	this.returned = false;
 	this.traces = {};
 
@@ -30,12 +31,6 @@ function Module(name, options) {
 
 	this.defaults = function(){
 		return require(this.path + "/config").default;
-	}
-
-	this.ready = function(){
-		// console.log(" -- Module ready.");
-		self.run();
-		// if(options.method) self.run(options.method);
 	}
 
 	this.download = function(){
@@ -94,18 +89,53 @@ function Module(name, options) {
 			var Hook = require(self.path);
 		} catch(e){
 			debug(e.message);
-			log(" !! Error loading module in " + self.path);
-			self.emit('end', {});
 			return false;
 		}
 
-		return self.methods = new Hook(self.options);
+		self.methods = new Hook(self.options);
+		return true;
 
 	};
 
+	this.ready = function(){
+
+		self.loaded = self.load_methods();
+		if (self.loaded) {
+			console.log(" -- Module " + this.name + " ready.");
+			self.emit('ready');
+			// self.run();
+		} else {
+			log(" !! Error loading module in " + self.path);
+			self.emit('end', {});
+		}
+		// if(options.method) self.run(options.method);
+	}
+
+	this.when_ready = function(callback){
+
+		if(!this.loaded){
+			this.on('ready', function(){
+				callback();
+			});
+		} else {
+			callback();
+		}
+
+	};
+
+
+	this.add_trace = function(key, val){
+		log(" ++ [" + self.name + "] Got trace: " + key + " -> " + val);
+		self.traces[key] = val;
+	}
+
+	this.async_run = function(){
+		return(self.methods.async !== undefined);
+	},
+
 	this.in_async_methods = function(trace_method){
-		return(self.methods.async.indexOf('get_' + trace_method) != -1);
-		// return(self.methods.async !== 'undefined' && self.methods.async.indexOf('get_' + trace_method) != -1);
+		// return(self.methods.async.indexOf('get_' + trace_method) != -1);
+		return(self.async_run() && self.methods.async.indexOf('get_' + trace_method) != -1);
 	}
 
 	this.methods_pending = function(){
@@ -120,48 +150,44 @@ function Module(name, options) {
 		else
 			self.success_returns++;
 
-		if(!self.methods_pending()) self.methods.emit('end');
+		if(self.async_run() && !self.methods_pending()) self.methods.emit('end');
 
-	}
-
-	this.add_trace = function(key, val){
-		log(" ++ [" + self.name + "] Got trace: " + key + " -> " + val);
-		self.traces[key] = val;
 	}
 
 	this.run = function(){
 
-		var methods = self.methods || self.load_methods();
-		if(!methods) return false;
-
+		var methods = self.methods;
 		var method = arguments[0] || false; // specific method called
 
 		log(" -- Running " + self.name + " module...");
 
+
+		methods.on('error', function(key, msg){
+			log(' !! [' + self.name + '] get_' + key + ' returned error: ' + msg);
+			self.method_returned(key, false);
+		});
+
+		// trace returned
+		methods.on('trace', function(key, val){
+			if(val) self.add_trace(key, val);
+			self.method_returned(key, val);
+		});
+
 		if(method){ // specific method requested
 
+			log(" -- Calling method " + method + "!");
 			methods[method]();
 
 		} else {
 
-			methods.on('error', function(key, msg){
-				log(' !! [' + self.name + '] ' + key + ' method returned error: ' + msg);
-				self.method_returned(method, false);
-			});
-
-			// trace returned
-			methods.on('trace', function(key, val){
-				if(val) self.add_trace(key, val);
-				self.method_returned(method, val);
-			});
-
-			// module is done
-			methods.on('end', function(){
-				debug(self.name + ' module execution ended.')
+			// module.run() called, lets add an 'end' listener to return to main loop
+			methods.once('end', function(){
+				// log(self.name + ' module execution ended.')
+				methods.removeAllListeners();
 				self.emit('end', self.traces); // returns to caller
 			});
 
-			if(typeof methods.async === 'undefined'){
+			if(methods.async === undefined){
 
 				// try {
 					methods.run();
@@ -189,17 +215,17 @@ function Module(name, options) {
 
 	this.get = function(trace_name, callback){
 
-		if (!self.traces[trace_name]) {
+		if (self.traces[trace_name]) {
 
-			self.methods.on(trace_name, function(val){
-				if(!val) callback(false);
-				else callback(self.traces[trace_name]);
+			callback(self.traces[trace_name]);
+
+		} else {
+
+			self.methods.once(trace_name, function(val){
+				callback(val);
 			});
 
 			self.run('get_' + trace_name);
-
-		} else {
-			callback(false, val);
 		}
 
 
@@ -211,20 +237,30 @@ function Module(name, options) {
 
 sys.inherits(Module, emitter);
 
-// initializes module
-exports.new = function(name, options){
+function get_or_initialize(name, options){
 	if(!instances[name]) instances[name] = new Module(name, options);
 	return instances[name];
 }
 
-// calls specific method on module with default settings
-exports.run = function(name, method){
-	exports.new(name, {}).run(method);
-	// return new Module(name, {method: method});
+// initializes module
+exports.new = function(name, options){
+	var mod = get_or_initialize(name, options);
+	mod.when_ready(function(){ mod.run() });
+	return mod;
 }
 
 // calls specific method on module with default settings
-exports.get = function(name, trace_name){
-	exports.new(name, {}).get(trace_name);
+exports.run = function(name, method){
+	var mod = get_or_initialize(name, {});
+	mod.when_ready(function(){ mod.run(method) });
+	return mod;
+	// return new Module(name, {method: method});
+}
+
+// gets specific trace on module with default settings, calls callback when found
+exports.get = function(name, trace_name, callback){
+	var mod = get_or_initialize(name, {});
+	mod.when_ready(function(){ mod.get(trace_name, callback) });
+	return mod;
 	// return new Module(name, {method: method});
 }
