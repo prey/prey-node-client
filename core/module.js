@@ -24,7 +24,7 @@ function Module(name, options) {
 	this.traces = {};
 
 	this.methods = null;
-	this.async_methods_count = null;
+	this.called_methods = [];
 
 	this.success_returns = 0;
 	this.error_returns = 0;
@@ -97,10 +97,26 @@ function Module(name, options) {
 
 	};
 
+	this.add_listeners = function(){
+		self.methods.on('error', function(key, msg){
+			log(' !! [' + self.name + '] get_' + key + ' returned error: ' + msg);
+			self.method_returned(key, false);
+		});
+
+		// trace returned
+		self.methods.on('trace', function(key, val){
+			if(val) self.add_trace(key, val);
+			self.method_returned(key, val);
+		});
+	}
+
 	this.ready = function(){
 
 		self.loaded = self.load_methods();
 		if (self.loaded) {
+
+			self.add_listeners();
+
 			console.log(" -- Module " + this.name + " ready.");
 			self.emit('ready');
 			// self.run();
@@ -130,20 +146,21 @@ function Module(name, options) {
 	}
 
 	this.async_run = function(){
-		return(self.methods.async !== undefined);
+		return(self.methods.async_traces !== undefined);
 	},
 
 	this.in_async_methods = function(trace_method){
 		// return(self.methods.async.indexOf('get_' + trace_method) != -1);
-		return(self.async_run() && self.methods.async.indexOf('get_' + trace_method) != -1);
+		return(self.async_run() && self.methods.async_traces.indexOf(trace_method) != -1);
 	}
 
 	this.methods_pending = function(){
-		return (self.async_methods_count > self.error_returns + self.success_returns);
+		return (self.methods.async_traces.length > self.error_returns + self.success_returns);
 	}
 
 	this.method_returned = function(name, val){
 		self.methods.emit(name, val);
+		self.called_methods.push(name);
 
 		if(val == false && self.in_async_methods(name))
 			self.error_returns++;
@@ -161,33 +178,20 @@ function Module(name, options) {
 
 		log(" -- Running " + self.name + " module...");
 
-
-		methods.on('error', function(key, msg){
-			log(' !! [' + self.name + '] get_' + key + ' returned error: ' + msg);
-			self.method_returned(key, false);
-		});
-
-		// trace returned
-		methods.on('trace', function(key, val){
-			if(val) self.add_trace(key, val);
-			self.method_returned(key, val);
-		});
-
 		if(method){ // specific method requested
 
-			log(" -- Calling method " + method + "!");
-			methods[method]();
+			self.run_method(method);
 
 		} else {
 
 			// module.run() called, lets add an 'end' listener to return to main loop
 			methods.once('end', function(){
-				// log(self.name + ' module execution ended.')
-				methods.removeAllListeners();
+				log(" !! [" + self.name + '] module execution ended. Removing listeners.')
+				// methods.removeAllListeners();
 				self.emit('end', self.traces); // returns to caller
 			});
 
-			if(methods.async === undefined){
+			if(methods.async_traces === undefined){
 
 				// try {
 					methods.run();
@@ -197,11 +201,9 @@ function Module(name, options) {
 
 			} else {
 
-				self.async_methods_count = methods.async.length;
-
-				methods.async.forEach(function(method_name){
+				methods.async_traces.forEach(function(trace_name){
 					// try {
-						methods[method_name]();
+						self.run_method('get_' + trace_name);
 					// } catch (e) {
 						// console.log(e);
 					// }
@@ -213,11 +215,27 @@ function Module(name, options) {
 
 	};
 
+	this.method_ran = function(method_name){
+		return (self.called_methods.indexOf(method_name) != -1);
+	};
+
+	this.run_method = function(method_name){
+		// log(" >> Calling method " + method_name + "!");
+		if(!self.method_ran(method_name))
+			self.methods[method_name]();
+	};
+
 	this.get = function(trace_name, callback){
 
-		if (self.traces[trace_name]) {
+		// log(trace_name);
+
+		if (self.traces[trace_name]) { // trace exists
 
 			callback(self.traces[trace_name]);
+
+		} else if(self.method_ran(trace_name) != -1) {
+
+			callback(false); // already tried and no luck
 
 		} else {
 
@@ -226,8 +244,8 @@ function Module(name, options) {
 			});
 
 			self.run('get_' + trace_name);
-		}
 
+		}
 
 	};
 

@@ -63,8 +63,8 @@ var Prey = {
 	initialize: function(callback){
 
 		this.check_and_store_pid();
-		this.logged_user = process.env['USERNAME'];
 		this.started_at = new Date();
+		this.logged_user = process.env['USERNAME'];
 
 		log("\n  PREY " + version + " spreads its wings!");
 		log("  " + self.started_at)
@@ -97,7 +97,7 @@ var Prey = {
 				process.exit(0);
 			} catch(e) {
 				log(" -- Not really! Pidfile was just lying around.");
-				fs.unlink(pid_file);
+				self.running = false;
 			}
 
 		}
