@@ -9,7 +9,7 @@
 // set globals that are needed for all descendants
 GLOBAL.base_path = __dirname;
 GLOBAL.script_path = __filename;
-GLOBAL.os_name = process.platform.replace("darwin", "mac");
+GLOBAL.os_name = process.platform.replace("darwin", "mac").replace('win32', 'windows');
 GLOBAL.os = require(base_path + '/platform/' + os_name);
 
 ////////////////////////////////////////

@@ -1,5 +1,5 @@
 //////////////////////////////////////////
-// Prey Linux Specific Functions
+// Prey NodeJS Linux Client Specific Functions
 // (c) 2011 - Fork Ltd.
 // by Tomas Pollak - http://usefork.com
 // GPLv3 Licensed
