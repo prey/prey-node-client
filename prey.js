@@ -69,7 +69,7 @@ var Prey = {
 		self = this;
 		self.initialize(function(){
 
-			self.check_connection();
+			self.check_connection_and_fetch();
 
 		});
 
@@ -77,7 +77,7 @@ var Prey = {
 
 	rerun: function(){
 		this.clean_up();
-		this.fetch();
+		this.check_connection_and_fetch();
 	},
 
 	initialize: function(callback){
@@ -137,7 +137,7 @@ var Prey = {
 			Check.smtp_config();
 	},
 
-	check_connection: function(){
+	check_connection_and_fetch: function(){
 
 		console.log(" -- Checking connection...");
 		var conn = Connection.check();
@@ -231,6 +231,7 @@ var Prey = {
 					log(" -- Nothing to send!")
 
 				ActionsManager.start_all();
+				self.rerun();
 
 			});
 
