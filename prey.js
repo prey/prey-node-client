@@ -211,7 +211,7 @@ var Prey = {
 			self.requested = parsed;
 			self.process_main_config();
 
-			if(!self.requested.modules || self.requested.modules.count() == 0) {
+			if(!self.requested.modules || Object.keys(self.requested.modules).length == 0) {
 				log(" -- No report or actions requested.");
 				return false;
 			}
@@ -225,7 +225,7 @@ var Prey = {
 
 				debug("Traces gathered:\n" + util.inspect(self.traces));
 
-				if (self.missing && self.traces.count() > 0)
+				if (self.missing && Object.keys(self.traces).length > 0)
 					self.send_report();
 				else
 					log(" -- Nothing to send!")
@@ -275,7 +275,7 @@ var Prey = {
 
 	process_module_config: function(send_report_callback){
 
-		var requested_modules = self.requested.modules.module.count();
+		var requested_modules = self.requested.modules.module.length;
 		var modules_loaded = 0;
 		log(" -- " + requested_modules + " modules enabled!")
 
@@ -347,7 +347,7 @@ var Prey = {
 				modules_returned++;
 				var modules_to_go = report_modules_count - modules_returned;
 
-				var traces_count = this.traces.count();
+				var traces_count = Object.keys(this.traces).length;
 				log(" -- [" + this.name + "] module returned, " + traces_count + " traces gathered. " + modules_to_go.toString() + " to go!");
 
 				if(traces_count > 0) self.traces[this.name] = this.traces;

@@ -51,8 +51,6 @@ function Request(uri, options) {
     }
   }
 
-	console.log(this.headers);
-
   var proto = (this.url.protocol == 'https:') ? https : http;
 
   if(options.oauthConsumerKey)

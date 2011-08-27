@@ -178,8 +178,8 @@ MultiPartRequest.prototype = {
 }
 
 var exportMethods = {
-  file: function(path, filename, fileSize, encoding, contentType) {
-    return new File(path, filename, fileSize, encoding, contentType)
+  file: function(path, options) {
+    return new File(path, options.filename, options.fileSize, options.encoding, options.content_type)
   },
   data: function(filename, contentType, data) {
     return new Data(filename, contentType, data);
@@ -188,8 +188,6 @@ var exportMethods = {
     var totalSize = 0;
 	  boundary = boundary || exports.defaultBoundary;
   	parts.forEach(function(value, name) {
-  		console.log(name)
-  		console.log(value)
   		totalSize += new Part(name, value, boundary).sizeOf();
   	});
   	return totalSize + boundary.length + 6;

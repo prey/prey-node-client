@@ -8,13 +8,21 @@
 var sys = require('sys'),
 		emitter = require('events').EventEmitter;
 
+function mixin(target, source) {
+  Object.keys(source).forEach(function(key) {
+    target[key] = source[key];
+  });
+
+  return target;
+}
+
 function PreyModule(){
 
 	var self = this;
 
 	this.apply_config = function(config){
 		// this.config = this.config.merge(config);
-		this.config = this.options ? this.options.merge(config) : this.config;
+		this.config = mixin(this.options || {}, config);
 	}
 
 	this.path = function(){

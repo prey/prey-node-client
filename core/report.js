@@ -23,7 +23,7 @@ var Report = function(data, remote_config){
 					else {
 						if (val.path){
 							self.contains_files = true;
-							data[f] = http_client.file(val.path, val.type);
+							data[f] = http_client.file(val.path, {content_type: val.type});
 						} else
 							data[f] = JSON.stringify(val);
 					}
