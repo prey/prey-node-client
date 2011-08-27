@@ -13,6 +13,7 @@ function Request(callback){
 	this.start = function(callback){
 
 		var uri = config.check_url + '/devices/' + config.device_key + '.xml';
+		console.log(' -- Fetching URI: ' + uri);
 
 		var options = { headers: { "User-Agent": user_agent } }
 
@@ -38,7 +39,9 @@ function Request(callback){
 
 		headers['X-Logged-User'] = process.env['USERNAME'] // logged_user
 
-		self.on('async_header', function(){
+		self.on('async_header', function(key){
+
+			// console.log('got header ' + key);
 
 			headers_got++;
 			if(headers_got >= async_headers){
@@ -49,18 +52,18 @@ function Request(callback){
 
 		Session.get('current_uptime', function(seconds){
 			headers['X-Current-Uptime'] = seconds;
-			self.emit('async_header');
+			self.emit('async_header', 'current_uptime');
 		});
 
 		Network.get('active_access_point', function(essid_name){
 			headers['X-Active-Access-Point'] = essid_name || 'None';
-			self.emit('async_header');
+			self.emit('async_header', 'active_access_point');
 		});
 
 		Geo.get('coords_via_wifi', function(coords){
 			headers['X-Current-Lat'] = coords ? coords.lat : 0;
 			headers['X-Current-Lng'] = coords ? coords.lat : 0;
-			self.emit('async_header');
+			self.emit('async_header', 'coords_via_wifi');
 		});
 
 	},

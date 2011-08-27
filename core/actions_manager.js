@@ -29,10 +29,10 @@ var ActionsManager = function(){
 
 	this.initialize = function(enabled_action_modules){
 
-		this.running_actions.forEach(function(name, running_action){
+		this.running_actions.forEach(function(running_action){
 
 			if(enabled_action_modules.indexOf(running_action) == -1){
-				console.log(name + " action was turned off!")
+				console.log(" -- " + running_action.name + " action was turned off!")
 				self.stop(name);
 			}
 
@@ -41,7 +41,7 @@ var ActionsManager = function(){
 		enabled_action_modules.forEach(function(action_module){
 
 			if(self.action_is_running(action_module)) {
-				console.log(action_module.name + " is already running!")
+				console.log(" -- " + action_module.name + " is already running!")
 			} else {
 				self.queue_one(action_module);
 			}

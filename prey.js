@@ -58,32 +58,29 @@ helpers.get_logged_user();
 
 var Prey = {
 
+	loops: 0,
 	running: false,
-	auto_connect_attempts: 0,
-	traces: {},
-	modules: { action: [], report: []},
 	on_demand: null,
 
 	run: function(){
 
 		self = this;
 		self.initialize(function(){
-
-			self.check_connection_and_fetch();
-
+			self.fire();
 		});
 
 	},
 
-	rerun: function(){
-		this.clean_up();
+	fire: function(){
+		this.loops++;
+		this.modules = { action: [], report: []};
+		this.auto_connect_attempts = 0;
 		this.check_connection_and_fetch();
 	},
 
 	initialize: function(callback){
 
 		this.check_and_store_pid();
-
 		this.running = true;
 		this.started_at = new Date();
 
@@ -221,17 +218,37 @@ var Prey = {
 
 			self.process_module_config(function(){
 
-				// at this point all report modules have run (if any was selected)
+				console.log(' -- All modules loaded.')
+				ActionsManager.initialize(self.modules.action);
 
-				debug("Traces gathered:\n" + util.inspect(self.traces));
+				if(self.missing && self.modules.report.length > 0) {
 
-				if (self.missing && Object.keys(self.traces).length > 0)
-					self.send_report();
-				else
-					log(" -- Nothing to send!")
+					var report = new Report(self.modules.report, self.requested.configuration);
+					report.once('ready', function(){
 
-				ActionsManager.start_all();
-				self.rerun();
+						ActionsManager.start_all();
+
+						if(Object.keys(report.traces).length > 0)
+							report.send_to(config.destinations);
+						else
+							log(" -- Nothing to send!")
+					});
+
+					report.gather();
+
+				} else {
+
+					ActionsManager.start_all();
+
+				}
+
+//				if(self.loops < 2){
+
+//					setTimeout(function(){
+//						self.fire();
+//					}, 2000);
+
+//				}
 
 			});
 
@@ -274,7 +291,7 @@ var Prey = {
 
 	},
 
-	process_module_config: function(send_report_callback){
+	process_module_config: function(callback){
 
 		var requested_modules = self.requested.modules.module.length;
 		var modules_loaded = 0;
@@ -303,80 +320,26 @@ var Prey = {
 			var report_modules = [], action_modules = [];
 			var loader = new ModuleLoader(module_data.name, module_options);
 
-//			loader.once('failed', function(module_name, e){
-//				modules_loaded++;
-//			});
-
 			loader.once('done', function(prey_module){
 
 				modules_loaded++;
 
 				if(prey_module){
 
-					if(prey_module.type == 'report') {
-						report_modules.push(prey_module);
-					} else {
-						action_modules.push(prey_module);
-					}
+					if(prey_module.type == 'report')
+						self.modules.report.push(prey_module);
+					else
+						self.modules.action.push(prey_module);
 
 				}
 
-				// we assume at least this event will be emitted once,
-				// if it doesnt then it means there are no available modules
 				if(modules_loaded >= requested_modules) {
-
-					console.log(' -- All modules loaded.')
-					ActionsManager.initialize(action_modules);
-
-					if(report_modules.length > 0) {
-						Prey.run_report_modules(report_modules, send_report_callback);
-					} else {
-						send_report_callback();
-					}
-
+					callback();
 				}
 
 			});
 
 		}
-
-	},
-
-	run_report_modules: function(report_modules, send_report_callback){
-
-		var report_modules_count = report_modules.length;
-		var modules_returned = 0;
-
-		report_modules.forEach(function(prey_module){
-
-			prey_module.on('end', function(){
-
-				modules_returned++;
-				var modules_to_go = report_modules_count - modules_returned;
-
-				var traces_count = Object.keys(this.traces).length;
-				log(" -- [" + this.name + "] module returned, " + traces_count + " traces gathered. " + modules_to_go.toString() + " to go!");
-
-				if(traces_count > 0) self.traces[this.name] = this.traces;
-
-				if(modules_to_go <= 0){
-					log(" ++ All modules done! Packing report...");
-					send_report_callback();
-				}
-
-			});
-
-			prey_module.run();
-
-		});
-
-	},
-
-	send_report: function(){
-
-		log(" -- Packing report!");
-		var report = new Report(self.traces, self.requested.configuration);
-		report.send_to(config.destinations);
 
 	},
 
@@ -400,7 +363,6 @@ var Prey = {
 	// helpers
 
 	clean_up: function(){
-		this.traces = {};
 		if(!self.running) fs.unlink(pid_file);
 		log(" -- Cleaning up!");
 	}
@@ -446,7 +408,7 @@ process.on('SIGINT', function () {
 
 process.on('SIGUSR1', function () {
 	log(' >> Received run instruction!');
-	Prey.rerun();
+	Prey.fire();
 });
 
 /////////////////////////////////////////////////////////////
