@@ -17,7 +17,7 @@ var Report = function(data, options){
 
 	this.send_to = function(destinations){
 
-			destinations.forEach(function(destination) {
+		destinations.forEach(function(destination) {
 
 			var Transport = require(base_path + '/transports/' + destination);
 			var tr = new Transport(self, config.transports.destination);

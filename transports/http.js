@@ -13,6 +13,8 @@ var HTTPTransport = function(report, options){
 
 	Transport.call(this, report, options);
 	var self = this;
+	this.destination = 'http';
+
 	this.post_url = report.options.post_url;
 
 	this.flatten_data = function(object){
@@ -37,6 +39,7 @@ var HTTPTransport = function(report, options){
 	this.send = function(data){
 
 		log(" -- Sending report via HTTP...");
+		this.emit('start');
 
 		this.options.headers = { "User-Agent" : user_agent },
 		this.options.data = this.flatten_data(data);
@@ -48,6 +51,7 @@ var HTTPTransport = function(report, options){
 		.once('complete', function(body, response){
 			console.log(' -- Got status code: ' + response.statusCode);
 			// console.log(' -- ' + body);
+			this.emit('end');
 		})
 		.once('error', function(body, response){
 			// console.log(' -- Got status code: ' + response.statusCode);

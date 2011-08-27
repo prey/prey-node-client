@@ -12,6 +12,7 @@ var ControlPanelTransport = function(report, options){
 
 	HTTPTransport.call(this, report, options || {});
 	var self = this;
+	this.destination = 'control_panel';
 
 	this.options.username = config.api_key;
 	this.options.password = 'x';

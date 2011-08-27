@@ -5,15 +5,15 @@ var Transport = function(report, options) {
 	var self = this;
 	this.options = options;
 
-	this.began = function(){
+	this.on('start', function(){
 		this.began_at = new Date();
-		console.log("Began at " + began_at);
-	};
+		console.log(" -- Report to " + this.destination + " began at " + this.began_at);
+	});
 
-	this.finished = function(){
+	this.on('end', function(){
 		this.finished_at = new Date();
-		console.log("Finished at " + began_at);
-	}
+		console.log(" -- Report to " + this.destination + " finished at " + this.finished_at);
+	});
 
 }
 
