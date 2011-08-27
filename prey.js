@@ -46,7 +46,11 @@ var path = require('path'),
 var pid_file = helpers.tempfile_path('prey.pid');
 var version = fs.readFileSync(base_path + '/version').toString().replace("\n", '');
 
-GLOBAL.config = require(base_path + '/config').main;
+try {
+	GLOBAL.config = require(base_path + '/config').main;
+} catch(e) {
+	quit(" !! No config file found!")
+}
 GLOBAL.args = require('./core/args').init(version);
 GLOBAL.user_agent = "Prey/" + version + " (NodeJS, "  + os_name + ")";
 
@@ -60,7 +64,6 @@ var Prey = {
 
 	loops: 0,
 	running: false,
-	on_demand: null,
 
 	run: function(){
 
@@ -293,15 +296,15 @@ var Prey = {
 
 	process_module_config: function(callback){
 
-		var requested_modules = self.requested.modules.module.length;
+		var requested_modules = self.requested.modules.module.length || 1;
 		var modules_loaded = 0;
 		log(" -- " + requested_modules + " modules enabled!")
 
 		for(id in self.requested.modules.module){
 
 			var module_config = self.requested.modules.module[id];
-			if(typeof(module_config) !== "object") continue;
 
+			if(typeof(module_config) !== "object") continue;
 //			console.log(util.inspect(module_config));
 
 			var module_data = module_config['@'] || module_config;
@@ -353,7 +356,7 @@ var Prey = {
 			stream.on('event', function(event, data){
 				console.log(event);
 				console.log(data.msg);
-				if(data.msg == 'run_prey') Prey.rerun();
+				if(data.msg == 'run_prey') Prey.fire();
 			});
 
 		});

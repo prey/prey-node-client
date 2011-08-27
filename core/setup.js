@@ -8,36 +8,29 @@
 var sys = require('sys'),
 		fs = require('fs'),
 		helpers = require('./helpers'),
-		http_client = require('http_client'),
+		http_client = require(base_path + '/vendor/restler'),
+		query_string = require(base_path + '/vendor/querystring-stringify'),
 		Response = require('./response_parser');
 
-var config_file_path = base_path + '/config'
+var config_file_path = base_path + '/config.js'
 
 var Setup = {
 
 	store_config_value: function(key_name, value){
 		var pattern = new RegExp("\t+" + key_name + ":.*");
 		var new_value = "\t" + key_name + ': "' + value + '",';
-		this.replace_in_file(config_file_path, pattern, new_value);
-	},
-
-	replace_in_file: function(file_name, from, to){
-
-		fs.readFile(file_name, function (err, data) {
-			if (err) throw err;
-			var new_data = data.toString().replace(from, to);
-			if(new_data != data) save_file_contents(file_name, new_data)
-		});
+		helpers.replace_in_file(config_file_path, pattern, new_value);
 	},
 
 	auto_register: function(callback){
 
+		var self = this;
 		var url = config.check_url + '/devices.xml';
 
 		var options = {
-			user: config.api_key,
-			pass: "x",
-			headers : { "User-Agent": self.user_agent }
+			username: config.api_key,
+			password: "x",
+			headers : { "User-Agent": user_agent }
 		}
 
 		var data = {
@@ -49,7 +42,14 @@ var Setup = {
 			}
 		}
 
-		http_client.post(url, data, options, function(response, body){
+		options.data = query_string.stringify(data);
+		options.headers['Content-Length'] = options.data.length; // damn restler module
+
+		http_client.post(url, options)
+		.on('error', function(body, response){
+			log("Response body: " + body);
+		})
+		.on('complete', function(body, response){
 
 			debug("Response body: " + body);
 			log(' -- Got status code: ' + response.statusCode);
@@ -64,7 +64,7 @@ var Setup = {
 						log(" -- Got device key: " + result.key + ". Storing in configuration...")
 						config.device_key = result.key;
 
-						Setup.store_config_value('device_key', result.key);
+						self.store_config_value('device_key', result.key);
 						callback()
 
 					} else {

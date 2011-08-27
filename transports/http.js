@@ -50,8 +50,8 @@ var HTTPTransport = function(report, options){
 		http_client.post(this.post_url, this.options)
 		.once('complete', function(body, response){
 			console.log(' -- Got status code: ' + response.statusCode);
-			// console.log(' -- ' + body);
-			this.emit('end');
+			console.log(' -- ' + body);
+			self.emit('end');
 		})
 		.once('error', function(body, response){
 			// console.log(' -- Got status code: ' + response.statusCode);
