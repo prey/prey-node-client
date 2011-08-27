@@ -127,7 +127,8 @@ var OnDemand = {
 	send: function(action, data){
 		log(" -- Sending action " + action);
 		if(self.stream.writable) {
-			self.stream.write(JSON.stringify({ action: action, data: data }) + "\n", 'utf8')
+			// self.stream.write(JSON.stringify({ action: action, data: data }) + "\n", 'utf8');
+			self.stream.write(JSON.stringify({ action: action, data: data }), 'utf8')
 		} else {
 			log(" !! Stream not writable!");
 			OnDemand.disconnect();

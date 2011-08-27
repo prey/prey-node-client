@@ -17,16 +17,21 @@ function ReportModule(){
 	// console.log('report module initialized');
 	this.traces = {};
 
-	this.traces_in_process = [];
+	this.traces_called = [];
 	this.traces_returned = 0;
 
 	this.run = function(){
 		this.trace_methods.forEach(function(trace){
 			if(self.traces[trace]) {
-				self.increment_returned(); // someone else already asked for it
+				// if its part of the list to be fetched,
+				// increment counter as someone already asked for it
+				// self.trace_returned(trace);
 			} else {
 				self.get_trace(trace); // go get it
 			}
+		});
+		this.once('all_traces_returned', function(){
+			self.done();
 		});
 	};
 
@@ -47,17 +52,21 @@ function ReportModule(){
 		var method = 'get_' + trace;
 
 		self.once(trace, function(val, err){
-			this.store_trace(trace, val);
-			if(callback) callback(val); // trace requested by someone else
-			else self.trace_returned(trace); // from run()
+			if(val) this.store_trace(trace, val);
+			self.trace_returned(trace);
+			if(callback) callback(val);
 		});
 
-		if(self.traces_in_process.indexOf(trace) == -1) {
+		if(self.traces_called.indexOf(trace) == -1) {
 			console.log(' == Calling ' + method);
-			self.traces_in_process.push(trace);
+			self.traces_called.push(trace);
 			self[method]();
 		}
 	};
+
+	this.in_trace_methods = function(trace){
+		return(this.trace_methods.indexOf(trace) != -1);
+	}
 
 	this.store_trace = function(key, val){
 		log(" ++ [" + this.name + "] Got trace: " + key + " -> " + val);
@@ -65,18 +74,17 @@ function ReportModule(){
 	}
 
 	this.trace_returned = function(trace){
-		delete this.traces_in_process[trace];
-		this.increment_returned();
-	}
 
-	this.increment_returned = function(){
+		if(!self.trace_methods || !self.in_trace_methods(trace)) return;
+
 		this.traces_returned++;
+		// console.log(self.name + ": " + trace + " -- " + self.traces_returned + "/" + self.trace_methods.length)
+
 		if(!this.traces_pending())
-			this.done();
+			this.emit('all_traces_returned');
 	}
 
 	this.traces_pending = function(){
-		// console.log(self.traces_returned + "/" + self.trace_methods.length)
 		return (this.traces_returned < this.trace_methods.length);
 	}
 

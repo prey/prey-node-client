@@ -15,9 +15,11 @@ var Report = function(data, remote_config){
 
 	this.send_via_http = function(){
 
+		log(" -- Sending report via HTTP...");
+
 		var post_url = remote_config.post_url || config.check_url + "/devices/" + config.device_key + "/reports.xml";
 
-		log(" -- Sending HTTP report to " + post_url);
+		debug(" -- HTTP endpoint: " + post_url);
 
 		var http_opts = {
 			user: config.api_key,

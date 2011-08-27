@@ -2,6 +2,7 @@ var util = require('util'),
 		sys = require('sys'),
 		emitter = require('events').EventEmitter,
 		http_client = require('http_client'),
+		Session = require(modules_path + '/session'),
 		Geo = require(modules_path + '/geo'),
 		Network = require(modules_path + '/network');
 
@@ -32,7 +33,7 @@ function Request(callback){
 
 	this.get_extended_headers = function(headers, callback){
 
-		var async_headers = 2;
+		var async_headers = 3;
 		var headers_got = 0;
 
 		headers['X-Logged-User'] = process.env['USERNAME'] // logged_user
@@ -41,26 +42,32 @@ function Request(callback){
 
 			headers_got++;
 			if(headers_got >= async_headers){
-				log(' -- All info in place!');
 				callback(headers);
 			}
 
 		});
 
-		Network.get('active_network', function(network){
-			headers['X-Active-Network'] = network;
+		Session.get('current_uptime', function(seconds){
+			headers['X-Current-Uptime'] = seconds;
+			self.emit('async_header');
+		});
+
+		Network.get('active_access_point', function(essid_name){
+			headers['X-Active-Access-Point'] = essid_name || 'None';
 			self.emit('async_header');
 		});
 
 		Geo.get('coords_via_wifi', function(coords){
-			headers['X-Current-Lat'] = coords.lat;
-			headers['X-Current-Lng'] = coords.lat;
+			headers['X-Current-Lat'] = coords ? coords.lat : 0;
+			headers['X-Current-Lng'] = coords ? coords.lat : 0;
 			self.emit('async_header');
 		});
 
 	},
 
 	this.get = function(uri, options, callback){
+
+		// console.log(options.headers)
 
 		http_client.get(uri, options, function(response, body){
 			log(' -- Got status code: ' + response.statusCode);

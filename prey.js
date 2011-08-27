@@ -45,7 +45,6 @@ var version = fs.readFileSync(base_path + '/version').toString().replace("\n", '
 GLOBAL.config = require(base_path + '/config').main;
 GLOBAL.args = require('./core/args').init(version);
 GLOBAL.user_agent = "Prey/" + version + " (NodeJS, "  + os_name + ")";
-// GLOBAL.module_config = {}
 
 require('logger');
 require('./core/helpers');
@@ -64,9 +63,27 @@ var Prey = {
 	modules: { action: [], report: []},
 	on_demand: null,
 
+	run: function(){
+
+		self = this;
+		self.initialize(function(){
+
+			self.check_connection();
+
+		});
+
+	},
+
+	rerun: function(){
+		this.clean_up();
+		this.fetch();
+	},
+
 	initialize: function(callback){
 
 		this.check_and_store_pid();
+
+		this.running = true;
 		this.started_at = new Date();
 		this.logged_user = process.env['USERNAME'];
 
@@ -96,12 +113,10 @@ var Prey = {
 			log("\n -- Prey seems to be running already! PID: " + pid.toString());
 
 			try {
-				self.running = true;
 				process.kill(pid, 'SIGWINCH')
 				process.exit(0);
 			} catch(e) {
 				log(" -- Not really! Pidfile was just lying around.");
-				self.running = false;
 			}
 
 		}
@@ -116,22 +131,6 @@ var Prey = {
 			Check.http_config();
 		if(config.post_methods.indexOf('smtp') != -1)
 			Check.smtp_config();
-	},
-
-	run: function(){
-
-		self = this;
-		self.initialize(function(){
-
-			self.check_connection();
-
-		});
-
-	},
-
-	rerun: function(){
-		this.clean_up();
-		this.fetch();
 	},
 
 	check_connection: function(){
@@ -420,8 +419,9 @@ var Check = {
 /////////////////////////////////////////////////////////////
 
 process.on('exit', function () {
+	Prey.running = false;
 	Prey.clean_up();
-	log(" -- Shutting down!\n");
+	log(" -- Have a jolly good day sir.\n");
 });
 
 //process.on('uncaughtException', function (err) {
