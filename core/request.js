@@ -1,7 +1,7 @@
 var util = require('util'),
 		sys = require('sys'),
 		emitter = require('events').EventEmitter,
-		http_client = require('http_client'),
+		http_client = require(base_path + '/vendor/restler'),
 		Session = require(modules_path + '/session'),
 		Geo = require(modules_path + '/geo'),
 		Network = require(modules_path + '/network');
@@ -69,12 +69,14 @@ function Request(callback){
 
 		// console.log(options.headers)
 
-		http_client.get(uri, options, function(response, body){
+		http_client.get(uri, options)
+		.once('complete', function(body, response){
 			log(' -- Got status code: ' + response.statusCode);
-			// debug("Response headers:\n" + util.inspect(response.headers));
-			// debug("Response body:\n" + body);
 			callback(response, body);
 		})
+		.once('error', function(body, response){
+			// log(' -- Got status code: ' + response.statusCode);
+		});
 
 	}
 

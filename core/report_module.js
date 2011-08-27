@@ -69,7 +69,7 @@ function ReportModule(){
 	}
 
 	this.store_trace = function(key, val){
-		log(" ++ [" + this.name + "] Got trace: " + key + " -> " + val);
+		this.log("Got trace: " + key + " -> " + val);
 		if(val) this.traces[key] = val;
 	}
 

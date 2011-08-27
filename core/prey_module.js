@@ -21,6 +21,10 @@ function PreyModule(){
 		return modules_path + '/' + this.name;
 	}
 
+	this.log = function(str){
+		console.log(" ++ [" + this.name + "] " + str);
+	};
+
 	this.init = function(){
 
 //		try {

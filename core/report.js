@@ -6,12 +6,31 @@
 //////////////////////////////////////////
 
 var sys = require('sys'),
-		http_client = require('http_client'),
+		http_client = require(base_path + '/vendor/restler'),
 		emitter = require('events').EventEmitter;
 
 var Report = function(data, remote_config){
 
-	// var self = this;
+	var self = this;
+
+	this.flatten_data = function(object){
+		var data = {};
+		object.forEach(function(obj, key){
+				obj.forEach(function(val, k){
+					var f = key + '[' + k + ']';
+					if(val instanceof String)
+						data[f] = val;
+					else {
+						if (val.path){
+							self.contains_files = true;
+							data[f] = http_client.file(val.path, val.type);
+						} else
+							data[f] = JSON.stringify(val);
+					}
+				});
+		});
+		return data;
+	}
 
 	this.send_via_http = function(){
 
@@ -22,15 +41,23 @@ var Report = function(data, remote_config){
 		debug(" -- HTTP endpoint: " + post_url);
 
 		var http_opts = {
-			user: config.api_key,
-			pass: "x",
-			headers : { "User-Agent" : user_agent }
+			username: config.api_key,
+			password: "x",
+			headers : { "User-Agent" : user_agent },
+			data: this.flatten_data(data)
 		}
 
-		http_client.post(post_url, data, http_opts, function(response, body){
+		if(this.contains_files)
+			http_opts.multipart = true;
+
+		http_client.post(post_url, http_opts)
+		.once('complete', function(body, response){
 			console.log(' -- Got status code: ' + response.statusCode);
-			console.log(' -- ' + body);
+			// console.log(' -- ' + body);
 		})
+		.once('error', function(body, response){
+			// console.log(' -- Got status code: ' + response.statusCode);
+		});
 
 	}
 
