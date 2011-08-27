@@ -19,7 +19,7 @@ var ActionsManager = function(){
 	};
 
 	this.action_finished = function(module_name){
-		console.log(' -- ' + module_name + ' finished');
+		console.log(' -- ' + module_name + ' returned!');
 		delete this.running_actions[module_name];
 	};
 

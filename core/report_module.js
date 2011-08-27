@@ -21,27 +21,37 @@ function ReportModule(){
 	this.traces_returned = 0;
 
 	this.run = function(){
-		this.trace_methods.forEach(function(trace_name){
-			self.get_trace(trace_name);
+		this.trace_methods.forEach(function(trace){
+
+			if(self.traces[trace]) {
+				self.increment_returned();
+			} else {
+				self.get_trace(trace);
+			}
+
 		});
 	};
 
-	this.on('trace', function(key, val){
-		if(val) this.add_trace(key, val);
-	});
+	this.get = function(trace, callback){
+		if(this.traces[trace]) {
+			callback(this.traces[trace]);
+		} else {
+			this.get_trace(trace, callback);
+		}
+	};
 
-	this.add_trace = function(key, val){
-		log(" ++ [" + this.name + "] Got trace: " + key + " -> " + val);
-		this.traces[key] = val;
-	}
+	this.on('trace', function(key, val){
+		if(val) this.store_trace(key, val);
+	});
 
 	this.get_trace = function(trace){
 		var callback = arguments[1];
 		var method = 'get_' + trace;
 
 		self.once(trace, function(val, err){
+			this.store_trace(trace, val);
 			if(callback) callback(val); // trace requested by someone else
-			else self.trace_returned(trace, val, err); // from run()
+			else self.trace_returned(trace); // from run()
 		});
 
 		if(self.traces_in_process.indexOf(trace) == -1) {
@@ -51,29 +61,26 @@ function ReportModule(){
 		}
 	};
 
-	this.get = function(trace, callback){
-		if(this.traces[trace]) {
-			// console.log('already there')
-			callback(this.traces[trace]);
-		} else {
-			// console.log('not there')
-			this.get_trace(trace, callback);
-		}
-	};
-
-	this.traces_pending = function(){
-		// console.log(self.traces_returned + "/" + self.trace_methods.length)
-		return (this.traces_returned < this.trace_methods.length);
+	this.store_trace = function(key, val){
+		log(" ++ [" + this.name + "] Got trace: " + key + " -> " + val);
+		if(val) this.traces[key] = val;
 	}
 
-	this.trace_returned = function(trace, val, err){
-		if(val) this.add_trace(trace, val)
+	this.trace_returned = function(trace){
+		delete this.traces_in_process[trace];
+		this.increment_returned();
+	}
 
+	this.increment_returned = function(){
 		this.traces_returned++;
 		if(!this.traces_pending())
 			this.done();
 	}
 
+	this.traces_pending = function(){
+		// console.log(self.traces_returned + "/" + self.trace_methods.length)
+		return (this.traces_returned < this.trace_methods.length);
+	}
 
 	this.list_traces = function(){
 		console.log(this.traces);

@@ -5,8 +5,6 @@ var sys = require('sys'),
 
 var ResponseParser = {
 
-	self: this,
-
 	parse: function(data, callback){
 
 		if(data.indexOf('<device>') == -1)
@@ -17,6 +15,8 @@ var ResponseParser = {
 	},
 
 	decrypt_response: function(data, callback){
+
+		var self = this;
 
 		console.log(" -- Got encrypted response. Decrypting...")
 		var key = crypto.createHash('md5').update(config.api_key).digest("hex");
@@ -34,10 +34,9 @@ var ResponseParser = {
 		})
 
 		cmd.on('return', function(output){
-			xml = output.replace(/=([^\s>\/]+)/g, '="$1"'); // insert comments back on node attributes
-			// console.log(xml);
-			// return xml;
-			self.parse_xml(xml, callback);
+			// xml = output.replace(/=([^\s>\/]+)/g, '="$1"'); // insert comments back on node attributes
+			// console.log(output)
+			self.parse_xml(output, callback);
 		})
 
 	},
@@ -51,6 +50,10 @@ var ResponseParser = {
 		parser.addListener('end', function(result) {
 			log(' -- XML parsing complete.');
 			callback(result);
+		});
+
+		parser.addListener('error', function(result) {
+			quit("FUCK!")
 		});
 
 		parser.parseString(data);

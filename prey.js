@@ -29,7 +29,8 @@ var path = require('path'),
 		emitter = require('events').EventEmitter,
 		http_client = require('http_client'),
 		Connection = require('./core/connection'),
-		Response = require('./core/response'),
+		Request = require('./core/request'),
+		ResponseParser = require('./core/response_parser'),
 		Setup = require('./core/setup'),
 		ModuleLoader = require('./core/module_loader'),
 		ActionsManager = require('./core/actions_manager'),
@@ -157,7 +158,8 @@ var Prey = {
 				);
 
 			} else {
-				this.no_connection();
+				log(" -- Not trying any more.");
+				self.no_connection();
 			}
 
 		});
@@ -182,7 +184,10 @@ var Prey = {
 
 		log(" -- Fetching instructions...")
 
-		self.fetch_xml(function(response_body){
+		var req = new Request(function(response, body){
+
+			self.response_status = response.statusCode;
+			self.response_content_type = response.headers["content-type"];
 
 			if(!self.valid_status_code())
 				quit("Unexpected status code received.")
@@ -190,33 +195,15 @@ var Prey = {
 			if(self.response_content_type.indexOf('/xml') == -1)
 				quit("No valid instructions received.")
 
-			self.process(response_body, false);
+			self.process(body, false);
 
-		})
-
-
-	},
-
-	fetch_xml: function(callback){
-
-		var uri = config.check_url + '/devices/' + config.device_key + '.xml';
-		var options = { headers: { "User-Agent": user_agent } }
-
-		http_client.get(uri, options, function(response, body){
-			log(' -- Got status code: ' + response.statusCode);
-			debug("Response headers:\n" + util.inspect(response.headers));
-			debug("Response body:\n" + body);
-			// self.response = response;
-			self.response_status = response.statusCode;
-			self.response_content_type = response.headers["content-type"];
-			callback(body);
 		})
 
 	},
 
 	process: function(response_body, offline){
 
-		Response.parse(response_body, function(parsed){
+		ResponseParser.parse(response_body, function(parsed){
 
 			self.requested = parsed;
 			self.process_main_config();
@@ -230,6 +217,9 @@ var Prey = {
 				save_file_contents(config.last_response_file, response_body);
 
 			self.process_module_config(function(){
+
+				// at this point all report modules have run (if any was selected)
+
 				debug("Traces gathered:\n" + util.inspect(self.traces));
 
 				if (self.missing && self.traces.count() > 0)
