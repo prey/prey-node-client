@@ -7,10 +7,11 @@
 
 var sys = require('sys'),
 		emitter = require('events').EventEmitter,
-		Download = require('download'),
 		util = require('util'),
 		fs = require('fs'),
 		path = require('path'),
+		helpers = require('./helpers'),
+		Download = require('download'),
 		unpack = require('unpack'),
 		fs2 = require("../vendor/wrench");
 
@@ -23,7 +24,7 @@ function ModuleUpdater(module_name){
 	this.get = function(remote_package, module_path){
 
 		var tempfile = path.basename(remote_package);
-		var dw = new Download(remote_package, tempfile_path("prey-module-" + tempfile));
+		var dw = new Download(remote_package, helpers.tempfile_path("prey-module-" + tempfile));
 
 		dw.on('complete', function(filename, stats){
 			// console.log('All done. ' + stats.bytes + " transferred in " + stats.time + " seconds.")

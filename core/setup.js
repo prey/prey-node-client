@@ -5,7 +5,11 @@
 // GPLv3 Licensed
 //////////////////////////////////////////
 
-var sys = require('sys'), fs = require('fs'), http_client = require('http_client'), Response = require('./response_parser');
+var sys = require('sys'),
+		fs = require('fs'),
+		helpers = require('./helpers'),
+		http_client = require('http_client'),
+		Response = require('./response_parser');
 
 var config_file_path = base_path + '/config'
 

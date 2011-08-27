@@ -13,7 +13,8 @@ function PreyModule(){
 	var self = this;
 
 	this.apply_config = function(config){
-		this.config = this.config.merge(config);
+		// this.config = this.config.merge(config);
+		this.config = this.options ? this.options.merge(config) : this.config;
 	}
 
 	this.path = function(){
@@ -22,11 +23,12 @@ function PreyModule(){
 
 	this.init = function(){
 
-		try {
-			self.config = require(this.path + "/config").default;
-		} catch(e) {
-			self.config = {};
-		}
+//		try {
+//			self.config = require(this.path + "/config").default;
+//		} catch(e) {
+//			self.config = {};
+//		}
+
 		self.loaded = true;
 		self.emit('ready');
 

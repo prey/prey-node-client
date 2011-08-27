@@ -9,6 +9,16 @@ var util = require('util'),
 		Command = require('command');
 
 exports.temp_path = "/tmp";
+exports.get_logged_user_cmd = "who | cut -d' ' -f1 | tail -1";
+
+exports.current_user_cmd = function(command){
+
+	if(process.env["USERNAME"] != logged_user)
+		return "DISPLAY=:0 sudo su " + logged_user + " -c '" + command + "'";
+	else
+		return command;
+
+}
 
 exports.check_current_delay = function(script_path, callback) {
 

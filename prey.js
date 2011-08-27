@@ -19,6 +19,7 @@ os = require(base_path + '/platform/' + os_name);
 
 // require.paths.unshift(__dirname);
 require('core_extensions');
+require('logger');
 
 var path = require('path'),
 		fs = require("fs"),
@@ -27,6 +28,7 @@ var path = require('path'),
 		sys = require("sys"),
 		url = require('url'),
 		emitter = require('events').EventEmitter,
+		helpers = require('./core/helpers'),
 		http_client = require('http_client'),
 		Connection = require('./core/connection'),
 		Request = require('./core/request'),
@@ -41,15 +43,14 @@ var path = require('path'),
 // base initialization
 ////////////////////////////////////////
 
+var pid_file = helpers.tempfile_path('prey.pid');
 var version = fs.readFileSync(base_path + '/version').toString().replace("\n", '');
+
 GLOBAL.config = require(base_path + '/config').main;
 GLOBAL.args = require('./core/args').init(version);
 GLOBAL.user_agent = "Prey/" + version + " (NodeJS, "  + os_name + ")";
 
-require('logger');
-require('./core/helpers');
-
-var pid_file = tempfile_path('prey.pid');
+helpers.get_logged_user();
 
 ////////////////////////////////////////
 // models
@@ -85,11 +86,10 @@ var Prey = {
 
 		this.running = true;
 		this.started_at = new Date();
-		this.logged_user = process.env['USERNAME'];
 
 		log("\n  PREY " + version + " spreads its wings!");
 		log("  " + self.started_at)
-		log("  Running on a " + os_name + " system as " + self.logged_user);
+		log("  Running on a " + os_name + " system as " + process.env['USERNAME']);
 		log("  NodeJS version: " + process.version + "\n");
 
 		if(config.device_key == ""){
@@ -121,7 +121,7 @@ var Prey = {
 
 		}
 
-		save_file_contents(pid_file, process.pid.toString());
+		helpers.save_file_contents(pid_file, process.pid.toString());
 
 	},
 
