@@ -16,7 +16,7 @@ var config_file_path = base_path + '/config'
 var Setup = {
 
 	store_config_value: function(key_name, value){
-		var pattern = new RegExp("\t" + key_name + ":.*");
+		var pattern = new RegExp("\t+" + key_name + ":.*");
 		var new_value = "\t" + key_name + ': "' + value + '",';
 		this.replace_in_file(config_file_path, pattern, new_value);
 	},

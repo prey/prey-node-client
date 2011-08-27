@@ -369,11 +369,7 @@ var Prey = {
 
 		log(" -- Packing report!");
 		var report = new Report(self.traces, self.requested.configuration);
-
-		config.post_methods.forEach(function(post_method) {
-			var report_method = "send_via_" + post_method;
-			report[report_method]();
-		});
+		report.send_to(config.destinations);
 
 	},
 
