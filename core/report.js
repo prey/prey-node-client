@@ -11,7 +11,7 @@ var sys = require('sys'),
 
 var Report = function(data, remote_config){
 
-	var self = this;
+	// var self = this;
 
 	this.send_via_http = function(){
 

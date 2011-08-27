@@ -5,7 +5,7 @@
 // GPLv3 Licensed
 //////////////////////////////////////////
 
-var sys = require('sys'), fs = require('fs'), HTTP = require('http_client'), Response = require('./response');
+var sys = require('sys'), fs = require('fs'), http_client = require('http_client'), Response = require('./response');
 
 var config_file_path = base_path + '/config'
 
@@ -45,7 +45,7 @@ var Setup = {
 			}
 		}
 
-		HTTP.post(url, data, options, function(response, body){
+		http_client.post(url, data, options, function(response, body){
 
 			debug("Response body: " + body);
 			log(' -- Got status code: ' + response.statusCode);

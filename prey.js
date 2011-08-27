@@ -9,6 +9,7 @@
 // set globals that are needed for all descendants
 GLOBAL.base_path = __dirname;
 GLOBAL.script_path = __filename;
+GLOBAL.modules_path = base_path + '/prey_modules';
 GLOBAL.os_name = process.platform.replace("darwin", "mac").replace('win32', 'windows');
 os = require(base_path + '/platform/' + os_name);
 
@@ -25,11 +26,13 @@ var path = require('path'),
 		tcp = require("net"),
 		sys = require("sys"),
 		url = require('url'),
+		emitter = require('events').EventEmitter,
 		http_client = require('http_client'),
 		Connection = require('./core/connection'),
 		Response = require('./core/response'),
 		Setup = require('./core/setup'),
-		Module = require('./core/module'),
+		ModuleLoader = require('./core/module_loader'),
+		ActionsManager = require('./core/actions_manager'),
 		Report = require('./core/report'),
 		OnDemand = require('./core/on_demand');
 
@@ -41,6 +44,7 @@ var version = fs.readFileSync(base_path + '/version').toString().replace("\n", '
 GLOBAL.config = require(base_path + '/config').main;
 GLOBAL.args = require('./core/args').init(version);
 GLOBAL.user_agent = "Prey/" + version + " (NodeJS, "  + os_name + ")";
+// GLOBAL.module_config = {}
 
 require('logger');
 require('./core/helpers');
@@ -57,7 +61,6 @@ var Prey = {
 	auto_connect_attempts: 0,
 	traces: {},
 	modules: { action: [], report: []},
-	response: false,
 	on_demand: null,
 
 	initialize: function(callback){
@@ -172,7 +175,7 @@ var Prey = {
 	},
 
 	valid_status_code: function(){
-		return self.response.statusCode == 200 || self.response.statusCode == 404;
+		return self.response_status == 200 || self.response_status == 404;
 	},
 
 	fetch: function(){
@@ -184,7 +187,7 @@ var Prey = {
 			if(!self.valid_status_code())
 				quit("Unexpected status code received.")
 
-			if(self.response.headers["content-type"].indexOf('/xml') == -1)
+			if(self.response_content_type.indexOf('/xml') == -1)
 				quit("No valid instructions received.")
 
 			self.process(response_body, false);
@@ -203,7 +206,9 @@ var Prey = {
 			log(' -- Got status code: ' + response.statusCode);
 			debug("Response headers:\n" + util.inspect(response.headers));
 			debug("Response body:\n" + body);
-			self.response = response;
+			// self.response = response;
+			self.response_status = response.statusCode;
+			self.response_content_type = response.headers["content-type"];
 			callback(body);
 		})
 
@@ -232,6 +237,8 @@ var Prey = {
 				else
 					log(" -- Nothing to send!")
 
+				ActionsManager.start_all();
+
 			});
 
 		});
@@ -248,7 +255,7 @@ var Prey = {
 		else
 			self.requested.configuration.auto_update || false;
 
-		self.missing = (self.response.statusCode == config.missing_status_code);
+		self.missing = (self.response_status == config.missing_status_code);
 
 		var status_msg = self.missing ? "Device is missing!" : "Device not missing. Sweet.";
 		log(" -- " + status_msg);
@@ -273,12 +280,12 @@ var Prey = {
 
 	},
 
-	process_module_config: function(callback){
+	process_module_config: function(send_report_callback){
 
-		var requested_modules_count = self.requested.modules.module.count();
-		log(" -- Got " + requested_modules_count + " modules!")
+		var requested_modules = self.requested.modules.module.count();
+		var modules_loaded = 0;
+		log(" -- " + requested_modules + " modules enabled!")
 
-		var modules_returned = 0;
 		for(id in self.requested.modules.module){
 
 			var module_config = self.requested.modules.module[id];
@@ -299,30 +306,69 @@ var Prey = {
 				update: self.auto_update
 			}
 
-			var prey_module = Module.new(module_data.name, module_options);
+			var report_modules = [], action_modules = [];
+			var loader = new ModuleLoader(module_data.name, module_options);
 
-			prey_module.on('end', function(traces){
+			loader.once('failed', function(module_name, e){
+				modules_loaded++;
+			});
 
-				modules_returned++;
-				var modules_to_go = requested_modules_count - modules_returned;
+			loader.once('loaded', function(prey_module){
 
-				var traces_count = traces.count();
-				log(" -- [" + this.name + "] module returned, " + traces_count + " traces gathered. " + modules_to_go.toString() + " to go!");
+				modules_loaded++;
+				if(prey_module.type == 'report') {
+					report_modules.push(prey_module);
+				} else {
+					action_modules.push(prey_module);
+				}
 
-				if(traces_count > 0) self.traces[this.name] = traces;
+				// we assume at least this event will be emitted once,
+				// if it doesnt then it means there are no available modules
+				if(modules_loaded >= requested_modules) {
+					console.log(' -- Modules loaded.')
+					ActionsManager.queue_many(action_modules);
 
-				if(modules_to_go <= 0){
-					log(" ++ All modules are done! Packing report...");
-					callback();
+					if(report_modules.length > 0) {
+						Prey.run_report_modules(report_modules, send_report_callback);
+					} else {
+						send_report_callback();
+					}
+
 				}
 
 			});
 
-//			prey_module.when_ready(function(){
-//				mod.run();
-//			});
-
 		}
+
+	},
+
+	run_report_modules: function(report_modules, send_report_callback){
+
+		var report_modules_count = report_modules.length;
+		var modules_returned = 0;
+
+		report_modules.forEach(function(prey_module){
+
+			prey_module.on('end', function(){
+
+				modules_returned++;
+				var modules_to_go = report_modules_count - modules_returned;
+
+				var traces_count = this.traces.count();
+				log(" -- [" + this.name + "] module returned, " + traces_count + " traces gathered. " + modules_to_go.toString() + " to go!");
+
+				if(traces_count > 0) self.traces[this.name] = this.traces;
+
+				if(modules_to_go <= 0){
+					log(" ++ All modules done! Packing report...");
+					send_report_callback();
+				}
+
+			});
+
+			prey_module.run();
+
+		});
 
 	},
 
@@ -364,6 +410,8 @@ var Prey = {
 	}
 
 }
+
+// sys.inherits(Prey, emitter);
 
 var Check = {
 	installation: function(){
