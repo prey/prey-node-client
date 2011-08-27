@@ -22,13 +22,11 @@ function ReportModule(){
 
 	this.run = function(){
 		this.trace_methods.forEach(function(trace){
-
 			if(self.traces[trace]) {
-				self.increment_returned();
+				self.increment_returned(); // someone else already asked for it
 			} else {
-				self.get_trace(trace);
+				self.get_trace(trace); // go get it
 			}
-
 		});
 	};
 
