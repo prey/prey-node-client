@@ -109,14 +109,18 @@ var Prey = {
 
 		if(path.existsSync(pid_file)){
 
-			pid = parseInt(fs.readFileSync(pid_file));
-			log("\n -- Prey seems to be running already! PID: " + pid.toString());
+			var pid = parseInt(fs.readFileSync(pid_file));
+			if(!isNaN(pid)) {
 
-			try {
-				process.kill(pid, 'SIGWINCH')
-				process.exit(0);
-			} catch(e) {
-				log(" -- Not really! Pidfile was just lying around.");
+				log("\n -- Prey seems to be running already! PID: " + pid.toString());
+
+				try {
+					process.kill(pid, 'SIGWINCH')
+					process.exit(0);
+				} catch(e) {
+					log(" -- Not really! Pidfile was just lying around.");
+				}
+
 			}
 
 		}
