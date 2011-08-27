@@ -302,24 +302,30 @@ var Prey = {
 			var report_modules = [], action_modules = [];
 			var loader = new ModuleLoader(module_data.name, module_options);
 
-			loader.once('failed', function(module_name, e){
-				modules_loaded++;
-			});
+//			loader.once('failed', function(module_name, e){
+//				modules_loaded++;
+//			});
 
-			loader.once('loaded', function(prey_module){
+			loader.once('done', function(prey_module){
 
 				modules_loaded++;
-				if(prey_module.type == 'report') {
-					report_modules.push(prey_module);
-				} else {
-					action_modules.push(prey_module);
+
+				if(prey_module){
+
+					if(prey_module.type == 'report') {
+						report_modules.push(prey_module);
+					} else {
+						action_modules.push(prey_module);
+					}
+
 				}
 
 				// we assume at least this event will be emitted once,
 				// if it doesnt then it means there are no available modules
 				if(modules_loaded >= requested_modules) {
-					console.log(' -- Modules loaded.')
-					ActionsManager.queue_many(action_modules);
+
+					console.log(' -- All modules loaded.')
+					ActionsManager.initialize(action_modules);
 
 					if(report_modules.length > 0) {
 						Prey.run_report_modules(report_modules, send_report_callback);

@@ -39,13 +39,20 @@ var ModuleLoader = function(module_name, config){
 
 	};
 
+	this.done = function(mod){
+		self.emit('done', mod);
+	}
+
 	this.ready = function(){
 
 		// if(this.module_name == 'system') return;
 //		try {
 			var mod = require(this.module_path);
 			mod.apply_config(this.config);
-			self.emit('loaded', mod);
+
+			self.emit('success', mod);
+			self.done(mod)
+
 			log(" == Module " + this.module_name + " loaded!")
 //		} catch(e) {
 //			console.log(" !! " + e.message);
@@ -55,6 +62,7 @@ var ModuleLoader = function(module_name, config){
 
 	this.failed = function(e){
 		self.emit('failed', this.module_name, e);
+		self.done(false);
 	}
 
 	this.download = function(module_name){
