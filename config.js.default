@@ -12,22 +12,22 @@ exports.main = {
 
 	// autoconnect feature, disabled by default until we are 200% sure it
 	// works flawlessly in all platforms. feel free to try it out though.
-	auto_connect: "n",
+	auto_connect: true,
 	max_auto_connect_attempts: 2,
 
 	// verification URL, if left empty Prey will always activate and run,
 	// which is certainly *not* recommended.
-	check_url: "http://control.preyproject.com",
+	check_urls: [ "http://control.preyproject.com" ],
 
 	// IMPORTANT: on what HTTP response code will Prey be activated (200 or 404)
 	// control panel users don't touch this! standalone users may want to
 	// change it back to 200 (previous setting), if you wish to wake Prey up by
 	// creating the URL (as before) instead of removing an existing one
-	missing_status_code: "404",
+	missing_status_code: 404,
 
 	// method(s) for sending reports
-	// valid values: http, email, scp or sftp
-	post_methods: ["http"],
+	// valid values: control_panel, smtp, scp or sftp
+	destinations: ["control_panel"],
 
 	//////////////////////////////////////////////////////////////
 	// http posting configuration
@@ -38,57 +38,102 @@ exports.main = {
 	device_key: "",
 
 	//////////////////////////////////////////////////////////////
-	// SMTP settings, for email posting
-	//////////////////////////////////////////////////////////////
-
-	// mailbox to send the report
-	mail_to: "mailbox@domain.com",
-
-	// the password is now stored base64 encrypted
-	// if you wish to generate it by hand, run
-	// $ echo -n "password" | openssl enc -base64
-	smtp_server: "smtp.gmail.com:587",
-	smtp_username: "username@gmail.com",
-	smtp_password: "password",
-
-	// you dont need to change this
-	mail_from: "Prey <no-reply@gmail.com>",
-	mail_subject: "[Prey] Status Report",
-
-	//////////////////////////////////////////////////////////////
-	// additional http options
+	// http request options
 	//////////////////////////////////////////////////////////////
 
 	// if you're having trouble getting requests across your firewall or proxy,
 	// you can try adding '-0' to make curl perform HTTP 1.0 requests
-	http_options: "--compress",
+	curl_options: "--compress",
 
 	// this option prepends a random number as a subdomain to the check URL on http mode
 	// makes it harder for other programs to block Prey so its a good idea to be on
-	randomize_check_host: "n",
+	randomize_check_host: false,
 
 	// whether to send your device's LAN and gateway IP address as headers when
 	// checking its status. currently only for testing purposes, but maybe in the
 	// future it may prove useful. :)
-	extended_headers: "n",
+	extended_headers: true,
 
 	//////////////////////////////////////////////////////////////
-	// scp/sftp posting configuration -- EXPERIMENTAL!
-	// we dont use user/pass but RSA keys
+	// transports config
 	//////////////////////////////////////////////////////////////
 
-	// this applies both to scp and sftp posting methods
-	ssh_options: "-oStrictHostKeyChecking=no",
+	transports: {
 
-	// remember you should have write access to the folder
-	scp_user: "username",
-	scp_server: "my.server.com",
-	scp_path: "~",
+		//////////////////////////////////////////////////////////////
+		// HTTP transport settings
+		//////////////////////////////////////////////////////////////
 
-	// same as above, make sure you have write access
-	sftp_user: "username",
-	sftp_server: "my.server.com",
-	sftp_path: ".",
+		http: {
+
+			// encoding: 'utf8',
+			// followRedirects: true,
+
+			// http basic auth for generic http
+			username: '',
+			password: '',
+
+		},
+
+		//////////////////////////////////////////////////////////////
+		// SMTP settings, for email posting
+		//////////////////////////////////////////////////////////////
+
+		smtp: {
+
+			// mailbox to send the report
+			recipient: "mailbox@domain.com",
+
+			// you dont need to change this
+			from: "Prey <no-reply@gmail.com>",
+			subject: "[Prey] Status Report",
+
+		},
+
+		//////////////////////////////////////////////////////////////
+		// SCP (Secure Copy) settings
+		// we dont use user/pass but RSA keys
+		//////////////////////////////////////////////////////////////
+
+		scp: {
+
+			options: "-oStrictHostKeyChecking=no",
+
+			// remember you should have write access to the folder
+			user: "username",
+			host: "my.server.com",
+			path: "~",
+
+		},
+
+		//////////////////////////////////////////////////////////////
+		// SFTP settings
+		//////////////////////////////////////////////////////////////
+
+		sftp: {
+
+			options: "-oStrictHostKeyChecking=no",
+
+			// make sure you have write access!
+			user: "username",
+			host: "my.server.com",
+			path: ".",
+
+		},
+
+		//////////////////////////////////////////////////////////////
+		// Amazon S3 keys
+		//////////////////////////////////////////////////////////////
+
+		s3: {
+
+			access_key_id: "",
+			secret_access_key: "",
+			bucket_name: "",
+
+		}
+
+	},
 
 	//////////////////////////////////////////////////////////////
 	// SSH Tunnel config
@@ -101,12 +146,10 @@ exports.main = {
 	remote_tunnel_pass: "password",
 
 	//////////////////////////////////////////////////////////////
-	// Amazon S3 keys
+	// extra settings
 	//////////////////////////////////////////////////////////////
 
-	s3_access_key_id: "",
-	s3_secret_access_key: "",
-	s3_bucket_name: "",
+	last_response_file: "last-response.xml",
 
 	//////////////////////////////////////////////////////////////
 	// if you have any questions please visit preyproject.com

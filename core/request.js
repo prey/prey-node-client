@@ -1,3 +1,10 @@
+//////////////////////////////////////////
+// Prey Request Class
+// (c) 2011 - Fork Ltd.
+// by Tomas Pollak - http://forkhq.com
+// GPLv3 Licensed
+//////////////////////////////////////////
+
 var util = require('util'),
 		sys = require('sys'),
 		emitter = require('events').EventEmitter,
@@ -6,29 +13,26 @@ var util = require('util'),
 		Geo = require(modules_path + '/geo'),
 		Network = require(modules_path + '/network');
 
-function Request(callback){
+function Request(uris, callback){
 
 	var self = this;
 
-	this.start = function(callback){
+	this.start = function(uris, callback){
 
-		var uri = config.check_url + '/devices/' + config.device_key + '.xml';
-		console.log(' -- Fetching URI: ' + uri);
+			var options = { headers: { "User-Agent": user_agent } }
 
-		var options = { headers: { "User-Agent": user_agent } }
+			if (config.extended_headers) {
 
-		if (config.extended_headers) {
+				this.extend_headers(options.headers, function(ext_headers){
+					options.headers = ext_headers;
+					self.get(uris, options, callback)
+				});
 
-			this.extend_headers(options.headers, function(ext_headers){
-				options.headers = ext_headers;
-				self.get(uri, options, callback)
-			});
+			} else {
 
-		} else {
+				self.get(uris, options, callback)
 
-			self.get(uri, options, callback)
-
-		}
+			}
 
 	}
 
@@ -40,6 +44,8 @@ function Request(callback){
 		headers['X-Logged-User'] = logged_user // logged_user
 
 		self.on('async_header', function(key){
+
+			// console.log('got header ' + key);
 
 			headers_got++;
 			if(headers_got >= async_headers){
@@ -66,20 +72,37 @@ function Request(callback){
 
 	},
 
-	this.get = function(uri, options, callback){
+	this.valid_status_code = function(code){
+		return code == 200 || code == 404;
+	};
 
-		http_client.get(uri, options)
+	this.get = function(uris, options, callback){
+
+		if(uris.length == 0) return false;
+
+		var uri = uris.shift();
+		var full_url = uri + '/devices/' + config.device_key + '.xml';
+
+		console.log(" -- Fetching URI: " + full_url);
+
+		http_client.get(full_url, options)
 		.once('complete', function(body, response){
 			log(' -- Got status code: ' + response.statusCode);
-			callback(response, body);
+			if(self.valid_status_code(response.statusCode)){
+				callback(response, body);
+			}
 		})
 		.once('error', function(body, response){
-			log(' -- Got status code: ' + response.statusCode);
+			// log(' -- Got status code: ' + response.statusCode);
+			if(!self.valid_status_code(response.statusCode)){
+				log(" -- Unexpected status code received: " + response.statusCode)
+				self.get(uris, options, callback);
+			}
 		});
 
 	}
 
-	this.start(callback);
+	this.start(uris, callback);
 
 }
 

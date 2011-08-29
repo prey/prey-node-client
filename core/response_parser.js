@@ -7,7 +7,7 @@ var ResponseParser = {
 
 	parse: function(data, callback){
 
-		if(data instanceof String && data.indexOf('<device>') == -1)
+		if(typeof data == 'string' && data.indexOf('<device>') != -1)
 			this.parse_xml(data, callback);
 		else if(data instanceof Object)
 			callback(data);
@@ -23,9 +23,11 @@ var ResponseParser = {
 		console.log(" -- Got encrypted response. Decrypting...")
 		var key = crypto.createHash('md5').update(config.api_key).digest("hex");
 
+		console.log(data);
+
 //		var buf = new Buffer(data, 'base64');
-//		var raw = buf.toString('binary'); 
-//		
+//		var raw = buf.toString('binary');
+//
 //		var pad = raw.slice(0, 8);
 //		var salt = raw.slice(8, 15);
 //		var raw = raw.slice(16);
