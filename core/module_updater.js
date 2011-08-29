@@ -11,9 +11,9 @@ var sys = require('sys'),
 		fs = require('fs'),
 		path = require('path'),
 		helpers = require('./helpers'),
-		Download = require('download'),
-		unpack = require('unpack'),
-		fs2 = require("../vendor/wrench");
+		Download = require('../lib/download'),
+		unpack = require('../lib/unpack'),
+		fs2 = require("wrench");
 
 function ModuleUpdater(module_name){
 

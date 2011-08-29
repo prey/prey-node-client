@@ -1,4 +1,5 @@
-var sys = require('sys'), emitter = require('events').EventEmitter;
+var sys = require('sys'), 
+		emitter = require('events').EventEmitter;
 
 var Transport = function(report, options) {
 

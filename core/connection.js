@@ -5,7 +5,9 @@
 // GPLv3 Licensed
 //////////////////////////////////////////
 
-var net = require('net'), sys = require('sys'), emitter = require('events').EventEmitter;
+var net = require('net'), 
+		sys = require('sys'), 
+		emitter = require('events').EventEmitter;
 
 var check_port = 80;
 var check_host = 'www.google.com';

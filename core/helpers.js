@@ -1,4 +1,4 @@
-var Command = require('command');
+var Command = require('../lib/command');
 var fs = require('fs');
 
 exports.run_cmd = function(cmd, callback){

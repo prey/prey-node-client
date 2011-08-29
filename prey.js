@@ -18,8 +18,8 @@ os = require(base_path + '/platform/' + os_name);
 ////////////////////////////////////////
 
 // require.paths.unshift(__dirname);
-require('core_extensions');
-require('logger');
+require('./lib/core_extensions');
+require('./lib/logger');
 
 var path = require('path'),
 		fs = require("fs"),
@@ -29,7 +29,6 @@ var path = require('path'),
 		url = require('url'),
 		emitter = require('events').EventEmitter,
 		helpers = require('./core/helpers'),
-		http_client = require('http_client'),
 		Connection = require('./core/connection'),
 		Request = require('./core/request'),
 		ResponseParser = require('./core/response_parser'),
@@ -49,7 +48,7 @@ var version = fs.readFileSync(base_path + '/version').toString().replace("\n", '
 try {
 	GLOBAL.config = require(base_path + '/config').main;
 } catch(e) {
-	quit(" !! No config file found!")
+	quit("No config file found!\n    Please copy config.js.default to config.js and set it up.\n")
 }
 GLOBAL.args = require('./core/args').init(version);
 GLOBAL.user_agent = "Prey/" + version + " (NodeJS, "  + os_name + ")";
@@ -156,7 +155,7 @@ var Prey = {
 				log(" -- Trying to auto connect...");
 
 				os.auto_connect(setTimeout(function(){
-					self.check_connection();
+					self.check_connection_and_fetch();
 					}, 5000)
 				);
 

@@ -8,8 +8,8 @@
 var sys = require('sys'),
 		fs = require('fs'),
 		helpers = require('./helpers'),
-		http_client = require(base_path + '/vendor/restler'),
-		query_string = require(base_path + '/vendor/querystring-stringify'),
+		http_client = require('restler'),
+		query_string = require('querystring-stringify'),
 		Response = require('./response_parser');
 
 var config_file_path = base_path + '/config.js'

@@ -1,7 +1,7 @@
 var util = require('util'),
 		sys = require('sys'),
 		emitter = require('events').EventEmitter,
-		http_client = require(base_path + '/vendor/restler'),
+		http_client = require('restler'),
 		Session = require(modules_path + '/session'),
 		Geo = require(modules_path + '/geo'),
 		Network = require(modules_path + '/network');
@@ -19,20 +19,20 @@ function Request(callback){
 
 		if (config.extended_headers) {
 
-			this.get_extended_headers(options.headers, function(ext_headers){
+			this.extend_headers(options.headers, function(ext_headers){
 				options.headers = ext_headers;
 				self.get(uri, options, callback)
 			});
 
 		} else {
 
-			this.get(uri, options, callback)
+			self.get(uri, options, callback)
 
 		}
 
 	}
 
-	this.get_extended_headers = function(headers, callback){
+	this.extend_headers = function(headers, callback){
 
 		var async_headers = 3;
 		var headers_got = 0;
@@ -40,8 +40,6 @@ function Request(callback){
 		headers['X-Logged-User'] = logged_user // logged_user
 
 		self.on('async_header', function(key){
-
-			// console.log('got header ' + key);
 
 			headers_got++;
 			if(headers_got >= async_headers){
@@ -70,15 +68,13 @@ function Request(callback){
 
 	this.get = function(uri, options, callback){
 
-		// console.log(options.headers)
-
 		http_client.get(uri, options)
 		.once('complete', function(body, response){
 			log(' -- Got status code: ' + response.statusCode);
 			callback(response, body);
 		})
 		.once('error', function(body, response){
-			// log(' -- Got status code: ' + response.statusCode);
+			log(' -- Got status code: ' + response.statusCode);
 		});
 
 	}

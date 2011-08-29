@@ -6,7 +6,7 @@
 //////////////////////////////////////////
 
 var sys = require('sys'),
-		HTTPTransport = require(base_path + '/transports/http');
+		HTTPTransport = require('./http');
 
 var ControlPanelTransport = function(report, options){
 

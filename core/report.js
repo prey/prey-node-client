@@ -6,7 +6,7 @@
 //////////////////////////////////////////
 
 var sys = require('sys'),
-		http_client = require(base_path + '/vendor/restler'),
+		http_client = require('restler'),
 		emitter = require('events').EventEmitter
 
 var Report = function(report_modules, options){

@@ -6,8 +6,8 @@
 //////////////////////////////////////////
 
 var sys = require('sys'),
-		http_client = require(base_path + '/vendor/restler'),
-		Transport = require(base_path + '/core/transport');
+		http_client = require('restler'),
+		Transport = require('../core/transport');
 
 var HTTPTransport = function(report, options){
 
