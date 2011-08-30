@@ -22,14 +22,15 @@ var HTTPTransport = function(report, options){
 		object.forEach(function(obj, key){
 				obj.forEach(function(val, k){
 					var f = key + '[' + k + ']';
-					if(val instanceof String)
+					if(val instanceof String) {
 						data[f] = val;
-					else {
+					} else {
 						if (val.path){
 							self.contains_files = true;
 							data[f] = http_client.file(val.path, {content_type: val.type});
-						} else
+						} else if (val != false) {
 							data[f] = JSON.stringify(val);
+						}
 					}
 				});
 		});

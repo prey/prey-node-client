@@ -23,7 +23,7 @@ var ResponseParser = {
 		console.log(" -- Got encrypted response. Decrypting...")
 		var key = crypto.createHash('md5').update(config.api_key).digest("hex");
 
-		console.log(data);
+		// console.log(data);
 
 //		var buf = new Buffer(data, 'base64');
 //		var raw = buf.toString('binary');

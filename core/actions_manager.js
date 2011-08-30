@@ -18,9 +18,9 @@ var ActionsManager = function(){
 		this.emit('start');
 	};
 
-	this.action_finished = function(module_name){
-		console.log(' -- ' + module_name + ' module returned.');
-		delete this.running_actions[module_name];
+	this.action_finished = function(action_module){
+		console.log(' -- ' + action_module.name + ' module returned.');
+		delete this.running_actions;
 	};
 
 	this.action_is_running = function(action_module){
@@ -43,26 +43,26 @@ var ActionsManager = function(){
 			if(self.action_is_running(action_module)) {
 				console.log(" -- " + action_module.name + " is already running!")
 			} else {
-				self.queue_one(action_module);
+				self.queue(action_module);
 			}
 
 		});
 
 	}
 
-	this.queue_one = function(action_module){
+	this.queue = function(action_module){
 
 		console.log(' -- Queueing action ' + action_module.name);
 
-		self.on('start', function(){
+		self.once('start', function(){
 			console.log(' -- Running action ' + action_module.name);
 
 			// self.running_actions[action_module.name] = action_module;
 			self.running_actions.push(action_module);
 			action_module.run();
 
-			action_module.on('end', function(){
-				self.action_finished(action_module.name);
+			action_module.once('end', function(){
+				self.action_finished(action_module);
 			});
 
 		});
