@@ -85,8 +85,16 @@ function Request(uris, callback){
 
 		console.log(" -- Fetching URI: " + full_url);
 
+		if(config.use_proxy){
+			console.log(" -- Connecting through proxy " + config.proxy_host + " at port " + config.proxy_port);
+			options.port = config.proxy_port;
+			options.path = full_url; // proxy servers require sending the full destination as path
+			full_url = config.proxy_host;
+		}
+
 		http_client.get(full_url, options)
 		.once('complete', function(body, response){
+			console.log(body)
 			log(' -- Got status code: ' + response.statusCode);
 			if(self.valid_status_code(response.statusCode)){
 				callback(response, body);

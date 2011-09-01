@@ -39,6 +39,7 @@ try {
 } catch(e) {
 	quit("No config file found!\n    Please copy config.js.default to config.js and set it up.\n")
 }
+
 GLOBAL.args = require('./core/args').init(version);
 GLOBAL.user_agent = "Prey/" + version + " (NodeJS, "  + os_name + ")";
 

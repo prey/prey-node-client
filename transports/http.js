@@ -48,6 +48,12 @@ var HTTPTransport = function(report, options){
 		if(this.contains_files)
 			this.options.multipart = true;
 
+		if(config.use_proxy){
+			this.options.port = config.proxy_port;
+			this.options.path = this.post_url; // proxy servers require sending the full destination as path
+			this.post_url = config.proxy_host;
+		}
+
 		http_client.post(this.post_url, this.options)
 		.once('complete', function(body, response){
 			console.log(' -- Got status code: ' + response.statusCode);

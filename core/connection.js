@@ -5,22 +5,27 @@
 // GPLv3 Licensed
 //////////////////////////////////////////
 
-var net = require('net'), 
-		sys = require('sys'), 
+var net = require('net'),
+		sys = require('sys'),
 		emitter = require('events').EventEmitter;
 
-var check_port = 80;
-var check_host = 'www.google.com';
-
-var Connection = function(host, port){
+var Connection = function(){
 
 	var self = this;
-	var established = false;
+	this.established = false;
 
-	var connect = function(){
+	if(config.use_proxy){
+		this.check_port = config.proxy_port;
+		this.check_host = config.proxy_host;
+	} else {
+		this.check_port = 80;
+		this.check_host = 'www.google.com';
+	}
+
+	this.connect = function(){
 
 		// create TCP stream to server
-		var stream = net.createConnection(parseInt(port), host);
+		var stream = net.createConnection(parseInt(this.check_port), this.check_host);
 
 		stream.on('connect', function() {
 			this.established = true;
@@ -37,12 +42,10 @@ var Connection = function(host, port){
 
 	}
 
-	connect();
+	this.connect();
 
 }
 
 sys.inherits(Connection, emitter);
 
-exports.check = function(){
-	return new Connection(check_host, check_port);
-}
+module.exports = Connection;
