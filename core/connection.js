@@ -28,7 +28,7 @@ var Connection = function(){
 		var stream = net.createConnection(parseInt(this.check_port), this.check_host);
 
 		stream.on('connect', function() {
-			this.established = true;
+			self.established = true;
 			self.emit('found');
 			stream.end();
 		});
@@ -36,7 +36,7 @@ var Connection = function(){
 		// listen for any errors
 		stream.on('error', function(error) {
 			console.log(' !! Error: ' + error.message);
-			stream.destroy(); // close the stream
+			stream.end();
 			self.emit('not_found');
 		})
 
@@ -47,5 +47,4 @@ var Connection = function(){
 }
 
 sys.inherits(Connection, emitter);
-
 module.exports = Connection;

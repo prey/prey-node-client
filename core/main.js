@@ -78,7 +78,7 @@ var Main = {
 	check_connection_and_fetch: function(){
 
 		console.log(" -- Checking connection...");
-		var conn = Connection.check();
+		var conn = new Connection();
 
 		conn.on('found', function(){
 			log(" -- Connection found!");

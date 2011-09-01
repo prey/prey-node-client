@@ -94,7 +94,6 @@ function Request(uris, callback){
 
 		http_client.get(full_url, options)
 		.once('complete', function(body, response){
-			console.log(body)
 			log(' -- Got status code: ' + response.statusCode);
 			if(self.valid_status_code(response.statusCode)){
 				callback(response, body);
