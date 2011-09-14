@@ -148,7 +148,7 @@ var Main = {
 			}
 
 			if(offline == false && self.requested.configuration.offline_actions)
-				save_file_contents(config.last_response_file, response_body);
+				helpers.save_file_contents(config.last_response_file, response_body);
 
 			self.process_module_config(function(){
 
