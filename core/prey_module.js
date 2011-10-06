@@ -19,6 +19,7 @@ function mixin(target, source) {
 function PreyModule(){
 
 	var self = this;
+	this.running = false;
 
 	this.apply_config = function(config){
 		// this.config = this.config.merge(config);
@@ -47,6 +48,7 @@ function PreyModule(){
 	}
 
 	this.done = function(){
+		this.running = false;
 		this.emit('end');
 	}
 

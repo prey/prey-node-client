@@ -24,6 +24,8 @@ function ReportModule(){
 
 	this.run = function(){
 
+		this.running = true;
+
 		this.trace_methods.forEach(function(trace){
 			if(typeof self.traces[trace] === 'undefined') {
 				self.get_trace(trace); // go get it

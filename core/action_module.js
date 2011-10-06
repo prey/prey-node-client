@@ -14,8 +14,6 @@ function ActionModule(){
 	var self = this;
 	this.type = 'action';
 
-	this.running = false;
-
 	this.run = function(){
 
 		if(!this.running){

@@ -67,7 +67,7 @@ var ResponseParser = {
 		});
 
 		parser.addListener('error', function(result) {
-			quit("damn!")
+			quit("Error parsing XML!")
 		});
 
 		parser.parseString(data);
