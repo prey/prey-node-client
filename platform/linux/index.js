@@ -48,13 +48,14 @@ exports.set_new_delay = function(new_delay, script_path){
 }
 
 // restarts NetworkManager so it reconnects
-exports.auto_connect = function(){
+exports.auto_connect = function(callback){
 
 	var str = "killall nm-applet &> /dev/null; nm-applet --sm-disable & 2> /dev/null"
 	var cmd = new Command(str);
 
-	cmd.on('return', function(output) {
-		console.log(output);
+	cmd.on('exit', function() {
+		// console.log(output);
+		callback();
 	});
 
 }

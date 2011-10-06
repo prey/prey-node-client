@@ -21,9 +21,14 @@ exports.set_new_delay = function(new_delay, script_path){
 
 }
 
-// restarts NetworkManager so it reconnects
-exports.auto_connect = function(){
+exports.auto_connect = function(callback){
 
-	console.log("Work in progress!")
+	var cmd_string = __dirname + '/bin/autowc.exe -connect';
+	var cmd = new Command(cmd_string);
+
+	cmd.on('exit', function() {
+		callback();
+	});
+
 
 }
