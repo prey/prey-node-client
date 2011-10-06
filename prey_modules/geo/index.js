@@ -32,7 +32,7 @@ var Geo = function(){
 
 		Network.get('access_points_list', function(aps_list){
 
-			var aps_list = [{signal_strength : -57, mac_address : "00-24-6c-a9-01-51"}];
+			// var aps_list = [{signal_strength : -57, mac_address : "00-24-6c-a9-01-51"}];
 
 			if(!aps_list){
 				self.emit('coords_via_wifi', false, "No access points list, cannot get geolocation.");
@@ -54,7 +54,6 @@ var Geo = function(){
 			}
 
 			http_client.post("http://www.google.com/loc/json", options).on('complete', function(json_response, response){
-
 
 				if(json_response instanceof String){
 

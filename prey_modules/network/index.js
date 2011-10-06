@@ -7,6 +7,7 @@
 
 var sys = require('sys'),
 		emitter = require('events').EventEmitter,
+		os = require('os'),
 		Command = require('../../lib/command'),
 		ReportModule = require('../../core/report_module'),
 		os_functions = require('./platform/' + os_name);
@@ -32,12 +33,22 @@ var Network = function(){
 //		this.get_access_points_list();
 //	};
 
+	this.is_ip_address = function(str){
+		var regexp = /^((25[0-5]|2[0-4][0-9]|1[0-9]{2}|[0-9]{1,2})\.){3}(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[0-9]{1,2})$/;
+		return regexp.test(str);
+	}
+
 	this.get_public_ip = function(){
 		self.emit('public_ip', '123.123.123.123');
 	};
 
 	this.get_private_ip = function(){
-		self.emit('private_ip', '10.0.0.12');
+		os.getNetworkInterfaces().forEach(function(obj, name){
+			var addr = obj[0].address;
+			if(name != 'lo' && self.is_ip_address(addr)){
+				return self.emit('private_ip', addr);
+			}
+		});
 	};
 
 	this.get_mac_address = function(){
