@@ -46,13 +46,12 @@ exports.run_picture_cmd = function(picture_file, main_callback){
 			});
 
 			cmd.on('error', function(err){
-				console.log(err);
-				callback(false);
+				callback(false, err);
 			});
 
 		}
 
-	call_streamer('.jpeg', function(file){
+	call_streamer('.jpeg', function(file, err){
 
 		if(file){
 
@@ -63,7 +62,8 @@ exports.run_picture_cmd = function(picture_file, main_callback){
 
 		} else {
 
-			call_streamer('.ppm', function(file){
+			console.log(" -- Couldn't get JPEG image. Trying PPM.")
+			call_streamer('.ppm', function(file, err){
 
 				if(file){
 
