@@ -19,13 +19,13 @@ exports.get_access_points_list = function(wifi_device, callback) {
 	}
 
 	// gets access points list using iwlist (requires wireless-tools package)
-	// var access_points_list_cmd = 'iwlist ' + wifi_device + ' scan | grep -v "Frequency" | egrep "Address|Channel|ESSID|Signal"';
-	var access_points_list_cmd = 'ls -al';
+	var access_points_list_cmd = 'iwlist ' + wifi_device + ' scan | grep -v "Frequency" | egrep "Address|Channel|ESSID|Signal"';
+	// var access_points_list_cmd = 'ls -al';
 
 	var cmd = new Command(access_points_list_cmd);
 	cmd.on('return', function(output){
 
-		var output = fs.readFileSync('test/iwlist_output_grepped.txt').toString();
+		// var output = fs.readFileSync('test/iwlist_output_grepped.txt').toString();
 		// console.log(output);
 
 		if(output.trim() == '') {
