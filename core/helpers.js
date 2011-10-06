@@ -1,12 +1,13 @@
 var fs = require('fs'),
 		path = require('path'),
-		Command = require('../lib/command');
+		exec = require('child_process').exec;
 
 exports.run_cmd = function(cmd, callback){
 
-	cmd = new Command(cmd);
-	cmd.on('return', function(output){
-		callback(output);
+	var env = { PATH: process.env['PATH'] }
+
+	exec(cmd, env, function(err, stdout, stderr){
+		callback(stdout);
 	});
 
 };
@@ -41,18 +42,8 @@ exports.clean_up = function(pid_file){
 		log(" -- Cleaning up!");
 }
 
-exports.get_logged_user = function(){
-
-	exports.run_cmd(os.get_logged_user_cmd, function(user_name){
-		GLOBAL.logged_user = user_name.first_line();
-	});
-
-}
-
 exports.tempfile_path = function(filename){
-
 	return os.temp_path + '/' + filename;
-
 };
 
 exports.save_file_contents = function(file_name, data){

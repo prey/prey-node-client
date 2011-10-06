@@ -43,7 +43,9 @@ try {
 GLOBAL.args = require('./core/args').init(version);
 GLOBAL.user_agent = "Prey/" + version + " (NodeJS, "  + os_name + ")";
 
-helpers.get_logged_user();
+helpers.run_cmd(os.get_logged_user_cmd, function(user_name){
+	GLOBAL.logged_user = user_name.first_line();
+});
 
 /////////////////////////////////////////////////////////////
 // event handlers
