@@ -72,6 +72,12 @@ function Request(uris, callback){
 
 	},
 
+	this.log_response_time = function(){
+		var now = new Date();
+		var seconds = (now - this.start_time)/1000;
+		console.log(" -- Request took " + seconds.toString() + " seconds.");
+	};
+
 	this.valid_status_code = function(code){
 		return code == 200 || code == 404;
 	};
@@ -83,6 +89,7 @@ function Request(uris, callback){
 		var uri = uris.shift();
 		var full_url = uri + '/devices/' + config.device_key + '.xml';
 
+		this.start_time = new Date();
 		console.log(" -- Fetching URI: " + full_url);
 
 		if(config.use_proxy){
@@ -94,6 +101,7 @@ function Request(uris, callback){
 
 		http_client.get(full_url, options)
 		.once('complete', function(body, response){
+			self.log_response_time();
 			log(' -- Got status code: ' + response.statusCode);
 			if(self.valid_status_code(response.statusCode)){
 				callback(response, body);
