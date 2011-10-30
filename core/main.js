@@ -34,8 +34,13 @@ var Main = {
 		this.args = args;
 		this.version = version;
 
-		this.initialize(function(){
-			self.fire();
+		base.helpers.run_cmd(base.os.get_logged_user_cmd, function(user_name){
+			process.env.LOGGED_USER = user_name.split("\n")[0];
+
+			self.initialize(function(){
+				self.fire();
+			});
+
 		});
 
 	},
@@ -54,22 +59,20 @@ var Main = {
 		this.running_user = process.env['USERNAME'];
 		this.started_at = new Date();
 
-		base.helpers.run_cmd(base.os.get_logged_user_cmd, function(user_name){
-			this.logged_user = user_name.split("\n")[0];
-		});
-
 		this.user_agent = "Prey/" + this.version + " (NodeJS, "  + base.os_name + ")";
 		this.config.user_agent = this.user_agent; // so we dont need to pass it all the time
 
-		log("\n  PREY " + this.version + " spreads its wings!");
+		log("\n  PREY " + this.version + " spreads its wings!", 'bold');
 		log("  " + this.started_at)
 		log("  Running on a " + base.os_name + " system as " + this.running_user);
+		log("  Current logged user: " + process.env["LOGGED_USER"]);
 		log("  NodeJS version: " + process.version + "\n");
 
 		if(this.config.device_key == ""){
 			log(" -- No device key found.")
 			if(this.config.api_key == ""){
-				quit("No API key found! Please set up Prey and try again.")
+				log("No API key found! Please set up Prey and try again.");
+				process.exit(1);
 			} else {
 
 				var options = {

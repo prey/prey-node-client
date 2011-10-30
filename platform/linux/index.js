@@ -5,7 +5,8 @@
 // GPLv3 Licensed
 //////////////////////////////////////////
 
-var util = require('util'),
+var base = require('../../core/base'),
+		util = require('util'),
 		Command = require('../../lib/command');
 
 exports.temp_path = "/tmp";
@@ -13,8 +14,8 @@ exports.get_logged_user_cmd = "who | cut -d' ' -f1 | tail -1";
 
 exports.current_user_cmd = function(command){
 
-	if(process.env["USERNAME"] != logged_user)
-		return "DISPLAY=:0 sudo su " + logged_user + " -c '" + command + "'";
+	if(process.env["USERNAME"] != process.env["LOGGED_USER"])
+		return "DISPLAY=:0 sudo su " + base.logged_user + " -c '" + command + "'";
 	else
 		return command;
 

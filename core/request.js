@@ -41,7 +41,7 @@ function Request(config, headers, callback){
 		var async_headers = 3;
 		var headers_got = 0;
 
-		headers['X-Logged-User'] = logged_user // logged_user
+		headers['X-Logged-User'] = process.env["LOGGED_USER"] // logged_user
 
 		self.on('async_header', function(key){
 

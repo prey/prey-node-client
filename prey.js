@@ -18,7 +18,7 @@ try {
 	var config = require(__dirname + '/config').main;
 } catch(e) {
 	console.log("No config file found!\n    Please copy config.js.default to config.js and set it up.\n");
-	sys.exit(1);
+	process.exit(1);
 }
 
 var pid_file = base.helpers.tempfile_path('prey.pid');
