@@ -5,11 +5,11 @@
 // GPLv3 Licensed
 //////////////////////////////////////////
 
-var sys = require('sys'),
+var base = require('../../core/base'),
+		sys = require('sys'),
 		http_client = require('restler'),
 		ReportModule = require('../../core/report_module'),
-		Network = require('../network'),
-		os = require('./platform/' + os_name);
+		Network = require('../network');
 
 var Geo = function(){
 

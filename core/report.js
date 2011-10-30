@@ -5,7 +5,8 @@
 // GPLv3 Licensed
 //////////////////////////////////////////
 
-var sys = require('sys'),
+var base = require('./base'),
+		sys = require('sys'),
 		http_client = require('restler'),
 		emitter = require('events').EventEmitter
 
@@ -45,12 +46,24 @@ var Report = function(report_modules, options){
 
 	},
 
-	this.send_to = function(destinations){
+	this.send_to = function(destinations, config){
 
 		destinations.forEach(function(destination) {
 
-			var Transport = require(base_path + '/transports/' + destination);
-			var tr = new Transport(self, config.transports.destination);
+			if(destination == 'control_panel'){
+				var transport_options = {
+					username: config.api_key,
+					post_url: options.post_url,
+				}
+			} else {
+				var transport_options = config.transports.destination;
+			}
+
+			transport_options.user_agent = config.user_agent;
+			transport_options.proxy = config.proxy;
+
+			var Transport = require(base.root_path + '/transports/' + destination);
+			var tr = new Transport(self, transport_options);
 			tr.send(self.traces);
 
 		});

@@ -2,50 +2,30 @@
 //////////////////////////////////////////
 // Prey JS Client
 // (c) 2011 - Fork Ltd.
-// by Tomas Pollak - http://usefork.com
+// by Tomas Pollak - http://forkhq.com
 // GPLv3 Licensed
 //////////////////////////////////////////
 
-// set globals that are needed for all descendants
-GLOBAL.base_path = __dirname;
-GLOBAL.script_path = __filename;
-GLOBAL.modules_path = base_path + '/prey_modules';
-GLOBAL.os_name = process.platform.replace("darwin", "mac").replace('win32', 'windows');
-os = require(base_path + '/platform/' + os_name);
-
-////////////////////////////////////////
-// base requires
-////////////////////////////////////////
-
-// require.paths.unshift(__dirname);
-require('./lib/core_extensions');
-require('./lib/logger');
-
-var fs = require("fs"),
-		util = require("util"),
-		sys = require("sys"),
-		helpers = require('./core/helpers'),
-		Prey = require('./core/main');
+var base = require('./core/base'),
+		sys  = require('sys'),
+		fs   = require('fs');
 
 ////////////////////////////////////////
 // base initialization
 ////////////////////////////////////////
 
-var pid_file = helpers.tempfile_path('prey.pid');
-GLOBAL.version = fs.readFileSync(base_path + '/version').toString().replace("\n", '');
-
 try {
-	GLOBAL.config = require(base_path + '/config').main;
+	var config = require(__dirname + '/config').main;
 } catch(e) {
-	quit("No config file found!\n    Please copy config.js.default to config.js and set it up.\n")
+	console.log("No config file found!\n    Please copy config.js.default to config.js and set it up.\n");
+	sys.exit(1);
 }
 
-GLOBAL.args = require('./core/args').init(version);
-GLOBAL.user_agent = "Prey/" + version + " (NodeJS, "  + os_name + ")";
+var pid_file = base.helpers.tempfile_path('prey.pid');
+var version = fs.readFileSync(__dirname + '/version').toString().replace("\n", '');
+var args = require('./core/args').init(version);
 
-helpers.run_cmd(os.get_logged_user_cmd, function(user_name){
-	GLOBAL.logged_user = user_name.first_line();
-});
+var Prey = require('./core/main');
 
 /////////////////////////////////////////////////////////////
 // event handlers
@@ -53,7 +33,8 @@ helpers.run_cmd(os.get_logged_user_cmd, function(user_name){
 
 process.on('exit', function () {
 	Prey.running = false;
-	helpers.clean_up(pid_file);
+	base.helpers.clean_up(pid_file);
+	if(Prey.on_demand_active) Prey.disconnect_on_demand();
 	log(" -- Have a jolly good day sir.\n");
 });
 
@@ -79,5 +60,5 @@ process.on('SIGUSR1', function () {
 // launcher
 /////////////////////////////////////////////////////////////
 
-helpers.check_and_store_pid(pid_file);
-Prey.run();
+base.helpers.check_and_store_pid(pid_file);
+Prey.run(config, args, version);

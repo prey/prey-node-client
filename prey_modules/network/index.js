@@ -5,12 +5,13 @@
 // GPLv3 Licensed
 //////////////////////////////////////////
 
-var sys = require('sys'),
+var base = require('../../core/base'),
+		sys = require('sys'),
 		emitter = require('events').EventEmitter,
 		os = require('os'),
 		Command = require('../../lib/command'),
 		ReportModule = require('../../core/report_module'),
-		os_functions = require('./platform/' + os_name);
+		os_functions = require('./platform/' + base.os_name);
 
 var Network = function(){
 
@@ -59,7 +60,7 @@ var Network = function(){
 		});
 
 		cmd.on('return', function(output){
-			var first_mac_address = output.first_line();
+			var first_mac_address = output.split("\n")[0];
 			self.emit('mac_address', first_mac_address);
 		});
 

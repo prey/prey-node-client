@@ -28,6 +28,8 @@ var OnDemand = {
 			OnDemand.connect(host, port, config, version, callback);
 		});
 
+		return this;
+
 	},
 
 	get_keys: function(callback){
@@ -52,7 +54,7 @@ var OnDemand = {
 
 	read_keys: function(callback){
 
-		debug("Reading keys...");
+		log(" -- Reading TLS public/private keys...");
 
 		this.keys = {
 			key: fs.readFileSync(private_key_file).toString(),
@@ -68,11 +70,11 @@ var OnDemand = {
 		// create and encrypted connection using ssl
 		self.stream = tls.connect(port, host, this.keys, function(){
 
-			console.log(" -- Connection established.");
+			log(" -- Connection established.");
 			if (self.stream.authorized)
-				debug("Credentials were valid!")
+				log(" -- Credentials were valid!")
 			else
-				debug("Credentials were NOT valid: " + self.stream.authorizationError);
+				log(" !! Credentials were NOT valid: " + self.stream.authorizationError);
 
 			self.connected = true;
 			self.stream.setEncoding('utf8');
@@ -90,16 +92,16 @@ var OnDemand = {
 		})
 
 		self.stream.on("error", function(error){
-			console.log(error.message);
+			log(error.message);
 			self.stream.end();
 		})
 
 		self.stream.on("end", function(){
-			console.log(" -- Connection ended");
+			log(" -- Connection ended");
 		})
 
 		self.stream.on("close", function(had_error){
-			console.log(" -- Connection closed.")
+			log(" -- Connection closed.")
 		});
 
 		callback(self.stream);
@@ -107,7 +109,7 @@ var OnDemand = {
 	},
 
 	register: function(config, version){
-		console.log(" -- Registering...");
+		log(" -- Registering...");
 		var data = {
 			client_version: version,
 			key: config.device_key,

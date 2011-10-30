@@ -14,9 +14,7 @@ var ControlPanelTransport = function(report, options){
 	var self = this;
 	this.destination = 'control_panel';
 
-	this.options.username = config.api_key;
 	this.options.password = 'x';
-	this.post_url = this.post_url || config.check_url + "/devices/" + config.device_key + "/reports.xml";
 
 }
 

@@ -1,4 +1,5 @@
-var fs = require('fs'),
+var base = require('./base'),
+		fs = require('fs'),
 		path = require('path'),
 		exec = require('child_process').exec;
 
@@ -43,7 +44,7 @@ exports.clean_up = function(pid_file){
 }
 
 exports.tempfile_path = function(filename){
-	return os.temp_path + '/' + filename;
+	return base.os.temp_path + '/' + filename;
 };
 
 exports.save_file_contents = function(file_name, data){

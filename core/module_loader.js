@@ -5,7 +5,8 @@
 // GPLv3 Licensed
 //////////////////////////////////////////
 
-var path = require('path'),
+var base = require('./base'),
+		path = require('path'),
 		fs = require('fs'),
 		sys = require('sys'),
 		emitter = require('events').EventEmitter,
@@ -20,7 +21,7 @@ var ModuleLoader = function(module_name, config){
 		log(" -- Initializing " + module_name + " module...");
 
 		this.module_name = module_name;
-		this.module_path = modules_path + '/' + module_name;
+		this.module_path = base.modules_path + '/' + module_name;
 
 		this.config = config;
 

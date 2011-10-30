@@ -5,23 +5,23 @@ var sys = require('sys'),
 
 var ResponseParser = {
 
-	parse: function(data, callback){
+	parse: function(data, key, callback){
 
 		if(typeof data == 'string' && data.indexOf('<device>') != -1)
 			this.parse_xml(data, callback);
 		else if(data instanceof Object)
 			callback(data);
 		else
-			this.decrypt_response(data, callback);
+			this.decrypt_response(data, key, callback);
 
 	},
 
-	decrypt_response: function(data, callback){
+	decrypt_response: function(data, key, callback){
 
 		var self = this;
 
 		console.log(" -- Got encrypted response. Decrypting...")
-		var key = crypto.createHash('md5').update(config.api_key).digest("hex");
+		var key = crypto.createHash('md5').update(key).digest("hex");
 
 		// console.log(data);
 

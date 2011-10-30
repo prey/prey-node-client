@@ -41,10 +41,6 @@ exports.main = {
 	// http request options
 	//////////////////////////////////////////////////////////////
 
-	use_proxy: true,
-	proxy_host: 'my.proxy.com',
-	proxy_port: 3128,
-
 	// this option prepends a random number as a subdomain to the check URL on http mode
 	// makes it harder for other programs to block Prey so its a good idea to be on
 	randomize_check_host: false,
@@ -53,6 +49,18 @@ exports.main = {
 	// checking its status. currently only for testing purposes, but maybe in the
 	// future it may prove useful. :)
 	extended_headers: true,
+
+	//////////////////////////////////////////////////////////////
+	// proxy options
+	//////////////////////////////////////////////////////////////
+
+	proxy: {
+
+		enable: false,
+		host: 'localhost',
+		port: 9191,
+
+	},
 
 	//////////////////////////////////////////////////////////////
 	// transports config

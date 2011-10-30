@@ -5,12 +5,12 @@
 // GPLv3 Licensed
 //////////////////////////////////////////
 
-var path = require('path'),
+var base = require('./base'),
+		path = require('path'),
 		fs = require("fs"),
 		util = require("util"),
 		sys = require("sys"),
 		emitter = require('events').EventEmitter,
-		helpers = require('./helpers'),
 		Check = require('./check'),
 		Connection = require('./connection'),
 		Request = require('./request'),
@@ -25,11 +25,16 @@ var Main = {
 
 	loops: 0,
 	running: false,
+	on_demand: false,
 
-	run: function(){
+	run: function(config, args, version){
 
 		self = this;
-		self.initialize(function(){
+		this.config = config;
+		this.args = args;
+		this.version = version;
+
+		this.initialize(function(){
 			self.fire();
 		});
 
@@ -49,17 +54,34 @@ var Main = {
 		this.running_user = process.env['USERNAME'];
 		this.started_at = new Date();
 
-		log("\n  PREY " + version + " spreads its wings!");
+		base.helpers.run_cmd(base.os.get_logged_user_cmd, function(user_name){
+			this.logged_user = user_name.split("\n")[0];
+		});
+
+		this.user_agent = "Prey/" + this.version + " (NodeJS, "  + base.os_name + ")";
+		this.config.user_agent = this.user_agent; // so we dont need to pass it all the time
+
+		log("\n  PREY " + this.version + " spreads its wings!");
 		log("  " + this.started_at)
-		log("  Running on a " + os_name + " system as " + this.running_user);
+		log("  Running on a " + base.os_name + " system as " + this.running_user);
 		log("  NodeJS version: " + process.version + "\n");
 
-		if(config.device_key == ""){
+		if(this.config.device_key == ""){
 			log(" -- No device key found.")
-			if(config.api_key == ""){
+			if(this.config.api_key == ""){
 				quit("No API key found! Please set up Prey and try again.")
 			} else {
-				Setup.auto_register(callback);
+
+				var options = {
+					user_agent: this.user_agent,
+					check_url: this.config.check_url,
+					api_key: this.config.api_key
+				}
+
+				Setup.auto_register(options, function(device_key){
+					self.config.device_key = device_key;
+					callback();
+				});
 			}
 		} else {
 			callback();
@@ -69,26 +91,26 @@ var Main = {
 
 	check: function(){
 		Check.installation();
-		if(config.post_methods.indexOf('http') != -1)
+		if(this.config.post_methods.indexOf('http') != -1)
 			Check.http_config();
-		if(config.post_methods.indexOf('smtp') != -1)
+		if(this.config.post_methods.indexOf('smtp') != -1)
 			Check.smtp_config();
 	},
 
 	check_connection_and_fetch: function(){
 
 		console.log(" -- Checking connection...");
-		var conn = new Connection();
+		var conn = new Connection(this.config.proxy);
 
 		conn.on('found', function(){
 			log(" -- Connection found!");
-			args.get('check') ? self.check() : self.fetch()
+			self.args.get('check') ? self.check() : self.fetch()
 		});
 
 		conn.on('not_found', function(){
 
 			log(" !! No connection found.");
-			if(config.auto_connect && self.auto_connect_attempts < config.max_auto_connect_attempts){
+			if(this.config.auto_connect && self.auto_connect_attempts < this.config.max_auto_connect_attempts){
 
 				self.auto_connect_attempts++;
 				log(" -- Trying to auto connect...");
@@ -109,8 +131,8 @@ var Main = {
 
 	no_connection: function(){
 
-		if(path.existsSync(tempfile_path(config.last_response_file))){
-			response_body = fs.readFileSync(config.last_response_file);
+		if(path.existsSync(tempfile_path(this.config.last_response_file))){
+			response_body = fs.readFileSync(this.config.last_response_file);
 			this.process(response_body, true);
 		}
 
@@ -121,7 +143,9 @@ var Main = {
 
 		log(" -- Fetching instructions...")
 
-		var req = new Request(config.check_urls, function(response, body){
+		var headers = { "User-Agent": this.user_agent };
+
+		var req = new Request(this.config, headers, function(response, body){
 
 			self.response_status = response.statusCode;
 			self.response_content_type = response.headers["content-type"];
@@ -137,7 +161,7 @@ var Main = {
 
 	process: function(response_body, offline){
 
-		ResponseParser.parse(response_body, function(parsed){
+		ResponseParser.parse(response_body, this.config.api_key, function(parsed){
 
 			self.requested = parsed;
 			self.process_main_config();
@@ -148,7 +172,7 @@ var Main = {
 			}
 
 			if(offline == false && self.requested.configuration.offline_actions)
-				helpers.save_file_contents(config.last_response_file, response_body);
+				base.helpers.save_file_contents(this.config.last_response_file, response_body);
 
 			self.process_module_config(function(){
 
@@ -163,7 +187,7 @@ var Main = {
 						ActionsManager.start_all();
 
 						if(Object.keys(report.traces).length > 0)
-							report.send_to(config.destinations);
+							report.send_to(self.config.destinations, self.config);
 						else
 							log(" -- Nothing to send!")
 					});
@@ -193,21 +217,22 @@ var Main = {
 	process_main_config: function(){
 
 		log(" -- Processing main config...")
-		debug(self.requested);
+		// debug(self.requested);
 
-		if(typeof(config.auto_update) == 'boolean')
-			self.auto_update = config.auto_update;
+		if(typeof(this.config.auto_update) == 'boolean')
+			self.auto_update = this.config.auto_update;
 		else
 			self.requested.configuration.auto_update || false;
 
-		self.missing = (self.response_status == config.missing_status_code);
+		self.missing = (self.response_status == this.config.missing_status_code);
 
 		var status_msg = self.missing ? "Device is missing!" : "Device not missing. Sweet.";
 		log(" -- " + status_msg);
 
 		self.process_delay();
 
-		if(self.on_demand == null && self.requested.configuration.on_demand_mode) self.setup_on_demand();
+		if(!self.on_demand && self.requested.configuration.on_demand_mode)
+			self.setup_on_demand();
 
 	},
 
@@ -215,11 +240,11 @@ var Main = {
 
 		var requested_delay = self.requested.configuration.delay;
 
-		os.check_current_delay(script_path, function(current_delay){
-			debug("Current delay: " + current_delay + ", requested delay: " + requested_delay);
+		base.os.check_current_delay(base.script_path, function(current_delay){
+			log("Current delay: " + current_delay + ", requested delay: " + requested_delay);
 			if(parseInt(current_delay) != parseInt(requested_delay)){
 				log(" -- Setting new delay!")
-				os.set_new_delay(requested_delay, script_path);
+				os.set_new_delay(requested_delay, base.script_path);
 			}
 		});
 
@@ -277,20 +302,30 @@ var Main = {
 
 	},
 
+	on_demand_active: function(){
+		return(this.on_demand && this.on_demand.connected);
+	},
+
 	setup_on_demand: function(){
 
-		log(' -- On Demand mode enabled! Trying to connect...');
+		log(' -- On Demand mode enabled! Trying to connect...', 'bold');
 		var on_demand_host = self.requested.configuration.on_demand_host;
 		var on_demand_port = self.requested.configuration.on_demand_port;
-		self.on_demand = OnDemand.connect(on_demand_host, on_demand_port, config, version, function(stream){
+		this.on_demand = OnDemand.connect(on_demand_host, on_demand_port, this.config, this.version, function(stream){
 
 			stream.on('event', function(event, data){
-				console.log(event);
-				console.log(data.msg);
-				if(data.msg == 'run_prey') Prey.fire();
+				if(data.msg == 'run_prey')
+					Prey.fire();
 			});
 
 		});
+
+	},
+
+	disconnect_on_demand: function(){
+
+		if(this.on_demand)
+			this.on_demand.disconnect();
 
 	}
 

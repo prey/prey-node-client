@@ -5,12 +5,13 @@
 // GPLv3 Licensed
 //////////////////////////////////////////
 
-var sys = require('sys'),
+var base = require('../../core/base'),
+		sys = require('sys'),
 		path = require('path'),
 		helpers = require('../../core/helpers'),
 		Command = require('../../lib/command'),
 		ReportModule = require('../../core/report_module'),
-		os_functions = require('./platform/' + os_name);
+		os_functions = require('./platform/' + base.os_name);
 
 var Session = function(){
 
@@ -31,7 +32,7 @@ var Session = function(){
 
 		var temp_screenshot = helpers.tempfile_path(this.options.screenshot_file);
 
-		var str = os.current_user_cmd(os_functions.screenshot_cmd + " " + temp_screenshot);
+		var str = base.os.current_user_cmd(os_functions.screenshot_cmd + " " + temp_screenshot);
 
 		var cmd = new Command(str);
 

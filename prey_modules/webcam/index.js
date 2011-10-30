@@ -5,9 +5,10 @@
 // GPLv3 Licensed
 //////////////////////////////////////////
 
-var sys = require('sys'),
+var base = require('../../core/base'),
+		sys = require('sys'),
 		ReportModule = require('../../core/report_module'),
-		os_functions = require('./platform/' + os_name);
+		os_functions = require('./platform/' + base.os_name);
 
 var Webcam = function(){
 

@@ -23,7 +23,10 @@ var System = function(){
 		console.log(' -- Getting system information...');
 		this.get_cpu_info();
 		this.get_network_interfaces();
-		// this.done();
+
+		// console.log(this.data);
+
+		this.done();
 
 	}
 
@@ -68,8 +71,6 @@ var System = function(){
 			this.data.network_interfaces[key] = hash;
 
 		}
-
-		console.log(this.data);
 
 	};
 

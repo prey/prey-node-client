@@ -5,32 +5,32 @@
 // GPLv3 Licensed
 //////////////////////////////////////////
 
-var util = require('util'),
+var base = require('./base'),
 		sys = require('sys'),
 		emitter = require('events').EventEmitter,
 		http_client = require('restler'),
-		Session = require(modules_path + '/session'),
-		Geo = require(modules_path + '/geo'),
-		Network = require(modules_path + '/network');
+		Session = require(base.modules_path + '/session'),
+		Geo = require(base.modules_path + '/geo'),
+		Network = require(base.modules_path + '/network');
 
-function Request(uris, callback){
+function Request(config, headers, callback){
 
 	var self = this;
 
-	this.start = function(uris, callback){
+	this.start = function(config, headers, callback){
 
-			var options = { headers: { "User-Agent": user_agent } }
+			var options = { headers: headers }
 
 			if (config.extended_headers) {
 
 				this.extend_headers(options.headers, function(ext_headers){
 					options.headers = ext_headers;
-					self.get(uris, options, callback)
+					self.get(config.check_urls, options, callback)
 				});
 
 			} else {
 
-				self.get(uris, options, callback)
+				self.get(config.check_urls, options, callback)
 
 			}
 
@@ -117,7 +117,7 @@ function Request(uris, callback){
 
 	}
 
-	this.start(uris, callback);
+	this.start(config, headers, callback);
 
 }
 

@@ -15,7 +15,7 @@ var HTTPTransport = function(report, options){
 	var self = this;
 	this.destination = 'http';
 
-	this.post_url = report.options.post_url;
+	this.post_url = options.post_url;
 
 	this.flatten_data = function(object){
 		var data = {};
@@ -42,19 +42,19 @@ var HTTPTransport = function(report, options){
 		log(" -- Sending report via HTTP...");
 		this.emit('start');
 
-		this.options.headers = { "User-Agent" : user_agent },
+		this.options.headers = { "User-Agent" : this.options.user_agent },
 		this.options.data = this.flatten_data(data);
 
 		if(this.contains_files)
 			this.options.multipart = true;
 
-		if(config.use_proxy){
-			this.options.port = config.proxy_port;
+		if(this.options.proxy.enabled){
+			this.options.port = this.options.proxy.port;
 			this.options.path = this.post_url; // proxy servers require sending the full destination as path
-			this.post_url = config.proxy_host;
+			this.post_url = this.options.proxy.host;
 		}
 
-		http_client.post(this.post_url, this.options)
+		http_client.post(this.post_url, this.options) // this.options may contain http basic user/pass
 		.once('complete', function(body, response){
 			console.log(' -- Got status code: ' + response.statusCode);
 			console.log(' -- ' + body);

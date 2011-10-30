@@ -5,32 +5,32 @@
 // GPLv3 Licensed
 //////////////////////////////////////////
 
-var sys = require('sys'),
+var base = require('./base'),
+		sys = require('sys'),
 		fs = require('fs'),
-		helpers = require('./helpers'),
 		http_client = require('restler'),
 		query_string = require('querystring-stringify'),
 		Response = require('./response_parser');
 
-var config_file_path = base_path + '/config.js'
+var config_file_path = base.root_path + '/config.js'
 
 var Setup = {
 
 	store_config_value: function(key_name, value){
 		var pattern = new RegExp("\t+" + key_name + ":.*");
 		var new_value = "\t" + key_name + ': "' + value + '",';
-		helpers.replace_in_file(config_file_path, pattern, new_value);
+		base.helpers.replace_in_file(config_file_path, pattern, new_value);
 	},
 
-	auto_register: function(callback){
+	auto_register: function(options, callback){
 
 		var self = this;
-		var url = config.check_url + '/devices.xml';
+		var url = options.check_url + '/devices.xml';
 
-		var options = {
-			username: config.api_key,
+		var http_options = {
+			username: options.api_key,
 			password: "x",
-			headers : { "User-Agent": user_agent }
+			headers : { "User-Agent": options.user_agent }
 		}
 
 		var data = {
@@ -42,10 +42,10 @@ var Setup = {
 			}
 		}
 
-		options.data = query_string.stringify(data);
-		options.headers['Content-Length'] = options.data.length; // damn restler module
+		http_options.data = query_string.stringify(data);
+		http_options.headers['Content-Length'] = options.data.length; // damn restler module
 
-		http_client.post(url, options)
+		http_client.post(url, http_options)
 		.on('error', function(body, response){
 			log("Response body: " + body);
 		})
@@ -65,7 +65,7 @@ var Setup = {
 						config.device_key = result.key;
 
 						self.store_config_value('device_key', result.key);
-						callback()
+						callback(result.key)
 
 					} else {
 
