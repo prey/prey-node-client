@@ -1,8 +1,8 @@
 //////////////////////////////////////////
-// Prey Connection Class
-// (c) 2011 - Fork Ltd.
-// by Tomas Pollak - http://forkhq.com
-// GPLv3 Licensed
+// Prey Config File
+// (c) 2011, Fork Ltd. -- forkhq.com
+// Written by Tomás Pollak
+// Licensed under the GPLv3
 //////////////////////////////////////////
 
 exports.main = {
@@ -33,7 +33,7 @@ exports.main = {
 	// http posting configuration
 	//////////////////////////////////////////////////////////////
 
-	// you can get both of these from Prey's web service
+	// you can get both of these from preyproject.com
 	api_key: "",
 	device_key: "",
 
@@ -50,6 +50,11 @@ exports.main = {
 	// future it may prove useful. :)
 	extended_headers: true,
 
+	// when offline actions are enabled, this is filename where Prey stores a backup
+	// of the last response it received from the web server. you probably don't need
+	// to change it.
+	last_response_file: "last-response.xml",
+
 	//////////////////////////////////////////////////////////////
 	// proxy options
 	//////////////////////////////////////////////////////////////
@@ -58,12 +63,12 @@ exports.main = {
 
 		enable: false,
 		host: 'localhost',
-		port: 9191,
+		port: 3128,
 
 	},
 
 	//////////////////////////////////////////////////////////////
-	// transports config
+	// transports config, for reports
 	//////////////////////////////////////////////////////////////
 
 	transports: {
@@ -145,19 +150,17 @@ exports.main = {
 
 	//////////////////////////////////////////////////////////////
 	// SSH Tunnel config
-	// you can log in either by RSA key or entering the pass below
+	// you can log in either by RSA key or (hopefully not) by entering the pass
 	//////////////////////////////////////////////////////////////
 
-	remote_tunnel_port: "",
-	remote_tunnel_host: "my.server.com",
-	remote_tunnel_user: "username",
-	remote_tunnel_pass: "password",
+	remote_tunnel: {
 
-	//////////////////////////////////////////////////////////////
-	// extra settings
-	//////////////////////////////////////////////////////////////
+		port: "",
+		host: "my.server.com",
+		user: "username",
+		pass: "password"
 
-	last_response_file: "last-response.xml",
+	}
 
 	//////////////////////////////////////////////////////////////
 	// if you have any questions please visit preyproject.com

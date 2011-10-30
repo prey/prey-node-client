@@ -1,9 +1,9 @@
 #!/usr/local/bin/node
 //////////////////////////////////////////
 // Prey JS Client
-// (c) 2011 - Fork Ltd.
-// by Tomas Pollak - http://forkhq.com
-// GPLv3 Licensed
+// (c) 2011, Fork Ltd. -- forkhq.com
+// Written by Tomás Pollak
+// Licensed under the GPLv3
 //////////////////////////////////////////
 
 var base = require('./core/base'),
