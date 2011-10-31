@@ -43,8 +43,8 @@ signed_by_ca(){
 		-CAcreateserial \
 		-out "$curr_path/ssl.cert"
 
-	# echo "Verifying certificate..."
-	# openssl verify -CAfile "$curr_path/ca.cert" "$curr_path/ssl.cert" > /dev/null
+	echo "Verifying certificate..."
+	openssl verify -CAfile "$curr_path/ca.cert" "$curr_path/ssl.cert" > /dev/null
 }
 
 self_signed(){
