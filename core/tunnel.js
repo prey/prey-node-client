@@ -7,7 +7,11 @@
 
 var net = require('net'),
 		tls = require('tls'),
+		fs = require('fs'),
 		util = require('util');
+
+var private_key_file = 'ssl/ssl.key';
+var certificate_file = 'ssl/ssl.cert';
 
 var Tunnel = function(local_port, remote_host, remote_port){
 
@@ -16,17 +20,43 @@ var Tunnel = function(local_port, remote_host, remote_port){
 	var local_socket;
 	var remote_socket;
 
+	this.connectionClosed = function(socket, had_error){
+		if(had_error){
+			console.log("Connection closed due to error.");
+		} else{
+			console.log("Connection closed.");
+		}
+	};
+
+	this.connectionEnded = function(socket){
+		console.log("Stream ended.");
+		if(socket.readyState != 'closed'){
+			console.log("Destroying connection...");
+			socket.destroy();
+		}
+	};
+
 	this.start = function(){
+
+		var keys = {
+			key: fs.readFileSync(private_key_file).toString(),
+			cert: fs.readFileSync(certificate_file).toString()
+		};
 
 		remote_socket = new net.Socket();
 		local_socket = new net.Socket();
 
-		console.log("Opening connection to " + remote_host + " at port " + remote_port);
-		remote_socket.connect(remote_port, remote_host);
+		// create and encrypted connection using ssl
+		remote_socket = tls.connect(remote_port, remote_host, keys, function(){
 
-		remote_socket.on('connect', function(){
-			console.log("connected to remote");
-		})
+			console.log(" -- Connection established.");
+
+			if (remote_socket.authorized)
+				console.log(" -- Credentials were valid!")
+			else
+				console.log(" !! Credentials were NOT valid: " + remote_socket.authorizationError);
+
+		});
 
 		local_socket.on('connect', function(){
 			console.log("local connected");
@@ -47,6 +77,7 @@ var Tunnel = function(local_port, remote_host, remote_port){
 				}
 
 			} else {
+
 				local_socket.write(data);
 			}
 
@@ -57,12 +88,24 @@ var Tunnel = function(local_port, remote_host, remote_port){
 			remote_socket.write(data);
 		});
 
-		remote_socket.on("end", function(data) {
-			local_socket.end();
+		remote_socket.on("end", function() {
+			self.connectionEnded(remote_socket);
+			// local_socket.end();
 		});
 
-		local_socket.on("end", function(data) {
-			remote_socket.end();
+		local_socket.on("end", function() {
+			self.connectionEnded(local_socket);
+			// remote_socket.end();
+		});
+
+		remote_socket.on("close", function(had_error) {
+			console.log("Remote socket closed.");
+			self.connectionClosed(remote_socket, had_error);
+		});
+
+		local_socket.on("close", function(had_error) {
+			console.log("Local socket closed.");
+			self.connectionClosed(local_socket, had_error);
 		});
 
 	}
