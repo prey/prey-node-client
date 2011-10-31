@@ -155,8 +155,8 @@ exports.main = {
 
 	remote_tunnel: {
 
-		port: "",
 		host: "my.server.com",
+		port: 2222,
 		user: "username",
 		pass: "password"
 
