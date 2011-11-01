@@ -322,11 +322,100 @@ var Main = {
 		this.on_demand = OnDemand.connect(on_demand_host, on_demand_port, this.config, this.version, function(stream){
 
 			stream.on('event', function(event, data){
-				if(data.msg == 'run_prey')
-					Prey.fire();
+				self.handle_on_demand_message(event, data);
 			});
 
 		});
+
+	},
+
+	// expects:
+	// data: {
+	//   module: 'lock',
+	//   method: 'disable', -- optional, otherwise calls module.run()
+	//   config: { message: 'hi', ... }
+	// }
+
+	load_and_run_module: function(data){
+
+		var loader = ModuleLoader(data.module, data.config, data.upstream_version);
+
+		loader.once('done', function(prey_module){
+
+			if(!prey_module){
+
+				console.log("Unable to load module");
+
+			else if(!data.method || data.method == '')
+
+				prey_module.run();
+
+			else {
+
+				try {
+
+					prey_module[data.method]();
+
+				} catch(e){
+
+					console.log("Whoops! Seems " + prey_module.name + " doesnt have that method");
+				}
+
+			}
+
+		});
+
+	},
+
+	send_wol_packet: function(target_mac, callback){
+
+		var wol = require('wake_on_lan');
+
+		var mac = target_mac.replace('-', ':') // replace just in case
+
+		wol.wake(mac, function(error){
+
+			callback(!error);
+
+		});
+
+	},
+
+	// event should == 'message'
+	handle_on_demand_message: function(event, data){
+
+			if(typeof data == 'object'){
+
+				switch(data.command) {
+
+				case 'run_module':
+
+					load_and_run_module(data);
+					break;
+
+				case 'send_wol_request':
+
+					send_wol_request(data, function(success){
+
+						if (success) {
+							console.log("WOL: Done!");
+						} else {
+							console.log("WOL: Got error.");
+						}
+
+					});
+
+					break;
+
+				default:
+					console.log("Message not understood!");
+				}
+
+			} else if(data.msg == 'run_prey') {
+
+				Prey.fire();
+
+			}
 
 	},
 
