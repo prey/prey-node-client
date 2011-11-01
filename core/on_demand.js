@@ -140,7 +140,7 @@ var OnDemand = {
 	disconnect: function(){
 		if(!self.connected) return;
 		log(" -- Closing connection upon request!");
-		self.stream.end();
+		self.stream.destroy();
 	}
 
 }
