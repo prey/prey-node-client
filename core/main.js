@@ -346,11 +346,11 @@ var Main = {
 
 				console.log("Unable to load module");
 
-			else if(!data.method || data.method == '')
+			} else if(!data.method || data.method == ''){
 
 				prey_module.run();
 
-			else {
+			} else {
 
 				try {
 
