@@ -8,7 +8,13 @@
 var net = require('net'),
 		tls = require('tls'),
 		fs = require('fs'),
+		sys = require('sys'),
+		emitter = require('events').EventEmitter,
 		util = require('util');
+
+// openssl genrsa -out ssl.key 2048
+// openssl req -new -key ssl.key -out ssl.csr
+// openssl x509 -req -in ssl.csr -signkey ssl.key -out ssl.cert
 
 var private_key_file = 'ssl/ssl.key';
 var certificate_file = 'ssl/ssl.cert';
@@ -17,8 +23,8 @@ var Tunnel = function(local_port, remote_host, remote_port){
 
 	var self = this;
 
-	var local_socket;
-	var remote_socket;
+	this.local_socket = null;
+	this.remote_socket = null;
 
 	this.connectionClosed = function(socket, had_error){
 		if(had_error){
@@ -36,15 +42,26 @@ var Tunnel = function(local_port, remote_host, remote_port){
 		}
 	};
 
-	this.start = function(){
+	this.close = function(){
+
+		console.log("Closing tunnel!");
+		this.remote_socket.end();
+		this.local_socket.end();
+		this.emit('closed');
+
+	};
+
+	this.open = function(){
+
+		console.log(" -- Tunnelling " + remote_host + ":" + remote_port + " to local port " + local_port);
 
 		var keys = {
 			key: fs.readFileSync(private_key_file).toString(),
 			cert: fs.readFileSync(certificate_file).toString()
 		};
 
-		remote_socket = new net.Socket();
-		local_socket = new net.Socket();
+		var remote_socket = new net.Socket();
+		var local_socket = new net.Socket();
 
 		// create and encrypted connection using ssl
 		remote_socket = tls.connect(remote_port, remote_host, keys, function(){
@@ -55,6 +72,8 @@ var Tunnel = function(local_port, remote_host, remote_port){
 				console.log(" -- Credentials were valid!")
 			else
 				console.log(" !! Credentials were NOT valid: " + remote_socket.authorizationError);
+
+			self.emit('connected');
 
 		});
 
@@ -84,14 +103,13 @@ var Tunnel = function(local_port, remote_host, remote_port){
 		});
 
 		local_socket.on("error", function(e) {
-			console.log("Error!");
-			console.log(e);
+			console.log("Error: " + e.code);
 			// local_socket.end();
 			remote_socket.end(e.code); // sends and ends
 		});
 
 		local_socket.on("data", function(data) {
-			console.log("Local sent: " + data);
+			// console.log("Local sent: " + data);
 			remote_socket.write(data);
 		});
 
@@ -117,8 +135,15 @@ var Tunnel = function(local_port, remote_host, remote_port){
 			self.connectionClosed(local_socket, had_error);
 		});
 
+		this.remote_socket = remote_socket;
+		this.local_socket = local_socket;
+
 	}
+
+	this.open();
+	return this;
 
 };
 
+sys.inherits(Tunnel, emitter);
 module.exports = Tunnel;

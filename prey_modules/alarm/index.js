@@ -23,13 +23,13 @@ var Alarm = function(){
 
 		var sound_file = __dirname + "/lib/" + this.options.sound;
 		this.alarm_command = new Command('mpg123 ' + sound_file);
-		
+
 		this.alarm_command.on('exit', function(code){
 			self.done();
 		});
 
 		this.alarm_command.on('error', function(e){
-			console.log(e.message);
+			console.log(e.code);
 		});
 
 //		this.alarm_command.on('return', function(output){
@@ -39,7 +39,7 @@ var Alarm = function(){
 	}
 
 	this.stop = function(){
-		this.alarm_command.kill(); // will trigger 'exit' event 
+		this.alarm_command.kill(); // will trigger 'exit' event
 	}
 
 };
