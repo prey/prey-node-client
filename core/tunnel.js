@@ -30,8 +30,8 @@ var Tunnel = function(local_port, remote_host, remote_port){
 	this.connectionEnded = function(socket){
 		console.log("Stream ended.");
 		if(socket.readyState != 'closed'){
-			// console.log("Destroying connection...");
-			// socket.destroy();
+			console.log("Destroying connection...");
+			socket.destroy();
 		}
 	};
 
@@ -84,16 +84,17 @@ var Tunnel = function(local_port, remote_host, remote_port){
 		});
 
 		local_socket.on('connect', function(){
-			console.log("local connected");
+			// console.log("local connected");
 		})
 
 		remote_socket.on("data", function(data) {
 
 			// console.log("Remote sent: " + data);
-			console.log(" -- Local socket state: " + local_socket.readyState);
+			// console.log(" -- Local socket state: " + local_socket.readyState);
 
 			if(data == "stop"){
 
+				console.log(" -- Got STOP signal from server. Closing local socket.");
 				local_socket.end();
 
 			} else if(local_socket.readyState == "closed"){
@@ -127,13 +128,13 @@ var Tunnel = function(local_port, remote_host, remote_port){
 
 		remote_socket.on("end", function() {
 			console.log(" -- Remote socket ended.");
-			self.connectionEnded(remote_socket);
+			// self.connectionEnded(remote_socket);
 			// local_socket.end();
 		});
 
 		local_socket.on("end", function() {
 			console.log(" -- Local socket ended.");
-			self.connectionEnded(local_socket);
+			// self.connectionEnded(local_socket);
 			// remote_socket.end();
 		});
 

@@ -9,8 +9,8 @@ exports.vnc_command = function(options){
 
 	var str = 'x11vnc -ncache 10 -ncache_cr -localhost -noxdamage -forever -notruecolor';
 	str += ' -scale 1/' + options.desktop_scale;
-	if(options.password) str += ' -passwd "' + options.password + '"';
-	if(options.viewonly) str += ' -viewonly';
+	// if(options.vnc_pass != '') str += ' -passwd "' + options.vnc_pass + '"';
+	if(options.view_only) str += ' -viewonly';
 
 	return str;
 
