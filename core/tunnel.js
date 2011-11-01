@@ -36,22 +36,25 @@ var Tunnel = function(local_port, remote_host, remote_port){
 	};
 
 	this.closed = function(){
-
+		this.status = 'closed';
 		this.emit('closed');
-
-	};
-
-	this.close = function(){
-
-		console.log("Closing tunnel!");
-		this.local_socket.end();
-		this.remote_socket.end();
-
 	};
 
 	this.opened = function(){
 		this.status = 'open';
 		this.emit('opened');
+	};
+
+	this.is_open = function(){
+		return this.status == 'open';
+	};
+
+	this.close = function(){
+
+		console.log(" -- Closing tunnel!");
+		this.local_socket.end();
+		this.remote_socket.end();
+
 	};
 
 	this.open = function(){
@@ -87,7 +90,7 @@ var Tunnel = function(local_port, remote_host, remote_port){
 		remote_socket.on("data", function(data) {
 
 			// console.log("Remote sent: " + data);
-			console.log("Local socket state: " + local_socket.readyState);
+			console.log(" -- Local socket state: " + local_socket.readyState);
 
 			if(data == "stop"){
 
@@ -96,7 +99,7 @@ var Tunnel = function(local_port, remote_host, remote_port){
 			} else if(local_socket.readyState == "closed"){
 
 				local_socket.connect(local_port);
-				console.log("Local tunnel connected to " + local_port);
+				console.log(" -- Local tunnel connected to " + local_port);
 
 			} else {
 
@@ -123,25 +126,25 @@ var Tunnel = function(local_port, remote_host, remote_port){
 		});
 
 		remote_socket.on("end", function() {
-			console.log("Remote socket ended.");
+			console.log(" -- Remote socket ended.");
 			self.connectionEnded(remote_socket);
 			// local_socket.end();
 		});
 
 		local_socket.on("end", function() {
-			console.log("Local socket ended.");
+			console.log(" -- Local socket ended.");
 			self.connectionEnded(local_socket);
 			// remote_socket.end();
 		});
 
 		remote_socket.on("close", function(had_error) {
-			console.log("Remote socket closed.");
+			console.log(" -- Remote socket closed.");
 			self.closed();
 			// self.connectionClosed(remote_socket, had_error);
 		});
 
 		local_socket.on("close", function(had_error) {
-			console.log("Local socket closed.");
+			console.log(" -- Local socket closed.");
 			// self.connectionClosed(local_socket, had_error);
 		});
 
