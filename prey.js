@@ -10,6 +10,8 @@ var base = require('./core/base'),
 		sys  = require('sys'),
 		fs   = require('fs');
 
+process.env.ROOT_PATH = base.root_path;
+
 ////////////////////////////////////////
 // base initialization
 ////////////////////////////////////////
