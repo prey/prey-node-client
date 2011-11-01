@@ -36,23 +36,23 @@ var Desktop = function(){
 
 		this.tunnel.on('opened', function(){
 
-			console.log(" -- Tunnel is open!");
+			self.log(" -- Tunnel is open!");
 
-			var cmd = os_functions.vnc_command(self.options);
-			// console.log("running: " + cmd);
-			self.remote_desktop_command = new Command(cmd);
+			var vnc_cmd = os_functions.vnc_command(self.options);
+			// console.log("running: " + vnc_cmd);
+			self.remote_desktop_command = new Command(vnc_cmd);
 
 			if (self.remote_desktop_command.is_running())
-				console.log(" -- VNC is running!");
+				self.log(" -- VNC is running!");
 
 			self.remote_desktop_command.on('exit', function(code){
-				console.log(" -- VNC server terminated.");
+				self.log(" -- VNC server terminated.");
 				if(self.tunnel.is_open()) self.tunnel.close();
 				// self.done();
 			});
 
 			self.remote_desktop_command.on('error', function(e){
-				console.log(' -- VNC server closed abruptly with status : ' + e.code);
+				self.log(' -- VNC server closed abruptly with status : ' + e.code);
 				// console.log(e);
 			});
 
@@ -64,7 +64,7 @@ var Desktop = function(){
 
 		this.tunnel.on('closed', function(){
 
-			console.log(" -- Tunnel closed!");
+			self.log(" -- Tunnel closed!");
 			if(self.remote_desktop_command)
 				self.remote_desktop_command.kill();
 
