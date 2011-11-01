@@ -9,11 +9,13 @@ var sys = require('sys'),
 		emitter = require('events').EventEmitter;
 
 function mixin(target, source) {
-  Object.keys(source).forEach(function(key) {
-    target[key] = source[key];
-  });
+	Object.keys(source).forEach(function(key) {
+		// if value is 'y' or 'n' lets translate them to true or false
+		val = source[key] == 'y' ? true : source[key] == 'n' ? false : source[key];
+		target[key] = val;
+	});
 
-  return target;
+	return target;
 }
 
 function PreyModule(){
