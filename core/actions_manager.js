@@ -71,8 +71,8 @@ var ActionsManager = function(){
 
 	this.stop_all = function(){
 
-		running_actions.forEach(function(action){
-			self.stop(action);
+		this.running_actions.forEach(function(action_module){
+			self.stop(action_module);
 		});
 
 	};
