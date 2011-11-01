@@ -42,14 +42,14 @@ var Desktop = function(){
 			// console.log("running: " + cmd);
 			self.remote_desktop_command = new Command(cmd);
 
-			if (self.remote_desktop_command.is_running)
+			if (self.remote_desktop_command.is_running())
 				console.log(" -- VNC is running!");
 
 			self.remote_desktop_command.on('exit', function(code){
 
 				console.log(" -- VNC server terminated.");
 
-				if(self.tunnel.is_open) self.tunnel.close();
+				if(self.tunnel.is_open()) self.tunnel.close();
 				// self.done();
 
 			});
@@ -77,7 +77,7 @@ var Desktop = function(){
 
 	this.stop = function(){
 
-		if(this.tunnel.is_open)
+		if(this.tunnel.is_open())
 			this.tunnel.close(); // will trigger remote desktop command to stop
 		else if(this.remote_desktop_command)
 			this.remote_desktop_command.kill();
