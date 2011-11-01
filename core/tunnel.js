@@ -36,11 +36,13 @@ var Tunnel = function(local_port, remote_host, remote_port){
 	};
 
 	this.closed = function(){
+		if(!this.is_open()) return;
 		this.status = 'closed';
 		this.emit('closed');
 	};
 
 	this.opened = function(){
+		if(this.is_open()) return;
 		this.status = 'open';
 		this.emit('opened');
 	};
@@ -51,9 +53,15 @@ var Tunnel = function(local_port, remote_host, remote_port){
 
 	this.close = function(){
 
-		console.log(" -- Closing tunnel!");
-		this.local_socket.destroy();
-		this.remote_socket.destroy();
+		if(this.local_socket.readyState != 'closed'){
+			console.log(" -- Closing local end of tunnel...");
+			this.local_socket.destroy();
+		}
+		if(this.remote_socket.readyState != 'closed'){
+			console.log(" -- Closing remote end of tunnel...");
+			this.remote_socket.destroy();
+			this.closed();
+		}
 
 	};
 
