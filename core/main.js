@@ -367,11 +367,11 @@ var Main = {
 
 	},
 
-	send_wol_packet: function(target_mac, callback){
+	send_wol_packet: function(data, callback){
 
 		var wol = require('wake_on_lan');
 
-		var mac = target_mac.replace('-', ':') // replace just in case
+		var mac = data.target_mac.replace('-', ':') // replace just in case
 
 		wol.wake(mac, function(error){
 
@@ -384,38 +384,38 @@ var Main = {
 	// event should == 'message'
 	handle_on_demand_message: function(event, data){
 
-			if(typeof data == 'object'){
+		var command = data.command || data.msg;
+		console.log(" -- Received " + command + " command!");
 
-				switch(data.command) {
+		switch(command) {
 
-				case 'run_module':
+			case 'run_module':
 
-					load_and_run_module(data);
-					break;
+				load_and_run_module(data);
+				break;
 
-				case 'send_wol_request':
+			case 'send_wol_request':
 
-					send_wol_request(data, function(success){
+				send_wol_request(data, function(success){
 
-						if (success) {
-							console.log("WOL: Done!");
-						} else {
-							console.log("WOL: Got error.");
-						}
+					if (success) {
+						console.log("WOL: Done!");
+					} else {
+						console.log("WOL: Got error.");
+					}
 
-					});
+				});
 
-					break;
+				break;
 
-				default:
-					console.log("Message not understood!");
-				}
-
-			} else if(data.msg == 'run_prey') {
-
+			case 'run_prey':
 				Prey.fire();
+				break;
 
-			}
+			default:
+				console.log("Message not understood!");
+
+		}
 
 	},
 
