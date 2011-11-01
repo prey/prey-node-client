@@ -25,14 +25,7 @@ var Tunnel = function(local_port, remote_host, remote_port){
 
 	this.local_socket = null;
 	this.remote_socket = null;
-
-	this.connectionClosed = function(socket, had_error){
-		if(had_error){
-			console.log("Connection closed due to error.");
-		} else{
-			console.log("Connection closed.");
-		}
-	};
+	this.status = 'closed';
 
 	this.connectionEnded = function(socket){
 		console.log("Stream ended.");
@@ -42,18 +35,28 @@ var Tunnel = function(local_port, remote_host, remote_port){
 		}
 	};
 
-	this.close = function(){
+	this.closed = function(){
 
-		console.log("Closing tunnel!");
-		this.remote_socket.end();
-		this.local_socket.end();
 		this.emit('closed');
 
 	};
 
+	this.close = function(){
+
+		console.log("Closing tunnel!");
+		this.local_socket.end();
+		this.remote_socket.end();
+
+	};
+
+	this.opened = function(){
+		this.status = 'open';
+		this.emit('opened');
+	};
+
 	this.open = function(){
 
-		console.log(" -- Tunnelling " + remote_host + ":" + remote_port + " to local port " + local_port);
+		console.log(" -- Tunnelling local port " + local_port + " to " + remote_host + " at " + remote_port);
 
 		var keys = {
 			key: fs.readFileSync(private_key_file).toString(),
@@ -73,7 +76,7 @@ var Tunnel = function(local_port, remote_host, remote_port){
 			else
 				console.log(" !! Credentials were NOT valid: " + remote_socket.authorizationError);
 
-			self.emit('connected');
+			self.opened();
 
 		});
 
@@ -83,7 +86,7 @@ var Tunnel = function(local_port, remote_host, remote_port){
 
 		remote_socket.on("data", function(data) {
 
-			console.log("Remote sent: " + data);
+			// console.log("Remote sent: " + data);
 			console.log("Local socket state: " + local_socket.readyState);
 
 			if(data == "stop"){
@@ -98,14 +101,20 @@ var Tunnel = function(local_port, remote_host, remote_port){
 			} else {
 
 				local_socket.write(data);
+
 			}
 
 		});
 
 		local_socket.on("error", function(e) {
-			console.log("Error: " + e.code);
+			console.log(" !! Error: " + e.code);
 			// local_socket.end();
 			remote_socket.end(e.code); // sends and ends
+		});
+
+		remote_socket.on("error", function(e) {
+			console.log(" !! Error: " + e.code);
+			remote_socket.destroy();
 		});
 
 		local_socket.on("data", function(data) {
@@ -127,21 +136,23 @@ var Tunnel = function(local_port, remote_host, remote_port){
 
 		remote_socket.on("close", function(had_error) {
 			console.log("Remote socket closed.");
-			self.connectionClosed(remote_socket, had_error);
+			self.closed();
+			// self.connectionClosed(remote_socket, had_error);
 		});
 
 		local_socket.on("close", function(had_error) {
 			console.log("Local socket closed.");
-			self.connectionClosed(local_socket, had_error);
+			// self.connectionClosed(local_socket, had_error);
 		});
 
 		this.remote_socket = remote_socket;
 		this.local_socket = local_socket;
 
+		return this;
+
 	}
 
-	this.open();
-	return this;
+	return this.open();
 
 };
 
