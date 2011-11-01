@@ -32,9 +32,8 @@ var Prey = require('./core/main');
 /////////////////////////////////////////////////////////////
 
 process.on('exit', function () {
-	Prey.running = false;
+	Prey.stop();
 	base.helpers.clean_up(pid_file);
-	if(Prey.on_demand_active) Prey.disconnect_on_demand();
 	log(" -- Have a jolly good day sir.\n");
 });
 

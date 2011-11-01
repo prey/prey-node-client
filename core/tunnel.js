@@ -52,8 +52,8 @@ var Tunnel = function(local_port, remote_host, remote_port){
 	this.close = function(){
 
 		console.log(" -- Closing tunnel!");
-		this.local_socket.end();
-		this.remote_socket.end();
+		this.local_socket.destroy();
+		this.remote_socket.destroy();
 
 	};
 

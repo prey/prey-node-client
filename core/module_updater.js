@@ -5,7 +5,8 @@
 // GPLv3 Licensed
 //////////////////////////////////////////
 
-var sys = require('sys'),
+var base = require('./base'),
+		sys = require('sys'),
 		emitter = require('events').EventEmitter,
 		util = require('util'),
 		fs = require('fs'),
@@ -15,16 +16,18 @@ var sys = require('sys'),
 		unpack = require('../lib/unpack'),
 		fs2 = require("wrench");
 
+var modules_url = "http://control.preyproject.com/modules";
+
 function ModuleUpdater(module_name){
 
 	var self = this;
-	this.remote_package = config.modules_url + module_name + ".zip";
-	this.module_path = modules_path + '/' + module_name;
+	this.remote_package = modules_url + module_name + ".zip";
+	this.module_path = base.modules_path + '/' + module_name;
 
 	this.get = function(remote_package, module_path){
 
 		var tempfile = path.basename(remote_package);
-		var dw = new Download(remote_package, helpers.tempfile_path("prey-module-" + tempfile));
+		var dw = new Download(remote_package, base.helpers.tempfile_path("prey-module-" + tempfile));
 
 		dw.on('complete', function(filename, stats){
 			// console.log('All done. ' + stats.bytes + " transferred in " + stats.time + " seconds.")

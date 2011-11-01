@@ -52,6 +52,14 @@ var Main = {
 		this.check_connection_and_fetch();
 	},
 
+	stop: function(){
+
+		if(this.on_demand_active) this.disconnect_on_demand();
+		ActionsManager.stop_all();
+		this.running = false;
+
+	},
+
 	initialize: function(callback){
 
 		// this.check_and_store_pid();
@@ -225,7 +233,7 @@ var Main = {
 		if(typeof(this.config.auto_update) == 'boolean')
 			self.auto_update = this.config.auto_update;
 		else
-			self.requested.configuration.auto_update || false;
+			self.auto_update = self.requested.configuration.auto_update || false;
 
 		self.missing = (self.response_status == this.config.missing_status_code);
 
@@ -273,14 +281,11 @@ var Main = {
 
 			delete module_config['@'];
 
-			var module_options = {
-				config: module_config,
-				upstream_version: module_data.version,
-				update: self.auto_update
-			}
+
+			var version_to_pass = self.auto_update ? module_data.version : null;
 
 			var report_modules = [], action_modules = [];
-			var loader = new ModuleLoader(module_data.name, module_options);
+			var loader = new ModuleLoader(module_data.name, module_config, version_to_pass);
 
 			loader.once('done', function(prey_module){
 

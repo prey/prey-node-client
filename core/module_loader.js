@@ -12,26 +12,27 @@ var base = require('./base'),
 		emitter = require('events').EventEmitter,
 		ModuleUpdater = require('./module_updater');
 
-var ModuleLoader = function(module_name, config){
+var ModuleLoader = function(module_name, module_config, upstream_version){
 
 	var self = this;
+	this.module_name = module_name;
+	this.module_config = module_config;
+	this.upstream_version = null; // so we dont shoot our toes
+	// this.upstream_version = upstream_version;
 
-	this.get = function(module_name, config){
+	this.load = function(){
 
-		log(" -- Initializing " + module_name + " module...");
+		log(" -- Initializing " + this.module_name + " module...");
 
-		this.module_name = module_name;
-		this.module_path = base.modules_path + '/' + module_name;
-
-		this.config = config;
+		this.module_path = base.modules_path + '/' + this.module_name;
 
 		// download module in case it's not there,
 		// or check for updates in case option was selected
 		path.exists(this.module_path, function(exists) {
 			if(!exists)
-				self.download(module_name);
-			else if(config.update)
-				self.update_if_newer(config.upstream_version);
+				self.download(self.module_name);
+			else if(self.upstream_version)
+				self.update_if_newer(self.upstream_version);
 			else
 				self.ready();
 		});
@@ -49,7 +50,7 @@ var ModuleLoader = function(module_name, config){
 		// if(this.module_name == 'system') return;
 //		try {
 			var mod = require(this.module_path);
-			mod.apply_config(this.config);
+			mod.apply_config(this.module_config);
 
 			self.emit('success', mod);
 			self.done(mod)
@@ -66,22 +67,22 @@ var ModuleLoader = function(module_name, config){
 		self.done(false);
 	}
 
-	this.download = function(module_name){
+	this.download = function(){
 		log(" -- Path not found!")
-		this.update(module_name);
+		this.update();
 	}
 
-	this.update = function(module_name){
-		log(" ++ Downloading module " + module_name + " from server...")
+	this.update = function(){
+		log(" ++ Downloading module " + this.module_name + " from server...")
 
-		var updater = new ModuleUpdater(module_name);
+		var updater = new ModuleUpdater(this.module_name);
 
 		updater.on('success', function(){
-			log(" ++ Module " + self.name + " in place and ready to roll!")
+			log(" ++ Module " + self.module_name + " in place and ready to roll!")
 			self.ready();
 		});
 		updater.on('error', function(e){
-			log(' !! Error downloading package.')
+			log(' !! Error downloading ' + self.module_name + ' package.')
 			self.failed(e);
 		})
 	}
@@ -92,16 +93,16 @@ var ModuleLoader = function(module_name, config){
 		fs.readFile(this.module_path + "/version", function(err, version){
 
 			if(err) return false;
-			if(parseFloat(upstream_version) > parseFloat(version)){
-				log(upstream_version + " is newer than installed version: " + version);
-				self.update(this.module_name);
+			if(parseFloat(self.upstream_version) > parseFloat(version)){
+				log(" !! " + self.upstream_version + " is newer than installed version: " + version);
+				self.update();
 			} else {
 				self.ready();
 			}
 		})
 	}
 
-	this.get(module_name, config);
+	this.load();
 
 }
 
