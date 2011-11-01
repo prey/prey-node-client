@@ -5,7 +5,8 @@
 // GPLv3 Licensed
 //////////////////////////////////////////
 
-var sys = require('sys'),
+var base = require('./base'),
+		sys = require('sys'),
 		emitter = require('events').EventEmitter;
 
 function mixin(target, source) {
@@ -29,7 +30,7 @@ function PreyModule(){
 	}
 
 	this.path = function(){
-		return modules_path + '/' + this.name;
+		return base.modules_path + '/' + this.name;
 	}
 
 	this.log = function(str){
@@ -44,14 +45,16 @@ function PreyModule(){
 //			self.config = {};
 //		}
 
-		self.loaded = true;
-		self.emit('ready');
+		this.loaded = true;
+		this.emit('ready');
 
 	}
 
 	this.done = function(){
-		this.running = false;
-		this.emit('end');
+		if(this.running){
+			this.running = false;
+			this.emit('end');
+		}
 	}
 
 	this.init();

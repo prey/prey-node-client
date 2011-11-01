@@ -19,8 +19,8 @@ var ActionsManager = function(){
 	};
 
 	this.action_finished = function(action_module){
-		console.log(' -- ' + action_module.name + ' module returned.');
-		delete this.running_actions;
+		console.log(' -- Action module ' + action_module.name + ' finished.');
+		delete this.running_actions[action_module];
 	};
 
 	this.action_is_running = function(action_module){
@@ -59,17 +59,20 @@ var ActionsManager = function(){
 
 			// self.running_actions[action_module.name] = action_module;
 			self.running_actions.push(action_module);
-			action_module.run();
 
 			action_module.once('end', function(){
 				self.action_finished(action_module);
 			});
+
+			action_module.run();
 
 		});
 
 	}
 
 	this.stop_all = function(){
+
+		console.log(" -- Stopping all actions!");
 
 		this.running_actions.forEach(function(action_module){
 			self.stop(action_module);

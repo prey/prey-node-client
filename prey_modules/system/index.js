@@ -31,9 +31,7 @@ var System = function(){
 	}
 
 	this.stop = function(){
-
-		console.log(' -- Stopping...')
-
+		this.done();
 	}
 
 	this.get_cpu_info = function(){
