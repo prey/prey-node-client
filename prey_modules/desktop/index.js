@@ -46,17 +46,14 @@ var Desktop = function(){
 				console.log(" -- VNC is running!");
 
 			self.remote_desktop_command.on('exit', function(code){
-
 				console.log(" -- VNC server terminated.");
-
 				if(self.tunnel.is_open()) self.tunnel.close();
 				// self.done();
-
 			});
 
 			self.remote_desktop_command.on('error', function(e){
-				console.log('Error');
-				console.log(e);
+				console.log(' -- VNC server closed abruptly with status : ' + e.code);
+				// console.log(e);
 			});
 
 //			self.remote_desktop_command.on('return', function(output){
