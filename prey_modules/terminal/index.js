@@ -21,7 +21,7 @@ var Terminal = function(){
 	this.options = {
 		ssh_port: 22,
 		tunnel_host: 'kiwi',
-		tunnel_port: 9999
+		tunnel_port: 9998
 	}
 
 	this.start = function(){

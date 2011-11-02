@@ -21,7 +21,7 @@ var Desktop = function(){
 	this.options = {
 		vnc_port: 5900,
 		vnc_pass: 'secret',
-		desktop_scale: 1,
+		desktop_scale: 2,
 		view_only: true,
 		tunnel_host: 'kiwi',
 		tunnel_port: 9999
@@ -52,7 +52,7 @@ var Desktop = function(){
 			});
 
 			self.remote_desktop_command.on('error', function(e){
-				self.log('VNC server closed abruptly with status : ' + e.code);
+				self.log('VNC server closed abruptly with status code ' + e.code);
 				// console.log(e);
 			});
 
