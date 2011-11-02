@@ -31,9 +31,11 @@ function ReportModule(){
 				self.get_trace(trace); // go get it
 			}
 		});
+
 		this.once('all_traces_returned', function(){
 			self.done();
 		});
+
 	};
 
 	this.get = function(trace, callback){

@@ -27,10 +27,14 @@ var Tunnel = function(local_port, remote_host, remote_port){
 	this.remote_socket = null;
 	this.status = 'closed';
 
+	this.log = function(str){
+		console.log(' -- [tunnel] ' + str);
+	};
+
 	this.connectionEnded = function(socket){
-		console.log("Stream ended.");
+		self.log("Stream ended.");
 		if(socket.readyState != 'closed'){
-			console.log("Destroying connection...");
+			self.log("Destroying connection...");
 			socket.destroy();
 		}
 	};
@@ -54,11 +58,11 @@ var Tunnel = function(local_port, remote_host, remote_port){
 	this.close = function(){
 
 		if(this.local_socket.readyState != 'closed'){
-			console.log(" -- Closing local end of tunnel...");
+			self.log("Closing local end...");
 			this.local_socket.destroy();
 		}
 		if(this.remote_socket.readyState != 'closed'){
-			console.log(" -- Closing remote end of tunnel...");
+			self.log("Closing remote end...");
 			this.remote_socket.destroy();
 			this.closed();
 		}
@@ -67,7 +71,7 @@ var Tunnel = function(local_port, remote_host, remote_port){
 
 	this.open = function(){
 
-		console.log(" -- Tunnelling local port " + local_port + " to " + remote_host + " at " + remote_port);
+		self.log("Tunnelling local port " + local_port + " to " + remote_host + " at " + remote_port);
 
 		var keys = {
 			key: fs.readFileSync(private_key_file).toString(),
@@ -80,35 +84,35 @@ var Tunnel = function(local_port, remote_host, remote_port){
 		// create and encrypted connection using ssl
 		remote_socket = tls.connect(remote_port, remote_host, keys, function(){
 
-			console.log(" -- Connection established.");
+			self.log("Connection established.");
 
 			if (remote_socket.authorized)
-				console.log(" -- Credentials were valid!")
+				self.log("Credentials were valid!")
 			else
-				console.log(" !! Credentials were NOT valid: " + remote_socket.authorizationError);
+				self.log("Credentials were NOT valid: " + remote_socket.authorizationError);
 
 			self.opened();
 
 		});
 
 		local_socket.on('connect', function(){
-			// console.log("local connected");
+			// self.log("local connected");
 		})
 
 		remote_socket.on("data", function(data) {
 
-			// console.log("Remote sent: " + data);
-			// console.log(" -- Local socket state: " + local_socket.readyState);
+			// self.log("Remote sent: " + data);
+			// self.log(" -- Local socket state: " + local_socket.readyState);
 
 			if(data == "stop"){
 
-				console.log(" -- Got STOP signal from server. Closing local socket.");
+				self.log("Got STOP signal from server. Closing local socket.");
 				local_socket.end();
 
 			} else if(local_socket.readyState == "closed"){
 
 				local_socket.connect(local_port);
-				console.log(" -- Local tunnel connected to " + local_port);
+				self.log("Local tunnel connected to " + local_port);
 
 			} else {
 
@@ -119,41 +123,41 @@ var Tunnel = function(local_port, remote_host, remote_port){
 		});
 
 		local_socket.on("error", function(e) {
-			console.log(" !! Error: " + e.code);
+			self.log("Error: " + e.code);
 			// local_socket.end();
 			remote_socket.end(e.code); // sends and ends
 		});
 
 		remote_socket.on("error", function(e) {
-			console.log(" !! Error: " + e.code);
+			self.log("Error: " + e.code);
 			remote_socket.destroy();
 		});
 
 		local_socket.on("data", function(data) {
-			// console.log("Local sent: " + data);
+			// self.log("Local sent: " + data);
 			remote_socket.write(data);
 		});
 
 		remote_socket.on("end", function() {
-			console.log(" -- Remote socket ended.");
+			self.log("Remote socket ended.");
 			// self.connectionEnded(remote_socket);
 			// local_socket.end();
 		});
 
 		local_socket.on("end", function() {
-			console.log(" -- Local socket ended.");
+			self.log("Local socket ended.");
 			// self.connectionEnded(local_socket);
 			// remote_socket.end();
 		});
 
 		remote_socket.on("close", function(had_error) {
-			console.log(" -- Remote socket closed.");
+			self.log("Remote socket closed.");
 			self.closed();
 			// self.connectionClosed(remote_socket, had_error);
 		});
 
 		local_socket.on("close", function(had_error) {
-			console.log(" -- Local socket closed.");
+			self.log("Local socket closed.");
 			// self.connectionClosed(local_socket, had_error);
 		});
 

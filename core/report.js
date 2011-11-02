@@ -16,6 +16,10 @@ var Report = function(report_modules, options){
 	this.options = options;
 	this.traces = {};
 
+	this.log = function(str){
+		console.log(" -- [report] " + str);
+	};
+
 	this.gather = function(){
 
 		var report_modules_count = report_modules.length;
@@ -29,12 +33,12 @@ var Report = function(report_modules, options){
 				var modules_to_go = report_modules_count - modules_returned;
 
 				var traces_count = Object.keys(this.traces).length;
-				log(" -- [" + this.name + "] module returned, " + traces_count + " traces gathered. " + modules_to_go.toString() + " to go!");
+				self.log(this.name + " module returned, " + traces_count + " traces gathered. " + modules_to_go.toString() + " to go!");
 
 				if(traces_count > 0) self.traces[this.name] = this.traces;
 
 				if(modules_to_go <= 0){
-					log(" ++ Report gathered!");
+					self.log(" ++ All report modules returned!");
 					self.emit('ready');
 				}
 
