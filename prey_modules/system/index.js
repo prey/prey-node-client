@@ -51,7 +51,7 @@ var System = function(){
 	this.get_network_interfaces = function(){
 
 		this.data.network_interfaces = {};
-		var nics = os.getNetworkInterfaces();
+		var nics = os.networkInterfaces();
 
 		for(key in nics){
 

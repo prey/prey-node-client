@@ -8,7 +8,7 @@
 var base = require('../../core/base'),
 		sys = require('sys'),
 		path = require('path'),
-		helpers = require('../../core/helpers'),
+		uptime = require('os').uptime
 		Command = require('../../lib/command'),
 		ReportModule = require('../../core/report_module'),
 		os_functions = require('./platform/' + base.os_name);
@@ -30,7 +30,7 @@ var Session = function(){
 
 	this.get_screenshot = function(){
 
-		var temp_screenshot = helpers.tempfile_path(this.options.screenshot_file);
+		var temp_screenshot = base.helpers.tempfile_path(this.options.screenshot_file);
 
 		var str = base.os.current_user_cmd(os_functions.screenshot_cmd + " " + temp_screenshot);
 
@@ -52,17 +52,7 @@ var Session = function(){
 
 	this.get_current_uptime = function(){
 
-		var cmd = new Command('cat /proc/uptime');
-
-		cmd.on('error', function(e){
-			self.emit('current_uptime', false, e);
-		});
-
-		cmd.on('return', function(output){
-			var seconds = parseInt(output.split()[0]);
-			self.emit('current_uptime', seconds);
-		});
-
+		self.emit('current_uptime', parseInt(uptime()));
 
 	};
 

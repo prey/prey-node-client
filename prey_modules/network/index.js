@@ -44,7 +44,7 @@ var Network = function(){
 	};
 
 	this.get_private_ip = function(){
-		os.getNetworkInterfaces().forEach(function(obj, name){
+		os.networkInterfaces().forEach(function(obj, name){
 			var addr = obj[0].address;
 			if(name != 'lo' && self.is_ip_address(addr)){
 				return self.emit('private_ip', addr);
