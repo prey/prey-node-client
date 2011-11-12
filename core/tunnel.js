@@ -135,7 +135,8 @@ var Tunnel = function(local_port, remote_host, remote_port){
 
 		local_socket.on("data", function(data) {
 			// self.log("Local sent: " + data);
-			remote_socket.write(data);
+			if(remote_socket.readyState == 'open')
+				remote_socket.write(data);
 		});
 
 		remote_socket.on("end", function() {
@@ -152,6 +153,7 @@ var Tunnel = function(local_port, remote_host, remote_port){
 
 		remote_socket.on("close", function(had_error) {
 			self.log("Remote socket closed.");
+			local_socket.end();
 			self.closed();
 			// self.connectionClosed(remote_socket, had_error);
 		});
