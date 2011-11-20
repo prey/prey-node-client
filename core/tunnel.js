@@ -25,7 +25,7 @@ var Tunnel = function(local_port, remote_host, remote_port){
 
 	this.local_socket = null;
 	this.remote_socket = null;
-	this.status = 'closed';
+	this.status = null;
 
 	this.log = function(str){
 		console.log(' -- [tunnel] ' + str);
@@ -40,7 +40,7 @@ var Tunnel = function(local_port, remote_host, remote_port){
 	};
 
 	this.closed = function(){
-		if(!this.is_open()) return;
+		if(this.status == 'closed') return;
 		this.status = 'closed';
 		this.emit('closed');
 	};
@@ -123,13 +123,14 @@ var Tunnel = function(local_port, remote_host, remote_port){
 		});
 
 		local_socket.on("error", function(e) {
-			self.log("Error: " + e.code);
+			self.log("Local socket error: " + e.code);
 			// local_socket.end();
 			remote_socket.end(e.code); // sends and ends
 		});
 
+		// if this happens then the connection was never made
 		remote_socket.on("error", function(e) {
-			self.log("Error: " + e.code);
+			self.log("Remote socket error: " + e.code);
 			remote_socket.destroy();
 		});
 
