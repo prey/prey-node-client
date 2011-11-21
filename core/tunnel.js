@@ -101,7 +101,7 @@ var Tunnel = function(local_port, remote_host, remote_port){
 
 		remote_socket.on("data", function(data) {
 
-			// self.log("Remote sent: " + data);
+			self.log("Remote sent: " + data.length + " bytes.");
 			// self.log(" -- Local socket state: " + local_socket.readyState);
 
 			if(data == "stop"){
@@ -111,8 +111,8 @@ var Tunnel = function(local_port, remote_host, remote_port){
 
 			} else if(local_socket.readyState == "closed"){
 
+				self.log("Opening local connection to " + local_port);
 				local_socket.connect(local_port);
-				self.log("Local tunnel connected to " + local_port);
 
 			} else {
 
@@ -135,7 +135,7 @@ var Tunnel = function(local_port, remote_host, remote_port){
 		});
 
 		local_socket.on("data", function(data) {
-			// self.log("Local sent: " + data);
+			self.log("Local sent " + data.length + " bytes.");
 			if(remote_socket.readyState == 'open')
 				remote_socket.write(data);
 		});
