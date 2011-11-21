@@ -9,7 +9,7 @@ if(typeof command == 'undefined')
 
 if(command == 'frame'){
 
-GStreamer.captureFrame({width: 320, height: 240}, function(file){
+GStreamer.captureFrame('frame.jpg', {width: 320, height: 240}, function(file){
 	if(file){
 		console.log("Picture taken: " + file);
 		fs.unlink(file);
@@ -22,11 +22,11 @@ GStreamer.captureFrame({width: 320, height: 240}, function(file){
 
 var file = 'C:/test/prey.node/test/atoms.mp3';
 
-GStreamer.playSound({file: file}, function(file_played){
+GStreamer.playSound(file, function(file_played){
 	if(file_played)
 		console.log('Sound played: ' + file_played);
-      else 
-		console.log('File not played!');               
+      else
+		console.log('File not played!');
 });
 
 } else if(command == 'video'){
@@ -34,8 +34,8 @@ GStreamer.playSound({file: file}, function(file_played){
 GStreamer.streamVideo({dest: 'localhost:9000', encoder: 'vp8enc'}, function(success){
 	if(success)
 		console.log('Stream is running!');
-      else 
-		console.log('Stream NOT running!');               
+      else
+		console.log('Stream NOT running!');
 });
 
 } else if(command == 'audiovideo'){
@@ -43,8 +43,8 @@ GStreamer.streamVideo({dest: 'localhost:9000', encoder: 'vp8enc'}, function(succ
 GStreamer.streamAudioVideo({dest: 'file.webm', encoder: 'vp8enc'}, function(success){
 	if(success)
 		console.log('Stream is running!');
-      else 
-		console.log('Stream NOT running!');               
+      else
+		console.log('Stream NOT running!');
 });
 
 }
