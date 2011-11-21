@@ -7,6 +7,7 @@
 
 var sys = require('sys'),
 		Command = require('../../lib/command'),
+		GStreamer = require('node-gstreamer'),
 		ActionModule = require('../../core/action_module');
 
 var Alarm = function(){
@@ -22,19 +23,10 @@ var Alarm = function(){
 	this.start = function(){
 
 		var sound_file = __dirname + "/lib/" + this.options.sound;
-		this.alarm_command = new Command('mpg123 ' + sound_file);
 
-		this.alarm_command.on('exit', function(code){
+		this.alarm_command = GStreamer.playSound(sound_file, function(was_played){
 			self.done();
 		});
-
-		this.alarm_command.on('error', function(e){
-			console.log(e.code);
-		});
-
-//		this.alarm_command.on('return', function(output){
-//			console.log(output);
-//		});
 
 	}
 
