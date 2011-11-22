@@ -19,7 +19,7 @@ function Request(config, headers, callback){
 
 	this.start = function(config, headers, callback){
 
-			var options = { headers: headers }
+			var options = { headers: headers, parser: false }
 
 			if (config.extended_headers) {
 

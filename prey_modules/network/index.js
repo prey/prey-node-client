@@ -44,11 +44,22 @@ var Network = function(){
 	};
 
 	this.get_private_ip = function(){
-		os.networkInterfaces().forEach(function(obj, name){
-			var addr = obj[0].address;
+
+		var nics = os.networkInterfaces();
+
+		for(name in nics){
+
+			var nic = nics[name];
+			var addr = nic[0].address;
+
 			if(name != 'lo' && self.is_ip_address(addr)){
 				return self.emit('private_ip', addr);
 			}
+
+		};
+
+		nics.forEach(function(obj, name){
+
 		});
 	};
 

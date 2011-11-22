@@ -9,7 +9,7 @@ var base = require('./base'),
 		sys = require('sys'),
 		fs = require('fs'),
 		http_client = require('restler'),
-		query_string = require('querystring-stringify'),
+		stringify = require('qs').stringify,
 		Response = require('./response_parser');
 
 var config_file_path = base.root_path + '/config.js'
@@ -42,7 +42,7 @@ var Setup = {
 			}
 		}
 
-		http_options.data = query_string.stringify(data);
+		http_options.data = stringify(data);
 		http_options.headers['Content-Length'] = options.data.length; // damn restler module
 
 		http_client.post(url, http_options)

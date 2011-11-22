@@ -1,6 +1,6 @@
 var Arguments = function(version){
 
-	var opts = require('js-opts');
+	var opts = require('opts');
 
 	var options = [
 		{ short       : 'v'

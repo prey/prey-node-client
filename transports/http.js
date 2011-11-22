@@ -19,21 +19,29 @@ var HTTPTransport = function(report, options){
 
 	this.flatten_data = function(object){
 		var data = {};
-		object.forEach(function(obj, key){
-				obj.forEach(function(val, k){
-					var f = key + '[' + k + ']';
-					if(val instanceof String) {
-						data[f] = val;
-					} else {
-						if (val.path){
-							self.contains_files = true;
-							data[f] = http_client.file(val.path, {content_type: val.type});
-						} else if (val != false) {
-							data[f] = JSON.stringify(val);
-						}
+		for(key in object){
+
+			var obj = object[key];
+			for(k in object){
+
+				var val = object[k];
+				var f = key + '[' + k + ']';
+
+				if(val instanceof String) {
+					data[f] = val;
+				} else {
+					if (val.path){
+						self.contains_files = true;
+						data[f] = http_client.file(val.path, {content_type: val.type});
+					} else if (val != false) {
+						data[f] = JSON.stringify(val);
 					}
-				});
-		});
+				}
+
+			}
+
+		};
+
 		return data;
 	}
 
