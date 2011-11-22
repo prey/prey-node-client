@@ -60,7 +60,7 @@ var Report = function(report_modules, options){
 					post_url: options.post_url,
 				}
 			} else {
-				var transport_options = config.transports.destination;
+				var transport_options = config.transports[destination];
 			}
 
 			transport_options.user_agent = config.user_agent;

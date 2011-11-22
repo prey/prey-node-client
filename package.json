@@ -15,7 +15,8 @@
     "restler": "",
     "wrench": "",
     "xml2js": "",
-    "express": "2.5.1"
+    "express": "2.5.1",
+    "nodemailer": ""
   },
   "devDependencies": {
     "vows": "0.5.x"

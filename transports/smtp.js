@@ -22,67 +22,91 @@ var SMTPTransport = function(report, options){
 
 		this.build_email(data, function(email_body){
 
-			self.get_smtp(self.options.recipient, function(host){
+			self.get_smtp_servers(self.options.recipient, function(hosts){
 
-				self.send_email(self.options.to, host, email_body, function(err){
-
-					self.emit('end');
-
-				});
+				self.try_to_send(hosts, email_body, 0);
 
 			});
 
 		});
 
-	}
+	};
 
 	this.build_email = function(data, callback){
 
 		callback(JSON.stringify(data));
 
-	}
+	};
 
-	this.get_smtp = function(email, callback){
+	this.get_smtp_servers = function(email, callback){
 
 		var domain = email.replace(/.*@/, '');
-		console.log(domain);
+		// console.log(domain);
 
-		dns.resolveMx(domain, function (err, addresses) {
+		dns.resolveMx(domain, function(err, addresses) {
+
 			if (err) throw err;
+			var hosts = [];
 
-			// console.log('addresses: ' + JSON.stringify(addresses));
+			var sorted = addresses.sort(function(a, b){ return (a.priority > b.priority); });
 
-			callback(addresses[0].exchange);
+			sorted.forEach(function(host){
+				hosts.push(host.exchange);
+			});
 
-//			for(i in addresses){
-
-//				var host = addresses[i];
-//				if(callback(host)) break;
-
-//			}
+			callback(hosts);
 
 		});
 
-	}
+	};
 
-	this.send_email = function(address, host, text, callback){
+	this.try_to_send = function(hosts, body, attempt){
 
-		console.log(' -- Sending to ' + address + ' at ' + host);
+		var host = hosts[attempt];
+		if(typeof host == 'undefined'){
+			console.log(" !! No more SMTP servers available!");
+			this.emit('end', true);
+			return false;
+		}
+
+		this.send_email(this.options.recipient,
+										this.options.from,
+										this.options.subject,
+										host,
+										body,
+										function(success){
+
+											if(success)
+												self.emit('end');
+											else
+												self.try_to_send(hosts, body, ++attempt);
+
+										}
+		);
+
+	};
+
+	this.send_email = function(to, from, subject, host, body, callback){
+
+		console.log(' -- Trying to send to ' + to + ' at ' + host);
 
 		// one time action to set up SMTP information
 		mailer.SMTP = {
-			host: host
+			host: host,
+			port: 25
 		}
 
 		// send an e-mail
 		mailer.send_mail({
-				sender: this.options.from,
-				to: address,
-				subject: this.options.subject,
-				body: text
+				sender: from,
+				to: to,
+				subject: subject,
+				body: body
 			},
 			function(error, success){
-				console.log('Message ' + success ? 'sent' : 'failed');
+				if(error) console.log(" !! " + error);
+				if(success) console.log(' -- Message sent!');
+				callback(success);
 			}
 		);
 
