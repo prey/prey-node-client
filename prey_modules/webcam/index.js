@@ -28,7 +28,7 @@ var Webcam = function(){
 	this.get_picture = function(){
 
 //		os_functions.run_picture_cmd(this.options.picture_file, function(file, extension){
-		GStreamer.captureFrame(this.options.picture_file, function(file){
+		GStreamer.captureFrame('webcam', this.options.picture_file, function(file){
 
 			if(file)
 				self.emit('picture', {path: file, type: extension});

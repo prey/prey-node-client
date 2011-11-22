@@ -7,8 +7,7 @@
 //////////////////////////////////////////
 
 var base = require('./core/base'),
-		sys  = require('sys'),
-		fs   = require('fs');
+		sys  = require('sys');
 
 process.env.ROOT_PATH = base.root_path;
 
@@ -24,13 +23,13 @@ try {
 }
 
 var pid_file = base.helpers.tempfile_path('prey.pid');
-var version = fs.readFileSync(__dirname + '/version').toString().replace("\n", '');
+var version = require(__dirname + '/package').version;
 var args = require('./core/args').init(version);
 
 var Prey = require('./core/main');
 
 /////////////////////////////////////////////////////////////
-// event handlers
+// event, signal handlers
 /////////////////////////////////////////////////////////////
 
 process.on('exit', function () {
@@ -38,14 +37,6 @@ process.on('exit', function () {
 	base.helpers.clean_up(pid_file);
 	log(" -- Have a jolly good day sir.\n");
 });
-
-//process.on('uncaughtException', function (err) {
-//  log('Caught exception: ' + err);
-//});
-
-/////////////////////////////////////////////////////////////
-// signal handlers
-/////////////////////////////////////////////////////////////
 
 process.on('SIGINT', function () {
 	log(' >> Got Ctrl-C!');
@@ -56,6 +47,10 @@ process.on('SIGUSR1', function () {
 	log(' >> Received run instruction!');
 	Prey.fire();
 });
+
+//process.on('uncaughtException', function (err) {
+//  log('Caught exception: ' + err);
+//});
 
 /////////////////////////////////////////////////////////////
 // launcher
