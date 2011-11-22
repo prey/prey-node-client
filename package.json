@@ -1,0 +1,23 @@
+{
+  "name":        "prey",
+  "version":     "0.1.0",
+  "author":      "Tomás Pollak <tomas@forkhq.com>",
+  "keywords":    "prey anti-theft tracking remote monitoring",
+  "description": "Simple, effective anti-theft & monitoring software for your laptop",
+  "engine":      "node >= 0.6",
+  "os":          ["linux", "darwin", "win32"],
+  "bugs":        { "web" : "http://github.com/prey/prey-nodejs/issues" },
+  "directories" : { "lib" : "./lib/" },
+  "dependencies": {
+    "colors": "0.x.x",
+    "express": "2.3.x",
+    "optimist": "0.2.x"
+  },
+  "devDependencies": {
+    "vows": "0.5.x"
+  },
+  "licenses" : [{
+    "type" : "GPLv3",
+    "url" : "http://github.com/prey/prey-nodejs/raw/master/LICENSE"
+  }]
+}
