@@ -92,8 +92,7 @@ var SMTPTransport = function(report, options){
 
 		// one time action to set up SMTP information
 		mailer.SMTP = {
-			host: host,
-			port: 25
+			host: host
 		}
 
 		// send an e-mail
@@ -106,6 +105,7 @@ var SMTPTransport = function(report, options){
 			function(error, success){
 				if(error) console.log(" !! " + error);
 				if(success) console.log(' -- Message sent!');
+
 				callback(success);
 			}
 		);

@@ -1,3 +1,10 @@
+//////////////////////////////////////////
+// Prey Transport Class
+// (c) 2011 - Fork Ltd.
+// by Tomas Pollak - http://forkhq.com
+// GPLv3 Licensed
+//////////////////////////////////////////
+
 var sys = require('sys'),
 		emitter = require('events').EventEmitter;
 
