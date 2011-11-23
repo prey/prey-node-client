@@ -16,7 +16,8 @@
     "wrench": "",
     "xml2js": "",
     "express": "2.5.1",
-    "nodemailer": ""
+    "nodemailer": "",
+    "mdns": ""
   },
   "devDependencies": {
     "vows": "0.5.x"

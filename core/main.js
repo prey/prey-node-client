@@ -19,7 +19,8 @@ var base = require('./base'),
 		ModuleLoader = require('./module_loader'),
 		ActionsManager = require('./actions_manager'),
 		Report = require('./report'),
-		OnDemand = require('./on_demand');
+		OnDemand = require('./on_demand'),
+		mdns = require('mdns');
 
 var Main = {
 
@@ -340,25 +341,25 @@ var Main = {
 
 		var loader = ModuleLoader(data.module, data.config, data.upstream_version);
 
-		loader.once('done', function(prey_module){
+		loader.once('done', function(loaded_module){
 
-			if(!prey_module){
+			if(!loaded_module){
 
 				console.log("Unable to load module");
 
 			} else if(!data.method || data.method == ''){
 
-				prey_module.run();
+				loaded_module.run();
 
 			} else {
 
 				try {
 
-					prey_module[data.method]();
+					loaded_module[data.method]();
 
 				} catch(e){
 
-					console.log("Whoops! Seems " + prey_module.name + " doesnt have that method");
+					console.log("Whoops! Seems " + loaded_module.name + " doesnt have that method");
 				}
 
 			}
@@ -394,7 +395,7 @@ var Main = {
 				load_and_run_module(data);
 				break;
 
-			case 'send_wol_request':
+			case 'wake_on_lan':
 
 				send_wol_request(data, function(success){
 
@@ -423,6 +424,28 @@ var Main = {
 
 		if(this.on_demand)
 			this.on_demand.disconnect();
+
+	},
+
+	advertise: function(){
+
+		var type = 'tcp';
+		var port = 19191;
+
+		var ad = mdns.createAdvertisement(type, port);
+		ad.start();
+
+	},
+
+	lookupPreyClients: function(){
+
+		var browser = mdns.createBrowser(type);
+		browser.on('serviceUp', function(info, flags) {
+			console.log("Up: " + util.inspect(info));
+		});
+		browser.on('serviceDown', function(info, flags) {
+			console.log("Down: " + util.inspect(info));
+		});
 
 	}
 
