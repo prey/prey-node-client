@@ -20,7 +20,7 @@ var base = require('./base'),
 		ActionsManager = require('./actions_manager'),
 		Report = require('./report'),
 		OnDemand = require('./on_demand'),
-		mdns = require('mdns');
+		Discovery = require('./discovery');
 
 var Main = {
 
@@ -51,12 +51,18 @@ var Main = {
 		this.modules = { action: [], report: []};
 		this.auto_connect_attempts = 0;
 		this.check_connection_and_fetch();
+
+		Discovery.find_clients();
+		Discovery.start_service(function(server){
+			Prey.discovery_service = server;
+		});
 	},
 
 	stop: function(){
 
 		if(this.on_demand_active) this.disconnect_on_demand();
 		ActionsManager.stop_all();
+		if(this.discovery_service) this.discovery_service.close();
 		this.running = false;
 
 	},
@@ -424,28 +430,6 @@ var Main = {
 
 		if(this.on_demand)
 			this.on_demand.disconnect();
-
-	},
-
-	advertise: function(){
-
-		var type = 'tcp';
-		var port = 19191;
-
-		var ad = mdns.createAdvertisement(type, port);
-		ad.start();
-
-	},
-
-	lookupPreyClients: function(){
-
-		var browser = mdns.createBrowser(type);
-		browser.on('serviceUp', function(info, flags) {
-			console.log("Up: " + util.inspect(info));
-		});
-		browser.on('serviceDown', function(info, flags) {
-			console.log("Down: " + util.inspect(info));
-		});
 
 	}
 
