@@ -1,5 +1,4 @@
-var sys = require('sys'),
-		Command = require('../lib/command'),
+var Command = require('../lib/command'),
 		xml2js = require('xml2js'),
 		crypto = require('crypto');
 

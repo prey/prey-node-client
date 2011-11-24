@@ -5,7 +5,7 @@
 // GPLv3 Licensed
 //////////////////////////////////////////
 
-var sys = require('sys'),
+var util = require('util'),
 		PreyModule = require('./prey_module');
 
 function ActionModule(){
@@ -27,5 +27,5 @@ function ActionModule(){
 
 };
 
-sys.inherits(ActionModule, PreyModule);
+util.inherits(ActionModule, PreyModule);
 module.exports = ActionModule;

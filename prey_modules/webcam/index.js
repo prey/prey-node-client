@@ -6,7 +6,7 @@
 //////////////////////////////////////////
 
 var base = require('../../core/base'),
-		sys = require('sys'),
+		util = require('util'),
 		GStreamer = require('node-gstreamer'),
 		ReportModule = require('../../core/report_module'),
 		os_functions = require('./platform/' + base.os_name);
@@ -41,5 +41,5 @@ var Webcam = function(){
 
 };
 
-sys.inherits(Webcam, ReportModule);
+util.inherits(Webcam, ReportModule);
 module.exports = new Webcam();

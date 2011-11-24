@@ -5,7 +5,7 @@
 // GPLv3 Licensed
 //////////////////////////////////////////
 
-var sys = require('sys'),
+var util = require('util'),
 		os = require('os'),
 		Command = require('../../lib/command'),
 		ActionModule = require('../../core/action_module');
@@ -74,5 +74,5 @@ var System = function(){
 
 };
 
-sys.inherits(System, ActionModule);
+util.inherits(System, ActionModule);
 module.exports = new System();

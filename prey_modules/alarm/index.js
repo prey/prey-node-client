@@ -5,7 +5,7 @@
 // GPLv3 Licensed
 //////////////////////////////////////////
 
-var sys = require('sys'),
+var util = require('util'),
 		Command = require('../../lib/command'),
 		GStreamer = require('node-gstreamer'),
 		ActionModule = require('../../core/action_module');
@@ -36,5 +36,5 @@ var Alarm = function(){
 
 };
 
-sys.inherits(Alarm, ActionModule);
+util.inherits(Alarm, ActionModule);
 module.exports = new Alarm();

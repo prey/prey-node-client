@@ -6,9 +6,7 @@
 // Licensed under the GPLv3
 //////////////////////////////////////////
 
-var base = require('./core/base'),
-		sys  = require('sys');
-
+var base = require('./core/base');
 process.env.ROOT_PATH = base.root_path;
 
 ////////////////////////////////////////

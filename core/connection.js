@@ -7,7 +7,7 @@
 
 var base = require('./base'),
 		net = require('net'),
-		sys = require('sys'),
+		util = require('util'),
 		emitter = require('events').EventEmitter;
 
 var Connection = function(proxy_config){
@@ -47,5 +47,5 @@ var Connection = function(proxy_config){
 
 }
 
-sys.inherits(Connection, emitter);
+util.inherits(Connection, emitter);
 module.exports = Connection;
