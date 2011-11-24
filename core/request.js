@@ -16,21 +16,32 @@ var base = require('./base'),
 function Request(config, headers, callback){
 
 	var self = this;
+	this.config = config;
+	this.headers = headers;
+	this.callback = callback;
+	this.uris = this.config.check_urls;
+	this.attempts = 0;
 
-	this.start = function(config, headers, callback){
+	this.log = function(str){
 
-			var options = { headers: headers, parser: false }
+		console.log(" -- [request] " + str);
 
-			if (config.extended_headers) {
+	}
+
+	this.start = function(){
+
+			var options = { headers: this.headers, parser: false }
+
+			if (this.config.extended_headers) {
 
 				this.extend_headers(options.headers, function(ext_headers){
 					options.headers = ext_headers;
-					self.get(config.check_urls, options, callback)
+					self.get(self.uris[0], options, self.callback)
 				});
 
 			} else {
 
-				self.get(config.check_urls, options, callback)
+				this.get(this.uris[0], options, this.callback)
 
 			}
 
@@ -44,8 +55,6 @@ function Request(config, headers, callback){
 		headers['X-Logged-User'] = process.env["LOGGED_USER"] // logged_user
 
 		self.on('async_header', function(key){
-
-			// console.log('got header ' + key);
 
 			headers_got++;
 			if(headers_got >= async_headers){
@@ -75,25 +84,23 @@ function Request(config, headers, callback){
 	this.log_response_time = function(){
 		var now = new Date();
 		var seconds = (now - this.start_time)/1000;
-		console.log(" -- Request took " + seconds.toString() + " seconds.");
+		this.log("Request took " + seconds.toString() + " seconds.");
 	};
 
 	this.valid_status_code = function(code){
 		return code == 200 || code == 404;
 	};
 
-	this.get = function(uris, options, callback){
+	this.get = function(url, options, callback){
 
-		if(uris.length == 0) return false;
-
-		var uri = uris.shift();
-		var full_url = uri + '/devices/' + config.device_key + '.xml';
+		if(typeof url == 'undefined') return false;
+		var full_url = url + '/devices/' + config.device_key + '.xml';
 
 		this.start_time = new Date();
-		console.log(" -- Fetching URI: " + full_url);
+		this.log("Fetching URI: " + full_url);
 
 		if(config.use_proxy){
-			console.log(" -- Connecting through proxy " + config.proxy_host + " at port " + config.proxy_port);
+			this.log("Connecting through proxy " + config.proxy_host + " at port " + config.proxy_port);
 			options.port = config.proxy_port;
 			options.path = full_url; // proxy servers require sending the full destination as path
 			full_url = config.proxy_host;
@@ -101,23 +108,26 @@ function Request(config, headers, callback){
 
 		http_client.get(full_url, options)
 		.once('complete', function(body, response){
+
 			self.log_response_time();
-			log(' -- Got status code: ' + response.statusCode);
-			if(self.valid_status_code(response.statusCode)){
+			self.log('Got status code: ' + response.statusCode);
+
+			if(self.valid_status_code(response.statusCode))
 				callback(response, body);
-			}
+
+			self.attempts = 0; // reset back to zero
 		})
 		.once('error', function(body, response){
 			// log(' -- Got status code: ' + response.statusCode);
 			if(!self.valid_status_code(response.statusCode)){
-				log(" -- Unexpected status code received: " + response.statusCode)
-				self.get(uris, options, callback);
+				self.log("Unexpected status code received: " + response.statusCode);
+				self.get(self.uris[++self.attempts], options, callback);
 			}
 		});
 
 	}
 
-	this.start(config, headers, callback);
+	this.start();
 
 }
 

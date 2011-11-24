@@ -30,21 +30,17 @@ var Prey = require('./core/main');
 /////////////////////////////////////////////////////////////
 
 process.on('exit', function(code) {
-	if(code > 100) { // pid of running process
-		process.kill(code, 'SIGUSR1');
-	} else {
-		Prey.stop();
-		base.helpers.clean_up(pid_file);
-	}
+	Prey.stop();
+	if(code != 10) base.helpers.clean_up(pid_file);
 	log(" -- Have a jolly good day sir.\n");
 });
 
-process.on('SIGINT', function () {
+process.on('SIGINT', function() {
 	log(' >> Got Ctrl-C!');
 	process.exit(0);
 });
 
-process.on('SIGUSR1', function () {
+process.on('SIGUSR1', function() {
 	log(' >> Received run instruction!');
 	Prey.fire();
 });
@@ -57,5 +53,17 @@ process.on('SIGUSR1', function () {
 // launcher
 /////////////////////////////////////////////////////////////
 
-base.helpers.check_and_store_pid(pid_file);
-Prey.run(config, args, version);
+base.helpers.check_and_store_pid(pid_file, function(running_pid){
+
+	if(running_pid){
+		Prey.poke('localhost', function(){
+			process.exit(10);
+		});
+
+	} else {
+
+		Prey.run(config, args, version);
+
+	}
+
+});

@@ -38,7 +38,7 @@ var Report = function(report_modules, options){
 				if(traces_count > 0) self.traces[this.name] = this.traces;
 
 				if(modules_to_go <= 0){
-					self.log(" ++ All report modules returned!");
+					self.log("All report modules returned!");
 					self.emit('ready');
 				}
 

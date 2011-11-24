@@ -149,6 +149,6 @@ exports.connect = function(host, port, config, version, callback){
 	return OnDemand.start(host, port, config, version, callback);
 }
 
-exports.connected = function(){
-	return OnDemand.connected;
-}
+exports.connected = OnDemand.connected;
+
+exports.disconnect = OnDemand.disconnect;

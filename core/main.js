@@ -21,6 +21,8 @@ var base = require('./base'),
 		OnDemand = require('./on_demand'),
 		Discovery = require('./discovery');
 
+var self;
+
 var Main = {
 
 	loops: 0,
@@ -47,25 +49,20 @@ var Main = {
 
 	fire: function(){
 		this.loops++;
-		this.modules = { action: [], report: []};
+		this.modules = {action: [], report: []};
 		this.auto_connect_attempts = 0;
+
+		if(!Discovery.running) this.load_discovery();
+
 		this.check_connection_and_fetch();
-
-		Discovery.find_clients();
-		Discovery.start_service(function(server){
-
-			server.on('command', self.handle_incoming_message);
-			self.discovery_service = server;
-
-		});
 
 	},
 
 	stop: function(){
 
-		if(this.on_demand_active) this.disconnect_on_demand();
+		if(OnDemand.connected) OnDemand.disconnect();
 		ActionsManager.stop_all();
-		if(this.discovery_service) this.discovery_service.close();
+		if(this.discovery_service) Discovery.stop_service();
 		this.running = false;
 
 	},
@@ -340,6 +337,17 @@ var Main = {
 
 	},
 
+	load_discovery: function(){
+
+		Discovery.find_clients();
+		Discovery.start_service(function(listener){
+
+			listener.on('command', self.handle_incoming_message);
+
+		});
+
+	},
+
 	// expects:
 	// data: {
 	//   module: 'lock',
@@ -418,21 +426,32 @@ var Main = {
 
 				break;
 
-			case 'run_prey':
-				Prey.fire();
+			case 'run_prey', 'fire':
+				self.fire();
 				break;
 
 			default:
-				console.log("Message not understood!");
+				log(" !! Message not understood!");
 
 		}
 
 	},
 
-	disconnect_on_demand: function(){
+	poke: function(host, callback){
 
-		if(this.on_demand)
-			this.on_demand.disconnect();
+		this.send_command('fire', {}, host, callback);
+
+	},
+
+	send_command: function(command, data, host, callback){
+
+		var message = JSON.stringify({event: command, data: data});
+
+		Discovery.send_message(message, host, function(err, bytes){
+
+			callback(err, bytes);
+
+		});
 
 	}
 

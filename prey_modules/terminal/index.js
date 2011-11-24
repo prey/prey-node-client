@@ -47,6 +47,8 @@ var Terminal = function(){
 			if(self.remote_terminal_command) // means we launched the ssh server
 				self.shop_ssh_server();
 
+			self.done();
+
 		});
 
 	}

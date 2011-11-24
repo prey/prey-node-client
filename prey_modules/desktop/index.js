@@ -68,6 +68,8 @@ var Desktop = function(){
 			if(self.remote_desktop_command)
 				self.remote_desktop_command.kill();
 
+			self.done();
+
 		});
 
 	}

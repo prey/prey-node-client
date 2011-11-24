@@ -20,16 +20,18 @@ var ActionsManager = function(){
 
 	this.action_finished = function(action_module){
 		console.log(' -- Action module ' + action_module.name + ' finished.');
-		delete this.running_actions[action_module];
+
+		var index = this.running_actions.indexOf(action_module);
+		delete this.running_actions[index];
 	};
 
 	this.action_is_running = function(action_module){
-		return (this.running_actions.indexOf(action_module) != -1);
+		return (this.running_actions.indexOf(action_module) != -1) ? true : false;
 	}
 
 	this.initialize = function(enabled_action_modules){
 
-		this.running_actions.forEach(function(running_action){
+		this.running_actions.forEach(function(action_name){
 
 			if(enabled_action_modules.indexOf(running_action) == -1){
 				console.log(" -- " + running_action.name + " action was turned off!")

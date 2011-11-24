@@ -13,7 +13,7 @@ exports.run_cmd = function(cmd, callback){
 
 };
 
-exports.check_and_store_pid = function(pid_file){
+exports.check_and_store_pid = function(pid_file, callback){
 
 	if(path.existsSync(pid_file)){
 
@@ -23,8 +23,8 @@ exports.check_and_store_pid = function(pid_file){
 			log("\n -- Prey seems to be running already! PID: " + pid.toString());
 
 			try {
-				process.kill(pid, 'SIGWINCH')
-				process.exit(parseInt(pid));
+				process.kill(pid, 0);
+				return callback(parseInt(pid));
 			} catch(e) {
 				log(" -- Not really! Pidfile was just lying around.");
 			}
@@ -34,6 +34,7 @@ exports.check_and_store_pid = function(pid_file){
 	}
 
 	exports.save_file_contents(pid_file, process.pid.toString());
+	callback(false);
 
 };
 

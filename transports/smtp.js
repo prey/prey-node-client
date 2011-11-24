@@ -77,9 +77,9 @@ var SMTPTransport = function(report, options){
 										function(success){
 
 											if(success)
-												self.emit('end');
+												return self.emit('end');
 											else
-												self.try_to_send(hosts, body, ++attempt);
+												return self.try_to_send(hosts, body, ++attempt);
 
 										}
 		);

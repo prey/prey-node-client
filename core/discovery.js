@@ -8,19 +8,21 @@
 var mdns = require('mdns'),
 		dgram = require("dgram");
 
-var discovery_port = 19191;
-
 var Discovery = {
 
+	listen_port: 19191,
+	listen_address: '0.0.0.0',
 	local_clients: [],
+	running: false,
 
 	log: function(str){
 		console.log(" -- [discovery] " + str);
 	},
 
-	advertise_service: function(type, port){
+	advertise_service: function(){
 
-		var ad = mdns.createAdvertisement(type, discovery_port);
+		var type = 'udp';
+		var ad = mdns.createAdvertisement(type, this.listen_port);
 		ad.start();
 
 	},
@@ -38,13 +40,22 @@ var Discovery = {
 
 	},
 
+	response_info_data: function(){
+		return JSON.stringify({event: 'response_info', data: {version: this.version}});
+	},
+
 	handle_remote_message: function(data, peer){
 
-		var message = JSON.parse(data);
+		try {
+			var message = JSON.parse(data);
+		} catch(e) {
+			return this.log("Malformed message received: " + data);
+		}
+
 		this.log("Got message: " + message.event + ", data: " + message.data);
 
 		if(message.event == 'request_info')
-			this.message_client({event: 'response_info', data: {version: this.version}}, peer.host, peer.port);
+			this.send_message(this.response_info_data, peer.host, peer.port);
 		else if(message.event == 'response_info')
 			this.local_net_clients.push(message.data);
 		else // if(message.event == 'command')
@@ -54,33 +65,44 @@ var Discovery = {
 
 	start_service: function(callback){
 
-		var listen_address = '0.0.0.0';
 		var server = dgram.createSocket("udp4");
 
 		server.on("message", function(data, peer) {
-			Discovery.log("server got: " + data + " from " + peer.address + ":" + peer.port);
+			Discovery.log("Received: " + data + " from " + peer.address + ":" + peer.port);
 			Discovery.handle_remote_message(data, peer);
 		});
 
 		server.on('error', function(err){
-			console.log(" !! Error: " + err.code);
+			console.log("Error: " + err.code);
+		});
+
+		server.on('close', function(err){
+			console.log("Server closed.");
+			Discovery.running = false;
 		});
 
 		server.on("listening", function() {
 			var address = server.address();
-			Discovery.log("server listening on " + address.address + ":" + address.port);
-			Discovery.advertise_service('udp', discovery_port);
+			Discovery.log("Listener up on " + address.address + ":" + address.port);
+			Discovery.advertise_service();
+			Discovery.running = true;
 			callback(server);
 		});
 
-		server.bind(discovery_port, listen_address);
+		server.bind(this.listen_port, this.listen_address);
 		this.server = server;
+
+	},
+
+	stop_service: function(){
+
+		this.server.close();
 
 	},
 
 	check_client: function(host, port){
 
-		this.message_client('request_info', host, port, function(err, bytes){
+		this.send_message('request_info', host, port, function(err, bytes){
 
 			self.log(bytes + " bytes sent to " + host);
 
@@ -88,22 +110,25 @@ var Discovery = {
 
 	},
 
-	message_client: function(message, host, port, callback){
+	send_message: function(message, host, port, callback){
+
+		if(typeof port == 'function'){
+			var callback = port;
+			var port = this.listen_port;
+		}
 
 		var socket = dgram.createSocket('udp4'),
-				buffer = new Buffer(JSON.stringify(message));
+				buffer = new Buffer(message);
 
-		if(callback){
-
-			socket.on("error", function(err) {
-				callback(err);
-			});
+		socket.on("error", function(err) {
+			if(callback) callback(err);
+		});
 
 //			socket.on("message", function(data, peer) {
 //				callback(null, data);
 //			});
 
-		}
+		this.log("Sending " + buffer.length + " byte message to " + host + " at " + port);
 
 		socket.send(buffer, 0, buffer.length, port, host, function(err, bytes) {
 			if(err) console.log(err);
