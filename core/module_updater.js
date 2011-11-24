@@ -6,7 +6,7 @@
 //////////////////////////////////////////
 
 var base = require('./base'),
-		sys = require('sys'),
+		util = require('util'),
 		emitter = require('events').EventEmitter,
 		util = require('util'),
 		fs = require('fs'),
@@ -66,5 +66,5 @@ function ModuleUpdater(module_name){
 
 }
 
-sys.inherits(ModuleUpdater, emitter);
+util.inherits(ModuleUpdater, emitter);
 module.exports = ModuleUpdater;

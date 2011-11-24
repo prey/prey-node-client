@@ -6,7 +6,7 @@
 //////////////////////////////////////////
 
 var base = require('../../core/base'),
-		sys = require('sys'),
+		util = require('util'),
 		connect = require('connect'),
 		Tunnel = require('../../core/tunnel'),
 		ActionModule = require('../../core/action_module');
@@ -72,5 +72,5 @@ var FileBrowser = function(){
 
 };
 
-sys.inherits(FileBrowser, ActionModule);
+util.inherits(FileBrowser, ActionModule);
 module.exports = new FileBrowser();

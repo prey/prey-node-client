@@ -6,7 +6,7 @@
 //////////////////////////////////////////
 
 var base = require('../../core/base'),
-		sys = require('sys'),
+		util = require('util'),
 		Tunnel = require('../../core/tunnel'),
 		Command = require('../../lib/command'),
 		ActionModule = require('../../core/action_module'),
@@ -83,5 +83,5 @@ var Desktop = function(){
 
 };
 
-sys.inherits(Desktop, ActionModule);
+util.inherits(Desktop, ActionModule);
 module.exports = new Desktop();

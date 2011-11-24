@@ -6,7 +6,7 @@
 //////////////////////////////////////////
 
 var base = require('../../core/base'),
-		sys = require('sys'),
+		util = require('util'),
 		Tunnel = require('../../core/tunnel'),
 		Command = require('../../lib/command'),
 		ActionModule = require('../../core/action_module'),
@@ -97,5 +97,5 @@ var Terminal = function(){
 
 };
 
-sys.inherits(Terminal, ActionModule);
+util.inherits(Terminal, ActionModule);
 module.exports = new Terminal();

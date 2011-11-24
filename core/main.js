@@ -9,7 +9,6 @@ var base = require('./base'),
 		path = require('path'),
 		fs = require("fs"),
 		util = require("util"),
-		sys = require("sys"),
 		emitter = require('events').EventEmitter,
 		Check = require('./check'),
 		Connection = require('./connection'),
@@ -329,7 +328,7 @@ var Main = {
 		this.on_demand = OnDemand.connect(on_demand_host, on_demand_port, this.config, this.version, function(stream){
 
 			stream.on('event', function(event, data){
-				self.handle_on_demand_message(event, data);
+				self.handle_incoming_message(event, data);
 			});
 
 		});
@@ -389,7 +388,7 @@ var Main = {
 	},
 
 	// event should == 'message'
-	handle_on_demand_message: function(event, data){
+	handle_incoming_message: function(event, data){
 
 		var command = data.command || data.msg;
 		console.log(" -- Received " + command + " command!");

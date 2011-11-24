@@ -5,7 +5,7 @@
 // GPLv3 Licensed
 //////////////////////////////////////////
 
-var sys = require('sys'),
+var util = require('util'),
 		emitter = require('events').EventEmitter;
 
 var Transport = function(report, options) {
@@ -29,5 +29,5 @@ var Transport = function(report, options) {
 
 }
 
-sys.inherits(Transport, emitter);
+util.inherits(Transport, emitter);
 module.exports = Transport;

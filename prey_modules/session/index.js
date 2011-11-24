@@ -6,7 +6,7 @@
 //////////////////////////////////////////
 
 var base = require('../../core/base'),
-		sys = require('sys'),
+		util = require('util'),
 		path = require('path'),
 		uptime = require('os').uptime
 		Command = require('../../lib/command'),
@@ -58,5 +58,5 @@ var Session = function(){
 
 };
 
-sys.inherits(Session, ReportModule);
+util.inherits(Session, ReportModule);
 module.exports = new Session();

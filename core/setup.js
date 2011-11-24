@@ -6,7 +6,6 @@
 //////////////////////////////////////////
 
 var base = require('./base'),
-		sys = require('sys'),
 		fs = require('fs'),
 		http_client = require('restler'),
 		stringify = require('qs').stringify,

@@ -6,7 +6,7 @@
 //////////////////////////////////////////
 
 var base = require('./base'),
-		sys = require('sys'),
+		util = require('util'),
 		emitter = require('events').EventEmitter;
 
 function mixin(target, source) {
@@ -61,5 +61,5 @@ function PreyModule(){
 
 }
 
-sys.inherits(PreyModule, emitter);
+util.inherits(PreyModule, emitter);
 module.exports = PreyModule;

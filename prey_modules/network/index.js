@@ -6,7 +6,7 @@
 //////////////////////////////////////////
 
 var base = require('../../core/base'),
-		sys = require('sys'),
+		util = require('util'),
 		emitter = require('events').EventEmitter,
 		os = require('os'),
 		Command = require('../../lib/command'),
@@ -143,5 +143,5 @@ var Network = function(){
 
 };
 
-sys.inherits(Network, ReportModule);
+util.inherits(Network, ReportModule);
 module.exports = new Network();

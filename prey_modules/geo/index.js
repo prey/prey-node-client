@@ -6,7 +6,7 @@
 //////////////////////////////////////////
 
 var base = require('../../core/base'),
-		sys = require('sys'),
+		util = require('util'),
 		http_client = require('restler'),
 		ReportModule = require('../../core/report_module'),
 		Network = require('../network');
@@ -104,5 +104,5 @@ var Geo = function(){
 };
 
 
-sys.inherits(Geo, ReportModule);
+util.inherits(Geo, ReportModule);
 module.exports = new Geo();

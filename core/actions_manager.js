@@ -5,7 +5,7 @@
 // GPLv3 Licensed
 //////////////////////////////////////////
 
-var sys = require('sys'),
+var util = require('util'),
 		emitter = require('events').EventEmitter;
 
 var ActionsManager = function(){
@@ -89,5 +89,5 @@ var ActionsManager = function(){
 
 }
 
-sys.inherits(ActionsManager, emitter);
+util.inherits(ActionsManager, emitter);
 module.exports = new ActionsManager(); // singleton

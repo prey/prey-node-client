@@ -8,7 +8,6 @@
 var fs = require('fs'),
 		tls = require('tls'),
 		path = require('path'),
-		sys = require('sys'),
 		util = require('util');
 
 // to generate, run ./ssl/generate.sh
@@ -145,8 +144,6 @@ var OnDemand = {
 	}
 
 }
-
-// sys.inherits(OnDemand, emitter);
 
 exports.connect = function(host, port, config, version, callback){
 	return OnDemand.start(host, port, config, version, callback);

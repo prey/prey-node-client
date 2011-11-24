@@ -6,7 +6,7 @@
 //////////////////////////////////////////
 
 var base = require('./base'),
-		sys = require('sys'),
+		util = require('util'),
 		emitter = require('events').EventEmitter,
 		http_client = require('restler'),
 		Session = require(base.modules_path + '/session'),
@@ -121,5 +121,5 @@ function Request(config, headers, callback){
 
 }
 
-sys.inherits(Request, emitter);
+util.inherits(Request, emitter);
 module.exports = Request;

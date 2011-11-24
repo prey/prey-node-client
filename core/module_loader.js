@@ -8,7 +8,7 @@
 var base = require('./base'),
 		path = require('path'),
 		fs = require('fs'),
-		sys = require('sys'),
+		util = require('util'),
 		emitter = require('events').EventEmitter,
 		ModuleUpdater = require('./module_updater');
 
@@ -47,7 +47,7 @@ var ModuleLoader = function(module_name, module_config, upstream_version){
 
 	this.ready = function(){
 
-		// if(this.module_name == 'system') return;
+		// if(this.module_name == 'utiltem') return;
 //		try {
 			var mod = require(this.module_path);
 			mod.apply_config(this.module_config);
@@ -106,5 +106,5 @@ var ModuleLoader = function(module_name, module_config, upstream_version){
 
 }
 
-sys.inherits(ModuleLoader, emitter);
+util.inherits(ModuleLoader, emitter);
 module.exports = ModuleLoader;

@@ -6,7 +6,7 @@
 //////////////////////////////////////////
 
 var base = require('./base'),
-		sys = require('sys'),
+		util = require('util'),
 		http_client = require('restler'),
 		emitter = require('events').EventEmitter
 
@@ -76,5 +76,5 @@ var Report = function(report_modules, options){
 
 }
 
-sys.inherits(Report, emitter);
+util.inherits(Report, emitter);
 module.exports = Report;

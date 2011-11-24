@@ -8,7 +8,6 @@
 var net = require('net'),
 		tls = require('tls'),
 		fs = require('fs'),
-		sys = require('sys'),
 		emitter = require('events').EventEmitter,
 		util = require('util');
 
@@ -175,5 +174,5 @@ var Tunnel = function(local_port, remote_host, remote_port){
 
 };
 
-sys.inherits(Tunnel, emitter);
+util.inherits(Tunnel, emitter);
 module.exports = Tunnel;
