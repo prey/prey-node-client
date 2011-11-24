@@ -24,7 +24,7 @@ exports.check_and_store_pid = function(pid_file){
 
 			try {
 				process.kill(pid, 'SIGWINCH')
-				process.exit(0);
+				process.exit(parseInt(pid));
 			} catch(e) {
 				log(" -- Not really! Pidfile was just lying around.");
 			}

@@ -53,8 +53,12 @@ var Main = {
 
 		Discovery.find_clients();
 		Discovery.start_service(function(server){
-			Prey.discovery_service = server;
+
+			server.on('command', self.handle_incoming_message);
+			self.discovery_service = server;
+
 		});
+
 	},
 
 	stop: function(){
@@ -99,6 +103,7 @@ var Main = {
 					self.config.device_key = device_key;
 					callback();
 				});
+
 			}
 		} else {
 			callback();
@@ -327,8 +332,8 @@ var Main = {
 		var on_demand_port = self.requested.configuration.on_demand_port;
 		this.on_demand = OnDemand.connect(on_demand_host, on_demand_port, this.config, this.version, function(stream){
 
-			stream.on('event', function(event, data){
-				self.handle_incoming_message(event, data);
+			stream.on('command', function(command, data){
+				self.handle_incoming_message(command, data);
 			});
 
 		});
@@ -388,9 +393,8 @@ var Main = {
 	},
 
 	// event should == 'message'
-	handle_incoming_message: function(event, data){
+	handle_incoming_message: function(command, data){
 
-		var command = data.command || data.msg;
 		console.log(" -- Received " + command + " command!");
 
 		switch(command) {

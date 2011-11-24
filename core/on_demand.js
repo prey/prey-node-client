@@ -87,7 +87,7 @@ var OnDemand = {
 			if(msg.event == "ping")
 				OnDemand.pong();
 			else
-				stream.emit('event', msg.event, msg.data);
+				stream.emit('command', msg.event, msg.data);
 		})
 
 		stream.on("error", function(error){
