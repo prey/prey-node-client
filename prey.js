@@ -23,16 +23,19 @@ try {
 var pid_file = base.helpers.tempfile_path('prey.pid');
 var version = require(__dirname + '/package').version;
 var args = require('./core/args').init(version);
-
 var Prey = require('./core/main');
 
 /////////////////////////////////////////////////////////////
 // event, signal handlers
 /////////////////////////////////////////////////////////////
 
-process.on('exit', function () {
-	Prey.stop();
-	base.helpers.clean_up(pid_file);
+process.on('exit', function(code) {
+	if(code > 100) { // pid of running process
+		process.kill(code, 'SIGUSR1');
+	} else {
+		Prey.stop();
+		base.helpers.clean_up(pid_file);
+	}
 	log(" -- Have a jolly good day sir.\n");
 });
 
