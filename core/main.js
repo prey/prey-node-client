@@ -25,9 +25,7 @@ var self;
 
 var Main = {
 
-	loops: 0,
 	running: false,
-	on_demand: false,
 
 	run: function(config, args, version){
 
@@ -35,11 +33,13 @@ var Main = {
 		this.config = config;
 		this.args = args;
 		this.version = version;
+		process.env.LOOP = 0;
 
 		base.helpers.run_cmd(base.os.get_logged_user_cmd, function(user_name){
 			process.env.LOGGED_USER = user_name.split("\n")[0];
 
 			self.initialize(function(){
+
 				self.fire();
 			});
 
@@ -48,7 +48,7 @@ var Main = {
 	},
 
 	fire: function(){
-		this.loops++;
+		process.env.LOOP++;
 		this.modules = {action: [], report: []};
 		this.auto_connect_attempts = 0;
 

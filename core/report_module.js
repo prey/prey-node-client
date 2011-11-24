@@ -14,9 +14,10 @@ function ReportModule(){
 	var self = this;
 	this.type = 'report';
 
-	// console.log('report module initialized');
-
 	this.reset = function(){
+		if(process.env.LOOP)
+			self.log("Resetting! Current loop: " + process.env.LOOP);
+
 		this.traces = {};
 		this.traces_called = [];
 		this.traces_returned = 0;
@@ -24,12 +25,12 @@ function ReportModule(){
 
 	this.run = function(){
 
+		if(process.env.LOOP && process.env.LOOP > 1) this.reset();
 		this.running = true;
 
 		this.trace_methods.forEach(function(trace){
-			if(typeof self.traces[trace] === 'undefined') {
+			if(typeof self.traces[trace] === 'undefined')
 				self.get_trace(trace); // go get it
-			}
 		});
 
 		this.once('all_traces_returned', function(){
@@ -68,7 +69,7 @@ function ReportModule(){
 	};
 
 	this.in_trace_methods = function(trace){
-		return(this.trace_methods.indexOf(trace) != -1);
+		return(this.trace_methods.indexOf(trace) != -1) ? true : false;
 	}
 
 	this.store_trace = function(key, val){

@@ -27,7 +27,8 @@ var Report = function(report_modules, options){
 
 		report_modules.forEach(function(prey_module){
 
-			prey_module.on('end', function(){
+			// TODO: check whether we should use 'once' instead of 'on'
+			prey_module.once('end', function(){
 
 				modules_returned++;
 				var modules_to_go = report_modules_count - modules_returned;
@@ -44,7 +45,7 @@ var Report = function(report_modules, options){
 
 			});
 
-			prey_module.run(true);
+			prey_module.run();
 
 		});
 
