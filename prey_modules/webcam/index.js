@@ -31,7 +31,7 @@ var Webcam = function(){
 		GStreamer.captureFrame('webcam', this.options.picture_file, function(file){
 
 			if(file)
-				self.emit('picture', {path: file, type: extension});
+				self.emit('picture', {path: file, type: 'image/jpg'});
 			else
 				self.emit('picture', false);
 

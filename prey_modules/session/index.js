@@ -30,22 +30,13 @@ var Session = function(){
 
 	this.get_screenshot = function(){
 
-		var temp_screenshot = base.helpers.tempfile_path(this.options.screenshot_file);
+		GStreamer.captureFrame('desktop', this.options.screenshot_file, function(file){
 
-		var str = base.os.current_user_cmd(os_functions.screenshot_cmd + " " + temp_screenshot);
+			if(file)
+				self.emit('screenshot', {path: file, type: 'image/jpg'});
+			else
+				self.emit('screenshot', false);
 
-		var cmd = new Command(str);
-
-		cmd.on('return', function(output){
-			path.exists(temp_screenshot, function(exists){
-				var return_val = exists ? {path: temp_screenshot, type: 'image/jpg'} : false;
-				self.emit('screenshot', return_val);
-			});
-
-		});
-
-		cmd.on('error', function(err){
-			self.emit('screenshot', false);
 		});
 
 	};
