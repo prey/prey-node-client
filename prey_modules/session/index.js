@@ -7,9 +7,8 @@
 
 var base = require('../../core/base'),
 		util = require('util'),
-		path = require('path'),
-		uptime = require('os').uptime
-		Command = require('../../lib/command'),
+		uptime = require('os').uptime,
+		GStreamer = require('node-gstreamer'),
 		ReportModule = require('../../core/report_module'),
 		os_functions = require('./platform/' + base.os_name);
 
