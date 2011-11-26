@@ -53,6 +53,8 @@ var Report = function(report_modules, options){
 
 	this.send_to = function(destinations, config){
 
+//	console.log(self.traces)
+
 		destinations.forEach(function(destination) {
 
 			if(destination == 'control_panel'){

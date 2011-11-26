@@ -386,7 +386,22 @@ var Main = {
 
 	},
 
-	send_wol_packet: function(data, callback){
+	update_client: function(){
+
+		var updater = require('./core/updater');
+
+		updater.update(function(new_version){
+
+			if(new_version)
+				ControlPanel.update_device({client_version: new_version});
+			else
+				log("Update process was unsuccessful.");
+
+		})
+
+	},
+
+	wake: function(data, callback){
 
 		var wol = require('wake_on_lan');
 
@@ -414,7 +429,7 @@ var Main = {
 
 			case 'wake_on_lan':
 
-				send_wol_request(data, function(success){
+				wake(data, function(success){
 
 					if (success) {
 						console.log("WOL: Done!");
