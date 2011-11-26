@@ -22,9 +22,9 @@ var HTTPTransport = function(report, options){
 		for(key in object){
 
 			var obj = object[key];
-			for(k in object){
+			for(k in obj){
 
-				var val = object[k];
+				var val = obj[k];
 				var f = key + '[' + k + ']';
 
 				if(val instanceof String) {
