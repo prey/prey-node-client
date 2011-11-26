@@ -9,6 +9,7 @@ var base = require('../../core/base'),
 		util = require('util'),
 		emitter = require('events').EventEmitter,
 		os = require('os'),
+		http = require('http'),
 		Command = require('../../lib/command'),
 		ReportModule = require('../../core/report_module'),
 		os_functions = require('./platform/' + base.os_name);
@@ -40,7 +41,25 @@ var Network = function(){
 	}
 
 	this.get_public_ip = function(){
-		self.emit('public_ip', '123.123.123.123');
+
+		var regex = /Current IP Address: (\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b)/;
+		var host = 'checkip.dyndns.org';
+
+		http.get({ host: host, path: '/'}, function(res) {
+
+				var html = '';
+
+				res.on('data', function(chunk) {
+					html += chunk;
+				});
+
+				res.on('end', function() {
+					var ip = html.match(regex)[1];
+					self.emit('public_ip', ip);
+				});
+
+		});
+
 	};
 
 	this.get_private_ip = function(){
