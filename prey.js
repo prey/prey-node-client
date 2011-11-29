@@ -1,7 +1,7 @@
 #!/usr/local/bin/node
 //////////////////////////////////////////
 // Prey JS Client
-// (c) 2011, Fork Ltd. -- forkhq.com
+// (c) 2011, Fork Ltd. - http://forkhq.com
 // Written by Tomás Pollak
 // Licensed under the GPLv3
 //////////////////////////////////////////

@@ -52,9 +52,14 @@ var Main = {
 		this.modules = {action: [], report: []};
 		this.auto_connect_attempts = 0;
 
-		if(!Discovery.running) this.load_discovery();
-
 		this.check_connection_and_fetch();
+
+	},
+
+	done: function(){
+
+		log(" -- Loop ended!");
+		// if(!Discovery.running) this.load_discovery();
 
 	},
 
@@ -190,12 +195,12 @@ var Main = {
 				return false;
 			}
 
-			if(offline == false && self.requested.configuration.offline_actions)
+			if(!offline && self.requested.configuration.offline_actions)
 				base.helpers.save_file_contents(this.config.last_response_file, response_body);
 
 			self.process_module_config(function(){
 
-				console.log(' -- All modules loaded.')
+				log(' -- All modules loaded.')
 				ActionsManager.initialize(self.modules.action);
 
 				if(self.missing && self.modules.report.length > 0) {
@@ -219,13 +224,7 @@ var Main = {
 
 				}
 
-//				if(self.loops < 2){
-
-//					setTimeout(function(){
-//						self.fire();
-//					}, 2000);
-
-//				}
+				Main.done();
 
 			});
 
@@ -236,7 +235,7 @@ var Main = {
 	process_main_config: function(){
 
 		log(" -- Processing main config...")
-		// debug(self.requested);
+		//debug(self.requested);
 
 		if(typeof(this.config.auto_update) == 'boolean')
 			self.auto_update = this.config.auto_update;

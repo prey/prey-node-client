@@ -6,7 +6,7 @@ var Arguments = function(version){
 		{ short       : 'v'
 		, long        : 'version'
 		, description : 'Show version and exit'
-		, callback    : function () { console.log(version); process.exit(1); }
+		, callback    : function() { console.log(version); process.exit(1); }
 		},
 		{ short       : 'c'
 		, long        : 'check'
@@ -14,7 +14,8 @@ var Arguments = function(version){
 		},
 		{ short       : 'd'
 		, long        : 'debug'
-		, description : 'Show debugging info'
+		, description : 'Output debugging info'
+		, callback    : function() { process.env.DEBUG = true; }
 		},
 	];
 

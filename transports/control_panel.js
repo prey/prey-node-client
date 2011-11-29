@@ -5,7 +5,7 @@
 // GPLv3 Licensed
 //////////////////////////////////////////
 
-var sys = require('sys'),
+var util = require('util'),
 		HTTPTransport = require('./http');
 
 var ControlPanelTransport = function(report, options){
@@ -18,5 +18,5 @@ var ControlPanelTransport = function(report, options){
 
 }
 
-sys.inherits(ControlPanelTransport, HTTPTransport);
+util.inherits(ControlPanelTransport, HTTPTransport);
 module.exports = ControlPanelTransport;

@@ -31,11 +31,11 @@ var ActionsManager = function(){
 
 	this.initialize = function(enabled_action_modules){
 
-		this.running_actions.forEach(function(action_name){
+		this.running_actions.forEach(function(running_action){
 
 			if(enabled_action_modules.indexOf(running_action) == -1){
 				console.log(" -- " + running_action.name + " action was turned off!")
-				self.stop(name);
+				self.stop(running_action);
 			}
 
 		});
@@ -74,6 +74,7 @@ var ActionsManager = function(){
 
 	this.stop_all = function(){
 
+		if(this.running_actions.length <= 0) return false;
 		console.log(" -- Stopping all actions!");
 
 		this.running_actions.forEach(function(action_module){

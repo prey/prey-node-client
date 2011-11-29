@@ -5,7 +5,7 @@
 // GPLv3 Licensed
 //////////////////////////////////////////
 
-var sys = require('sys'),
+var util = require('util'),
 		dns = require('dns'),
 		mailer = require('nodemailer'),
 		Transport = require('../core/transport');
@@ -114,5 +114,5 @@ var SMTPTransport = function(report, options){
 
 }
 
-sys.inherits(SMTPTransport, Transport);
+util.inherits(SMTPTransport, Transport);
 module.exports = SMTPTransport;

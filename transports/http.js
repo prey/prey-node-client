@@ -5,7 +5,7 @@
 // GPLv3 Licensed
 //////////////////////////////////////////
 
-var sys = require('sys'),
+var util = require('util'),
 		http_client = require('restler'),
 		Transport = require('../core/transport');
 
@@ -47,7 +47,6 @@ var HTTPTransport = function(report, options){
 
 	this.send = function(data){
 
-		log(" -- Sending report via HTTP...");
 		this.emit('start');
 
 		this.options.headers = { "User-Agent" : this.options.user_agent },
@@ -76,5 +75,5 @@ var HTTPTransport = function(report, options){
 
 }
 
-sys.inherits(HTTPTransport, Transport);
+util.inherits(HTTPTransport, Transport);
 module.exports = HTTPTransport;
