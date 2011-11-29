@@ -8,6 +8,8 @@
 var util = require('util'),
 		dns = require('dns'),
 		mailer = require('nodemailer'),
+		fs = require('fs'),
+		path = require('path'),
 		Transport = require('../core/transport');
 
 var SMTPTransport = function(report, options){
@@ -20,11 +22,11 @@ var SMTPTransport = function(report, options){
 
 		self.emit('start');
 
-		this.build_email(data, function(email_body){
+		this.build_email(data, function(email_data){
 
 			self.get_smtp_servers(self.options.recipient, function(hosts){
 
-				self.try_to_send(hosts, email_body, 0);
+				self.try_to_send(hosts, email_data, 0);
 
 			});
 
@@ -32,9 +34,66 @@ var SMTPTransport = function(report, options){
 
 	};
 
+	this.format_data = function(hash, callback){
+
+		var body = "";
+		var attachments = [];
+
+		for(key in hash){
+
+			var obj = hash[key];
+			for(k in obj){
+
+				var val = obj[k];
+
+				var field = key + '__' + k;
+
+				if(val instanceof String || val instanceof Number) {
+
+					body += field + " :: " + val + "\n";
+
+				} else {
+
+					if (val.path){
+
+						attachments.push({
+							filename: path.basename(val.path),
+							contents: fs.readFileSync(val.path)
+						});
+
+					} else if (val != false) {
+						body += field + " :: " + JSON.stringify(val) + "\n";
+					}
+
+				}
+
+			}
+
+		};
+
+		callback(body, attachments);
+
+	};
+
 	this.build_email = function(data, callback){
 
-		callback(JSON.stringify(data));
+		var email_data = {
+			sender: this.options.from,
+			to: this.options.recipient,
+			subject: this.options.subject,
+			headers: {
+				'X-Mailer': this.options.user_agent
+			},
+			debug: process.env.DEBUG
+		}
+
+		this.format_data(data, function(body, attachments){
+
+			email_data.body = body;
+			if(attachments.length > 0) email_data.attachments = attachments;
+			callback(email_data);
+
+		});
 
 	};
 
@@ -60,7 +119,7 @@ var SMTPTransport = function(report, options){
 
 	};
 
-	this.try_to_send = function(hosts, body, attempt){
+	this.try_to_send = function(hosts, email_data, attempt){
 
 		var host = hosts[attempt];
 		if(typeof host == 'undefined'){
@@ -69,46 +128,32 @@ var SMTPTransport = function(report, options){
 			return false;
 		}
 
-		this.send_email(this.options.recipient,
-										this.options.from,
-										this.options.subject,
-										host,
-										body,
-										function(success){
+		this.send_email(host, email_data, function(success){
 
-											if(success)
-												return self.emit('end');
-											else
-												return self.try_to_send(hosts, body, ++attempt);
+			if(success)
+				return self.emit('end');
+			else
+				return self.try_to_send(hosts, email_data, ++attempt);
 
-										}
-		);
+		});
 
 	};
 
-	this.send_email = function(to, from, subject, host, body, callback){
+	this.send_email = function(host, email_data, callback){
 
-		console.log(' -- Trying to send to ' + to + ' at ' + host);
+		console.log(' -- Trying to send to ' + email_data.to + ' at ' + host);
 
 		// one time action to set up SMTP information
 		mailer.SMTP = {
 			host: host
 		}
 
-		// send an e-mail
-		mailer.send_mail({
-				sender: from,
-				to: to,
-				subject: subject,
-				body: body
-			},
-			function(error, success){
-				if(error) console.log(" !! " + error);
-				if(success) console.log(' -- Message sent!');
+		mailer.send_mail(email_data, function(error, success){
+			if(error) console.log(" !! " + error);
+			if(success) console.log(' -- Message sent!');
 
-				callback(success);
-			}
-		);
+			callback(success);
+		});
 
 	};
 
