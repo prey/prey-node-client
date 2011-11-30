@@ -1,4 +1,4 @@
-#!/usr/local/bin/node
+#!/usr/bin/env node
 //////////////////////////////////////////
 // Prey JS Client
 // (c) 2011, Fork Ltd. - http://forkhq.com
@@ -6,8 +6,8 @@
 // Licensed under the GPLv3
 //////////////////////////////////////////
 
-var base = require('./core/base');
-process.env.ROOT_PATH = base.root_path;
+var path = require('path');
+process.env.ROOT_PATH = path.resolve(__dirname); // base.root_path;
 
 ////////////////////////////////////////
 // base initialization
@@ -20,6 +20,7 @@ try {
 	process.exit(1);
 }
 
+var base = require('./core/base');
 var pid_file = base.helpers.tempfile_path('prey.pid');
 var version = require(__dirname + '/package').version;
 var args = require('./core/args').init(version);
@@ -32,16 +33,16 @@ var Prey = require('./core/main');
 process.on('exit', function(code) {
 	Prey.stop();
 	if(code != 10) base.helpers.clean_up(pid_file);
-	log(" -- Have a jolly good day sir.\n");
+	console.log(" -- Have a jolly good day sir.\n");
 });
 
 process.on('SIGINT', function() {
-	log(' >> Got Ctrl-C!');
+	console.log(' >> Got Ctrl-C!');
 	process.exit(0);
 });
 
 process.on('SIGUSR1', function() {
-	log(' >> Received run instruction!');
+	console.log(' >> Received run instruction!');
 	Prey.fire();
 });
 
