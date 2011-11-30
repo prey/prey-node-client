@@ -83,9 +83,9 @@ var Main = {
 		this.config.user_agent = this.user_agent; // so we dont need to pass it all the time
 
 		log("\n  PREY " + this.version + " spreads its wings!", 'bold');
-		log("  " + this.started_at)
+		log("  Current time: " + this.started_at.toString())
 		log("  Running on a " + base.os_name + " system as " + this.running_user);
-		log("  Current logged user: " + process.env["LOGGED_USER"]);
+		log("  Detected logged user: " + process.env["LOGGED_USER"]);
 		log("  NodeJS version: " + process.version + "\n");
 
 		if(this.config.device_key == ""){
