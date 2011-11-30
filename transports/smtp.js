@@ -153,7 +153,7 @@ var SMTPTransport = function(report, options){
 		this.em.send(function(error, success){
 
 			if(error) self.log("!! " + error);
-			if(success) self.log(' -- Message sent!');
+			if(success) self.log('Message sent!');
 
 			return callback(success);
 
