@@ -31,7 +31,7 @@ var Prey = require('./core/main');
 /////////////////////////////////////////////////////////////
 
 process.on('exit', function(code) {
-	Prey.stop();
+	Prey.shutdown();
 	if(code != 10) base.helpers.clean_up(pid_file);
 	console.log(" -- Have a jolly good day sir.\n");
 });

@@ -9,7 +9,7 @@ var base = require('./base'),
 		path = require('path'),
 		fs = require("fs"),
 		util = require("util"),
-		emitter = require('events').EventEmitter,
+		hooks = require('./hook_manager'),
 		Check = require('./check'),
 		Connection = require('./connection'),
 		Request = require('./request'),
@@ -39,7 +39,7 @@ var Main = {
 			process.env.LOGGED_USER = user_name.split("\n")[0];
 
 			self.initialize(function(){
-
+				hooks.run('initialized');
 				self.fire();
 			});
 
@@ -48,6 +48,8 @@ var Main = {
 	},
 
 	fire: function(){
+
+		hooks.run('loop_start');
 		process.env.LOOP++;
 		this.modules = {action: [], report: []};
 		this.auto_connect_attempts = 0;
@@ -59,12 +61,14 @@ var Main = {
 	done: function(){
 
 		log(" -- Loop ended!");
+		hooks.run('loop_end');
 		// if(!Discovery.running) this.load_discovery();
 
 	},
 
-	stop: function(){
+	shutdown: function(){
 
+		hooks.run('shutdown');
 		if(OnDemand.connected) OnDemand.disconnect();
 		ActionsManager.stop_all();
 		if(this.discovery_service) Discovery.stop_service();
@@ -89,10 +93,14 @@ var Main = {
 		log("  NodeJS version: " + process.version + "\n");
 
 		if(this.config.device_key == ""){
+
 			log(" -- No device key found.")
+
 			if(this.config.api_key == ""){
+
 				log("No API key found! Please set up Prey and try again.");
 				process.exit(1);
+
 			} else {
 
 				var options = {
@@ -114,6 +122,7 @@ var Main = {
 	},
 
 	check: function(){
+
 		Check.installation();
 		if(this.config.post_methods.indexOf('http') != -1)
 			Check.http_config();
@@ -155,6 +164,8 @@ var Main = {
 
 	no_connection: function(){
 
+		hooks.run('no_connection');
+
 		if(path.existsSync(tempfile_path(this.config.last_response_file))){
 			response_body = fs.readFileSync(this.config.last_response_file);
 			this.process(response_body, true);
@@ -166,10 +177,13 @@ var Main = {
 	fetch: function(){
 
 		log(" -- Fetching instructions...")
+		hooks.run('fetch_start');
 
 		var headers = { "User-Agent": this.user_agent };
 
 		var req = new Request(this.config, headers, function(response, body){
+
+			hooks.run('fetch_end');
 
 			self.response_status = response.statusCode;
 			self.response_content_type = response.headers["content-type"];
@@ -205,22 +219,31 @@ var Main = {
 
 				if(self.missing && self.modules.report.length > 0) {
 
+					hooks.run('report_start');
 					var report = new Report(self.modules.report, self.requested.configuration);
+
 					report.once('ready', function(){
 
-						ActionsManager.start_all();
+						Main.start_actions();
 
 						if(Object.keys(report.traces).length > 0)
 							report.send_to(self.config.destinations, self.config);
 						else
-							log(" -- Nothing to send!")
+							log(" -- Nothing to send!");
+
+					});
+
+					report.once('sent', function(){
+
+						hooks.run('report_end');
+
 					});
 
 					report.gather();
 
 				} else {
 
-					ActionsManager.start_all();
+					Main.start_actions();
 
 				}
 
@@ -314,6 +337,16 @@ var Main = {
 			});
 
 		}
+
+	},
+
+	start_actions: function(){
+
+		hooks.run('actions_start');
+		ActionsManager.start_all();
+		ActionsManager.once('all_done', function(){
+			hooks.run('actions_end');
+		});
 
 	},
 
