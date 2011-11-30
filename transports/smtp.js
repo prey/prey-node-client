@@ -123,7 +123,7 @@ var SMTPTransport = function(report, options){
 
 		var host = hosts[attempt];
 		if(typeof host == 'undefined'){
-			console.log(" !! No more SMTP servers available!");
+			this.log("No more SMTP servers available!");
 			this.emit('end', true);
 			return false;
 		}
@@ -141,18 +141,22 @@ var SMTPTransport = function(report, options){
 
 	this.send_email = function(host, email_data, callback){
 
-		console.log(' -- Trying to send to ' + email_data.to + ' at ' + host);
+		this.log('Trying to send to ' + email_data.to + ' at ' + host);
 
-		// one time action to set up SMTP information
-		mailer.SMTP = {
-			host: host
+		if(!this.em) this.em = new mailer.EmailMessage(email_data);
+		else { // nasty fix to prevent nodemailer from duplicating from/to addresses
+			this.em.fromAddress = [];
+			this.em.toAddress = [];
 		}
 
-		mailer.send_mail(email_data, function(error, success){
+		this.em.SERVER = { host: host }
+		this.em.send(function(error, success){
+
 			if(error) console.log(" !! " + error);
 			if(success) console.log(' -- Message sent!');
 
-			callback(success);
+			return callback(success);
+
 		});
 
 	};

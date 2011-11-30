@@ -19,7 +19,7 @@ var Transport = function(report, options) {
 
 	this.on('start', function(){
 		this.began_at = new Date();
-		this.log(" -- Began at " + this.began_at);
+		this.log("Began at " + this.began_at);
 	});
 
 	this.on('end', function(had_error){
