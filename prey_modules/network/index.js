@@ -143,6 +143,25 @@ var Network = function(){
 
 	}
 
+	this.get_active_network_interface = function(){
+
+		// this is only for linux, actually
+		var str = "netstat -rn | grep UG | awk '{print $NF}'";
+
+		var cmd = new Command(str);
+		cmd.on('error', function(e){
+			self.emit('active_network_interface', false);
+		});
+		cmd.on('return', function(output){
+			var nic = output.split('\n')[0];
+			if(nic != '')
+				self.emit('active_network_interface', nic);
+			else
+				self.emit('active_network_interface', false);
+		});
+
+	};
+
 	this.get_first_wireless_device = function(){
 
 		var cmd = new Command(os_functions.wireless_devices_list_cmd);
