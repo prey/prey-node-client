@@ -152,8 +152,8 @@ var SMTPTransport = function(report, options){
 		this.em.SERVER = { host: host }
 		this.em.send(function(error, success){
 
-			if(error) console.log(" !! " + error);
-			if(success) console.log(' -- Message sent!');
+			if(error) self.log("!! " + error);
+			if(success) self.log(' -- Message sent!');
 
 			return callback(success);
 
