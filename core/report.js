@@ -7,6 +7,7 @@
 
 var base = require('./base'),
 		util = require('util'),
+		fs = require('fs'),
 		http_client = require('restler'),
 		emitter = require('events').EventEmitter
 
@@ -18,6 +19,37 @@ var Report = function(report_modules, options){
 
 	this.log = function(str){
 		console.log(" -- [report] " + str);
+	};
+
+	this.sent = function(){
+		this.log('Sent to all destinations!');
+		this.remove_files();
+		this.emit('sent');
+	};
+
+	this.remove_files = function(){
+
+		this.log("Cleaning up files...")
+		for(i in this.traces){
+
+			for(t in this.traces[i]){
+
+				var trace = this.traces[i][t];
+
+				if(trace.path) {
+
+					self.log("Removing " + trace.path)
+
+					fs.unlink(trace.path, function(){
+						self.log("Removed!");
+					});
+
+				}
+
+			}
+
+		}
+
 	};
 
 	this.gather = function(){
@@ -49,11 +81,13 @@ var Report = function(report_modules, options){
 
 		});
 
-	},
+	};
 
 	this.send_to = function(destinations, config){
 
 //	console.log(self.traces)
+
+		var transports_returned = 0;
 
 		destinations.forEach(function(destination) {
 
@@ -72,6 +106,13 @@ var Report = function(report_modules, options){
 			var Transport = require(base.root_path + '/transports/' + destination);
 			var tr = new Transport(self, transport_options);
 			tr.send(self.traces);
+
+			tr.once('end', function(){
+
+				if(++transports_returned >= destinations.length)
+					self.sent();
+
+			});
 
 		});
 
