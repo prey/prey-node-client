@@ -15,7 +15,7 @@ function ReportModule(){
 	this.type = 'report';
 
 	this.reset = function(){
-		if(process.env.LOOP)
+		if(self.name && process.env.LOOP)
 			self.log("Resetting! Current loop: " + process.env.LOOP);
 
 		this.traces = {};
@@ -38,11 +38,18 @@ function ReportModule(){
 
 	};
 
-	this.get = function(trace, callback){
+	// this methods lets us do:
+	// Network.get('public_ip', function(result){ /* bla bla */ });
+	// or, in case the method expects an argument:
+	// Network.get('mac_address', 'eth0', function(result){ /* bla bla */ });
+
+	this.get = function(trace, opts, callback){
+		if(typeof callback == 'undefined') callback = opts;
+
 		if(typeof this.traces[trace] !== 'undefined') {
 			callback(this.traces[trace]);
 		} else {
-			this.get_trace(trace, callback);
+			this.get_trace(trace, opts, callback);
 		}
 	};
 
@@ -50,8 +57,8 @@ function ReportModule(){
 		if(val) this.store_trace(key, val);
 	});
 
-	this.get_trace = function(trace){
-		var callback = arguments[1];
+	this.get_trace = function(trace, opts, callback){
+		if(typeof callback == 'undefined') callback = (typeof opts == 'undefined') ? false : opts;
 		var method = 'get_' + trace;
 
 		self.once(trace, function(val, err){
@@ -61,9 +68,9 @@ function ReportModule(){
 		});
 
 		if(self.traces_called.indexOf(trace) == -1) {
-			console.log(' == Calling ' + method);
+			// console.log(' == Calling ' + method);
 			self.traces_called.push(trace);
-			self[method]();
+			self[method](opts);
 		}
 	};
 

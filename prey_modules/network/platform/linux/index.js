@@ -12,11 +12,13 @@ exports.mac_addresses_list_cmd = "ifconfig | grep 'HWaddr' | awk '{print $5}'";
 exports.wireless_devices_list_cmd = "iwconfig 2>&1 | grep -v 'no wireless' | cut -f1 -d' ' | sed '/^$/d'";
 exports.active_access_point_cmd = "iwconfig status 2>&1 | grep 'Access Point' | awk '{print $6}'";
 
+exports.mac_address_cmd = function(nic){
+	return "ifconfig | grep " + nic + " | grep 'HWaddr' | awk '{print $5}'";
+};
+
 exports.get_access_points_list = function(wifi_device, callback) {
 
-	if(!wifi_device){
-		return callback(false);
-	}
+	if(!wifi_device && wifi_device == '') return callback(false);
 
 	// gets access points list using iwlist (requires wireless-tools package)
 	var access_points_list_cmd = 'iwlist ' + wifi_device + ' scan | grep -v "Frequency" | egrep "Address|Channel|ESSID|Signal"';

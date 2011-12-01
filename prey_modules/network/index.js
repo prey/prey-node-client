@@ -23,7 +23,7 @@ var Network = function(){
 	this.trace_methods = [
 		'public_ip',
 		'private_ip',
-		'mac_address',
+		'first_mac_address',
 		'access_points_list',
 		'active_access_point'
 	];
@@ -64,7 +64,7 @@ var Network = function(){
 
 	this.get_private_ip = function(){
 
-		var nics = os.networkInterfaces();
+		var nics = this.nics || os.networkInterfaces();
 
 		for(name in nics){
 
@@ -77,21 +77,49 @@ var Network = function(){
 
 		};
 
-		nics.forEach(function(obj, name){
-
-		});
 	};
 
-	this.get_mac_address = function(){
-		var cmd = new Command(os_functions.mac_addresses_list_cmd);
+	this.get_ip_address = function(nic_name){
+
+		var nics = this.nics || os.networkInterfaces();
+		self.emit('ip_address', nics[nic_name][0].address);
+
+	};
+
+	this.get_mac_address = function(nic_name){
+
+		var cmd = new Command(os_functions.mac_address_cmd(nic_name));
 
 		cmd.on('error', function(e){
-			self.emit('mac_address', false, e.message);
+			self.emit('mac_address', false, e.code);
 		});
 
 		cmd.on('return', function(output){
-			var first_mac_address = output.split("\n")[0];
-			self.emit('mac_address', first_mac_address);
+			var mac = (output != '') ? output.split("\n")[0] : null;
+			self.emit('mac_address', mac);
+		});
+
+	};
+
+	this.get_first_mac_address = function(){
+		this.get('mac_addresses_list', function(list){
+
+			var first_mac_address = list.split("\n")[0];
+			self.emit('first_mac_address', first_mac_address);
+		});
+
+	};
+
+	this.get_mac_addresses_list = function(){
+
+		var cmd = new Command(os_functions.mac_addresses_list_cmd);
+
+		cmd.on('error', function(e){
+			self.emit('mac_addresses_list', false, e.code);
+		});
+
+		cmd.on('return', function(output){
+			self.emit('mac_addresses_list', output);
 		});
 
 	};
@@ -152,13 +180,34 @@ var Network = function(){
 		cmd.on('error', function(e){
 			self.emit('active_network_interface', false);
 		});
+
 		cmd.on('return', function(output){
 			var nic = output.split('\n')[0];
-			if(nic != '')
-				self.emit('active_network_interface', nic);
-			else
+			if(nic == '')
 				self.emit('active_network_interface', false);
+			else
+				get_mac_and_ip(nic);
 		});
+
+		function get_mac_and_ip(nic){
+
+			self.get('mac_address', nic, function(mac){
+
+				self.get('ip_address', nic, function(ip){
+
+					var data = {
+						name: nic,
+						ip_address: ip,
+						mac_address: mac
+					}
+
+					self.emit('active_network_interface', data);
+
+				});
+
+			});
+
+		};
 
 	};
 
