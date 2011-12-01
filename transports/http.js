@@ -18,6 +18,7 @@ var HTTPTransport = function(report, options){
 	this.post_url = options.post_url;
 
 	this.flatten_data = function(object){
+
 		var data = {};
 		for(key in object){
 

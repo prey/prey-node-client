@@ -56,6 +56,15 @@ exports.main = {
 	last_response_file: "last-response.xml",
 
 	//////////////////////////////////////////////////////////////
+	// additional options
+	//////////////////////////////////////////////////////////////
+
+	// help us in the debugging process by sending anonymous crash reports,
+	// containing the exception message and a (hopefully small) backtrace
+	send_crash_reports: true,
+	crash_reports_host: "http://exceptions.preyproject.com",
+
+	//////////////////////////////////////////////////////////////
 	// proxy options
 	//////////////////////////////////////////////////////////////
 
@@ -145,20 +154,6 @@ exports.main = {
 			bucket_name: "",
 
 		}
-
-	},
-
-	//////////////////////////////////////////////////////////////
-	// SSH Tunnel config
-	// you can log in either by RSA key or (hopefully not) by entering the pass
-	//////////////////////////////////////////////////////////////
-
-	remote_tunnel: {
-
-		host: "my.server.com",
-		port: 2222,
-		user: "username",
-		pass: "password"
 
 	}
 

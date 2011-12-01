@@ -14,7 +14,7 @@ process.env.ROOT_PATH = path.resolve(__dirname); // base.root_path;
 ////////////////////////////////////////
 
 try {
-	var config = require(__dirname + '/config').main;
+	var config = require(__dirname + '/config');
 } catch(e) {
 	console.log("No config file found!\n    Please copy config.js.default to config.js and set it up.\n");
 	process.exit(1);
@@ -46,9 +46,14 @@ process.on('SIGUSR1', function() {
 	Prey.fire();
 });
 
-//process.on('uncaughtException', function (err) {
-//  log('Caught exception: ' + err);
-//});
+/*
+
+process.on('uncaughtException', function (err) {
+	console.log('Caught exception: ' + err);
+	if(config.send_crash_reports) require('crash_notifier').send(err);
+});
+
+*/
 
 /////////////////////////////////////////////////////////////
 // launcher

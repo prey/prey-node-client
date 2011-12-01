@@ -1,12 +1,14 @@
 //////////////////////////////////////////
-// Prey Discovery Object
-// (c) 2011 - Fork Ltd.
-// by Tomas Pollak - http://usefork.com
-// GPLv3 Licensed
+// Prey JS Discovery Object
+// Written by Tomas Pollak
+// (c) 2011, Fork Ltd. http://forkhq.com
+// Licensed under the GPLv3
 //////////////////////////////////////////
 
 var mdns = require('mdns'),
-		dgram = require("dgram");
+		dgram = require("dgram"),
+		base = require('./base'),
+		Network = require(base.modules_path + '/network');
 
 var Discovery = {
 
@@ -40,8 +42,24 @@ var Discovery = {
 
 	},
 
+	get_client_info: function(){
+
+		Network.get('active_network_interface', function(nic){
+
+			this.client_info = {
+				ip: nic.ip_address,
+				mac: nic.mac_address
+			}
+
+		});
+
+	},
+
 	response_info_data: function(){
-		return JSON.stringify({event: 'response_info', data: {version: this.version}});
+		return JSON.stringify({
+			event: 'response_info',
+			data: this.client_info
+		});
 	},
 
 	handle_remote_message: function(data, peer){
@@ -54,7 +72,7 @@ var Discovery = {
 
 		this.log("Got message: " + message.event + ", data: " + message.data);
 
-		if(message.event == 'request_info')
+		if(message.event == 'request_info' && this.client_info)
 			this.send_message(this.response_info_data, peer.host, peer.port);
 		else if(message.event == 'response_info')
 			this.local_net_clients.push(message.data);
@@ -64,6 +82,8 @@ var Discovery = {
 	},
 
 	start_service: function(callback){
+
+		this.get_client_info();
 
 		var server = dgram.createSocket("udp4");
 
