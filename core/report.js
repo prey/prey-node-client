@@ -6,6 +6,7 @@
 //////////////////////////////////////////
 
 var base = require('./base'),
+		logger = base.logger,
 		util = require('util'),
 		fs = require('fs'),
 		http_client = require('restler'),
@@ -18,7 +19,7 @@ var Report = function(report_modules, options){
 	this.traces = {};
 
 	this.log = function(str){
-		console.log(" -- [report] " + str);
+		logger.info(" -- [report] " + str);
 	};
 
 	this.sent = function(){

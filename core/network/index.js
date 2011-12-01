@@ -5,18 +5,18 @@
 // GPLv3 Licensed
 //////////////////////////////////////////
 
-var base = require('../../core/base'),
+var base = require('../base'),
 		util = require('util'),
 		emitter = require('events').EventEmitter,
 		os = require('os'),
 		http = require('http'),
-		Command = require('../../lib/command'),
-		ReportModule = require('../../core/report_module'),
+		Command = require('../command'),
+		InfoModule = require('../info_module'),
 		os_functions = require('./platform/' + base.os_name);
 
 var Network = function(){
 
-	ReportModule.call(this);
+	InfoModule.call(this);
 	var self = this;
 	this.name = 'network';
 
@@ -230,5 +230,5 @@ var Network = function(){
 
 };
 
-util.inherits(Network, ReportModule);
+util.inherits(Network, InfoModule);
 module.exports = new Network();

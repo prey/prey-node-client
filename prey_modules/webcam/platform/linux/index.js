@@ -8,7 +8,7 @@
 var fs = require('fs'),
 		path = require('path'),
 		helpers = require('../../../../core/helpers'),
-		Command = require('../../../../lib/command');
+		Command = require('../../../../core/command');
 
 exports.run_picture_cmd = function(picture_file, main_callback){
 

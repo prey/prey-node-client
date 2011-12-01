@@ -5,7 +5,9 @@
 // GPLv3 Licensed
 //////////////////////////////////////////
 
-var util = require('util'),
+var base = require('./base'),
+		logger = base.logger,
+		util = require('util'),
 		emitter = require('events').EventEmitter;
 
 var Transport = function(report, options) {
@@ -14,7 +16,7 @@ var Transport = function(report, options) {
 	this.options = options;
 
 	this.log = function(str){
-		console.log(' -- [transport:' + this.destination +'] ' + str);
+		logger.info(' -- [transport:' + this.destination +'] ' + str);
 	};
 
 	this.on('start', function(){

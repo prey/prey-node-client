@@ -5,7 +5,8 @@
 // GPLv3 Licensed
 //////////////////////////////////////////
 
-var command = require('command'), util = require('util');
+var command = require('../../command'),
+		util = require('util');
 
 exports.temp_path = process.env['WINDIR'] + "\\Temp";
 

@@ -7,14 +7,13 @@
 
 var base = require('../../core/base'),
 		util = require('util'),
-		uptime = require('os').uptime,
 		GStreamer = require('node-gstreamer'),
-		ReportModule = require('../../core/report_module'),
+		ReportModule = require('../lib/info_module'),
 		os_functions = require('./platform/' + base.os_name);
 
-var Session = function(){
+var Screenshot = function(){
 
-	ReportModule.call(this);
+	InfoModule.call(this);
 	var self = this;
 	this.name = 'session';
 
@@ -23,7 +22,6 @@ var Session = function(){
 	}
 
 	this.trace_methods = [
-		'current_uptime',
 		'screenshot'
 	]
 
@@ -40,13 +38,7 @@ var Session = function(){
 
 	};
 
-	this.get_current_uptime = function(){
-
-		self.emit('current_uptime', parseInt(uptime()));
-
-	};
-
 };
 
-util.inherits(Session, ReportModule);
-module.exports = new Session();
+util.inherits(Session, InfoModule);
+module.exports = new Screenshot();

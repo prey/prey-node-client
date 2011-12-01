@@ -5,7 +5,9 @@
 // Licensed under the GPLv3
 //////////////////////////////////////////
 
-var net = require('net'),
+var base = require('./base'),
+		logger = base.logger,
+		net = require('net'),
 		tls = require('tls'),
 		fs = require('fs'),
 		emitter = require('events').EventEmitter,
@@ -27,7 +29,7 @@ var Tunnel = function(local_port, remote_host, remote_port){
 	this.status = null;
 
 	this.log = function(str){
-		console.log(' -- [tunnel] ' + str);
+		logger.info(' -- [tunnel] ' + str);
 	};
 
 	this.connectionEnded = function(socket){

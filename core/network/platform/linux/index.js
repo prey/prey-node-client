@@ -5,7 +5,7 @@
 // GPLv3 Licensed
 //////////////////////////////////////////
 
-var Command = require('../../../../lib/command');
+var Command = require('../../../command');
 var fs = require('fs');
 
 exports.mac_addresses_list_cmd = "ifconfig | grep 'HWaddr' | awk '{print $5}'";

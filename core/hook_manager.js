@@ -5,7 +5,9 @@
 // Licensed under the GPLv3
 //////////////////////////////////////////
 
-var util = require('util'),
+var base = require('./base'),
+		logger = base.logger,
+		util = require('util'),
 		emitter = require('events').EventEmitter;
 
 function HookManager(){
@@ -14,7 +16,7 @@ function HookManager(){
 	var list = [];
 
 	this.log = function(str){
-		console.log(" -- [hooks] " + str);
+		logger.info(" -- [hooks] " + str);
 	};
 
 	this.register = function(hook, callback){

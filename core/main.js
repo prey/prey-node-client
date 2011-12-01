@@ -6,6 +6,7 @@
 //////////////////////////////////////////
 
 var base = require('./base'),
+		logger = base.logger,
 		path = require('path'),
 		fs = require("fs"),
 		util = require("util"),
@@ -26,6 +27,10 @@ var self;
 var Main = {
 
 	running: false,
+
+	log: function(str){
+		logger.info(str);
+	},
 
 	run: function(config, args, version){
 
@@ -60,9 +65,9 @@ var Main = {
 
 	done: function(){
 
-		log(" -- Loop ended!");
+		logger.info(" -- Loop ended!");
 		hooks.run('loop_end');
-		// if(!Discovery.running) this.load_discovery();
+		if(!Discovery.running) this.load_discovery();
 
 	},
 
@@ -78,7 +83,6 @@ var Main = {
 
 	initialize: function(callback){
 
-		// this.check_and_store_pid();
 		this.running = true;
 		this.running_user = process.env['USERNAME'];
 		this.started_at = new Date();
@@ -86,19 +90,20 @@ var Main = {
 		this.user_agent = "Prey/" + this.version + " (NodeJS, "  + base.os_name + ")";
 		this.config.user_agent = this.user_agent; // so we dont need to pass it all the time
 
-		log("\n  PREY " + this.version + " spreads its wings!", 'bold');
-		log("  Current time: " + this.started_at.toString())
-		log("  Running on a " + base.os_name + " system as " + this.running_user);
-		log("  Detected logged user: " + process.env["LOGGED_USER"]);
-		log("  NodeJS version: " + process.version + "\n");
+		console.log("\n");
+		logger.info("  PREY " + this.version + " spreads its wings!\n");
+		logger.info("  Current time: " + this.started_at.toString())
+		logger.info("  Running on a " + base.os_name + " system as " + this.running_user);
+		logger.info("  Detected logged user: " + process.env["LOGGED_USER"]);
+		logger.info("  NodeJS version: " + process.version + "\n");
 
 		if(this.config.device_key == ""){
 
-			log(" -- No device key found.")
+			logger.info(" -- No device key found.")
 
 			if(this.config.api_key == ""){
 
-				log("No API key found! Please set up Prey and try again.");
+				logger.info("No API key found! Please set up Prey and try again.");
 				process.exit(1);
 
 			} else {
@@ -132,21 +137,21 @@ var Main = {
 
 	check_connection_and_fetch: function(){
 
-		console.log(" -- Checking connection...");
+		logger.info(" -- Checking connection...");
 		var conn = new Connection(this.config.proxy);
 
 		conn.on('found', function(){
-			log(" -- Connection found!");
+			logger.info(" -- Connection found!");
 			self.args.get('check') ? self.check() : self.fetch()
 		});
 
 		conn.on('not_found', function(){
 
-			log(" !! No connection found.");
+			logger.info(" !! No connection found.");
 			if(this.config.auto_connect && self.auto_connect_attempts < this.config.max_auto_connect_attempts){
 
 				self.auto_connect_attempts++;
-				log(" -- Trying to auto connect...");
+				logger.info(" -- Trying to auto connect...");
 
 				os.auto_connect(setTimeout(function(){
 					self.check_connection_and_fetch();
@@ -154,7 +159,7 @@ var Main = {
 				);
 
 			} else {
-				log(" -- Not trying any more.");
+				logger.info(" -- Not trying any more.");
 				self.no_connection();
 			}
 
@@ -176,7 +181,7 @@ var Main = {
 
 	fetch: function(){
 
-		log(" -- Fetching instructions...")
+		logger.info(" -- Fetching instructions...")
 		hooks.run('fetch_start');
 
 		var headers = { "User-Agent": this.user_agent };
@@ -205,7 +210,7 @@ var Main = {
 			self.process_main_config();
 
 			if(!self.requested.modules || Object.keys(self.requested.modules).length == 0) {
-				log(" -- No report or actions requested.");
+				logger.info(" -- No report or actions requested.");
 				return false;
 			}
 
@@ -214,7 +219,7 @@ var Main = {
 
 			self.process_module_config(function(){
 
-				log(' -- All modules loaded.')
+				logger.info(' -- All modules loaded.')
 				ActionsManager.initialize(self.modules.action);
 
 				if(self.missing && self.modules.report.length > 0) {
@@ -229,7 +234,7 @@ var Main = {
 						if(Object.keys(report.traces).length > 0)
 							report.send_to(self.config.destinations, self.config);
 						else
-							log(" -- Nothing to send!");
+							logger.info(" -- Nothing to send!");
 
 					});
 
@@ -257,7 +262,7 @@ var Main = {
 
 	process_main_config: function(){
 
-		log(" -- Processing main config...")
+		logger.info(" -- Processing main config...")
 		//debug(self.requested);
 
 		if(typeof(this.config.auto_update) == 'boolean')
@@ -268,7 +273,7 @@ var Main = {
 		self.missing = (self.response_status == this.config.missing_status_code);
 
 		var status_msg = self.missing ? "Device is missing!" : "Device not missing. Sweet.";
-		log(" -- " + status_msg);
+		logger.info(" -- " + status_msg);
 
 		self.process_delay();
 
@@ -282,9 +287,9 @@ var Main = {
 		var requested_delay = self.requested.configuration.delay;
 
 		base.os.check_current_delay(base.script_path, function(current_delay){
-			log("Current delay: " + current_delay + ", requested delay: " + requested_delay);
+			logger.info("Current delay: " + current_delay + ", requested delay: " + requested_delay);
 			if(parseInt(current_delay) != parseInt(requested_delay)){
-				log(" -- Setting new delay!")
+				logger.info(" -- Setting new delay!")
 				os.set_new_delay(requested_delay, base.script_path);
 			}
 		});
@@ -295,7 +300,7 @@ var Main = {
 
 		var requested_modules = self.requested.modules.module.length || 1;
 		var modules_loaded = 0;
-		log(" -- " + requested_modules + " modules enabled!")
+		logger.info(" -- " + requested_modules + " modules enabled!")
 
 		for(id in self.requested.modules.module){
 
@@ -307,7 +312,7 @@ var Main = {
 			var module_data = module_config['@'] || module_config;
 			if(!module_data) continue;
 
-			log(" -- Got instructions for " + module_data.type + " module " + module_data.name);
+			logger.info(" -- Got instructions for " + module_data.type + " module " + module_data.name);
 
 			delete module_config['@'];
 
@@ -356,7 +361,7 @@ var Main = {
 
 	setup_on_demand: function(){
 
-		log(' -- On Demand mode enabled! Trying to connect...', 'bold');
+		logger.info(' -- On Demand mode enabled! Trying to connect...', 'bold');
 		var on_demand_host = self.requested.configuration.on_demand_host;
 		var on_demand_port = self.requested.configuration.on_demand_port;
 		this.on_demand = OnDemand.connect(on_demand_host, on_demand_port, this.config, this.version, function(stream){
@@ -427,7 +432,7 @@ var Main = {
 			if(new_version)
 				ControlPanel.update_device({client_version: new_version});
 			else
-				log("Update process was unsuccessful.");
+				logger.info("Update process was unsuccessful.");
 
 		})
 
@@ -478,7 +483,7 @@ var Main = {
 				break;
 
 			default:
-				log(" !! Message not understood!");
+				logger.info(" !! Message not understood!");
 
 		}
 

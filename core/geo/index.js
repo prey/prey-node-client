@@ -5,15 +5,15 @@
 // GPLv3 Licensed
 //////////////////////////////////////////
 
-var base = require('../../core/base'),
+var base = require('../base'),
 		util = require('util'),
 		http_client = require('restler'),
-		ReportModule = require('../../core/report_module'),
+		InfoModule = require('../info_module'),
 		Network = require('../network');
 
 var Geo = function(){
 
-	ReportModule.call(this);
+	InfoModule.call(this);
 	var self = this;
 	this.name = 'geo';
 
@@ -102,5 +102,5 @@ var Geo = function(){
 };
 
 
-util.inherits(Geo, ReportModule);
+util.inherits(Geo, InfoModule);
 module.exports = new Geo();

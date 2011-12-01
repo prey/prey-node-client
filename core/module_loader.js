@@ -9,8 +9,8 @@ var base = require('./base'),
 		path = require('path'),
 		fs = require('fs'),
 		util = require('util'),
-		emitter = require('events').EventEmitter,
-		ModuleUpdater = require('./module_updater');
+		emitter = require('events').EventEmitter;
+//		ModuleUpdater = require('./module_updater');
 
 var ModuleLoader = function(module_name, module_config, upstream_version){
 
@@ -22,7 +22,7 @@ var ModuleLoader = function(module_name, module_config, upstream_version){
 
 	this.load = function(){
 
-		log(" -- Initializing " + this.module_name + " module...");
+		base.logger.info(" -- Initializing " + this.module_name + " module...");
 		this.module_path = base.modules_path + '/' + this.module_name;
 
 		// download module in case it's not there,
@@ -31,7 +31,7 @@ var ModuleLoader = function(module_name, module_config, upstream_version){
 			if(!exists){
 				try {
 					var mod = require(self.module_name);
-					console.log(' -- Module found in node_modules path!');
+					base.logger.info(' -- Module found in node_modules path!');
 					return self.done(mod);
 				} catch(e){ // not available in node_modules as well
 					self.download(self.module_name);
@@ -58,9 +58,9 @@ var ModuleLoader = function(module_name, module_config, upstream_version){
 			self.emit('success', mod);
 			self.done(mod)
 
-			log(" == Module " + this.module_name + " loaded!")
+			base.logger.info(" == Module " + this.module_name + " loaded!")
 //		} catch(e) {
-//			console.log(" !! " + e.message);
+//			base.logger.info(" !! " + e.message);
 //			this.failed(this.module_name, e);
 //		}
 	};
@@ -71,23 +71,30 @@ var ModuleLoader = function(module_name, module_config, upstream_version){
 	}
 
 	this.download = function(){
-		log(" -- Path not found!")
+		base.logger.info(" -- Path not found!")
 		this.update();
 	}
 
 	this.update = function(){
-		log(" ++ Downloading module " + this.module_name + " from server...")
+		return this.failed(); // disable for now, we'll use npm for handling updates
+
+/*
+
+		base.logger.info(" ++ Downloading module " + this.module_name + " from server...")
 
 		var updater = new ModuleUpdater(this.module_name);
 
 		updater.on('success', function(){
-			log(" ++ Module " + self.module_name + " in place and ready to roll!")
+			base.logger.info(" ++ Module " + self.module_name + " in place and ready to roll!")
 			self.ready();
 		});
 		updater.on('error', function(e){
-			log(' !! Error downloading ' + self.module_name + ' package.')
+			base.logger.info(' !! Error downloading ' + self.module_name + ' package.')
 			self.failed(e);
 		})
+
+*/
+
 	}
 
 	this.update_if_newer = function(upstream_version){
@@ -97,7 +104,7 @@ var ModuleLoader = function(module_name, module_config, upstream_version){
 
 			if(err) return false;
 			if(parseFloat(self.upstream_version) > parseFloat(version)){
-				log(" !! " + self.upstream_version + " is newer than installed version: " + version);
+				base.logger.info(" !! " + self.upstream_version + " is newer than installed version: " + version);
 				self.update();
 			} else {
 				self.ready();

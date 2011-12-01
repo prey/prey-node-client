@@ -1,17 +1,18 @@
 //////////////////////////////////////////
 // Prey Request Class
-// (c) 2011 - Fork Ltd.
-// by Tomas Pollak - http://forkhq.com
+// (c) 2011, Fork Ltd. - http://forkhq.com
+// Written by Tomas Pollak
 // GPLv3 Licensed
 //////////////////////////////////////////
 
 var base = require('./base'),
+		logger = base.logger,
 		util = require('util'),
 		emitter = require('events').EventEmitter,
 		http_client = require('restler'),
-		Session = require(base.modules_path + '/session'),
-		Geo = require(base.modules_path + '/geo'),
-		Network = require(base.modules_path + '/network');
+		System = require('./system'),
+		Geo = require('./geo'),
+		Network = require('./network');
 
 function Request(config, headers, callback){
 
@@ -23,9 +24,7 @@ function Request(config, headers, callback){
 	this.attempts = 0;
 
 	this.log = function(str){
-
-		console.log(" -- [request] " + str);
-
+		logger.info(" -- [request] " + str);
 	}
 
 	this.start = function(){
@@ -54,7 +53,7 @@ function Request(config, headers, callback){
 
 		headers['X-Logged-User'] = process.env["LOGGED_USER"] // logged_user
 
-		self.on('async_header', function(key){
+		self.on('ext_header', function(key){
 
 			headers_got++;
 			if(headers_got >= async_headers){
@@ -63,20 +62,20 @@ function Request(config, headers, callback){
 
 		});
 
-		Session.get('current_uptime', function(seconds){
+		System.get('current_uptime', function(seconds){
 			headers['X-Current-Uptime'] = seconds;
-			self.emit('async_header', 'current_uptime');
+			self.emit('ext_header', 'current_uptime');
 		});
 
 		Network.get('active_access_point', function(essid_name){
 			headers['X-Active-Access-Point'] = essid_name || 'None';
-			self.emit('async_header', 'active_access_point');
+			self.emit('ext_header', 'active_access_point');
 		});
 
 		Geo.get('coords_via_wifi', function(coords){
 			headers['X-Current-Lat'] = coords ? coords.lat : 0;
 			headers['X-Current-Lng'] = coords ? coords.lat : 0;
-			self.emit('async_header', 'coords_via_wifi');
+			self.emit('ext_header', 'coords_via_wifi');
 		});
 
 	},

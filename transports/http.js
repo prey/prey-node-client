@@ -64,8 +64,8 @@ var HTTPTransport = function(report, options){
 
 		http_client.post(this.post_url, this.options) // this.options may contain http basic user/pass
 		.once('complete', function(body, response){
-			console.log(' -- Got status code: ' + response.statusCode);
-			console.log(' -- ' + body);
+			self.log(' -- Got status code: ' + response.statusCode);
+			self.log(' -- ' + body);
 			self.emit('end');
 		})
 		.once('error', function(body, response){

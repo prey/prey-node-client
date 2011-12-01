@@ -1,8 +1,21 @@
-var Command = require('../lib/command'),
+//////////////////////////////////////////
+// Prey Response Parser
+// (c) 2011, Fork Ltd. - http://forkhq.com
+// Written by Tomas Pollak
+// GPLv3 Licensed
+//////////////////////////////////////////
+
+var base = require('./base'),
+		logger = base.logger,
+		Command = require('./command'),
 		xml2js = require('xml2js'),
 		crypto = require('crypto');
 
 var ResponseParser = {
+
+	log: function(str){
+		logger.info(str);
+	},
 
 	parse: function(data, key, callback){
 
@@ -18,8 +31,7 @@ var ResponseParser = {
 	decrypt_response: function(data, key, callback){
 
 		var self = this;
-
-		console.log(" -- Got encrypted response. Decrypting...")
+		this.log(" -- Got encrypted response. Decrypting...")
 		var key = crypto.createHash('md5').update(key).digest("hex");
 
 		// console.log(data);
@@ -43,7 +55,7 @@ var ResponseParser = {
 		var cmd = new Command(cmd_str);
 
 		cmd.on('error', function(message){
-			quit("Couldn't decrypt response. This shouldn't have happened!")
+			throw("Couldn't decrypt response. This shouldn't have happened!");
 		})
 
 		cmd.on('return', function(output){
@@ -56,12 +68,12 @@ var ResponseParser = {
 
 	parse_xml: function(data, callback){
 
-		log(' -- Parsing XML...')
-
+		this.log(' -- Parsing XML...')
 		var parser = new xml2js.Parser();
+		var self = this;
 
 		parser.addListener('end', function(result) {
-			log(' -- XML parsing complete.');
+			self.log(' -- XML parsing complete.');
 			callback(result);
 		});
 

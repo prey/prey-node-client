@@ -5,7 +5,8 @@
 // GPLv3 Licensed
 //////////////////////////////////////////
 
-var util = require('util'),
+var base = require('./base'),
+		util = require('util'),
 		emitter = require('events').EventEmitter;
 
 var ActionsManager = function(){
@@ -14,18 +15,18 @@ var ActionsManager = function(){
 	this.running_actions = [];
 
 	this.start_all = function(){
-		console.log(' -- Starting all actions!')
+		base.logger.info(' -- Starting all actions!')
 		this.emit('start');
 	};
 
 	this.action_finished = function(action_module){
-		console.log(' -- Action module ' + action_module.name + ' finished.');
+		base.logger.info(' -- Action module ' + action_module.name + ' finished.');
 
 		var index = this.running_actions.indexOf(action_module);
 		this.running_actions.splice(index, 1);
 
 		if(this.running_actions.length <= 0) {
-			console.log(" -- All actions done!");
+			base.logger.info(" -- All actions done!");
 			this.emit('all_done');
 		}
 
@@ -40,7 +41,7 @@ var ActionsManager = function(){
 		this.running_actions.forEach(function(running_action){
 
 			if(enabled_action_modules.indexOf(running_action) == -1){
-				console.log(" -- " + running_action.name + " action was turned off!")
+				base.logger.info(" -- " + running_action.name + " action was turned off!")
 				self.stop(running_action);
 			}
 
@@ -49,7 +50,7 @@ var ActionsManager = function(){
 		enabled_action_modules.forEach(function(action_module){
 
 			if(self.action_is_running(action_module)) {
-				console.log(" -- " + action_module.name + " is already running!")
+				base.logger.info(" -- " + action_module.name + " is already running!")
 			} else {
 				self.queue(action_module);
 			}
@@ -60,10 +61,10 @@ var ActionsManager = function(){
 
 	this.queue = function(action_module){
 
-		console.log(' -- Queueing action ' + action_module.name);
+		base.logger.info(' -- Queueing action ' + action_module.name);
 
 		self.once('start', function(){
-			console.log(' -- Running action ' + action_module.name);
+			base.logger.info(' -- Running action ' + action_module.name);
 
 			// self.running_actions[action_module.name] = action_module;
 			self.running_actions.push(action_module);
@@ -81,7 +82,7 @@ var ActionsManager = function(){
 	this.stop_all = function(){
 
 		if(this.running_actions.length <= 0) return false;
-		console.log(" -- Stopping all actions!");
+		base.logger.info(" -- Stopping all actions!");
 
 		this.running_actions.forEach(function(action_module){
 			self.stop(action_module);

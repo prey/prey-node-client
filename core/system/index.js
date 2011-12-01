@@ -5,14 +5,15 @@
 // GPLv3 Licensed
 //////////////////////////////////////////
 
-var util = require('util'),
+var base = require('../base'),
+		util = require('util'),
 		os = require('os'),
-		Command = require('../../lib/command'),
-		ActionModule = require('../../core/action_module');
+		Command = require('../command'),
+		InfoModule = require('../info_module');
 
 var System = function(){
 
-	ActionModule.call(this);
+	InfoModule.call(this);
 	var self = this;
 	this.name = 'system';
 
@@ -33,6 +34,12 @@ var System = function(){
 	this.stop = function(){
 		this.done();
 	}
+
+	this.get_current_uptime = function(){
+
+		self.emit('current_uptime', parseInt(os.uptime()));
+
+	};
 
 	this.get_cpu_info = function(){
 
@@ -74,5 +81,5 @@ var System = function(){
 
 };
 
-util.inherits(System, ActionModule);
+util.inherits(System, InfoModule);
 module.exports = new System();

@@ -20,11 +20,12 @@ try {
 	process.exit(1);
 }
 
-var base = require('./core/base');
-var pid_file = base.helpers.tempfile_path('prey.pid');
-var version = require(__dirname + '/package').version;
-var args = require('./core/args').init(version);
-var Prey = require('./core/main');
+var base = require('./core/base'),
+		logger = base.logger,
+		pid_file = base.helpers.tempfile_path('prey.pid'),
+		version = require(__dirname + '/package').version,
+		args = require('./core/args').init(version),
+		Prey = require('./core/main');
 
 /////////////////////////////////////////////////////////////
 // event, signal handlers
@@ -33,16 +34,16 @@ var Prey = require('./core/main');
 process.on('exit', function(code) {
 	Prey.shutdown();
 	if(code != 10) base.helpers.clean_up(pid_file);
-	console.log(" -- Have a jolly good day sir.\n");
+	logger.info(" -- Have a jolly good day sir.\n");
 });
 
 process.on('SIGINT', function() {
-	console.log(' >> Got Ctrl-C!');
+	logger.info(' >> Got Ctrl-C!');
 	process.exit(0);
 });
 
 process.on('SIGUSR1', function() {
-	console.log(' >> Received run instruction!');
+	logger.info(' >> Received run instruction!');
 	Prey.fire();
 });
 
@@ -67,9 +68,7 @@ base.helpers.check_and_store_pid(pid_file, function(running_pid){
 		});
 
 	} else {
-
 		Prey.run(config, args, version);
-
 	}
 
 });

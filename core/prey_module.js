@@ -35,7 +35,7 @@ function PreyModule(){
 	}
 
 	this.log = function(str){
-		console.log(" ++ [" + this.name + "] " + str);
+		base.logger.info(" ++ [" + this.name + "] " + str);
 	};
 
 	this.init = function(){

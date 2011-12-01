@@ -8,12 +8,12 @@
 var base = require('../../core/base'),
 		util = require('util'),
 		GStreamer = require('node-gstreamer'),
-		ReportModule = require('../../core/report_module'),
+		InfoModule = require('../../core/info_module'),
 		os_functions = require('./platform/' + base.os_name);
 
 var Webcam = function(){
 
-	ReportModule.call(this);
+	InfoModule.call(this);
 	var self = this;
 	this.name = 'webcam';
 
@@ -41,5 +41,5 @@ var Webcam = function(){
 
 };
 
-util.inherits(Webcam, ReportModule);
+util.inherits(Webcam, InfoModule);
 module.exports = new Webcam();

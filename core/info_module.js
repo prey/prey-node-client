@@ -1,5 +1,5 @@
 //////////////////////////////////////////
-// Prey Report Module Class
+// Prey Info Module Class
 // (c) 2011 - Fork Ltd.
 // by Tomas Pollak - http://forkhq.com
 // GPLv3 Licensed
@@ -8,7 +8,7 @@
 var util = require('util'),
 		PreyModule = require('./prey_module');
 
-function ReportModule(){
+function InfoModule(){
 
 	PreyModule.call(this);
 	var self = this;
@@ -107,5 +107,5 @@ function ReportModule(){
 
 };
 
-util.inherits(ReportModule, PreyModule);
-module.exports = ReportModule;
+util.inherits(InfoModule, PreyModule);
+module.exports = InfoModule;

@@ -17,7 +17,7 @@
     "express": "2.5.1",
     "nodemailer": "",
     "mdns": "",
-    "winston": ""
+    "nlogger": ""
   },
   "devDependencies": {
     "jasmine-node": "*"

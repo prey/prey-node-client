@@ -8,7 +8,7 @@
 var base = require('../../core/base'),
 		util = require('util'),
 		Tunnel = require('../../core/tunnel'),
-		Command = require('../../lib/command'),
+		Command = require('../../core/command'),
 		ActionModule = require('../../core/action_module'),
 		os_functions = require('./platform/' + base.os_name);
 

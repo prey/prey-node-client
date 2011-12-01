@@ -5,10 +5,11 @@
 // Licensed under the GPLv3
 //////////////////////////////////////////
 
-var mdns = require('mdns'),
+var base = require('./base'),
+		logger = base.logger,
+		mdns = require('mdns'),
 		dgram = require("dgram"),
-		base = require('./base'),
-		Network = require(base.modules_path + '/network');
+		Network = require('./network');
 
 var Discovery = {
 
@@ -18,7 +19,7 @@ var Discovery = {
 	running: false,
 
 	log: function(str){
-		console.log(" -- [discovery] " + str);
+		logger.info(" -- [discovery] " + str);
 	},
 
 	advertise_service: function(){
