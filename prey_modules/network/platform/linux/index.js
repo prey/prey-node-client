@@ -18,7 +18,7 @@ exports.mac_address_cmd = function(nic){
 
 exports.get_access_points_list = function(wifi_device, callback) {
 
-	if(!wifi_device && wifi_device == '') return callback(false);
+	if(!wifi_device || wifi_device == '') return callback(false);
 
 	// gets access points list using iwlist (requires wireless-tools package)
 	var access_points_list_cmd = 'iwlist ' + wifi_device + ' scan | grep -v "Frequency" | egrep "Address|Channel|ESSID|Signal"';
