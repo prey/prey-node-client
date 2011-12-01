@@ -14,17 +14,6 @@ function ActionModule(){
 	var self = this;
 	this.type = 'action';
 
-	this.run = function(){
-
-		if(!this.running){
-			this.running = true;
-			this.start();
-		} else {
-			this.log('Already running!')
-		}
-
-	};
-
 };
 
 util.inherits(ActionModule, PreyModule);

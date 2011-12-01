@@ -23,21 +23,24 @@ var ModuleLoader = function(module_name, module_config, upstream_version){
 	this.load = function(){
 
 		log(" -- Initializing " + this.module_name + " module...");
-
 		this.module_path = base.modules_path + '/' + this.module_name;
 
 		// download module in case it's not there,
 		// or check for updates in case option was selected
 		path.exists(this.module_path, function(exists) {
-			if(!exists)
-				self.download(self.module_name);
-			else if(self.upstream_version)
+			if(!exists){
+				try {
+					var mod = require(self.module_name);
+					console.log(' -- Module found in node_modules path!');
+					return self.done(mod);
+				} catch(e){ // not available in node_modules as well
+					self.download(self.module_name);
+				}
+			} else if(self.upstream_version)
 				self.update_if_newer(self.upstream_version);
 			else
 				self.ready();
 		});
-
-		return self;
 
 	};
 
@@ -47,7 +50,7 @@ var ModuleLoader = function(module_name, module_config, upstream_version){
 
 	this.ready = function(){
 
-		// if(this.module_name == 'utiltem') return;
+		// if(this.module_name == 'system') return;
 //		try {
 			var mod = require(this.module_path);
 			mod.apply_config(this.module_config);

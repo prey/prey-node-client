@@ -7,6 +7,7 @@
 
 var base = require('./base'),
 		util = require('util'),
+		hooks = require('./hook_manager'),
 		emitter = require('events').EventEmitter;
 
 function mixin(target, source) {
@@ -50,10 +51,23 @@ function PreyModule(){
 
 	}
 
+	this.run = function(){
+
+		if(!this.running){
+			this.running = true;
+			this.start();
+			hooks.run(this.name + '_start');
+		} else {
+			this.log('Already running!')
+		}
+
+	};
+
 	this.done = function(){
 		if(this.running){
 			this.running = false;
 			this.emit('end');
+			hooks.run(this.name + '_end');
 		}
 	}
 

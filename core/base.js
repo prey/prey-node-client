@@ -1,6 +1,6 @@
 var path = require('path');
 
-var root_path = path.resolve(path.join(__dirname, '..'));
+var root_path = process.env.ROOT_PATH || path.resolve(path.join(__dirname, '..'));
 var script_path = path.join(root_path, 'prey.js');
 var os_name = process.platform.replace('darwin', 'mac').replace('win32', 'windows');
 

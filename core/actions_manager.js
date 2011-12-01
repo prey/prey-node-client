@@ -22,7 +22,13 @@ var ActionsManager = function(){
 		console.log(' -- Action module ' + action_module.name + ' finished.');
 
 		var index = this.running_actions.indexOf(action_module);
-		delete this.running_actions[index];
+		this.running_actions.splice(index, 1);
+
+		if(this.running_actions.length <= 0) {
+			console.log(" -- All actions done!");
+			this.emit('all_done');
+		}
+
 	};
 
 	this.action_is_running = function(action_module){

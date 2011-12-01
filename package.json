@@ -1,13 +1,12 @@
 {
   "name":        "prey",
-  "version":     "0.1.0",
+  "version":     "0.6.0",
+  "private":      true,
   "author":      "Tomás Pollak <tomas@forkhq.com>",
-  "keywords":    "prey anti-theft tracking remote monitoring",
+  "keywords":    ["prey", "anti", "theft", "tracking", "remote", "monitoring"],
   "description": "Simple, effective anti-theft & monitoring software for your laptop",
   "engine":      "node >= 0.6.0",
   "os":          ["linux", "darwin", "win32"],
-  "bugs":        { "url" : "http://github.com/prey/prey-nodejs/issues" },
-  "directories" : { "lib" : "./lib/" },
   "dependencies": {
     "opts": "1.2.1",
     "ansi-color": "0.2.1",
@@ -17,13 +16,34 @@
     "xml2js": "",
     "express": "2.5.1",
     "nodemailer": "",
-    "mdns": ""
+    "mdns": "",
+    "winston": ""
   },
   "devDependencies": {
-    "vows": "0.5.x"
+    "jasmine-node": "*"
+  },
+  "bundledDependencies": [],
+  "files": [
+    "prey.js",
+    "config.js.default"
+  ],
+  "directories": {
+    "core": "./core",
+    "lib" : "./lib",
+    "prey_modules": "./prey_modules"
+  },
+  "bin": {
+    "prey": "./prey.js"
+  },
+  "scripts": {
+    "start": "node prey.js",
+    "test" : "jasmine-node spec"
+  },
+  "bugs"   :  {
+    "url" : "http://github.com/prey/prey-nodejs/issues"
   },
   "licenses" : [{
     "type" : "GPLv3",
-    "url" : "http://github.com/prey/prey-nodejs/raw/master/LICENSE"
+    "url"  : "https://github.com/prey/prey-nodejs/raw/master/LICENSE"
   }]
 }

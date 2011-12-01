@@ -23,10 +23,9 @@ function ReportModule(){
 		this.traces_returned = 0;
 	}
 
-	this.run = function(){
+	this.start = function(){
 
 		if(process.env.LOOP && process.env.LOOP > 1) this.reset();
-		this.running = true;
 
 		this.trace_methods.forEach(function(trace){
 			if(typeof self.traces[trace] === 'undefined')

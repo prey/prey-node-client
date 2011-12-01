@@ -18,9 +18,7 @@ var Geo = function(){
 	this.name = 'geo';
 
 	// overrides PreyModule's base run() method
-	this.run = function(){
-
-		this.running = true;
+	this.start = function(){
 
 		this.get('coords_via_wifi', function(coords){
 			self.emit('trace', 'lat', coords.lat);

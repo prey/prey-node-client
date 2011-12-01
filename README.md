@@ -1,8 +1,26 @@
-== Prey NodeJS client 
+== Prey NodeJS client
 
 It rocks.
 
 == Installation
+
+== Hooks
+
+initialized
+loop_start
+no_connection
+fetch_start
+fetch_end
+actions_start
+actions_end
+report_start
+report_end
+[module_name]_start
+[module_name]_end
+message_received
+message_sent
+loop_end
+shutdown
 
 == Todo
 
