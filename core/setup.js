@@ -6,10 +6,12 @@
 //////////////////////////////////////////
 
 var base = require('./base'),
+		logger = base.logger,
 		fs = require('fs'),
 		http_client = require('restler'),
 		stringify = require('qs').stringify,
-		Response = require('./response_parser');
+		Response = require('./response_parser'),
+		System = require('./system');
 
 var config_file_path = base.root_path + '/config.js'
 
@@ -32,6 +34,16 @@ var Setup = {
 			headers : { "User-Agent": options.user_agent }
 		}
 
+		this.get_system_data(function(data){
+
+			self.send_request(url, data, http_options);
+
+		});
+
+	},
+
+	get_system_data: function(callback){
+
 		var data = {
 			device: {
 				title: 'My device',
@@ -41,26 +53,33 @@ var Setup = {
 			}
 		}
 
-		http_options.data = stringify(data);
-		http_options.headers['Content-Length'] = options.data.length; // damn restler module
+		callback(data);
 
-		http_client.post(url, http_options)
+	},
+
+	send_request: function(url, data, options){
+
+		options.data = stringify(data);
+
+		http_client.post(url, options)
 		.on('error', function(body, response){
-			log("Response body: " + body);
+
+			logger.info("Response body: " + body);
+
 		})
 		.on('complete', function(body, response){
 
-			debug("Response body: " + body);
-			log(' -- Got status code: ' + response.statusCode);
+			// logger.debug("Response body: " + body);
+			logger.info(' -- Got status code: ' + response.statusCode);
 
 			if(response.statusCode == 201){
 
-				log(" -- Device succesfully created.");
+				logger.info(" -- Device succesfully created.");
 				Response.parse_xml(body, function(result){
 
 					if(result.key){
 
-						log(" -- Got device key: " + result.key + ". Storing in configuration...")
+						logger.info(" -- Got device key: " + result.key + ". Storing in configuration...")
 						config.device_key = result.key;
 
 						self.store_config_value('device_key', result.key);
@@ -68,7 +87,7 @@ var Setup = {
 
 					} else {
 
-						quit("No device key found! Cannot continue.")
+						throw("No device key found! Cannot continue.");
 
 					}
 
