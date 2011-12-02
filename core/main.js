@@ -19,8 +19,8 @@ var base = require('./base'),
 		ModuleLoader = require('./module_loader'),
 		ActionsManager = require('./actions_manager'),
 		Report = require('./report'),
-		OnDemand = require('./on_demand'),
-		Discovery = require('./discovery');
+//	Discovery = require('./discovery'),
+		OnDemand = require('./on_demand');
 
 var self;
 
@@ -67,7 +67,7 @@ var Main = {
 
 		logger.info(" -- Loop ended!");
 		hooks.trigger('loop_end');
-		if(!Discovery.running) this.load_discovery();
+		// if(!Discovery.running) this.load_discovery();
 
 	},
 
