@@ -47,4 +47,13 @@ GStreamer.streamVideoWithAudio('webcam', {dest: 'localhost:9000', encoder: 'vp8e
 		console.log('Stream NOT running!');
 });
 
+} else if(command == 'mirror') {
+
+	GStreamer.streamVideo('webcam', {filters: ['videoflip method=horizontal-flip']}, function(success){
+		if(success)
+			console.log('Stream is running!');
+		else
+			console.log('Stream NOT running!');
+	});
+
 }
