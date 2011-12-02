@@ -26,6 +26,20 @@ There are two main kind of modules: info modules and action modules.
 
 Ok so we have info modules and action modules.
 
+== Messaging
+
+Prey should be able to receive specific instructions, so that it's able to fetch 
+specific bits of information or run specific actions. These commands could (and
+probably should) contain information about how to process the instruction. An initial 
+draft of different requests that could be made:
+
+ - send_reports (interval, options)
+   - i.e. send_reports(10, {screenshot: false, picture: true})
+ - get_info (what, options)
+   - i.e. get_info('modified_files', {path: '/home/', from: 5.minutes.ago})
+ - run_action (which, options)
+   - i.e. run_action('alarm', {sound: 'siren.mp3', loops: 3})
+
 == Hooks
 
 initialized
