@@ -6,6 +6,26 @@ It rocks.
 
 npm install prey
 
+== Modules
+
+There are two main kind of modules: info modules and action modules.
+
+- Info modules: emit traces of information upon request. Singletons.
+  - Core info modules: system, network, geo. 
+    - Used by various sections of Prey (Register, Report, Request, Discovery).
+  - Optional info modules: webcam, screenshot, running programs, modified files, traceroute.
+
+- Action modules: perform tasks exposing start() and (optinally) stop() methods. Do not return stuff.
+  - Persistent actions: lock, terminal, desktop, filebrowser.
+    - These normally depend on child processes or listening servers, and run until the user cancels the action.
+    - Should return (1) whether the process was succesfully launched and (2) when it is finished.
+  - Long running actions: file retrieval (search and upload), wipe (file deletion).
+    - Should return whether the task is being run and when it is finished.
+  - Fire and forget actions: alarm, alert, standby, shutdown.
+    - Should return whether the task was succesfully ran or not.
+
+Ok so we have info modules and action modules.
+
 == Hooks
 
 initialized
