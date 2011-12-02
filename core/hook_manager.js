@@ -24,7 +24,7 @@ function HookManager(){
 		this.once(hook, callback);
 	};
 
-	this.run = function(hook_name){
+	this.trigger = function(hook_name){
 		this.log("hook " + hook_name + " triggered");
 		this.emit(hook_name);
 	};

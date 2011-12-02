@@ -44,7 +44,7 @@ var Main = {
 			process.env.LOGGED_USER = user_name.split("\n")[0];
 
 			self.initialize(function(){
-				hooks.run('initialized');
+				hooks.trigger('initialized');
 				self.fire();
 			});
 
@@ -54,7 +54,7 @@ var Main = {
 
 	fire: function(){
 
-		hooks.run('loop_start');
+		hooks.trigger('loop_start');
 		process.env.LOOP++;
 		this.modules = {action: [], report: []};
 		this.auto_connect_attempts = 0;
@@ -66,14 +66,14 @@ var Main = {
 	done: function(){
 
 		logger.info(" -- Loop ended!");
-		hooks.run('loop_end');
+		hooks.trigger('loop_end');
 		if(!Discovery.running) this.load_discovery();
 
 	},
 
 	shutdown: function(){
 
-		hooks.run('shutdown');
+		hooks.trigger('shutdown');
 		if(OnDemand.connected) OnDemand.disconnect();
 		ActionsManager.stop_all();
 		if(this.discovery_service) Discovery.stop_service();
@@ -169,7 +169,7 @@ var Main = {
 
 	no_connection: function(){
 
-		hooks.run('no_connection');
+		hooks.trigger('no_connection');
 
 		if(path.existsSync(tempfile_path(this.config.last_response_file))){
 			response_body = fs.readFileSync(this.config.last_response_file);
@@ -182,13 +182,13 @@ var Main = {
 	fetch: function(){
 
 		logger.info(" -- Fetching instructions...")
-		hooks.run('fetch_start');
+		hooks.trigger('fetch_start');
 
 		var headers = { "User-Agent": this.user_agent };
 
 		var req = new Request(this.config, headers, function(response, body){
 
-			hooks.run('fetch_end');
+			hooks.trigger('fetch_end');
 
 			self.response_status = response.statusCode;
 			self.response_content_type = response.headers["content-type"];
@@ -224,7 +224,7 @@ var Main = {
 
 				if(self.missing && self.modules.report.length > 0) {
 
-					hooks.run('report_start');
+					hooks.trigger('report_start');
 					var report = new Report(self.modules.report, self.requested.configuration);
 
 					report.once('ready', function(){
@@ -240,7 +240,7 @@ var Main = {
 
 					report.once('sent', function(){
 
-						hooks.run('report_end');
+						hooks.trigger('report_end');
 
 					});
 
@@ -316,7 +316,6 @@ var Main = {
 
 			delete module_config['@'];
 
-
 			var version_to_pass = self.auto_update ? module_data.version : null;
 
 			var report_modules = [], action_modules = [];
@@ -347,10 +346,10 @@ var Main = {
 
 	start_actions: function(){
 
-		hooks.run('actions_start');
+		hooks.trigger('actions_start');
 		ActionsManager.start_all();
 		ActionsManager.once('all_done', function(){
-			hooks.run('actions_end');
+			hooks.trigger('actions_end');
 		});
 
 	},
