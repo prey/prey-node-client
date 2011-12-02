@@ -25,11 +25,6 @@ function PreyModule(){
 	var self = this;
 	this.running = false;
 
-	this.apply_config = function(config){
-		// this.config = this.config.merge(config);
-		this.config = mixin(this.options || {}, config);
-	}
-
 	this.path = function(){
 		return base.modules_path + '/' + this.name;
 	}
@@ -38,7 +33,9 @@ function PreyModule(){
 		base.logger.info(" ++ [" + this.name + "] " + str);
 	};
 
-	this.init = function(){
+	this.init = function(options){
+
+		this.config = mixin(this.options || {}, options);
 
 //		try {
 //			self.config = require(this.path + "/config").default;
@@ -46,8 +43,8 @@ function PreyModule(){
 //			self.config = {};
 //		}
 
-		this.loaded = true;
-		this.emit('ready');
+		// this.loaded = true;
+		// this.emit('ready');
 
 	}
 
@@ -71,7 +68,7 @@ function PreyModule(){
 		}
 	}
 
-	this.init();
+	// this.init();
 
 }
 

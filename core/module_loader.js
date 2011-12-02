@@ -53,7 +53,7 @@ var ModuleLoader = function(module_name, module_config, upstream_version){
 		// if(this.module_name == 'system') return;
 //		try {
 			var mod = require(this.module_path);
-			mod.apply_config(this.module_config);
+			mod.init(this.module_config);
 
 			self.emit('success', mod);
 			self.done(mod)
