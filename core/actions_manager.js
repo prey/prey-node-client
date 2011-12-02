@@ -6,6 +6,7 @@
 //////////////////////////////////////////
 
 var base = require('./base'),
+		logger = base.logger,
 		util = require('util'),
 		emitter = require('events').EventEmitter;
 
@@ -33,6 +34,10 @@ var ActionsManager = function(){
 			logger.info(" -- All actions returned!");
 			this.emit('all_returned', this.running_actions);
 		}
+
+	};
+
+	this.action_ended = function(action_module, success){
 
 	};
 
@@ -79,6 +84,18 @@ var ActionsManager = function(){
 
 			// self.running_actions[action_module.name] = action_module;
 			self.running_actions.push(action_module);
+
+			var instance = action_module.init(action_module.config);
+
+			// if the action returns a class instance, it's a long running/persistent
+			// action, which means we need to listen for the 'end' event to know
+			// when it really finishes
+
+			if(typeof instance == 'function'){
+				instance.on('end', function(success){
+					self.action_ended(action_module, success);
+				});
+			}
 
 			action_module.start(function(running){
 				self.action_returned(action_module, running);

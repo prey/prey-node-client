@@ -6,6 +6,7 @@
 //////////////////////////////////////////
 
 var base = require('./base'),
+		logger = base.logger,
 		util = require('util'),
 		hooks = require('./hook_manager'),
 		emitter = require('events').EventEmitter;
@@ -30,7 +31,7 @@ function PreyModule(){
 	}
 
 	this.log = function(str){
-		base.logger.info(" ++ [" + this.name + "] " + str);
+		logger.info(" ++ [" + this.name + "] " + str);
 	};
 
 	this.init = function(options){

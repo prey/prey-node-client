@@ -78,6 +78,7 @@ var Report = function(report_modules, options){
 
 			});
 
+			prey_module.init(prey_module.config);
 			prey_module.run();
 
 		});

@@ -6,6 +6,7 @@
 //////////////////////////////////////////
 
 var base = require('./base'),
+		logger = base.logger,
 		path = require('path'),
 		fs = require('fs'),
 		util = require('util'),
@@ -22,7 +23,7 @@ var ModuleLoader = function(module_name, module_config, upstream_version){
 
 	this.load = function(){
 
-		base.logger.info(" -- Initializing " + this.module_name + " module...");
+		logger.info(" -- Initializing " + this.module_name + " module...");
 		this.module_path = base.modules_path + '/' + this.module_name;
 
 		// download module in case it's not there,
@@ -31,7 +32,7 @@ var ModuleLoader = function(module_name, module_config, upstream_version){
 			if(!exists){
 				try {
 					var mod = require(self.module_name);
-					base.logger.info(' -- Module found in node_modules path!');
+					logger.info(' -- Module found in node_modules path!');
 					return self.done(mod);
 				} catch(e){ // not available in node_modules as well
 					self.download(self.module_name);
@@ -53,25 +54,25 @@ var ModuleLoader = function(module_name, module_config, upstream_version){
 		// if(this.module_name == 'system') return;
 //		try {
 			var mod = require(this.module_path);
-			mod.init(this.module_config);
+			mod.config = this.module_config;
 
-			self.emit('success', mod);
-			self.done(mod)
+//			self.emit('success', mod);
+			self.done(mod);
 
-			base.logger.info(" == Module " + this.module_name + " loaded!")
+			logger.info(" == Module " + this.module_name + " loaded!")
 //		} catch(e) {
-//			base.logger.info(" !! " + e.message);
+//			logger.info(" !! " + e.message);
 //			this.failed(this.module_name, e);
 //		}
 	};
 
 	this.failed = function(e){
-		self.emit('failed', this.module_name, e);
+//	self.emit('failed', this.module_name, e);
 		self.done(false);
 	}
 
 	this.download = function(){
-		base.logger.info(" -- Path not found!")
+		logger.info(" -- Path not found!")
 		this.update();
 	}
 
@@ -80,16 +81,16 @@ var ModuleLoader = function(module_name, module_config, upstream_version){
 
 /*
 
-		base.logger.info(" ++ Downloading module " + this.module_name + " from server...")
+		logger.info(" ++ Downloading module " + this.module_name + " from server...")
 
 		var updater = new ModuleUpdater(this.module_name);
 
 		updater.on('success', function(){
-			base.logger.info(" ++ Module " + self.module_name + " in place and ready to roll!")
+			logger.info(" ++ Module " + self.module_name + " in place and ready to roll!")
 			self.ready();
 		});
 		updater.on('error', function(e){
-			base.logger.info(' !! Error downloading ' + self.module_name + ' package.')
+			logger.info(' !! Error downloading ' + self.module_name + ' package.')
 			self.failed(e);
 		})
 
@@ -104,7 +105,7 @@ var ModuleLoader = function(module_name, module_config, upstream_version){
 
 			if(err) return false;
 			if(parseFloat(self.upstream_version) > parseFloat(version)){
-				base.logger.info(" !! " + self.upstream_version + " is newer than installed version: " + version);
+				logger.info(" !! " + self.upstream_version + " is newer than installed version: " + version);
 				self.update();
 			} else {
 				self.ready();
