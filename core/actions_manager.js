@@ -23,12 +23,15 @@ var ActionsManager = function(){
 		this.emit('start');
 	};
 
-	this.action_returned = function(action_module, running){
-		logger.info(' -- Action module ' + action_module.name + ' finished.');
+	this.action_returned = function(action_module, success){
+		logger.info(' -- Action module ' + action_module.name + ' returned.');
 
 		this.returned_actions++;
 
-		if(!running) this.remove_from_running(action_module);
+		// if immediate action returned or long running action was unsuccesful,
+		// then we mark it as ended
+		if(action_module.type == 'immediate' || !success)
+			this.action_finished(action_module, success);
 
 		if(this.returned_count >= this.enabled_count) {
 			logger.info(" -- All actions returned!");
@@ -37,8 +40,8 @@ var ActionsManager = function(){
 
 	};
 
-	this.action_ended = function(action_module, success){
-
+	this.action_finished = function(action_module, success){
+		this.remove_from_running(action_module);
 	};
 
 	this.action_is_running = function(action_module){
@@ -93,12 +96,14 @@ var ActionsManager = function(){
 
 			if(typeof instance == 'function'){
 				instance.on('end', function(success){
-					self.action_ended(action_module, success);
+					self.action_finished(action_module, success);
 				});
+			} else {
+				action_module.type = 'immediate';
 			}
 
-			action_module.start(function(running){
-				self.action_returned(action_module, running);
+			action_module.start(function(success){
+				self.action_returned(action_module, success);
 			});
 
 		});
