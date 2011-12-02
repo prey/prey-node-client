@@ -14,20 +14,24 @@ var ActionsManager = function(){
 	var self = this;
 	this.running_actions = [];
 
+	this.enabled_count = 0;
+	this.returned_count = 0;
+
 	this.start_all = function(){
-		base.logger.info(' -- Starting all actions!')
+		logger.info(' -- Starting all actions!')
 		this.emit('start');
 	};
 
-	this.action_finished = function(action_module){
-		base.logger.info(' -- Action module ' + action_module.name + ' finished.');
+	this.action_returned = function(action_module, running){
+		logger.info(' -- Action module ' + action_module.name + ' finished.');
 
-		var index = this.running_actions.indexOf(action_module);
-		this.running_actions.splice(index, 1);
+		this.returned_actions++;
 
-		if(this.running_actions.length <= 0) {
-			base.logger.info(" -- All actions done!");
-			this.emit('all_done');
+		if(!running) this.remove_from_running(action_module);
+
+		if(this.returned_count >= this.enabled_count) {
+			logger.info(" -- All actions returned!");
+			this.emit('all_returned', this.running_actions);
 		}
 
 	};
@@ -36,12 +40,19 @@ var ActionsManager = function(){
 		return (this.running_actions.indexOf(action_module) != -1) ? true : false;
 	}
 
+	this.remove_from_running = function(action_module){
+		var index = this.running_actions.indexOf(action_module);
+		this.running_actions.splice(index, 1);
+	};
+
 	this.initialize = function(enabled_action_modules){
+
+		this.enabled_count = enabled_action_modules.length;
 
 		this.running_actions.forEach(function(running_action){
 
 			if(enabled_action_modules.indexOf(running_action) == -1){
-				base.logger.info(" -- " + running_action.name + " action was turned off!")
+				logger.info(" -- " + running_action.name + " action was turned off!")
 				self.stop(running_action);
 			}
 
@@ -50,7 +61,7 @@ var ActionsManager = function(){
 		enabled_action_modules.forEach(function(action_module){
 
 			if(self.action_is_running(action_module)) {
-				base.logger.info(" -- " + action_module.name + " is already running!")
+				logger.info(" -- " + action_module.name + " is already running!")
 			} else {
 				self.queue(action_module);
 			}
@@ -61,19 +72,17 @@ var ActionsManager = function(){
 
 	this.queue = function(action_module){
 
-		base.logger.info(' -- Queueing action ' + action_module.name);
+		logger.info(' -- Queueing action ' + action_module.name);
 
-		self.once('start', function(){
-			base.logger.info(' -- Running action ' + action_module.name);
+		this.once('start', function(){
+			logger.info(' -- Running action ' + action_module.name);
 
 			// self.running_actions[action_module.name] = action_module;
 			self.running_actions.push(action_module);
 
-			action_module.once('end', function(){
-				self.action_finished(action_module);
+			action_module.start(function(running){
+				self.action_returned(action_module, running);
 			});
-
-			action_module.run();
 
 		});
 
@@ -82,7 +91,7 @@ var ActionsManager = function(){
 	this.stop_all = function(){
 
 		if(this.running_actions.length <= 0) return false;
-		base.logger.info(" -- Stopping all actions!");
+		logger.info(" -- Stopping all actions!");
 
 		this.running_actions.forEach(function(action_module){
 			self.stop(action_module);

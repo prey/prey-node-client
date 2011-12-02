@@ -348,8 +348,9 @@ var Main = {
 
 		hooks.trigger('actions_start');
 		ActionsManager.start_all();
-		ActionsManager.once('all_done', function(){
+		ActionsManager.once('all_returned', function(running_actions){
 			hooks.trigger('actions_end');
+			logger.info("Currently running actions: " + running_actions.length);
 		});
 
 	},

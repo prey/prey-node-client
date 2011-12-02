@@ -53,7 +53,7 @@ function PreyModule(){
 		if(!this.running){
 			this.running = true;
 			this.start();
-			hooks.run(this.name + '_start');
+			hooks.trigger(this.name + '_start');
 		} else {
 			this.log('Already running!')
 		}
@@ -64,7 +64,7 @@ function PreyModule(){
 		if(this.running){
 			this.running = false;
 			this.emit('end');
-			hooks.run(this.name + '_end');
+			hooks.trigger(this.name + '_end');
 		}
 	}
 
