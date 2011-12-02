@@ -8,7 +8,9 @@
 var fs = require('fs'),
 		tls = require('tls'),
 		path = require('path'),
-		util = require('util');
+		util = require('util'),
+		base = require('./base'),
+		logger = base.logger;
 
 // to generate, run ./ssl/generate.sh
 var private_key_file = 'ssl/ssl.key';
@@ -39,7 +41,7 @@ var OnDemand = {
 				console.log(" !! Keys not found! Generating...");
 
 				require('child_process').exec('ssl/generate.sh', function(error, stdout, error){
-					console.log(stdout);
+					logger.info(stdout);
 					if(!error) OnDemand.read_keys(callback);
 				});
 
@@ -51,7 +53,7 @@ var OnDemand = {
 
 	read_keys: function(callback){
 
-		log(" -- Reading TLS public/private keys...");
+		logger.info(" -- Reading TLS public/private keys...");
 
 		this.keys = {
 			key: fs.readFileSync(private_key_file).toString(),
@@ -67,11 +69,11 @@ var OnDemand = {
 		// create and encrypted connection using ssl
 		var stream = tls.connect(port, host, this.keys, function(){
 
-			log(" -- Connection established.");
+			logger.info(" -- Connection established.");
 			if (stream.authorized)
-				log(" -- Credentials were valid!")
+				logger.info(" -- Credentials were valid!")
 			else
-				log(" !! Credentials were NOT valid: " + stream.authorizationError);
+				logger.info(" !! Credentials were NOT valid: " + stream.authorizationError);
 
 			// stream.setEncoding('utf8');
 			OnDemand.connected = true;
@@ -82,7 +84,7 @@ var OnDemand = {
 		this.stream = stream;
 
 		stream.on("data", function(data){
-			log(" -- Data received from On-Demand Hub: " + data);
+			logger.info(" -- Data received from On-Demand Hub: " + data);
 			var msg = JSON.parse(data);
 			if(msg.event == "ping")
 				OnDemand.pong();
@@ -91,16 +93,16 @@ var OnDemand = {
 		})
 
 		stream.on("error", function(error){
-			log(error);
+			logger.info(error);
 			stream.end();
 		})
 
 		stream.on("end", function(){
-			log(" -- On-Demand connection ended");
+			logger.info(" -- On-Demand connection ended");
 		})
 
 		stream.on("close", function(had_error){
-			log(" -- On-Demand connection closed.");
+			logger.info(" -- On-Demand connection closed.");
 			OnDemand.connected = false;
 		});
 
@@ -109,7 +111,7 @@ var OnDemand = {
 	},
 
 	register: function(config, version){
-		log(" -- Registering on On-Demand Hub...");
+		logger.info(" -- Registering on On-Demand Hub...");
 		var data = {
 			client_version: version,
 			key: config.device_key,
@@ -127,19 +129,19 @@ var OnDemand = {
 	},
 
 	send: function(action, data){
-		log(" -- Sending action " + action);
+		logger.info(" -- Sending action " + action);
 		if(this.stream.writable) {
 			// self.stream.write(JSON.stringify({ action: action, data: data }) + "\n", 'utf8');
 			this.stream.write(JSON.stringify({ action: action, data: data }))
 		} else {
-			log(" !! Stream not writable!");
+			logger.info(" !! Stream not writable!");
 			this.disconnect();
 		}
 	},
 
 	disconnect: function(){
 		if(!this.connected) return;
-		log(" -- Closing On-Demand connection upon request!");
+		logger.info(" -- Closing On-Demand connection upon request!");
 		this.stream.destroy();
 	}
 
@@ -150,5 +152,4 @@ exports.connect = function(host, port, config, version, callback){
 }
 
 exports.connected = OnDemand.connected;
-
 exports.disconnect = OnDemand.disconnect;
