@@ -24,7 +24,7 @@ var Terminal = function(){
 		tunnel_port: 9998
 	}
 
-	this.start = function(){
+	this.start = function(callback){
 
 		this.tunnel = new Tunnel(this.options.ssh_port, this.options.tunnel_host, this.options.tunnel_port);
 
@@ -44,34 +44,39 @@ var Terminal = function(){
 
 			self.log("Tunnel closed!");
 
-			if(self.remote_terminal_command) // means we launched the ssh server
+			if(self.child) // means we launched the ssh server
 				self.shop_ssh_server();
 
 			self.done();
 
 		});
 
+		setTimeout(function(){
+
+			if(this.child)
+				callback(this.child.is_running());
+			else
+				callback(false);
+
+		}, 500); // wait a bit before checking if the command is running or not
+
 	}
 
 	this.start_ssh_server = function(){
-
 
 		console.log("Starting SSH server!");
 
 		var ssh_cmd = os_functions.ssh_server_command;
 
-		this.remote_terminal_command = new Command(ssh_cmd);
+		this.child = new Command(ssh_cmd);
 
-		if (self.remote_terminal_command.is_running())
-			self.log("SSH server is running!");
-
-		self.remote_terminal_command.on('exit', function(code){
+		this.child.on('exit', function(code){
 			self.log("SSH server not running.");
 			if(self.tunnel.is_open()) self.tunnel.close();
 			// self.done();
 		});
 
-		self.remote_terminal_command.on('error', function(e){
+		this.child.on('error', function(e){
 			self.log('SSH server closed abruptly with status : ' + e.code);
 			// console.log(e);
 		});
@@ -84,7 +89,7 @@ var Terminal = function(){
 
 	this.stop_ssh_server = function(){
 
-		// todo
+		// TODO
 
 	};
 
@@ -92,7 +97,7 @@ var Terminal = function(){
 
 		if(this.tunnel.is_open())
 			this.tunnel.close(); // will trigger remote desktop command to stop
-		else if(this.remote_terminal_command)
+		else if(this.child)
 			this.stop_ssh_server();
 
 	}

@@ -30,7 +30,7 @@ var Desktop = function(){
 	// open: first we open the tunnel, then we run the command
 	// close: first we close the tunnel, then we kill the command
 
-	this.start = function(){
+	this.start = function(callback){
 
 		this.tunnel = new Tunnel(this.options.vnc_port, this.options.tunnel_host, this.options.tunnel_port);
 
@@ -40,23 +40,20 @@ var Desktop = function(){
 
 			var vnc_cmd = os_functions.vnc_command(self.options);
 			// console.log("running: " + vnc_cmd);
-			self.remote_desktop_command = new Command(vnc_cmd);
+			self.child = new Command(vnc_cmd);
 
-			if (self.remote_desktop_command.is_running())
-				self.log("VNC server is running!");
-
-			self.remote_desktop_command.on('exit', function(code){
+			self.child.on('exit', function(code){
 				self.log("VNC server terminated.");
 				if(self.tunnel.is_open()) self.tunnel.close();
 				// self.done();
 			});
 
-			self.remote_desktop_command.on('error', function(e){
+			self.child.on('error', function(e){
 				self.log('VNC server closed abruptly with status code ' + e.code);
 				// console.log(e);
 			});
 
-//			self.remote_desktop_command.on('return', function(output){
+//			self.child.on('return', function(output){
 //				console.log(output);
 //			});
 
@@ -65,12 +62,21 @@ var Desktop = function(){
 		this.tunnel.on('closed', function(){
 
 			self.log("Tunnel closed!");
-			if(self.remote_desktop_command)
-				self.remote_desktop_command.kill();
+			if(self.child)
+				self.child.kill();
 
 			self.done();
 
 		});
+
+		setTimeout(function(){
+
+			if(this.child)
+				callback(this.child.is_running());
+			else
+				callback(false);
+
+		}, 500); // wait a bit before checking if the command is running or not
 
 	}
 

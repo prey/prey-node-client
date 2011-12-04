@@ -5,36 +5,32 @@
 // GPLv3 Licensed
 //////////////////////////////////////////
 
-var util = require('util'),
-		Command = require('../../lib/command'),
-		GStreamer = require('node-gstreamer'),
-		ActionModule = require('../../core/action_module');
+var instance, GStreamer = require('node-gstreamer');
 
-var Alarm = function(){
+function Alarm(options){
 
-	ActionModule.call(this);
-	var self = this;
-	this.name = 'alarm';
+	this.sound_file = options.sound_file || __dirname + '/lib/siren.mp3';
+	this.loops = options.loops || 1;
 
-	this.options = {
-		sound: "siren.mp3"
+	this.start = function(callback){
+		var returned = false;
+
+		for(i = 0; i < this.loops; i++){
+			console.log("Playing alarm sound!");
+			GStreamer.playSound(this.sound_file, function(was_played){
+				if(!returned) callback(was_played);
+			});
+		}
 	}
 
-	this.start = function(){
+}
 
-		var sound_file = __dirname + "/lib/" + this.options.sound;
+var options = {};
 
-		this.alarm_command = GStreamer.playSound(sound_file, function(was_played){
-			self.done();
-		});
+exports.init = function(options){
+	instance = new Alarm(options);
+}
 
-	}
-
-	this.stop = function(){
-		this.alarm_command.kill(); // will trigger 'exit' event
-	}
-
-};
-
-util.inherits(Alarm, ActionModule);
-module.exports = new Alarm();
+exports.start = function(callback){
+	instance.start(callback);
+}
