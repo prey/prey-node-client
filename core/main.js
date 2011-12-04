@@ -10,7 +10,7 @@ var base = require('./base'),
 		path = require('path'),
 		fs = require("fs"),
 		util = require("util"),
-		hooks = require('./hook_manager'),
+		hooks = require('./hook_dispatcher'),
 		Check = require('./check'),
 		Connection = require('./connection'),
 		Request = require('./request'),
@@ -219,32 +219,12 @@ var Main = {
 
 			self.process_module_config(function(){
 
-				logger.info(' -- All modules loaded.')
+				logger.info(' -- All modules loaded.');
 				ActionsManager.initialize(self.modules.action);
 
 				if(self.missing && self.modules.report.length > 0) {
 
-					hooks.trigger('report_start');
-					var report = new Report(self.modules.report, self.requested.configuration);
-
-					report.once('ready', function(){
-
-						Main.start_actions();
-
-						if(Object.keys(report.traces).length > 0)
-							report.send_to(self.config.destinations, self.config);
-						else
-							logger.info(" -- Nothing to send!");
-
-					});
-
-					report.once('sent', function(){
-
-						hooks.trigger('report_end');
-
-					});
-
-					report.gather();
+					Main.send_report(self.requested.configuration, self.modules.report);
 
 				} else {
 
@@ -260,6 +240,10 @@ var Main = {
 
 	},
 
+	missing: function(){
+		return (self.response_status == this.config.missing_status_code);
+	},
+
 	process_main_config: function(){
 
 		logger.info(" -- Processing main config...")
@@ -269,8 +253,6 @@ var Main = {
 			self.auto_update = this.config.auto_update;
 		else
 			self.auto_update = self.requested.configuration.auto_update || false;
-
-		self.missing = (self.response_status == this.config.missing_status_code);
 
 		var status_msg = self.missing ? "Device is missing!" : "Device not missing. Sweet.";
 		logger.info(" -- " + status_msg);
@@ -319,7 +301,7 @@ var Main = {
 			var version_to_pass = self.auto_update ? module_data.version : null;
 
 			var report_modules = [], action_modules = [];
-			var loader = new ModuleLoader(module_data.name, module_config, version_to_pass);
+			var loader = ModuleLoader.load(module_data.name, version_to_pass, module_config);
 
 			loader.once('done', function(prey_module){
 
@@ -341,6 +323,32 @@ var Main = {
 			});
 
 		}
+
+	},
+
+	send_report: function(config, selected_modules){
+
+		hooks.trigger('report_start');
+		var report = new Report(selected_modules, config);
+
+		report.once('ready', function(){
+
+			Main.start_actions();
+
+			if(Object.keys(report.traces).length > 0)
+				report.send_to(self.config.destinations, self.config);
+			else
+				logger.info(" -- Nothing to send!");
+
+		});
+
+		report.once('sent', function(){
+
+			hooks.trigger('report_end');
+
+		});
+
+		report.gather();
 
 	},
 
@@ -392,9 +400,9 @@ var Main = {
 	//   config: { message: 'hi', ... }
 	// }
 
-	load_and_run_module: function(data){
+	load_and_start_action: function(module_data){
 
-		var loader = ModuleLoader(data.module, data.config, data.upstream_version);
+		var loader = ModuleLoader.load(module_data.name, module_data.upstream_version);
 
 		loader.once('done', function(loaded_module){
 
@@ -402,19 +410,33 @@ var Main = {
 
 				console.log("Unable to load module");
 
-			} else if(!data.method || data.method == ''){
-
-				loaded_module.run();
-
 			} else {
 
-				try {
+				ActionsManager.initialize_module(loaded_module, module_data.config);
 
-					loaded_module[data.method]();
+				if(module_data.method && module_data.method != ''){
 
-				} catch(e){
+					try {
 
-					console.log("Whoops! Seems " + loaded_module.name + " doesnt have that method");
+						loaded_module[module_data.method]();
+
+					} catch(e){
+
+						console.log("Whoopsy! Seems " + module_data.name + " doesnt have that method");
+
+					}
+
+				} else if(loaded_module.start) {
+
+					loaded_module.start(function(success){
+						var msg = success ? "Great success!" : "No success. Bummer.";
+						console.log(msg);
+					});
+
+				} else {
+
+					console.log("Nothing else to do for this one.")
+
 				}
 
 			}
@@ -430,7 +452,7 @@ var Main = {
 		updater.update(function(new_version){
 
 			if(new_version)
-				ControlPanel.update_device({client_version: new_version});
+				ControlPanel.update_device_info({client_version: new_version});
 			else
 				logger.info("Update process was unsuccessful.");
 
@@ -459,12 +481,23 @@ var Main = {
 
 		switch(command) {
 
-			case 'run_module':
-
-				load_and_run_module(data);
+			case 'start_reports':
+				// TODO
 				break;
 
-			case 'wake_on_lan':
+			case 'stop_reports':
+				// TODO
+				break;
+
+			case 'run_action':
+
+				this.load_and_start_action(data);
+				break;
+
+			case 'get_info':
+
+
+			case 'wake':
 
 				wake(data, function(success){
 

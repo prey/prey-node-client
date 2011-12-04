@@ -8,6 +8,7 @@
 var base = require('./base'),
 		logger = base.logger,
 		util = require('util'),
+		hooks = require('./hook_dispatcher'),
 		emitter = require('events').EventEmitter;
 
 var ActionsManager = function(){
@@ -24,9 +25,13 @@ var ActionsManager = function(){
 	};
 
 	this.action_returned = function(action_module, success){
-		logger.info(' -- Action module ' + action_module.name + ' returned.');
 
-		this.returned_actions++;
+		var timediff = new Date() - action_module.started_at;
+		var msg = action_module.name + ' module returned after ' + timediff/1000 + ' seconds. ';
+		msg += success ? "Success!" : "No success.";
+		logger.info(msg);
+
+		this.returned_count++;
 
 		// if immediate action returned or long running action was unsuccesful,
 		// then we mark it as ended
@@ -60,7 +65,7 @@ var ActionsManager = function(){
 		this.running_actions.forEach(function(running_action){
 
 			if(enabled_action_modules.indexOf(running_action) == -1){
-				logger.info(" -- " + running_action.name + " action was turned off!")
+				logger.warn(" -- " + running_action.name + " action was turned off!")
 				self.stop(running_action);
 			}
 
@@ -69,14 +74,42 @@ var ActionsManager = function(){
 		enabled_action_modules.forEach(function(action_module){
 
 			if(self.action_is_running(action_module)) {
-				logger.info(" -- " + action_module.name + " is already running!")
+				logger.warn(" -- " + action_module.name + " is already running!")
 			} else {
 				self.queue(action_module);
 			}
 
 		});
 
-	}
+	};
+
+	this.initialize_module = function(action_module, options){
+
+		// attach our base logger so we can keep everything in one place
+		if(!action_module.logger) action_module.logger = base.logger;
+
+		// call init function of module which to see what we get
+		var instance = action_module.init ? action_module.init(options || {}) : null;
+
+		// register events if any
+		if(instance && action_module.events && action_module.events.length > 0){
+			action_module.events.forEach(function(event_name){
+				instance.on(event_name, function(args){
+					hooks.trigger(event_name, args);
+				});
+			});
+		}
+
+		// register hooks as well
+		if(action_module.hooks && Object.keys(action_module.hooks).length > 0){
+			for(hook in action_module.hooks){
+				hooks.register(hook, action_module.hooks[hook]);
+			}
+		}
+
+		return instance;
+
+	};
 
 	this.queue = function(action_module){
 
@@ -85,26 +118,27 @@ var ActionsManager = function(){
 		this.once('start', function(){
 			logger.info(' -- Running action ' + action_module.name);
 
-			// self.running_actions[action_module.name] = action_module;
-			self.running_actions.push(action_module);
+			var instance = this.initialize_module(action_module, action_module.config);
 
-			var instance = action_module.init(action_module.config);
-
-			// if the action returns a class instance, it's a long running/persistent
+			// if the returned object is an emitter, it's a long running/persistent
 			// action, which means we need to listen for the 'end' event to know
 			// when it really finishes
 
-			if(typeof instance == 'function'){
-				instance.on('end', function(success){
+			if(instance && instance.emit){
+				instance.once('end', function(success){
 					self.action_finished(action_module, success);
 				});
 			} else {
 				action_module.type = 'immediate';
 			}
 
-			action_module.start(function(success){
-				self.action_returned(action_module, success);
-			});
+			if(action_module.start) {
+				self.running_actions.push(action_module);
+				action_module.started_at = new Date();
+				action_module.start(function(success){
+					self.action_returned(action_module, success);
+				});
+			}
 
 		});
 
@@ -124,7 +158,7 @@ var ActionsManager = function(){
 	this.stop = function(action_module){
 
 		// var action_module = this.running_actions[action_module_name];
-		action_module.stop();
+		if(action_module.stop) action_module.stop();
 
 	};
 

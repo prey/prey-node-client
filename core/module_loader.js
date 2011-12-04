@@ -13,7 +13,7 @@ var base = require('./base'),
 		emitter = require('events').EventEmitter;
 //		ModuleUpdater = require('./module_updater');
 
-var ModuleLoader = function(module_name, module_config, upstream_version){
+var ModuleLoader = function(module_name, upstream_version, module_config){
 
 	var self = this;
 	this.module_name = module_name;
@@ -110,12 +110,16 @@ var ModuleLoader = function(module_name, module_config, upstream_version){
 			} else {
 				self.ready();
 			}
-		})
-	}
+		});
 
-	this.load();
+	}
 
 }
 
 util.inherits(ModuleLoader, emitter);
-module.exports = ModuleLoader;
+
+exports.load = function(module_name, upstream_version, module_config){
+	var ml = new ModuleLoader(module_name, upstream_version, module_config || {});
+	ml.load();
+	return ml;
+}

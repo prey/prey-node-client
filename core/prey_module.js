@@ -8,7 +8,7 @@
 var base = require('./base'),
 		logger = base.logger,
 		util = require('util'),
-		hooks = require('./hook_manager'),
+		hooks = require('./hook_dispatcher'),
 		emitter = require('events').EventEmitter;
 
 function mixin(target, source) {
@@ -25,6 +25,7 @@ function PreyModule(){
 
 	var self = this;
 	this.running = false;
+	this.finished = false;
 
 	this.path = function(){
 		return base.modules_path + '/' + this.name;
@@ -47,6 +48,8 @@ function PreyModule(){
 		// this.loaded = true;
 		// this.emit('ready');
 
+		return this;
+
 	}
 
 	this.run = function(){
@@ -62,8 +65,9 @@ function PreyModule(){
 	};
 
 	this.done = function(){
-		if(this.running){
+		if(!this.finished){
 			this.running = false;
+			this.finished = true;
 			this.emit('end');
 			hooks.trigger(this.name + '_end');
 		}
