@@ -222,7 +222,7 @@ var Main = {
 				logger.info(' -- All modules loaded.');
 				ActionsManager.initialize(self.modules.action);
 
-				if(self.missing && self.modules.report.length > 0) {
+				if(self.missing() && self.modules.report.length > 0) {
 
 					Main.send_report(self.requested.configuration, self.modules.report);
 
@@ -241,7 +241,11 @@ var Main = {
 	},
 
 	missing: function(){
-		return (self.response_status == this.config.missing_status_code);
+		try {
+			return self.requested.status.missing; // from instructions
+		} catch(e){
+			return self.response_status == this.config.missing_status_code;
+		}
 	},
 
 	process_main_config: function(){
@@ -254,7 +258,7 @@ var Main = {
 		else
 			self.auto_update = self.requested.configuration.auto_update || false;
 
-		var status_msg = self.missing ? "Device is missing!" : "Device not missing. Sweet.";
+		var status_msg = self.missing() ? "Device is missing!" : "Device not missing. Sweet.";
 		logger.info(" -- " + status_msg);
 
 		self.process_delay();
