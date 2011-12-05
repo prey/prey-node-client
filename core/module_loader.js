@@ -55,7 +55,7 @@ var ModuleLoader = function(module_name, upstream_version, module_config){
 //		try {
 			var mod = require(this.module_path);
 			mod.config = this.module_config;
-			mod.name = this.module_name;
+			if(!mod.name) mod.name = this.module_name;
 
 //			self.emit('success', mod);
 			self.done(mod);
