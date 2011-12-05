@@ -243,8 +243,8 @@ var Main = {
 						} else {
 
 							var options = {
-								user_agent: self.user_agent,
-								url: self.config.post_url
+								user_agent: base.user_agent,
+								url: self.requested.config.post_url
 							}
 
 							var notifier = Notifier.send(report.traces, options);
