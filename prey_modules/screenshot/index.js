@@ -8,7 +8,7 @@
 var base = require('../../core/base'),
 		util = require('util'),
 		GStreamer = require('node-gstreamer'),
-		ReportModule = require('../lib/info_module'),
+		InfoModule = require('../lib/info_module'),
 		os_functions = require('./platform/' + base.os_name);
 
 var Screenshot = function(){

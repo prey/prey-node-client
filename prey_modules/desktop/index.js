@@ -92,4 +92,7 @@ var Desktop = function(){
 };
 
 util.inherits(Desktop, ActionModule);
-module.exports = new Desktop();
+
+exports.init = function(options){
+	return new Desktop(options);
+}

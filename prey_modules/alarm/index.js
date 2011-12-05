@@ -5,7 +5,7 @@
 // GPLv3 Licensed
 //////////////////////////////////////////
 
-var instance, GStreamer = require('node-gstreamer');
+var GStreamer = require('node-gstreamer');
 
 function Alarm(options){
 
@@ -25,12 +25,6 @@ function Alarm(options){
 
 }
 
-var options = {};
-
 exports.init = function(options){
-	instance = new Alarm(options);
-}
-
-exports.start = function(callback){
-	instance.start(callback);
+	return new Alarm(options);
 }

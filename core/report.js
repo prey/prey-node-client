@@ -9,23 +9,21 @@ var base = require('./base'),
 		logger = base.logger,
 		util = require('util'),
 		fs = require('fs'),
-		http_client = require('restler'),
 		emitter = require('events').EventEmitter
 
-var Report = function(report_modules, options){
+var Report = function(modules){
 
 	var self = this;
-	this.options = options;
 	this.traces = {};
+	this.modules = modules;
 
 	this.log = function(str){
 		logger.info(" -- [report] " + str);
 	};
 
-	this.sent = function(){
-		this.log('Sent to all destinations!');
+	this.empty = function(){
+		this.traces = [];
 		this.remove_files();
-		this.emit('sent');
 	};
 
 	this.remove_files = function(){
@@ -55,10 +53,10 @@ var Report = function(report_modules, options){
 
 	this.gather = function(){
 
-		var report_modules_count = report_modules.length;
+		var report_modules_count = this.modules.length;
 		var modules_returned = 0;
 
-		report_modules.forEach(function(prey_module){
+		this.modules.forEach(function(prey_module){
 
 			// TODO: check whether we should use 'once' instead of 'on'
 			prey_module.once('end', function(){
@@ -84,41 +82,6 @@ var Report = function(report_modules, options){
 		});
 
 	};
-
-	this.send_to = function(destinations, config){
-
-//	console.log(self.traces)
-
-		var transports_returned = 0;
-
-		destinations.forEach(function(destination) {
-
-			if(destination == 'control_panel'){
-				var transport_options = {
-					username: config.api_key,
-					post_url: options.post_url,
-				}
-			} else {
-				var transport_options = config.transports[destination];
-			}
-
-			transport_options.user_agent = config.user_agent;
-			transport_options.proxy = config.proxy;
-
-			var Transport = require(base.root_path + '/transports/' + destination);
-			var tr = new Transport(self, transport_options);
-			tr.send(self.traces);
-
-			tr.once('end', function(){
-
-				if(++transports_returned >= destinations.length)
-					self.sent();
-
-			});
-
-		});
-
-	}
 
 }
 

@@ -47,14 +47,16 @@ loop_start
 no_connection
 fetch_start
 fetch_end
+modules_loaded
 actions_start
 actions_end
 report_start
-report_end
+report_ready
+report_sent
 [module_name]_start
 [module_name]_end
-message_received
-message_sent
+command_received
+command_sent
 loop_end
 shutdown
 

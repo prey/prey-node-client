@@ -16,7 +16,7 @@ var ActionsManager = function(){
 	var self = this;
 	this.running_actions = [];
 
-	this.enabled_count = 0;
+	this.queued_count = 0;
 	this.returned_count = 0;
 
 	this.start_all = function(){
@@ -38,7 +38,7 @@ var ActionsManager = function(){
 		if(action_module.type == 'immediate' || !success)
 			this.action_finished(action_module, success);
 
-		if(this.returned_count >= this.enabled_count) {
+		if(this.returned_count >= this.queued_count) {
 			logger.info(" -- All actions returned!");
 			this.emit('all_returned', this.running_actions);
 		}
@@ -60,8 +60,6 @@ var ActionsManager = function(){
 
 	this.initialize = function(enabled_action_modules){
 
-		this.enabled_count = enabled_action_modules.length;
-
 		this.running_actions.forEach(function(running_action){
 
 			if(enabled_action_modules.indexOf(running_action) == -1){
@@ -76,7 +74,8 @@ var ActionsManager = function(){
 			if(self.action_is_running(action_module)) {
 				logger.warn(" -- " + action_module.name + " is already running!")
 			} else {
-				self.queue(action_module);
+				if(self.queue(action_module))
+					self.queued_modules++;
 			}
 
 		});
@@ -90,6 +89,8 @@ var ActionsManager = function(){
 
 		// call init function of module which to see what we get
 		var instance = action_module.init ? action_module.init(options || {}) : null;
+
+		if(!instance) return false;
 
 		// register events if any
 		if(instance && action_module.events && action_module.events.length > 0){
@@ -116,15 +117,16 @@ var ActionsManager = function(){
 		logger.info(' -- Queueing action ' + action_module.name);
 
 		this.once('start', function(){
-			logger.info(' -- Running action ' + action_module.name);
 
 			var instance = this.initialize_module(action_module, action_module.config);
 
-			// if the returned object is an emitter, it's a long running/persistent
+			if(!instance) return false;
+
+			// if instance has a stop method, then it's a long running/persistent
 			// action, which means we need to listen for the 'end' event to know
 			// when it really finishes
 
-			if(instance && instance.emit){
+			if(instance.stop && instance.emit){
 				instance.once('end', function(success){
 					self.action_finished(action_module, success);
 				});
@@ -132,10 +134,13 @@ var ActionsManager = function(){
 				action_module.type = 'immediate';
 			}
 
-			if(action_module.start) {
+			if(instance.start) {
+
+				logger.info(' -- Running action ' + action_module.name);
+
 				self.running_actions.push(action_module);
 				action_module.started_at = new Date();
-				action_module.start(function(success){
+				instance.start(function(success){
 					self.action_returned(action_module, success);
 				});
 			}

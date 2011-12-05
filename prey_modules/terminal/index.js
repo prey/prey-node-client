@@ -12,7 +12,7 @@ var base = require('../../core/base'),
 		ActionModule = require('../../core/action_module'),
 		os_functions = require('./platform/' + base.os_name);
 
-var Terminal = function(){
+var Terminal = function(options){
 
 	ActionModule.call(this);
 	var self = this;
@@ -105,4 +105,7 @@ var Terminal = function(){
 };
 
 util.inherits(Terminal, ActionModule);
-module.exports = new Terminal();
+
+exports.init = function(options){
+	return new Terminal(options);
+};

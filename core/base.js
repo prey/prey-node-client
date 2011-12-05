@@ -1,10 +1,9 @@
 var path = require('path');
 
 var root_path = process.env.ROOT_PATH || path.resolve(path.join(__dirname, '..'));
-var script_path = path.join(root_path, 'prey.js');
 var os_name = process.platform.replace('darwin', 'mac').replace('win32', 'windows');
 
-
+exports.config = require('../config');
 exports.logger = require('nlogger').logger(module.parent || 'base');
 exports.helpers = require('./helpers');
 exports.root_path = root_path;

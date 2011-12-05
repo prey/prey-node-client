@@ -5,18 +5,18 @@
 // GPLv3 Licensed
 //////////////////////////////////////////
 
-var base = require('./base'),
-		logger = base.logger,
+var logger = require('./base').logger,
 		util = require('util'),
 		emitter = require('events').EventEmitter;
 
-var Transport = function(report, options) {
+var Transport = function(options) {
 
 	var self = this;
 	this.options = options;
+	this.name = 'base';
 
 	this.log = function(str){
-		logger.info(' -- [transport:' + this.destination +'] ' + str);
+		logger.info(' -- [' + this.name + ' transport] ' + str);
 	};
 
 	this.on('start', function(){
@@ -32,6 +32,10 @@ var Transport = function(report, options) {
 		else
 			this.log("Finished. Took " + timediff/1000 + " seconds.");
 	});
+
+	this.send = function(data){
+		// redefined by children
+	};
 
 }
 

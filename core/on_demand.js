@@ -93,7 +93,7 @@ var OnDemand = {
 		})
 
 		stream.on("error", function(error){
-			logger.info(error);
+			logger.info("On-Demand error: " + error.code);
 			stream.end();
 		})
 

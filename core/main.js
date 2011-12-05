@@ -19,6 +19,7 @@ var base = require('./base'),
 		ModuleLoader = require('./module_loader'),
 		ActionsManager = require('./actions_manager'),
 		Report = require('./report'),
+		Notifier = require('./notifier'),
 //	Discovery = require('./discovery'),
 		OnDemand = require('./on_demand');
 
@@ -86,9 +87,7 @@ var Main = {
 		this.running = true;
 		this.running_user = process.env['USERNAME'];
 		this.started_at = new Date();
-
 		this.user_agent = "Prey/" + this.version + " (NodeJS, "  + base.os_name + ")";
-		this.config.user_agent = this.user_agent; // so we dont need to pass it all the time
 
 		console.log("\n");
 		logger.info("  PREY " + this.version + " spreads its wings!\n");
@@ -217,14 +216,40 @@ var Main = {
 			if(!offline && self.requested.configuration.offline_actions)
 				base.helpers.save_file_contents(this.config.last_response_file, response_body);
 
-			self.process_module_config(function(){
+			self.process_module_config(self.requested.modules, function(modules){
 
 				logger.info(' -- All modules loaded.');
-				ActionsManager.initialize(self.modules.action);
+				hooks.trigger('modules_loaded', modules);
 
-				if(self.missing() && self.modules.report.length > 0) {
+				ActionsManager.initialize(modules.action);
 
-					Main.send_report(self.requested.configuration, self.modules.report);
+				if(self.missing() && modules.report.length > 0) {
+
+					Main.gather_report(modules.report, function(report){
+
+						if(Object.keys(report.traces).length <= 0){
+
+							logger.info(" -- Nothing to send!");
+
+						} else {
+
+							var options = {
+								user_agent: self.user_agent,
+								url: self.config.post_url
+							}
+
+							var notifier = Notifier.send(report.traces, options);
+
+							notifier.once('sent', function(){
+								report.empty();
+								hooks.trigger('report_sent');
+							});
+
+						}
+
+						Main.start_actions();
+
+					});
 
 				} else {
 
@@ -282,15 +307,15 @@ var Main = {
 
 	},
 
-	process_module_config: function(callback){
+	process_module_config: function(data, callback){
 
-		var requested_modules = self.requested.modules.module.length || 1;
+		var requested_modules = data.module.length || 1;
 		var modules_loaded = 0;
 		logger.info(" -- " + requested_modules + " modules enabled!")
 
-		for(id in self.requested.modules.module){
+		for(id in data.module){
 
-			var module_config = self.requested.modules.module[id];
+			var module_config = data.module[id];
 
 			if(typeof(module_config) !== "object") continue;
 //			console.log(util.inspect(module_config));
@@ -304,7 +329,7 @@ var Main = {
 
 			var version_to_pass = self.auto_update ? module_data.version : null;
 
-			var report_modules = [], action_modules = [];
+			var modules = {report: [], action: []};
 			var loader = ModuleLoader.load(module_data.name, version_to_pass, module_config);
 
 			loader.once('done', function(prey_module){
@@ -314,14 +339,14 @@ var Main = {
 				if(prey_module){
 
 					if(prey_module.type == 'report')
-						self.modules.report.push(prey_module);
+						modules.report.push(prey_module);
 					else
-						self.modules.action.push(prey_module);
+						modules.action.push(prey_module);
 
 				}
 
 				if(modules_loaded >= requested_modules) {
-					callback();
+					callback(modules);
 				}
 
 			});
@@ -330,25 +355,15 @@ var Main = {
 
 	},
 
-	send_report: function(config, selected_modules){
+	gather_report: function(selected_modules, callback){
 
 		hooks.trigger('report_start');
-		var report = new Report(selected_modules, config);
+		var report = new Report(selected_modules);
 
 		report.once('ready', function(){
 
-			Main.start_actions();
-
-			if(Object.keys(report.traces).length > 0)
-				report.send_to(self.config.destinations, self.config);
-			else
-				logger.info(" -- Nothing to send!");
-
-		});
-
-		report.once('sent', function(){
-
-			hooks.trigger('report_end');
+			hooks.trigger('report_ready', report);
+			callback(report);
 
 		});
 
