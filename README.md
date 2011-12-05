@@ -6,32 +6,55 @@ It rocks.
 
 npm install prey
 
-== Modules
+Then you need to configure your device/API keys in the config.js file. You can
+also not set up those keys and use your own server by setting the correct check
+url (you can use more than one, by the way).
 
-There are two main kind of modules: info modules and action modules.
+== How to run
 
-- Info modules: emit traces of information upon request. Singletons.
-  - Core info modules: system, network, geo. 
-    - Used by various sections of Prey (Register, Report, Request, Discovery).
-  - Optional info modules: webcam, screenshot, running programs, modified files, traceroute.
+$ node prey
 
-- Action modules: perform tasks exposing start() and (optinally) stop() methods. Do not return stuff.
+== Plugins (a.k.a. Actions)
+
+Plugins perform tasks exposing start() and (optionally) stop() methods. Do not return stuff.
+
   - Persistent actions: lock, terminal, desktop, filebrowser.
+
     - These normally depend on child processes or listening servers, and run until the user cancels the action.
     - Should return (1) whether the process was succesfully launched and (2) when it is finished.
+
   - Long running actions: file retrieval (search and upload), wipe (file deletion).
     - Should return whether the task is being run and when it is finished.
+
   - Fire and forget actions: alarm, alert, standby, shutdown.
     - Should return whether the task was succesfully ran or not.
 
-Ok so we have info modules and action modules.
+== Triggers
+
+Plugins can also export hooks and events. If a loaded plugin advertises an event,
+then the process is kept running until the event is fired. Examples for triggers
+include: wifi_network_change, low_battery_detected, latest_win_iso_being_downloaded,
+you know, whatever.
+
+When an event is triggered then a hook is fired for all listening plugins to take
+action. Unlike base hooks (i.e. report_sent), these triggers are also passed to
+Notifier so that the user can take action as well.
+
+A plugin can also subscribe to a hook in order to do something about it. For
+example,you could wait for a wifi_network_change and in case you get "Starbucks"
+you could use text-to-speech to shout a message and wait for the hero of the hour
+to go after the guy and get your PC back. Be creative!
+
+After all plugins are loaded, Prey will check whether the subscribed-to hook is
+indeed advertised by someone else. If it isn't, then the hook will be removed as
+there is no point in keeping the process running if nothing will ever happen.
 
 == Messaging
 
-Prey should be able to receive specific instructions, so that it's able to fetch 
+Prey should be able to receive specific instructions, so that it's able to fetch
 specific bits of information or run specific actions. These commands could (and
-probably should) contain information about how to process the instruction. An initial 
-draft of different requests that could be made:
+probably should) contain information about how to process the instruction. An
+initial draft of different requests that could be made:
 
  - send_reports (interval, options)
    - i.e. send_reports(10, {screenshot: false, picture: true})
@@ -39,6 +62,15 @@ draft of different requests that could be made:
    - i.e. get_info('modified_files', {path: '/home/', from: 5.minutes.ago})
  - run_action (which, options)
    - i.e. run_action('alarm', {sound: 'siren.mp3', loops: 3})
+
+== Providers
+
+ - Providers provide information on request. They return the result as a callback.
+
+	var Network = require('network');
+	Network.get('active_wifi_network', function(result){
+		console.log("Current wifi network: " + result);
+	};
 
 == Hooks
 
@@ -83,6 +115,6 @@ shutdown
 
 == Legal
 
-Copyright © 2010, Fork Ltd.
+Copyright © 2011, Fork Ltd.
 Released under the GPLv3 license.
 For full details see the LICENSE file included in this distribution.
