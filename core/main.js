@@ -69,6 +69,10 @@ var Main = {
 		logger.info(" -- Loop ended!");
 		hooks.trigger('loop_end');
 
+		hooks.on('command', function(command, data){
+			Main.handle_incoming_message(command, data);
+		});
+
 		logger.info("Active hooks: " + hooks.active.length);
 
 		if(hooks.active.length > 0){

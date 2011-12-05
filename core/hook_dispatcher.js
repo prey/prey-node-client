@@ -6,7 +6,6 @@
 //////////////////////////////////////////
 
 var base = require('./base'),
-		Prey = require('./main'),
 		logger = base.logger,
 		util = require('util'),
 		Notifier = require('./notifier'),
@@ -43,7 +42,7 @@ function HookDispatcher(){
 			this.once(hook, callback);
 		else
 			this.once(hook, function(){
-				Prey.handle_incoming_message(callback.command, callback.data);
+				self.emit('command', callback.command, callback.data);
 			});
 
 		this.active.push(hook);
