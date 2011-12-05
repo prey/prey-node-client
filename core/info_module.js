@@ -13,13 +13,14 @@ function InfoModule(){
 	PreyModule.call(this);
 	var self = this;
 	this.type = 'report';
+	this.trace_expiration = 30 * 1000; // 30 seconds
 
 	this.reset = function(){
 		if(self.name && process.env.LOOP)
 			self.log("Resetting! Current loop: " + process.env.LOOP);
 
 		this.traces = {};
-		this.traces_called = [];
+		this.traces_requested = [];
 		this.traces_returned = 0;
 	}
 
@@ -67,9 +68,9 @@ function InfoModule(){
 			if(callback) callback(val);
 		});
 
-		if(self.traces_called.indexOf(trace) == -1) {
-			// console.log(' == Calling ' + method);
-			self.traces_called.push(trace);
+		if(self.traces_requested.indexOf(trace) == -1) {
+			// console.log(' == Requesting ' + method);
+			self.traces_requested.push(trace);
 			self[method](opts);
 		}
 	};
@@ -82,6 +83,12 @@ function InfoModule(){
 		this.log("Got trace: " + key + " -> " + val);
 		// if(val) this.traces[key] = val;
 		this.traces[key] = val;
+
+		// info may change in time so let's remove it after a while
+		// setTimeout(function(){
+		// 	delete self.traces[key];
+		// }, this.trace_expiration);
+
 	}
 
 	this.trace_returned = function(trace){
