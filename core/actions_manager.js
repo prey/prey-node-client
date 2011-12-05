@@ -16,6 +16,8 @@ var ActionsManager = function(){
 	var self = this;
 	this.running_actions = [];
 
+	this.registered_events = [];
+
 	this.queued_count = 0;
 	this.returned_count = 0;
 
@@ -69,7 +71,7 @@ var ActionsManager = function(){
 
 		});
 
-		enabled_action_modules.forEach(function(action_module){
+		enabled_action_modules.forEach(function(action_module, i){
 
 			if(self.action_is_running(action_module)) {
 				logger.warn(" -- " + action_module.name + " is already running!")
@@ -79,6 +81,9 @@ var ActionsManager = function(){
 			}
 
 		});
+
+		console.log(this.registered_events);
+		hooks.unregister_if_missing(this.registered_events);
 
 	};
 
@@ -95,8 +100,10 @@ var ActionsManager = function(){
 		// register events if any
 		if(instance && action_module.events && action_module.events.length > 0){
 			action_module.events.forEach(function(event_name){
+				logger.info(action_module.name + " announced event: " + event_name);
+				self.registered_events.push(event_name);
 				instance.on(event_name, function(args){
-					hooks.trigger(event_name, args);
+					hooks.trigger_and_notify(event_name, args);
 				});
 			});
 		}
@@ -116,11 +123,10 @@ var ActionsManager = function(){
 
 		logger.info(' -- Queueing action ' + action_module.name);
 
+		var instance = this.initialize_module(action_module, action_module.config);
+		if(!instance) return false;
+
 		this.once('start', function(){
-
-			var instance = this.initialize_module(action_module, action_module.config);
-
-			if(!instance) return false;
 
 			// if instance has a stop method, then it's a long running/persistent
 			// action, which means we need to listen for the 'end' event to know

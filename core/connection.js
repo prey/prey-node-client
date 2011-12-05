@@ -26,18 +26,27 @@ var Connection = function(proxy_config){
 	this.connect = function(config){
 
 		// create TCP stream to server
-		var stream = net.createConnection(parseInt(this.check_port), this.check_host);
+		var socket = new net.Socket();
+		socket.setTimeout(10 * 1000); // 10 seconds
 
-		stream.on('connect', function() {
+		socket.connect(parseInt(this.check_port), this.check_host);
+
+		socket.on('connect', function() {
 			self.established = true;
 			self.emit('found');
-			stream.end();
+			socket.end();
+		});
+
+		socket.on('timeout', function(e) {
+			console.log(' !! Timeout!');
+			socket.end();
+			self.emit('not_found');
 		});
 
 		// listen for any errors
-		stream.on('error', function(error) {
+		socket.on('error', function(error) {
 			console.log(' !! Error: ' + error.message);
-			stream.end();
+			socket.end();
 			self.emit('not_found');
 		})
 

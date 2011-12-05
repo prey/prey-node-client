@@ -68,6 +68,16 @@ var Main = {
 
 		logger.info(" -- Loop ended!");
 		hooks.trigger('loop_end');
+
+		console.log("Active hooks: " + hooks.active.length);
+
+		if(hooks.active.length > 0){
+			this.timer = setInterval(function(){
+				console.log("Active hooks: " + hooks.active.length);
+				if(hooks.active.length <= 0) clearInterval(self.timer);
+			}, 5 * 1000); // 5 seconds
+		}
+
 		// if(!Discovery.running) this.load_discovery();
 
 	},
