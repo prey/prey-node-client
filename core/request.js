@@ -47,17 +47,15 @@ function Request(config, headers, callback){
 
 	this.extend_headers = function(headers, callback){
 
-		var async_headers = 2;
+		var async_headers = 3;
 		var headers_got = 0;
 
 		headers['X-Logged-User'] = process.env["LOGGED_USER"] // logged_user
 
 		self.on('ext_header', function(key){
 
-			headers_got++;
-			if(headers_got >= async_headers){
-				callback(headers);
-			}
+			if(++headers_got >= async_headers)
+				return callback(headers);
 
 		});
 
