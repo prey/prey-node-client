@@ -11,7 +11,7 @@ var base = require('./base'),
 		http_client = require('restler'),
 		stringify = require('qs').stringify,
 		Response = require('./response_parser'),
-		System = require('./system');
+		System = require('./providers/system');
 
 var config_file_path = base.root_path + '/config.js'
 

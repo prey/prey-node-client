@@ -5,9 +5,8 @@
 // GPLv3 Licensed
 //////////////////////////////////////////
 
-var base = require('./base'),
-		logger = base.logger,
-		Command = require('./command'),
+var logger = require('./base').logger,
+		Command = require('command'),
 		xml2js = require('xml2js'),
 		crypto = require('crypto');
 

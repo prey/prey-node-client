@@ -10,9 +10,8 @@ var base = require('./base'),
 		util = require('util'),
 		emitter = require('events').EventEmitter,
 		http_client = require('restler'),
-		System = require('./system'),
-		Geo = require('./geo'),
-		Network = require('./network');
+		System = require('./providers/system'),
+		Network = require('./providers/network');
 
 function Request(config, headers, callback){
 
@@ -48,7 +47,7 @@ function Request(config, headers, callback){
 
 	this.extend_headers = function(headers, callback){
 
-		var async_headers = 3;
+		var async_headers = 2;
 		var headers_got = 0;
 
 		headers['X-Logged-User'] = process.env["LOGGED_USER"] // logged_user
@@ -67,15 +66,14 @@ function Request(config, headers, callback){
 			self.emit('ext_header', 'current_uptime');
 		});
 
+		System.get('remaining_battery', function(percentage){
+			headers['X-Remaining-Battery'] = percentage; // 80
+			self.emit('ext_header', 'remaining_battery');
+		});
+
 		Network.get('active_access_point', function(essid_name){
 			headers['X-Active-Access-Point'] = essid_name || 'None';
 			self.emit('ext_header', 'active_access_point');
-		});
-
-		Geo.get('coords_via_wifi', function(coords){
-			headers['X-Current-Lat'] = coords ? coords.lat : 0;
-			headers['X-Current-Lng'] = coords ? coords.lat : 0;
-			self.emit('ext_header', 'coords_via_wifi');
 		});
 
 	},

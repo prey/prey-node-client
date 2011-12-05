@@ -7,7 +7,7 @@
 
 var base = require('../../base'),
 		util = require('util'),
-		Command = require('../../command');
+		Command = require('command');
 
 exports.temp_path = "/tmp";
 exports.get_logged_user_cmd = "who | cut -d' ' -f1 | tail -1";
