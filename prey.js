@@ -23,8 +23,7 @@ try {
 var base = require('./core/base'),
 		logger = base.logger,
 		pid_file = base.helpers.tempfile_path('prey.pid'),
-		version = require(__dirname + '/package').version,
-		args = require('./core/args').init(version),
+		args = require('./core/args').init(base.version),
 		Prey = require('./core/main');
 
 /////////////////////////////////////////////////////////////
@@ -66,9 +65,8 @@ base.helpers.check_and_store_pid(pid_file, function(running_pid){
 		Prey.poke('localhost', function(){
 			process.exit(10);
 		});
-
 	} else {
-		Prey.run(config, args, version);
+		Prey.run(config, args);
 	}
 
 });

@@ -7,7 +7,7 @@
 
 var util = require('util'),
 		http_client = require('restler'),
-		Transport = require('../core/transport');
+		Transport = require('../transport');
 
 var HTTPTransport = function(options){
 
@@ -15,7 +15,7 @@ var HTTPTransport = function(options){
 	var self = this;
 	this.name = 'http';
 
-	this.post_url = options.post_url;
+	this.url = options.url;
 
 	this.flatten_data = function(object){
 
@@ -50,7 +50,7 @@ var HTTPTransport = function(options){
 
 		this.emit('start');
 
-		this.options.headers = { "User-Agent" : this.options.user_agent },
+		this.options.headers = { "User-Agent" : this.options.user_agent };
 		this.options.data = this.flatten_data(data);
 
 		if(this.contains_files)
@@ -58,11 +58,11 @@ var HTTPTransport = function(options){
 
 		if(this.options.proxy.enabled){
 			this.options.port = this.options.proxy.port;
-			this.options.path = this.post_url; // proxy servers require sending the full destination as path
-			this.post_url = this.options.proxy.host;
+			this.options.path = this.url; // proxy servers require sending the full destination as path
+			this.url = this.options.proxy.host;
 		}
 
-		http_client.post(this.post_url, this.options) // this.options may contain http basic user/pass
+		http_client.post(this.url, this.options) // this.options may contain http basic user/pass
 		.once('complete', function(body, response){
 			self.log(' -- Got status code: ' + response.statusCode);
 			self.log(' -- ' + body);

@@ -82,7 +82,7 @@ var ActionsManager = function(){
 
 		});
 
-		console.log(this.registered_events);
+		// console.log(this.registered_events);
 		hooks.unregister_if_missing(this.registered_events);
 
 	};

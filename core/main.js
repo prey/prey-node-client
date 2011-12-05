@@ -69,11 +69,11 @@ var Main = {
 		logger.info(" -- Loop ended!");
 		hooks.trigger('loop_end');
 
-		console.log("Active hooks: " + hooks.active.length);
+		logger.info("Active hooks: " + hooks.active.length);
 
 		if(hooks.active.length > 0){
 			this.timer = setInterval(function(){
-				console.log("Active hooks: " + hooks.active.length);
+				logger.info("Active hooks: " + hooks.active.length);
 				if(hooks.active.length <= 0) clearInterval(self.timer);
 			}, 5 * 1000); // 5 seconds
 		}
@@ -97,10 +97,9 @@ var Main = {
 		this.running = true;
 		this.running_user = process.env['USERNAME'];
 		this.started_at = new Date();
-		this.user_agent = "Prey/" + this.version + " (NodeJS, "  + base.os_name + ")";
 
 		console.log("\n");
-		logger.info("  PREY " + this.version + " spreads its wings!\n");
+		logger.info("  PREY " + base.version + " spreads its wings!\n");
 		logger.info("  Current time: " + this.started_at.toString())
 		logger.info("  Running on a " + base.os_name + " system as " + this.running_user);
 		logger.info("  Detected logged user: " + process.env["LOGGED_USER"]);

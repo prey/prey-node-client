@@ -5,8 +5,9 @@
 // GPLv3 Licensed
 //////////////////////////////////////////
 
-var config = require('./base').config,
-		logger = require('./base').logger,
+var base = require('./base'),
+		config = base.config,
+		logger = base.logger,
 		util = require('util'),
 		emitter = require('events').EventEmitter;
 
@@ -25,27 +26,30 @@ var Notifier = function(){
 
 	this.send = function(data, options){
 
+		options |= {};
 		var transports_returned = 0;
 		var destinations = config.destinations;
 
 		destinations.forEach(function(destination) {
 
 			if(destination == 'control_panel'){
+				destination = 'http';
 				var transport_options = {
 					username: config.api_key,
-					post_url: options.url,
+					password: 'x',
+					url: options.url || 'http://test.com/whatever'
 				}
 			} else {
 				var transport_options = config.transports[destination];
 			}
 
-			transport_options.user_agent = config.user_agent;
+			transport_options.user_agent = base.user_agent;
 			transport_options.proxy = config.proxy;
 
 			var transport = require('./transports/' + destination).init(transport_options);
-			tr.send(self.traces);
+			transport.send(data);
 
-			tr.once('end', function(){
+			transport.once('end', function(){
 
 				if(++transports_returned >= destinations.length)
 					self.sent();

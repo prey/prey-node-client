@@ -10,7 +10,7 @@ var util = require('util'),
 		mailer = require('nodemailer'),
 		fs = require('fs'),
 		path = require('path'),
-		Transport = require('../core/transport');
+		Transport = require('../transport');
 
 var SMTPTransport = function(options){
 
