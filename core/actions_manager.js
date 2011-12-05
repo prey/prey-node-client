@@ -22,7 +22,7 @@ var ActionsManager = function(){
 	this.returned_count = 0;
 
 	this.start_all = function(){
-		logger.info(' -- Starting all actions!')
+		logger.info(" -- Starting " + this.queued_count + " queued actions!");
 		this.emit('start');
 	};
 
@@ -33,6 +33,8 @@ var ActionsManager = function(){
 		msg += success ? "Success!" : "No success.";
 		logger.info(msg);
 
+		hooks.trigger(action_module.name + '_end');
+		this.emit('action_returned', action_module, success);
 		this.returned_count++;
 
 		// if immediate action returned or long running action was unsuccesful,
@@ -76,11 +78,13 @@ var ActionsManager = function(){
 			if(self.action_is_running(action_module)) {
 				logger.warn(" -- " + action_module.name + " is already running!")
 			} else {
-				if(self.queue(action_module))
-					self.queued_modules++;
+				if(self.queue(action_module)) self.queued_count++;
 			}
 
 		});
+
+
+		console.log(this.queued_count);
 
 		// console.log(this.registered_events);
 		hooks.unregister_if_missing(this.registered_events);
@@ -94,7 +98,6 @@ var ActionsManager = function(){
 
 		// call init function of module which to see what we get
 		var instance = action_module.init ? action_module.init(options || {}) : null;
-
 		if(!instance) return false;
 
 		// register events if any
@@ -103,7 +106,8 @@ var ActionsManager = function(){
 				logger.info(action_module.name + " announced event: " + event_name);
 				self.registered_events.push(event_name);
 				instance.on(event_name, function(args){
-					hooks.trigger_and_notify(event_name, args);
+					hooks.trigger(event_name, args);
+					self.emit('event_triggered', event_name, args);
 				});
 			});
 		}
@@ -143,6 +147,7 @@ var ActionsManager = function(){
 			if(instance.start) {
 
 				logger.info(' -- Running action ' + action_module.name);
+				hooks.trigger(action_module + '_start');
 
 				self.running_actions.push(action_module);
 				action_module.started_at = new Date();
@@ -152,6 +157,8 @@ var ActionsManager = function(){
 			}
 
 		});
+
+		return instance;
 
 	}
 

@@ -8,7 +8,6 @@
 var base = require('./base'),
 		logger = base.logger,
 		util = require('util'),
-		Notifier = require('./notifier'),
 		emitter = require('events').EventEmitter;
 
 function HookDispatcher(){
@@ -25,13 +24,6 @@ function HookDispatcher(){
 		this.log("hook " + hook + " triggered");
 		this.emit(hook, args);
 		this.remove_from_list(hook);
-	};
-
-	this.trigger_and_notify = function(hook, args){
-		var message = { event: hook }
-		if(args) message.data = args;
-		Notifier.send(message);
-		this.trigger(hook, args);
 	};
 
 	this.register = function(hook, callback){
@@ -68,7 +60,6 @@ function HookDispatcher(){
 	this.unregister = function(hook){
 
 		this.log("Unregistering hook: " + hook);
-
 		this.removeAllListeners(hook);
 		this.remove_from_list(hook);
 

@@ -387,10 +387,26 @@ var Main = {
 	start_actions: function(){
 
 		hooks.trigger('actions_start');
+		var events = {}, triggers = {};
+
+		ActionsManager.on('action_returned', function(action_module, success){
+			events[action_module.name] = success;
+		});
+
+		ActionsManager.on('event_triggered', function(trigger_name, data){
+			triggers[trigger_name] = data || {};
+		});
+
 		ActionsManager.start_all();
+
 		ActionsManager.once('all_returned', function(running_actions){
-			hooks.trigger('actions_end');
+
 			logger.info("Currently running actions: " + running_actions.length);
+
+			var data = {events: events, triggers: triggers};
+			Notifier.send(data);
+
+			hooks.trigger('actions_end', running_actions.length);
 		});
 
 	},
