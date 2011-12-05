@@ -20,7 +20,7 @@ var Processlist = function(){
 
 		var processes = [];
 
-		var child = exec('ps axo stat,user,ppid,pid,pcpu,pmem,comm', function(err, stdout, stderr){
+		var child = exec('ps axo stat,user,ppid,pid,pcpu,pmem,time,comm', function(err, stdout, stderr){
 
 			stdout.toString().split("\n").forEach(function(line){
 
@@ -34,7 +34,8 @@ var Processlist = function(){
 						pid:    parseInt(columns[3]),
 						cpu:    columns[4],
 						mem:    columns[5],
-						name:   columns[6]
+						time:   columns[6],
+						name:   columns[7]
 					}
 
 					processes.push(process);
