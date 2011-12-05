@@ -10,13 +10,13 @@ var base = require('../../base'),
 		InfoModule = require('../../info_module'),
 		finder = require('./lib/finder');
 
-var ModifiedFiles = function(){
+var Filesystem = function(){
 
 	InfoModule.call(this);
 	var self = this;
 	this.name = 'modified_files';
 
-	this.get_modified_files = function(options, callback){
+	this.recently_modified_list = function(options, callback){
 
 		var one_week_ago = new Date() - (60 * 60 * 24 * 7 * 1000);
 		var modified_since = options.modified_since || one_week_ago;
@@ -45,9 +45,13 @@ var ModifiedFiles = function(){
 
 		this.emit('modified_files', files);
 
-	}
+	};
+
+	this.find_matching_list = function(options){
+
+	};
 
 }
 
-util.inherits(ModifiedFiles, InfoModule);
-module.exports = new ModifiedFiles();
+util.inherits(Filesystem, InfoModule);
+module.exports = new Filesystem();
