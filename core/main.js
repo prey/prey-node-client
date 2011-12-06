@@ -152,12 +152,12 @@ var Main = {
 		logger.info(" -- Checking connection...");
 		var conn = new Connection(this.config.proxy);
 
-		conn.on('found', function(){
+		conn.once('found', function(){
 			logger.info(" -- Connection found!");
 			self.args.get('check') ? self.check() : self.fetch()
 		});
 
-		conn.on('not_found', function(){
+		conn.once('not_found', function(){
 
 			logger.info(" !! No connection found.");
 			if(this.config.auto_connect && self.auto_connect_attempts < this.config.max_auto_connect_attempts){
@@ -167,7 +167,7 @@ var Main = {
 
 				os.auto_connect(setTimeout(function(){
 					self.check_connection_and_fetch();
-					}, self.config.auto_connect_timeout || 5000);
+					}, self.config.auto_connect_timeout || 5000)
 				);
 
 			} else {
