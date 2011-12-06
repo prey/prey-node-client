@@ -167,7 +167,7 @@ var Main = {
 
 				os.auto_connect(setTimeout(function(){
 					self.check_connection_and_fetch();
-					}, 5000)
+					}, self.config.auto_connect_timeout || 5000);
 				);
 
 			} else {

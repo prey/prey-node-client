@@ -10,10 +10,11 @@ module.exports = {
 	// language, en (english) or es (espanol)
 	lang: "en",
 
-	// autoconnect feature, disabled by default until we are 200% sure it
-	// works flawlessly in all platforms. feel free to try it out though.
+	// autoconnect feature, enable it and Prey will try to connect to the first
+	// open WiFi network available in the area
 	auto_connect: true,
 	max_auto_connect_attempts: 2,
+	auto_connect_timeout: 5000,
 
 	// verification URL, if left empty Prey will always activate and run,
 	// which is certainly *not* recommended.
