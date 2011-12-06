@@ -102,9 +102,9 @@ var ActionsManager = function(){
 			action_module.events.forEach(function(event_name){
 				logger.info(action_module.name + " announced event: " + event_name);
 				self.registered_events.push(event_name);
-				instance.on(event_name, function(args){
-					hooks.trigger(event_name, args);
-					self.emit('event_triggered', event_name, args);
+				instance.on(event_name, function(data){
+					hooks.trigger(event_name, data);
+					self.emit('event_triggered', event_name, data);
 				});
 			});
 		}

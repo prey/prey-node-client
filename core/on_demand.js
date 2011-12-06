@@ -10,6 +10,7 @@ var fs = require('fs'),
 		path = require('path'),
 		util = require('util'),
 		base = require('./base'),
+		config = base.config,
 		logger = base.logger;
 
 // to generate, run ./ssl/generate.sh
@@ -21,11 +22,12 @@ var OnDemand = {
 	stream: null,
 	keys: null,
 	connected: false,
+	protocol_version: 2,
 
-	start: function(host, port, config, version, callback){
+	start: function(options, callback){
 
 		this.get_keys(function(){
-			OnDemand.connect(host, port, config, version, callback);
+			OnDemand.connect(options, callback);
 		});
 
 		return this;
@@ -64,10 +66,10 @@ var OnDemand = {
 
 	},
 
-	connect: function(host, port, config, version, callback){
+	connect: function(options, callback){
 
 		// create and encrypted connection using ssl
-		var stream = tls.connect(port, host, this.keys, function(){
+		var stream = tls.connect(options.port, options.host, this.keys, function(){
 
 			logger.info(" -- Connection established.");
 			if (stream.authorized)
@@ -77,7 +79,7 @@ var OnDemand = {
 
 			// stream.setEncoding('utf8');
 			OnDemand.connected = true;
-			OnDemand.register(config, version);
+			OnDemand.register();
 
 		});
 
@@ -110,13 +112,13 @@ var OnDemand = {
 
 	},
 
-	register: function(config, version){
+	register: function(){
 		logger.info(" -- Registering on On-Demand Hub...");
 		var data = {
-			client_version: version,
+			client_version: base.version,
 			key: config.device_key,
 			group: config.api_key,
-			protocol: 1
+			protocol: this.protocol_version
 		}
 		this.send('connect', data);
 	},
@@ -147,8 +149,8 @@ var OnDemand = {
 
 }
 
-exports.connect = function(host, port, config, version, callback){
-	return OnDemand.start(host, port, config, version, callback);
+exports.connect = function(options, callback){
+	return OnDemand.start(options, callback);
 }
 
 exports.connected = OnDemand.connected;

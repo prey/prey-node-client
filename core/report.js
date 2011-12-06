@@ -11,11 +11,10 @@ var base = require('./base'),
 		fs = require('fs'),
 		emitter = require('events').EventEmitter
 
-var Report = function(modules){
+var Report = function(){
 
 	var self = this;
 	this.traces = {};
-	this.modules = modules;
 
 	this.log = function(str){
 		logger.info(" -- [report] " + str);
@@ -51,7 +50,9 @@ var Report = function(modules){
 
 	};
 
-	this.gather = function(){
+	this.gather = function(requested_info){
+
+		// TODO!
 
 		var report_modules_count = this.modules.length;
 		var modules_returned = 0;
