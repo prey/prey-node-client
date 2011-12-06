@@ -18,18 +18,37 @@ var ResponseParser = {
 
 	parse: function(data, options, callback){
 
+		// if we haven't tried to decrypt yet, and it seems encrypted
 		if(!options.decrypted && data.indexOf('config') == -1){
+
 			this.decrypt_response(data, options.key, function(output){
 				options.decrypted = true;
+				// console.log(output);
 				ResponseParser.parse(output, options, callback);
 			});
+
+		// match either application/xml or text/xml
 		} else if(options.type.indexOf('xml') != -1){
-			this.parse_xml(data, callback);
-		} else if(options.type.indexOf('js') != -1){
-			callback(JSON.parse(data));
+
+			this.parse_xml(data, function(result){
+				if(result.modules) // old XML
+					ResponseParser.build_new_schema(result, callback);
+				else
+					callback(result);
+			});
+
+		// look for application/js(on) or application/javascript
+		} else if(options.type.indexOf('js') != -1 || options.type.indexOf('javascript')){
+
+			// try {
+				callback(JSON.parse(data));
+			// } catch(e){ }
+
 		} else {
+
 			this.log("Unkown data data received.");
 			callback(false);
+
 		}
 
 	},
@@ -81,13 +100,93 @@ var ResponseParser = {
 		});
 
 		xml_parser.on('error', function(result) {
-			console.log(result);
 			throw("Error parsing XML!")
 		});
 
 		xml_parser.parseString(data);
 
 	},
+
+	// this function builds a new instruction schema out of the old XML
+	build_new_schema: function(original, callback){
+
+		var data = {
+			missing: original.status.missing == 'true',
+			delay: parseInt(original.configuration.delay),
+			auto_update: original.configuration.auto_update ? true : false,
+			offline_actions: original.configuration.offline_actions ? true : false,
+		}
+
+		if(original.configuration.post_url)
+			data.post_url = original.configuration.post_url;
+
+		if(original.configuration.on_demand_mode){
+			data.on_demand = {
+				host: original.configuration.on_demand_host,
+				port: parseInt(original.configuration.on_demand_port)
+			}
+		}
+
+		data.actions = [];
+		data.report  = {};
+
+		for(id in original.modules.module){
+
+			var module_main = module_config = original.modules.module[id];
+			if(!module_main) continue;
+
+			var module_data = module_main['@'];
+			delete module_config['@'];
+
+			if(module_data.type == 'report'){
+
+				if(module_data.name == 'webcam'){
+					data.report.picture = true;
+					continue;
+				}
+
+				for(key in module_config){
+
+					var val = module_config[key];
+					if(val == 'n' || val == 'false') continue;
+
+					if(/^get_/.test(key)){
+						data.report[key.replace('get_', '')] = true;
+					} else if (val == 'y' || val == 'true'){
+						data.report[key] = true;
+					} else { // check if we got a config option
+
+						var key_start = key.replace(/_([a-z]+)$/, '');
+						var key_end = key.replace(/.*_([a-z]+)$/, "$1");
+
+						if(!data.report[key_start]) continue;
+
+						if(data.report[key_start] == true) // replace true with {}
+							data.report[key_start] = {}
+
+						data.report[key_start][key_end] = val;
+
+					}
+
+				}
+
+			} else {
+
+				var action = {
+					name: module_data.name == 'system' ? 'hardware_scan' : module_data.name,
+					version: module_data.version,
+					config: module_config
+				}
+
+				data.actions.push(action);
+
+			}
+
+		}
+
+		callback(data);
+
+	}
 
 }
 
