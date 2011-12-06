@@ -94,8 +94,14 @@ shutdown
 
 == Todo
 
+- Define the way transports are configured, either globally or specifically 
+  for report vs. data vs. event/trigger notifications.
+- Test hooks. The point is that Main itself should register hooks to be notified 
+  when asynchronous stuff happens. i.e. when a hardware scan is triggered through
+  On Demand we shouldn't need to register an event for *that* call, the function
+  should be called and the main hook should take care of sending a notification.
 - Define the way that third-party modules will be included.
- -> Possible implementations: Haraka, Hubot
+ -> Possible implementations: Haraka, Hubot, Hook.io
 - How will we handle exceptions? We should probably set up a server
   to keep track of what's happening. We can set up something like
   node-telemetry server to store exceptions sent by the clients, obviosly
