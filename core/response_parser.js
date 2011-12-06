@@ -16,20 +16,26 @@ var ResponseParser = {
 		logger.info(str);
 	},
 
-	parse: function(data, key, callback){
+	parse: function(data, options, callback){
 
-		if(typeof data == 'string' && data.indexOf('<device>') != -1)
+		if(!options.decrypted && data.indexOf('config') == -1){
+			this.decrypt_response(data, options.key, function(output){
+				options.decrypted = true;
+				ResponseParser.parse(output, options, callback);
+			});
+		} else if(options.type.indexOf('xml') != -1){
 			this.parse_xml(data, callback);
-		else if(data instanceof Object)
-			callback(data);
-		else
-			this.decrypt_response(data, key, callback);
+		} else if(options.type.indexOf('js') != -1){
+			callback(JSON.parse(data));
+		} else {
+			this.log("Unkown data data received.");
+			callback(false);
+		}
 
 	},
 
 	decrypt_response: function(data, key, callback){
 
-		var self = this;
 		this.log(" -- Got encrypted response. Decrypting...")
 		var key = crypto.createHash('md5').update(key).digest("hex");
 
@@ -50,17 +56,17 @@ var ResponseParser = {
 //		var dec = decipher.update(raw, 'binary', 'utf8')
 //		dec += decipher.final('utf8');
 
-		var cmd_str = 'echo "' + data + '" | openssl aes-128-cbc -d -a -salt -k "' + key +'" 2> /dev/null'
+		var cmd_str = 'echo "' + data + '" | openssl aes-128-cbc -d -a -salt -k "' + key +'" 2> /dev/null';
 		var cmd = new Command(cmd_str);
 
-		cmd.on('error', function(message){
-			throw("Couldn't decrypt response. This shouldn't have happened!");
+		cmd.on('error', function(e){
+			throw("OpenSSL returned error when decrypting: " + e.code);
 		})
 
 		cmd.on('return', function(output){
 			// xml = output.replace(/=([^\s>\/]+)/g, '="$1"'); // insert comments back on node attributes
 			// console.log(output)
-			self.parse_xml(output, callback);
+			callback(output);
 		})
 
 	},
@@ -68,19 +74,18 @@ var ResponseParser = {
 	parse_xml: function(data, callback){
 
 		this.log(' -- Parsing XML...')
-		var parser = new xml2js.Parser();
-		var self = this;
+		var xml_parser = new xml2js.Parser();
 
-		parser.addListener('end', function(result) {
-			self.log(' -- XML parsing complete.');
+		xml_parser.on('end', function(result) {
 			callback(result);
 		});
 
-		parser.addListener('error', function(result) {
-			quit("Error parsing XML!")
+		xml_parser.on('error', function(result) {
+			console.log(result);
+			throw("Error parsing XML!")
 		});
 
-		parser.parseString(data);
+		xml_parser.parseString(data);
 
 	},
 

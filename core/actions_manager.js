@@ -83,9 +83,6 @@ var ActionsManager = function(){
 
 		});
 
-
-		console.log(this.queued_count);
-
 		// console.log(this.registered_events);
 		hooks.unregister_if_missing(this.registered_events);
 
@@ -147,7 +144,7 @@ var ActionsManager = function(){
 			if(instance.start) {
 
 				logger.info(' -- Running action ' + action_module.name);
-				hooks.trigger(action_module + '_start');
+				hooks.trigger(action_module.name + '_start');
 
 				self.running_actions.push(action_module);
 				action_module.started_at = new Date();

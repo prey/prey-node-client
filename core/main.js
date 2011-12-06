@@ -203,20 +203,19 @@ var Main = {
 			hooks.trigger('fetch_end');
 
 			self.response_status = response.statusCode;
-			self.response_content_type = response.headers["content-type"];
+			var content_type = response.headers["content-type"];
 
-			// if(self.response_content_type.indexOf('/xml') == -1)
-				// quit("No valid instructions received.")
-
-			self.process(body, false);
+			self.process(body, content_type, false);
 
 		})
 
 	},
 
-	process: function(response_body, offline){
+	process: function(response_body, content_type, offline){
 
-		ResponseParser.parse(response_body, this.config.api_key, function(parsed){
+		var parser_options = {type: content_type, key: this.config.api_key};
+
+		ResponseParser.parse(response_body, parser_options, function(parsed){
 
 			self.requested = parsed;
 			self.process_main_config();
@@ -253,9 +252,9 @@ var Main = {
 
 							var notifier = Notifier.send(report.traces, options);
 
-							notifier.once('sent', function(){
+							notifier.once('sent', function(destinations){
 								report.empty();
-								hooks.trigger('report_sent');
+								hooks.trigger('report_sent', report);
 							});
 
 						}
@@ -403,8 +402,13 @@ var Main = {
 
 			logger.info("Currently running actions: " + running_actions.length);
 
-			var data = {events: events, triggers: triggers};
-			Notifier.send(data);
+			if(events.length > 0 || triggers.length > 0) {
+				var data = {events: events, triggers: triggers};
+				var notification = Notifier.send(data);
+				notification.once('sent', function(destinations){
+					hooks.trigger('notification_sent', data);
+				});
+			}
 
 			hooks.trigger('actions_end', running_actions.length);
 		});

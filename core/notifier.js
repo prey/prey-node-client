@@ -16,19 +16,22 @@ var Notifier = function(){
 	var self = this;
 
 	this.log = function(str){
-		logger.info(" -- [notifier] " + str);
+		logger.info("[notifier] " + str);
 	};
 
-	this.sent = function(){
-		this.log('Sent to all destinations!');
-		this.emit('sent');
+	this.sent = function(destiations){
+		this.log('Sent to ' + destinations.length + ' destinations!');
+		this.emit('sent', destinations);
 	};
 
 	this.send = function(data, options){
 
 		options |= {};
 		var transports_returned = 0;
+		var successful = [];
 		var destinations = config.destinations;
+
+		this.log("Sending " + data.length + " bytes to " + destinations.length + " destinations");
 
 		destinations.forEach(function(destination) {
 
@@ -49,14 +52,18 @@ var Notifier = function(){
 			var transport = require('./transports/' + destination).init(transport_options);
 			transport.send(data);
 
-			transport.once('end', function(){
+			transport.once('end', function(success){
+
+				if(success) successful.push(destination);
 
 				if(++transports_returned >= destinations.length)
-					self.sent();
+					self.sent(successful);
 
 			});
 
 		});
+
+		return this;
 
 	}
 
