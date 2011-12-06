@@ -220,24 +220,24 @@ var Main = {
 			self.requested = parsed;
 			self.process_main_config();
 
-			if(!self.requested.modules || Object.keys(self.requested.modules).length == 0) {
+			if(!self.requested.report || !self.requested.actions) {
 				logger.info(" -- No report or actions requested.");
 				return false;
 			}
 
-			if(!offline && self.requested.configuration.offline_actions)
+			if(!offline && self.requested.offline_actions)
 				base.helpers.save_file_contents(this.config.last_response_file, response_body);
 
-			self.process_module_config(self.requested.modules, function(modules){
+			self.load_modules(self.requested.actions, function(modules){
 
 				logger.info(' -- All modules loaded.');
 				hooks.trigger('modules_loaded', modules);
 
-				ActionsManager.initialize(modules.action);
+				ActionsManager.initialize(modules);
 
-				if(self.missing() && modules.report.length > 0) {
+				if(self.missing()) {
 
-					Main.gather_report(modules.report, function(report){
+					Main.gather_report(self.requested.report, function(report){
 
 						if(Object.keys(report.traces).length <= 0){
 
@@ -279,7 +279,7 @@ var Main = {
 
 	missing: function(){
 		try {
-			return self.requested.status.missing; // from instructions
+			return self.requested.missing; // from instructions
 		} catch(e){
 			return self.response_status == this.config.missing_status_code;
 		}
@@ -288,26 +288,18 @@ var Main = {
 	process_main_config: function(){
 
 		logger.info(" -- Processing main config...")
-		//debug(self.requested);
 
-		if(typeof(this.config.auto_update) == 'boolean')
-			self.auto_update = this.config.auto_update;
-		else
-			self.auto_update = self.requested.configuration.auto_update || false;
-
-		var status_msg = self.missing() ? "Device is missing!" : "Device not missing. Sweet.";
+		var status_msg = this.missing() ? "HOLY SHENANIGANS, DEVICE IS MISSING!" : "Device not missing. Sweet.";
 		logger.info(" -- " + status_msg);
 
-		self.process_delay();
+		this.update_delay(self.requested.delay);
 
-		if(!self.on_demand && self.requested.configuration.on_demand_mode)
-			self.setup_on_demand();
+		if(!this.on_demand && this.requested.on_demand)
+			this.initialize_on_demand();
 
 	},
 
-	process_delay: function(){
-
-		var requested_delay = self.requested.configuration.delay;
+	update_delay: function(requested_delay){
 
 		base.os.check_current_delay(base.script_path, function(current_delay){
 			logger.info("Current delay: " + current_delay + ", requested delay: " + requested_delay);
@@ -319,58 +311,44 @@ var Main = {
 
 	},
 
-	process_module_config: function(data, callback){
+	load_modules: function(array, callback){
 
-		var requested_modules = data.module.length || 1;
-		var modules_loaded = 0;
+		var requested_modules = array.length || 1;
+		var returned_count = 0;
+		var loaded_modules = [];
 		logger.info(" -- " + requested_modules + " modules enabled!")
 
-		for(id in data.module){
+		array.forEach(function(requested_module){
 
-			var module_config = data.module[id];
+			var version_to_pass = self.requested.auto_update ? requested_module.version : null;
 
-			if(typeof(module_config) !== "object") continue;
-//			console.log(util.inspect(module_config));
+			var loader = ModuleLoader.load(requested_module.name, version_to_pass, requested_module.config);
 
-			var module_data = module_config['@'] || module_config;
-			if(!module_data) continue;
+			loader.once('done', function(loaded_module){
 
-			logger.info(" -- Got instructions for " + module_data.type + " module " + module_data.name);
+				returned_count++;
 
-			delete module_config['@'];
+				if(!loaded_module)
+					logger.info("Shoot! Couldn't load module: " + requested_module.name);
+				else
+					loaded_modules.push(loaded_module);
 
-			var version_to_pass = self.auto_update ? module_data.version : null;
-
-			var modules = {report: [], action: []};
-			var loader = ModuleLoader.load(module_data.name, version_to_pass, module_config);
-
-			loader.once('done', function(prey_module){
-
-				modules_loaded++;
-
-				if(prey_module){
-
-					if(prey_module.type == 'report')
-						modules.report.push(prey_module);
-					else
-						modules.action.push(prey_module);
-
-				}
-
-				if(modules_loaded >= requested_modules) {
-					callback(modules);
-				}
+				if(returned_count >= requested_modules)
+					callback(loaded_modules);
 
 			});
 
-		}
+		});
 
 	},
 
-	gather_report: function(selected_modules, callback){
+	gather_report: function(requested_info, callback){
 
 		hooks.trigger('report_start');
-		var report = new Report(selected_modules);
+		var report = new Report();
+
+		// TODO: fix report
+		return callback(report);
 
 		report.once('ready', function(){
 
@@ -379,7 +357,7 @@ var Main = {
 
 		});
 
-		report.gather();
+		report.gather(requested_info);
 
 	},
 
@@ -419,12 +397,16 @@ var Main = {
 		return(this.on_demand && this.on_demand.connected);
 	},
 
-	setup_on_demand: function(){
+	initialize_on_demand: function(){
 
-		logger.info(' -- On Demand mode enabled! Trying to connect...', 'bold');
-		var on_demand_host = self.requested.configuration.on_demand_host;
-		var on_demand_port = self.requested.configuration.on_demand_port;
-		this.on_demand = OnDemand.connect(on_demand_host, on_demand_port, this.config, this.version, function(stream){
+		logger.info(' -- On Demand mode enabled! Trying to connect...');
+
+		var options = {
+			host: this.requested.on_demand.host,
+			port: this.requested.on_demand.port
+		}
+
+		this.on_demand = OnDemand.connect(options, function(stream){
 
 			stream.on('command', function(command, data){
 				self.handle_incoming_message(command, data);
