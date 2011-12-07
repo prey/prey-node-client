@@ -91,6 +91,16 @@ command_sent
 loop_end
 shutdown
 
+== Events
+
+These are bits the information we need to inform about.
+
+- action_run (successful or not)
+- client_updated (succesful or not)
+- delay_updated (succesful or not)
+- config_updated (succesful or not)
+- event_triggered (from action) -> motion sensor, etc.
+
 == Todo
 
 - Define the way transports are configured, either globally or specifically
