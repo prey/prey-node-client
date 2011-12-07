@@ -20,10 +20,10 @@ try {
 	process.exit(1);
 }
 
-var base = require('./lib/base'),
-		logger = base.logger,
-		pid_file = base.helpers.tempfile_path('prey.pid'),
-		args = require('./lib/args').init(base.version),
+var common = require('./lib/common'),
+		logger = common.logger,
+		pid_file = common.helpers.tempfile_path('prey.pid'),
+		args = require('./lib/args').init(common.version),
 		Prey = require('./lib/main');
 
 /////////////////////////////////////////////////////////////
@@ -32,7 +32,7 @@ var base = require('./lib/base'),
 
 process.on('exit', function(code) {
 	Prey.shutdown();
-	if(code != 10) base.helpers.clean_up(pid_file);
+	if(code != 10) common.helpers.clean_up(pid_file);
 	logger.info(" -- Have a jolly good day sir.\n");
 });
 
@@ -59,7 +59,7 @@ process.on('uncaughtException', function (err) {
 // launcher
 /////////////////////////////////////////////////////////////
 
-base.helpers.check_and_store_pid(pid_file, function(running_pid){
+common.helpers.check_and_store_pid(pid_file, function(running_pid){
 
 	if(running_pid){
 		Prey.poke('localhost', function(){

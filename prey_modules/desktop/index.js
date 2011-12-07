@@ -5,12 +5,12 @@
 // GPLv3 Licensed
 //////////////////////////////////////////
 
-var base = require('../../lib/base'),
+var common = require('../../lib/common'),
 		util = require('util'),
 		Command = require('command'),
 		Tunnel = require('../../lib/tunnel'),
 		ActionModule = require('../../lib/action_module'),
-		os_functions = require('./platform/' + base.os_name);
+		os_functions = require('./platform/' + common.os_name);
 
 var Desktop = function(){
 

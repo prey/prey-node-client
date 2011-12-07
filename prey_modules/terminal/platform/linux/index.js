@@ -5,7 +5,7 @@
 // GPLv3 Licensed
 //////////////////////////////////////////
 
-var base = require(process.env.ROOT_PATH + "/lib/base");
+var base = require(process.env.ROOT_PATH + "/lib/common");
 
 exports.ssh_server_running = function(){
 

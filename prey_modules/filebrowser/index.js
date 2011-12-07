@@ -5,7 +5,7 @@
 // GPLv3 Licensed
 //////////////////////////////////////////
 
-var base = require('../../lib/base'),
+var common = require('../../lib/common'),
 		util = require('util'),
 		connect = require('connect'),
 		Tunnel = require('../../lib/tunnel'),
