@@ -60,8 +60,13 @@ initial draft of different requests that could be made:
    - i.e. send_reports(10, {screenshot: false, picture: true})
  - get_info (what, options)
    - i.e. get_info('modified_files', {path: '/home/', from: 5.minutes.ago})
- - run_action (which, options)
-   - i.e. run_action('alarm', {sound: 'siren.mp3', loops: 3})
+ - start_action (which, options)
+   - i.e. start_action('alarm', {sound: 'siren.mp3', loops: 3})
+ - stop_action (which)
+   - i.e. stop_action('lock')
+ - update_config (key, val)
+   - i.e. update_config('auto_connect', true)
+
 
 == Providers
 
