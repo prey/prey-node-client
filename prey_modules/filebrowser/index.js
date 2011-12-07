@@ -5,11 +5,11 @@
 // GPLv3 Licensed
 //////////////////////////////////////////
 
-var base = require('../../core/base'),
+var base = require('../../lib/base'),
 		util = require('util'),
 		connect = require('connect'),
-		Tunnel = require('../../core/tunnel'),
-		ActionModule = require('../../core/action_module');
+		Tunnel = require('../../lib/tunnel'),
+		ActionModule = require('../../lib/action_module');
 
 var FileBrowser = function(){
 
@@ -27,12 +27,12 @@ var FileBrowser = function(){
 	// open: first we open the tunnel, then we run the command
 	// close: first we close the tunnel, then we kill the command
 
-	this.start = function(){
+	this.start = function(callback){
 
 		this.server = connect.createServer(
-				connect.logger(),
-				connect.directory(self.options.root_path),
-				connect.static(self.options.root_path)
+			connect.logger(),
+			connect.directory(self.options.root_path),
+			connect.static(self.options.root_path)
 		);
 
 		this.server.listen(function(){
@@ -58,6 +58,8 @@ var FileBrowser = function(){
 			});
 
 		});
+
+		callback(this.server.readyState == 'open');
 
 	}
 

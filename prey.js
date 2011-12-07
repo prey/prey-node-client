@@ -20,11 +20,11 @@ try {
 	process.exit(1);
 }
 
-var base = require('./core/base'),
+var base = require('./lib/base'),
 		logger = base.logger,
 		pid_file = base.helpers.tempfile_path('prey.pid'),
-		args = require('./core/args').init(base.version),
-		Prey = require('./core/main');
+		args = require('./lib/args').init(base.version),
+		Prey = require('./lib/main');
 
 /////////////////////////////////////////////////////////////
 // event, signal handlers

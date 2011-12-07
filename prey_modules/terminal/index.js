@@ -5,11 +5,11 @@
 // Licensed under the GPLv3
 //////////////////////////////////////////
 
-var base = require('../../core/base'),
+var base = require('../../lib/base'),
 		util = require('util'),
 		Command = require('command'),
-		Tunnel = require('../../core/tunnel'),
-		ActionModule = require('../../core/action_module'),
+		Tunnel = require('../../lib/tunnel'),
+		ActionModule = require('../../lib/action_module'),
 		os_functions = require('./platform/' + base.os_name);
 
 var Terminal = function(options){
