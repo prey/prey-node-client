@@ -69,7 +69,7 @@ var Desktop = function(){
 			if(self.child)
 				self.child.kill();
 
-			this.emit('end');
+			this.emit('end', true);
 
 		});
 
@@ -106,5 +106,5 @@ exports.start = function(options, callback){
 }
 
 exports.stop = function(){
-	desktop.stop();
+	this.desktop.stop();
 }

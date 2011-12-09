@@ -62,6 +62,7 @@ process.on('uncaughtException', function (err) {
 common.helpers.check_and_store_pid(pid_file, function(running_pid){
 
 	if(running_pid){
+		// process.kill(running_pid, 'SIGUSR1');
 		Prey.poke('localhost', function(){
 			process.exit(10);
 		});
