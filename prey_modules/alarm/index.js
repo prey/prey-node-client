@@ -7,24 +7,21 @@
 
 var GStreamer = require('node-gstreamer');
 
-function Alarm(options){
+function start_alarm(options, callback){
 
-	this.sound_file = options.sound_file || __dirname + '/lib/siren.mp3';
-	this.loops = options.loops || 1;
+	var sound_file = options.sound_file || __dirname + '/lib/siren.mp3';
+	var loops = options.loops || 1;
+	var returned = false;
 
-	this.start = function(callback){
-		var returned = false;
-
-		for(i = 0; i < this.loops; i++){
-			console.log("Playing alarm sound!");
-			GStreamer.playSound(this.sound_file, function(was_played){
-				if(!returned) callback(was_played);
-			});
-		}
+	for(i = 0; i < this.loops; i++){
+		console.log("Playing sound: " + sound_file);
+		GStreamer.playSound(sound_file, function(was_played){
+			if(!returned) callback(was_played);
+		});
 	}
 
 }
 
-exports.init = function(options){
-	return new Alarm(options);
+exports.start = function(options, callback){
+	start_alarm(options, callback);
 }

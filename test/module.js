@@ -7,11 +7,13 @@ if(module_name == null || module_name == ""){
 
 console.log("loading " + module_name);
 
-var module = require(__dirname + '/../prey_modules/' + module_name);
+var mod = require(__dirname + '/../prey_modules/' + module_name);
 
-module.run();
+mod.start({}, function(return_object){
+	console.log(return_object);
+});
 
 process.on('SIGINT', function () {
-	log(' >> Got Ctrl-C!');
-	module.stop();
+	console.log(' >> Got Ctrl-C!');
+	mod.stop();
 });

@@ -6,17 +6,17 @@
 //////////////////////////////////////////
 
 var common = require('../../lib/common'),
+		logger = common.logger,
 		util = require('util'),
 		Command = require('command'),
 		Tunnel = require('../../lib/tunnel'),
-		ActionModule = require('../../lib/action_module'),
+		emitter = require('events').EventEmitter,
 		os_functions = require('./platform/' + common.os_name);
 
 var Desktop = function(){
 
-	ActionModule.call(this);
+	// ActionModule.call(this);
 	var self = this;
-	this.name = 'desktop';
 
 	this.options = {
 		vnc_port: 5900,
@@ -30,26 +30,30 @@ var Desktop = function(){
 	// open: first we open the tunnel, then we run the command
 	// close: first we close the tunnel, then we kill the command
 
-	this.start = function(callback){
+	this.start = function(options){
 
-		this.tunnel = new Tunnel(this.options.vnc_port, this.options.tunnel_host, this.options.tunnel_port);
+		var vnc_port = options.vnc_port || 5900;
+		var tunnel_host = options.tunnel_host || 'kiwi';
+		var tunnel_port = options.tunnel_port || '9998';
+
+		this.tunnel = new Tunnel(vnc_port, tunnel_host, tunnel_port);
 
 		this.tunnel.on('opened', function(){
 
-			self.log("Tunnel is open!");
+			logger.info("Tunnel is open!");
 
 			var vnc_cmd = os_functions.vnc_command(self.options);
 			// console.log("running: " + vnc_cmd);
 			self.child = new Command(vnc_cmd);
 
 			self.child.on('exit', function(code){
-				self.log("VNC server terminated.");
+				logger.info("VNC server terminated.");
 				if(self.tunnel.is_open()) self.tunnel.close();
 				// self.done();
 			});
 
 			self.child.on('error', function(e){
-				self.log('VNC server closed abruptly with status code ' + e.code);
+				logger.info('VNC server closed abruptly with status code ' + e.code);
 				// console.log(e);
 			});
 
@@ -61,22 +65,13 @@ var Desktop = function(){
 
 		this.tunnel.on('closed', function(){
 
-			self.log("Tunnel closed!");
+			logger.info("Tunnel closed!");
 			if(self.child)
 				self.child.kill();
 
-			self.done();
+			this.emit('end');
 
 		});
-
-		setTimeout(function(){
-
-			if(this.child)
-				callback(this.child.is_running());
-			else
-				callback(false);
-
-		}, 500); // wait a bit before checking if the command is running or not
 
 	}
 
@@ -91,8 +86,25 @@ var Desktop = function(){
 
 };
 
-util.inherits(Desktop, ActionModule);
+util.inherits(Desktop, emitter);
 
-exports.init = function(options){
-	return new Desktop(options);
+exports.start = function(options, callback){
+
+	var desktop = this.desktop = new Desktop();
+
+	desktop.start(options);
+
+	setTimeout(function(){
+
+		if(desktop.child && desktop.child.is_running())
+			callback(desktop);
+		else
+			callback(false);
+
+	}, 500); // wait a bit before checking if the command is running or not
+
+}
+
+exports.stop = function(){
+	desktop.stop();
 }

@@ -6,31 +6,28 @@
 //////////////////////////////////////////
 
 var common = require('../../lib/common'),
+		logger = common.logger,
 		util = require('util'),
 		Command = require('command'),
 		Tunnel = require('../../lib/tunnel'),
-		ActionModule = require('../../lib/action_module'),
+		emitter = require('events').EventEmitter,
 		os_functions = require('./platform/' + common.os_name);
 
-var Terminal = function(options){
+var Terminal = function(){
 
-	ActionModule.call(this);
 	var self = this;
-	this.name = 'terminal';
 
-	this.options = {
-		ssh_port: 22,
-		tunnel_host: 'kiwi',
-		tunnel_port: 9998
-	}
+	this.start = function(options){
 
-	this.start = function(callback){
+		var ssh_port = options.ssh_port || 22;
+		var tunnel_host = options.tunnel_host || 'kiwi';
+		var tunnel_port = options.tunnel_port || '9998';
 
-		this.tunnel = new Tunnel(this.options.ssh_port, this.options.tunnel_host, this.options.tunnel_port);
+		this.tunnel = new Tunnel(ssh_port, tunnel_host, tunnel_port);
 
 		this.tunnel.on('opened', function(){
 
-			self.log("Tunnel is open!");
+			logger.info("Tunnel is open!");
 
 			os_functions.ssh_server_running(function(running){
 
@@ -42,42 +39,33 @@ var Terminal = function(options){
 
 		this.tunnel.on('closed', function(){
 
-			self.log("Tunnel closed!");
+			logger.info("Tunnel closed!");
 
 			if(self.child) // means we launched the ssh server
 				self.shop_ssh_server();
 
-			self.done();
+			this.emit('end');
 
 		});
-
-		setTimeout(function(){
-
-			if(this.child)
-				callback(this.child.is_running());
-			else
-				callback(false);
-
-		}, 500); // wait a bit before checking if the command is running or not
 
 	}
 
 	this.start_ssh_server = function(){
 
-		console.log("Starting SSH server!");
+		logger.info("Starting SSH server!");
 
 		var ssh_cmd = os_functions.ssh_server_command;
 
 		this.child = new Command(ssh_cmd);
 
 		this.child.on('exit', function(code){
-			self.log("SSH server not running.");
+			logger.info("SSH server not running.");
 			if(self.tunnel.is_open()) self.tunnel.close();
 			// self.done();
 		});
 
 		this.child.on('error', function(e){
-			self.log('SSH server closed abruptly with status : ' + e.code);
+			logger.info('SSH server closed abruptly with status : ' + e.code);
 			// console.log(e);
 		});
 
@@ -104,8 +92,24 @@ var Terminal = function(options){
 
 };
 
-util.inherits(Terminal, ActionModule);
+util.inherits(Terminal, emitter);
 
-exports.init = function(options){
-	return new Terminal(options);
-};
+exports.start = function(options, callback){
+
+	var terminal = this.terminal = new Terminal();
+	terminal.start(options);
+
+	setTimeout(function(){
+
+		if(terminal.child && terminal.child.is_running())
+			callback(this.terminal);
+		else
+			callback(false);
+
+	}, 500); // wait a bit before checking if the command is running or not
+
+}
+
+exports.stop = function(){
+	this.terminal.stop();
+}
