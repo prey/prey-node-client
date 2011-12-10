@@ -43,7 +43,7 @@ process.on('SIGINT', function() {
 
 process.on('SIGUSR1', function() {
 	logger.info(' >> Received run instruction!');
-	Prey.fire();
+	Prey.unleash();
 });
 
 /*
