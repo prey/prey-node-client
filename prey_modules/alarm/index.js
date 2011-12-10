@@ -16,7 +16,8 @@ function start_alarm(options, callback){
 	for(i = 0; i < this.loops; i++){
 		console.log("Playing sound: " + sound_file);
 		GStreamer.playSound(sound_file, function(was_played){
-			if(!returned) callback(was_played);
+			if(!returned)
+				callback(was_played) && returned = true;
 		});
 	}
 

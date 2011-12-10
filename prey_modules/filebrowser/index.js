@@ -1,5 +1,5 @@
 //////////////////////////////////////////
-// Prey JS FileBrowser Module
+// Prey JS FileBrowser Plugin
 // (c) 2011 - Fork Ltd.
 // by Tomas Pollak - http://forkhq.com
 // GPLv3 Licensed

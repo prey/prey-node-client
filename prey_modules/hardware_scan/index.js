@@ -1,3 +1,10 @@
+//////////////////////////////////////////
+// Prey JS Hardware Scan Plugin
+// Written by Tomas Pollak <tomas@forkhq.com>
+// (c) 2011 - Fork Ltd. - http://forkhq.com
+// GPLv3 Licensed
+//////////////////////////////////////////
+
 var util = require('util'),
 		emitter = require('events').EventEmitter,
 		Hardware = require('../../lib/providers/hardware');
@@ -35,6 +42,8 @@ exports.start = function(options, callback){
 
 	// call the callback first so the hardware_scanned promise gets hooked
 	callback(scanner);
+
+	// now go!
 	scanner.get_info(options);
 };
 
