@@ -72,7 +72,7 @@ initial draft of different requests that could be made:
 
  - Providers provide information on request. They return the result as a callback.
 
-	var Network = require('network');
+	var Network = require('./providers/network');
 	Network.get('active_wifi_network', function(result){
 		console.log("Current wifi network: " + result);
 	};
@@ -84,13 +84,13 @@ loop_start
 no_connection
 fetch_start
 fetch_end
-actions_start
-actions_end
 report_start
 report_ready
 report_sent
-[module_name]_start
-[module_name]_end
+actions_start
+[action_name]_start
+[action_name]_end
+actions_end
 command_received
 command_sent
 loop_end

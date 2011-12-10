@@ -50,7 +50,7 @@ process.on('SIGUSR1', function() {
 
 process.on('uncaughtException', function (err) {
 	console.log('Caught exception: ' + err);
-	if(config.send_crash_reports) require('crash_notifier').send(err);
+	if(config.send_crash_reports) require('./lib/crash_notifier').send(err);
 });
 
 */
