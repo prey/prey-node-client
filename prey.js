@@ -7,7 +7,7 @@
 //////////////////////////////////////////
 
 var path = require('path'), opts = require('opts');
-process.env.ROOT_PATH = root_path = path.resolve(__dirname + '/..'); // base.root_path;
+process.env.ROOT_PATH = root_path = path.resolve(__dirname); // base.root_path;
 
 ////////////////////////////////////////
 // base initialization
