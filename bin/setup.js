@@ -11,8 +11,10 @@ var fs = require('fs'),
 		util = require('util'),
 		program = require('commander');
 
-var default_config_file = __dirname + '/../config.js.default';
-var real_config_file = __dirname + '/../config.js';
+var root_path = process.env.ROOT_PATH || path.resolve(__dirname + '../../')
+
+var default_config_file = root_path + '/config.js.default';
+var real_config_file = root_path + '/config.js';
 
 function copy_file(src, dest, callback){
 
@@ -36,8 +38,8 @@ var exit_setup = function(msg){
 
 var start_setup = function(){
 
-	if(!config) var config = require('../config');
-	exports.Register = require('../lib/register');
+	if(!config) var config = require(root_path + '/config');
+	exports.Register = require(root_path + '/lib/prey/register');
 
 	if (config.api_key != '') {
 		exit_setup("Your account has already been set up! You can run Prey now.");
@@ -145,7 +147,7 @@ var new_user = function(attempt){
 
 try {
 
-	var config = require('../config');
+	var config = require(root_path + '/config');
 	start_setup();
 
 } catch(e) {
