@@ -9,38 +9,38 @@ var common = require('../../lib/common'),
 		util = require('util'),
 		connect = require('connect'),
 		Tunnel = require('../../lib/tunnel'),
-		ActionModule = require('../../lib/action_module');
+		emitter = require('events').EventEmitter;
 
 var FileBrowser = function(){
 
-	ActionModule.call(this);
 	var self = this;
-	this.name = 'filebrowser';
-
-	this.options = {
-		root_path: '/',
-		show_hidden: false,
-		tunnel_host: 'kiwi',
-		tunnel_port: 9996
-	}
 
 	// open: first we open the tunnel, then we run the command
 	// close: first we close the tunnel, then we kill the command
 
-	this.start = function(callback){
+	this.start = function(options, callback){
+
+		var tunnel_host = options.tunnel_host || 'kiwi';
+		var tunnel_port = options.tunnel_port || 9996;
+
+		var static_root_path = options.static_root_path || '/';
+		var directory_options = {
+			hidden: options.show_hidden || false,
+			icons: options.show_icons || true
+		}
 
 		this.server = connect.createServer(
 			connect.logger(),
-			connect.directory(self.options.root_path),
-			connect.static(self.options.root_path)
+			connect.directory(static_root_path, directory_options),
+			connect.static(static_root_path)
 		);
 
 		this.server.listen(function(){
 
-			self.options.local_port = self.server.address().port;
-			self.log("server listening on localhost:" + self.options.local_port);
+			var local_port = self.server.address().port;
+			self.log("server listening on localhost:" + local_port);
 
-			self.tunnel = new Tunnel(self.options.local_port, self.options.tunnel_host, self.options.tunnel_port);
+			self.tunnel = new Tunnel(local_port, tunnel_host, tunnel_port);
 
 			self.tunnel.on('error', function(){
 				self.stop();
@@ -67,12 +67,20 @@ var FileBrowser = function(){
 
 		if(this.tunnel.is_open())
 			this.tunnel.close();
-		else if(this.server.state == 'open')
+		else if(this.server.readyState == 'open')
 			this.server.close();
 
 	}
 
 };
 
-util.inherits(FileBrowser, ActionModule);
-module.exports = new FileBrowser();
+util.inherits(FileBrowser, emitter);
+
+exports.start = function(options, callback){
+	var filebrowser = this.filebrowser = new FileBrowser();
+	filebrowser.start(options, callback);
+}
+
+exports.stop = function(){
+	this.filebrowser.stop();
+}
