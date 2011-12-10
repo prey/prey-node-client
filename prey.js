@@ -33,16 +33,16 @@ var common = require('./lib/common'),
 process.on('exit', function(code) {
 	Prey.shutdown();
 	if(code != 10) common.helpers.clean_up(pid_file);
-	logger.info(" -- Have a jolly good day sir.\n");
+	logger.info('Have a jolly good day sir.\n');
 });
 
 process.on('SIGINT', function() {
-	logger.info(' >> Got Ctrl-C!');
+	logger.warn('Got Ctrl-C!');
 	process.exit(0);
 });
 
 process.on('SIGUSR1', function() {
-	logger.info(' >> Received run instruction!');
+	logger.notice('Got SIGUSR signal!');
 	Prey.unleash();
 });
 
