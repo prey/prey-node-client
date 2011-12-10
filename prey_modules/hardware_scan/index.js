@@ -8,16 +8,21 @@ var HardwareScan = function(options){
 
 	this.get_info = function(){
 
-		setTimeout(function(){
+		var data = {};
 
-			var data = {
-				asd: 'asdasd'
-			}
+		Hardware.getters.forEach(function(info){
 
-			self.emit('hardware_scanned', data);
-			self.emit('end', true);
+			Hardware.get(info, function(result){
 
-		}, 5000);
+				data[info] = result;
+
+			});
+
+		});
+
+		// console.log(data);
+		self.emit('hardware_scanned', data);
+		self.emit('end', true);
 
 	};
 
@@ -26,9 +31,11 @@ var HardwareScan = function(options){
 util.inherits(HardwareScan, emitter);
 
 exports.start = function(options, callback){
-	var scanner = this.scanner = new HardwareScan(options, callback);
-	scanner.get_info(options);
+	var scanner = new HardwareScan(options, callback);
+
+	// call the callback first so the hardware_scanned promise gets hooked
 	callback(scanner);
+	scanner.get_info(options);
 };
 
 exports.events = ['hardware_scanned'];
