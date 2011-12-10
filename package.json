@@ -14,7 +14,7 @@
     "xml2js": "",
     "express": "2.5.1",
     "nodemailer": "",
-    "mdns": ""
+    "commander": ""
   },
   "devDependencies": {
     "jasmine-node": "*"
