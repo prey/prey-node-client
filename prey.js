@@ -17,7 +17,7 @@ try {
 	var config = require(root_path + '/config');
 } catch(e) {
 	console.log("No config file found! Running setup!\n");
-	return require(root_path + '/bin/setup');
+	return require(root_path + '/lib/prey/setup');
 }
 
 var common = require(root_path + '/lib/prey/common'),
