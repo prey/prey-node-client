@@ -1,4 +1,4 @@
-var Main = require('../core/main');
+var Main = require('../lib/main');
 
 describe('main', function() {
 

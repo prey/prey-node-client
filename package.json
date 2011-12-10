@@ -9,15 +9,12 @@
   "os":          ["linux", "darwin", "win32"],
   "dependencies": {
     "opts": "1.2.1",
-    "ansi-color": "0.2.1",
     "qs": "0.4.0",
     "restler": "",
-    "wrench": "",
     "xml2js": "",
     "express": "2.5.1",
     "nodemailer": "",
-    "mdns": "",
-    "nlogger": ""
+    "mdns": ""
   },
   "devDependencies": {
     "jasmine-node": "*"
