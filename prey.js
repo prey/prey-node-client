@@ -23,7 +23,7 @@ try {
 var common = require('./lib/common'),
 		logger = common.logger,
 		pid_file = common.helpers.tempfile_path('prey.pid'),
-		args = require('./lib/args').init(common.version),
+		args = require('./lib/args').parse(common.version),
 		Prey = require('./lib/main');
 
 /////////////////////////////////////////////////////////////
