@@ -8,11 +8,10 @@
   "engine":      "node >= 0.6.0",
   "os":          ["linux", "darwin", "win32"],
   "dependencies": {
-    "opts": "1.2.1",
     "qs": "0.4.0",
-    "restler": "",
     "xml2js": "",
-    "express": "2.5.1",
+    "needle": "",
+    "connect": "",
     "nodemailer": "",
     "commander": ""
   },
