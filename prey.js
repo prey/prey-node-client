@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 //////////////////////////////////////////
 // Prey JS Client
-// (c) 2011, Fork Ltd. - http://forkhq.com
 // Written by Tomás Pollak
+// (c) 2011, Fork Ltd. - http://forkhq.com
 // Licensed under the GPLv3
 //////////////////////////////////////////
 
@@ -22,9 +22,20 @@ try {
 
 var common = require(root_path + '/lib/prey/common'),
 		logger = common.logger,
+		program = common.program,
 		pid_file = common.helpers.tempfile_path('prey.pid'),
-		args = require(root_path + '/lib/prey/args').parse(common.version),
 		Prey = require(root_path + '/lib/prey');
+
+/////////////////////////////////////////////////////////////
+// command line options
+/////////////////////////////////////////////////////////////
+
+program
+	.version(common.version)
+	.option('-c, --check', 'Run Prey in check mode')
+	.option('-d, --debug', 'Output debugging info')
+
+program.parse(process.argv);
 
 /////////////////////////////////////////////////////////////
 // event, signal handlers
@@ -67,7 +78,7 @@ common.helpers.check_and_store_pid(pid_file, function(running_pid){
 			process.exit(10);
 		});
 	} else {
-		Prey.run(config, args);
+		Prey.run(config);
 	}
 
 });
