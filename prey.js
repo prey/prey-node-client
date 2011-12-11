@@ -34,8 +34,9 @@ program
 	.version(common.version)
 	.option('-c, --check', 'Run Prey in check mode')
 	.option('-d, --debug', 'Output debugging info')
+	.parse(process.argv);
 
-program.parse(process.argv);
+if (program.debug) process.env.DEBUG = true;
 
 /////////////////////////////////////////////////////////////
 // event, signal handlers
