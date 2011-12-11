@@ -7,7 +7,7 @@
 
 var util = require('util'),
 		emitter = require('events').EventEmitter,
-		Hardware = require('../../lib/providers/hardware');
+		Hardware = require('./../../lib/prey/providers/hardware');
 
 var HardwareScan = function(options){
 
