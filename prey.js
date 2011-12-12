@@ -6,7 +6,7 @@
 // Licensed under the GPLv3
 //////////////////////////////////////////
 
-var path = require('path'), opts = require('opts');
+var path = require('path');
 process.env.ROOT_PATH = root_path = path.resolve(__dirname); // base.root_path;
 
 ////////////////////////////////////////
@@ -79,7 +79,7 @@ common.helpers.check_and_store_pid(pid_file, function(running_pid){
 			process.exit(10);
 		});
 	} else {
-		Prey.run(config);
+		Prey.run();
 	}
 
 });
