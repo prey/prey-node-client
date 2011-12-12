@@ -5,11 +5,11 @@
 // Licensed under the GPLv3
 //////////////////////////////////////////
 
-var common = require('../../lib/common'),
+var common = require('./../../lib/prey/common'),
 		logger = common.logger,
 		util = require('util'),
 		Command = require('command'),
-		Tunnel = require('../../lib/tunnel'),
+		Tunnel = require('./../../lib/prey/tunnel'),
 		emitter = require('events').EventEmitter,
 		os_functions = require('./platform/' + common.os_name);
 
