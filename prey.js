@@ -55,7 +55,7 @@ process.on('SIGINT', function() {
 
 process.on('SIGUSR1', function() {
 	logger.notice('Got SIGUSR1 signal!');
-	Prey.unleash();
+	Prey.engage();
 });
 
 /*
