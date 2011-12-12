@@ -1,42 +1,33 @@
 //////////////////////////////////////////
 // Prey Config File
-// (c) 2011, Fork Ltd. -- forkhq.com
 // Written by Tomás Pollak
+// (c) 2011, Fork Ltd. -- forkhq.com
 // Licensed under the GPLv3
 //////////////////////////////////////////
 
 module.exports = {
 
-	// language, en (english) or es (espanol)
-	lang: "en",
+	// API & Device keys for Control Panel remote control
+	api_key: "",
+	device_key: "",
 
-	// autoconnect feature, enable it and Prey will try to connect to the first
+	// auto-connect feature. enable it and Prey will try to connect to the first
 	// open WiFi network available in the area
 	auto_connect: true,
 	max_auto_connect_attempts: 2,
 	auto_connect_timeout: 5000,
 
-	// verification URL, if left empty Prey will always activate and run,
-	// which is certainly *not* recommended.
-	check_urls: [ "http://control.preyproject.com" ],
+	// additional endpoints for fetching instruction set
+	alternate_check_urls: [ ],
 
-	// IMPORTANT: on what HTTP response code will Prey be activated (200 or 404)
-	// control panel users don't touch this! standalone users may want to
-	// change it back to 200 (previous setting), if you wish to wake Prey up by
-	// creating the URL (as before) instead of removing an existing one
+	// in case Prey cannot find a missing: true value in the response schema,
+	// it will compare the response status code to this one. if it matches, Prey
+	// will assume the device is marked as missing and send a report.
 	missing_status_code: 404,
 
-	// method(s) for sending reports
-	// valid values: control_panel, smtp, scp or sftp
+	// destination(s) for sending reports
+	// valid values: control_panel, http, smtp
 	destinations: ["control_panel"],
-
-	//////////////////////////////////////////////////////////////
-	// http posting configuration
-	//////////////////////////////////////////////////////////////
-
-	// you can get both of these from preyproject.com
-	api_key: "",
-	device_key: "",
 
 	//////////////////////////////////////////////////////////////
 	// http request options
@@ -63,7 +54,6 @@ module.exports = {
 	// help us in the debugging process by sending anonymous crash reports,
 	// containing the exception message and a (hopefully small) backtrace
 	send_crash_reports: true,
-	crash_reports_host: "http://exceptions.preyproject.com",
 
 	//////////////////////////////////////////////////////////////
 	// proxy options
@@ -78,7 +68,8 @@ module.exports = {
 	},
 
 	//////////////////////////////////////////////////////////////
-	// transports config, for reports
+	// transports config, for reports, events and traces
+	// values are overridden with the ones received remotely
 	//////////////////////////////////////////////////////////////
 
 	transports: {

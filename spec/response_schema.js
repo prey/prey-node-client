@@ -7,14 +7,30 @@ module.exports = {
 		port: 123123
 	},
 	destinations: {
-		http: {
-			url: 'http://asdasd.com/reports'
+		report: {
+			http: {
+				url: 'http://my.server.com/reports',
+				username: 'user',
+				password: 'secret'
+			},
 		},
+		events: {
+			control_panel: {
+				url: 'http://www.server.com/events'
+			}
+		},
+		data: {
+			smtp: {
+				host: 'server.com',
+				port: 25,
+				recipient: 'hello@hola.com'
+			}
+		}
 	},
 	report: {
 		screenshot: true,
 		picture: true,
-		geo: true,
+		location: true,
 		running_programs: true,
 		modified_files: {
 			time: 10000,
@@ -26,21 +42,21 @@ module.exports = {
 	{
 		name: 'lock',
 		version: '1.0.2',
-		config: {
+		options: {
 			password: 'asdasdasd'
 		}
 	},
 	{
 		name: 'alarm',
 		version: '1.0.2',
-		config: {
+		options: {
 			sound: 'siren.mp3'
 		}
 	},
 	{
 		name: 'desktop',
 		version: '1.0.2',
-		config: {
+		options: {
 			view_only: true
 		}
 	}]
