@@ -1,5 +1,3 @@
-// var Main = require('../lib/main');
-
 var exec = require('child_process').exec,
 		main_script = require('./../package').scripts.start;
 
