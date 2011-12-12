@@ -17,13 +17,14 @@ module.exports = {
 		events: {
 			control_panel: {
 				url: 'http://www.server.com/events'
-			}
+			},
+			smtp: true // uses local defaults
 		},
-		data: {
+		traces: {
 			smtp: {
 				host: 'server.com',
 				port: 25,
-				recipient: 'hello@hola.com'
+				recipient: 'hello@domain.com'
 			}
 		}
 	},
@@ -39,22 +40,19 @@ module.exports = {
 		traceroute: true
 	},
 	actions: [
-	{
-		name: 'lock',
+	{ name: 'lock',
 		version: '1.0.2',
 		options: {
 			password: 'asdasdasd'
 		}
 	},
-	{
-		name: 'alarm',
+	{ name: 'alarm',
 		version: '1.0.2',
 		options: {
 			sound: 'siren.mp3'
 		}
 	},
-	{
-		name: 'desktop',
+	{ name: 'desktop',
 		version: '1.0.2',
 		options: {
 			view_only: true
