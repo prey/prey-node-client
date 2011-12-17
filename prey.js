@@ -34,9 +34,11 @@ program
 	.version(common.version)
 	.option('-c, --check', 'Run Prey in check mode')
 	.option('-d, --debug', 'Output debugging info')
+	.option('-s, --setup', 'Run setup routine')
 	.parse(process.argv);
 
 if (program.debug) process.env.DEBUG = true;
+if (program.setup) return require(root_path + '/lib/prey/setup');
 
 /////////////////////////////////////////////////////////////
 // event, signal handlers
