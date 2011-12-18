@@ -6,25 +6,10 @@
 // Licensed under the GPLv3
 //////////////////////////////////////////
 
-var path = require('path');
-process.env.ROOT_PATH = root_path = path.resolve(__dirname); // base.root_path;
-
-////////////////////////////////////////
-// base initialization
-////////////////////////////////////////
-
-try {
-	var config = require(root_path + '/config');
-} catch(e) {
-	console.log("No config file found! Running setup!\n");
-	return require(root_path + '/lib/prey/setup');
-}
-
-var common = require(root_path + '/lib/prey/common'),
-		logger = common.logger,
-		program = common.program,
-		pid_file = common.helpers.tempfile_path('prey.pid'),
-		Prey = require(root_path + '/lib/prey');
+var path = require('path'),
+		root_path = process.env.ROOT_PATH = path.resolve(__dirname),
+		common = require('./lib/prey/common'),
+		program = common.program;
 
 /////////////////////////////////////////////////////////////
 // command line options
@@ -32,13 +17,31 @@ var common = require(root_path + '/lib/prey/common'),
 
 program
 	.version(common.version)
-	.option('-c, --check', 'Run Prey in check mode')
+	.option('-p, --path <path>', 'Path to config file [/etc/prey or C:\\$WINDIR\\Prey]')
 	.option('-d, --debug', 'Output debugging info')
 	.option('-s, --setup', 'Run setup routine')
 	.parse(process.argv);
 
+common.config_file = (program.path || common.os.config_path) + '/config.js';
+
 if (program.debug) process.env.DEBUG = true;
 if (program.setup) return require(root_path + '/lib/prey/setup');
+
+////////////////////////////////////////
+// base initialization
+////////////////////////////////////////
+
+try {
+	var config = require(common.config_file);
+	common.set_config(config);
+} catch(e) {
+	console.log("Config file not found: " + common.config_file + ". Running setup!\n");
+	return require(root_path + '/lib/prey/setup');
+}
+
+var logger = common.logger,
+		pid_file = common.helpers.tempfile_path('prey.pid'),
+		Prey = require(root_path + '/lib/prey');
 
 /////////////////////////////////////////////////////////////
 // event, signal handlers
