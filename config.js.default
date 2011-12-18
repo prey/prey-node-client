@@ -29,6 +29,9 @@ module.exports = {
 	// valid values: control_panel, http, smtp
 	destinations: ["control_panel"],
 
+	// these will be loaded by Prey on startup
+	// load_plugins: [ ],
+
 	//////////////////////////////////////////////////////////////
 	// SSL keys, for tunnels and On Demand. To generate:
 	// $ openssl genrsa -out ssl.key 2048
@@ -111,37 +114,6 @@ module.exports = {
 			// you dont need to change this
 			from: "Prey <no-reply@gmail.com>",
 			subject: "[Prey] Status Report",
-
-		},
-
-		//////////////////////////////////////////////////////////////
-		// SCP (Secure Copy) settings
-		// we dont use user/pass but RSA keys
-		//////////////////////////////////////////////////////////////
-
-		scp: {
-
-			options: "-oStrictHostKeyChecking=no",
-
-			// remember you should have write access to the folder
-			user: "username",
-			host: "my.server.com",
-			path: "~",
-
-		},
-
-		//////////////////////////////////////////////////////////////
-		// SFTP settings
-		//////////////////////////////////////////////////////////////
-
-		sftp: {
-
-			options: "-oStrictHostKeyChecking=no",
-
-			// make sure you have write access!
-			user: "username",
-			host: "my.server.com",
-			path: ".",
 
 		},
 
