@@ -5,10 +5,10 @@
 // GPLv3 Licensed
 //////////////////////////////////////////
 
-var common = require('../../lib/common'),
+var common = require('./../../lib/prey/common'),
 		util = require('util'),
 		connect = require('connect'),
-		Tunnel = require('../../lib/tunnel'),
+		Tunnel = require('./../../lib/prey/tunnel'),
 		emitter = require('events').EventEmitter;
 
 var FileBrowser = function(){
@@ -38,7 +38,7 @@ var FileBrowser = function(){
 		this.server.listen(function(){
 
 			var local_port = self.server.address().port;
-			self.log("server listening on localhost:" + local_port);
+			common.logger.info("server listening on localhost:" + local_port);
 
 			self.tunnel = new Tunnel(local_port, tunnel_host, tunnel_port);
 
@@ -47,12 +47,12 @@ var FileBrowser = function(){
 			});
 
 			self.tunnel.on('opened', function(){
-				self.log("Tunnel is open!");
+				common.logger.info("Tunnel is open!");
 			});
 
 			self.tunnel.on('closed', function(){
 
-				self.log("Tunnel closed!");
+				common.logger.info("Tunnel closed!");
 				self.server.close();
 
 			});
