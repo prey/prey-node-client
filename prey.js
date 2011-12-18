@@ -22,7 +22,8 @@ program
 	.option('-s, --setup', 'Run setup routine')
 	.parse(process.argv);
 
-common.config_file = (program.path || common.os.config_path) + '/config.js';
+common.config_path = program.path || common.os.default_config_path;
+common.config_file = common.config_path + '/config.js';
 
 if (program.debug) process.env.DEBUG = true;
 if (program.setup) return require(root_path + '/lib/prey/setup');
