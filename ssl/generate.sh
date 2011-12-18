@@ -1,5 +1,5 @@
 #!/bin/sh
-# generates self-signed certificates for On-Demand TLS Connection
+# generates self-signed certificates for TLS connections
 
 #country_code="US"
 #state_name=""     # ST: State or Province Name
@@ -9,6 +9,7 @@
 #common_name=""    # CN: Common Name
 
 curr_path=$(dirname $0)
+destination="$1"
 
 [ ! -f "$curr_path/ca.cnf" ] && echo "ca.cnf file not found" && exit 1
 
