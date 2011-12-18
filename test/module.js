@@ -1,3 +1,6 @@
+var common = require('./../lib/prey/common');
+common.load_config();
+
 var module_name = process.argv[2];
 
 if(module_name == null || module_name == ""){
@@ -16,4 +19,5 @@ mod.start({}, function(return_object){
 process.on('SIGINT', function () {
 	console.log(' >> Got Ctrl-C!');
 	mod.stop();
+	process.exit(1);
 });

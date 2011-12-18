@@ -22,21 +22,15 @@ program
 	.option('-s, --setup', 'Run setup routine')
 	.parse(process.argv);
 
-common.config_path = program.path || common.os.default_config_path;
-common.config_file = common.config_path + '/config.js';
-
 if (program.debug) process.env.DEBUG = true;
-if (program.setup) return require(root_path + '/lib/prey/setup');
 
 ////////////////////////////////////////
 // base initialization
 ////////////////////////////////////////
 
-try {
-	var config = require(common.config_file);
-	common.set_config(config);
-} catch(e) {
-	console.log("Config file not found: " + common.config_file + ". Running setup!\n");
+common.load_config();
+
+if(!common.config || program.setup){
 	return require(root_path + '/lib/prey/setup');
 }
 
