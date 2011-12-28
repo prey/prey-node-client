@@ -1,8 +1,10 @@
 // var GStreamer = require(__dirname + '../node_modules/gstreamer');
 var GStreamer = require('node-gstreamer');
 var fs = require('fs');
+var path = require('path');
 
 var command = process.argv[2];
+process.env.DEBUG = true;
 
 if(typeof command == 'undefined')
   process.exit();
@@ -20,7 +22,7 @@ GStreamer.captureFrame('desktop', __dirname + '/frame.jpg', {width: 320, height:
 
 } else if (command == 'sound'){
 
-var file = process.argv[3];
+var file = process.argv[3] || path.resolve('./plugins/alarm/lib/alarm.mp3');
 
 GStreamer.playSound(file, function(file_played){
 	if(file_played)
