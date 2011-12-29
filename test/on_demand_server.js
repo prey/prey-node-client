@@ -22,7 +22,7 @@ var getHTML = function(){
 
 var sendCommand = function(command, data){
 	console.log("Sending " + command + " command to client");
-	var msg = JSON.stringify({command: command, data: data});
+	var msg = JSON.stringify({command: command, data: data || {}});
 	client.write(msg);
 }
 
@@ -47,7 +47,7 @@ var http_server = http.createServer(function(req, res){
 				sendCommand("get_trace", {name: 'modified_files'});
 				break;
 			case 'update_setting':
-				sendCommand("update_setting", {key: 'auto_connect', value: true});
+				sendCommand("update_setting", {key: 'auto_connect', value: false, save: true});
 				break;
 			default: 
 				var msg = "Unknown request: " + req.url;
@@ -75,14 +75,15 @@ var options = {
 var tcp_server = tls.createServer(options, function(stream) {
 	
   console.log('server connected', stream.authorized ? 'authorized' : 'unauthorized');
-  stream.write("welcome!\n");
   stream.setEncoding('utf8');
 
 	client = stream;
 	connected_at = new Date();
 	
+	sendCommand('welcome')
+
 	stream.on('secureConnect', function(){
-		console.log("Connection succesfully handshaked");
+		console.log(" - Connection succesfully handshaked");
 	})
 	
 	stream.on('data', function(data){
@@ -90,7 +91,7 @@ var tcp_server = tls.createServer(options, function(stream) {
 	})
 	
 	stream.on('close', function(err){
-		console.log("Connection closed");
+		console.log(" - Connection closed");
 		client = null;
 		connected_at = null;
 	})
@@ -99,3 +100,6 @@ var tcp_server = tls.createServer(options, function(stream) {
 });
 
 tcp_server.listen(tcp_port);
+
+console.log("TCP server listening on port " + tcp_port);
+console.log("HTTP server listening on port " + http_port);
