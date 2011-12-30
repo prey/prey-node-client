@@ -1,7 +1,11 @@
 module.exports = {
-	current_release: '1.0.2',
-	status: 'missing',
-	auto_update: true,
+	status: {
+		missing: true,
+		current_release: '1.0.2'
+	},
+	settings: { // stuff that overrides settings in config.js
+		auto_update: true,
+	},
 	on_demand: {
 		host: 'server.com',
 		port: 123123

@@ -27,6 +27,7 @@ var sendCommand = function(command, data){
 }
 
 var http_server = http.createServer(function(req, res){
+  console.log("Got request: " + req.url);
 
   res.writeHead(200, {'Content-Type': 'text/html'});
 
