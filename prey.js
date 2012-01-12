@@ -48,10 +48,14 @@ process.on('exit', function(code) {
 	logger.info('Have a jolly good day sir.\n');
 });
 
+if (process.platform != 'win32') {
+
 process.on('SIGINT', function() {
 	logger.warn('Got Ctrl-C!');
 	process.exit(0);
 });
+
+}
 
 process.on('SIGUSR1', function() {
 	logger.notice('Got SIGUSR1 signal!');
