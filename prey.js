@@ -61,8 +61,9 @@ process.on('SIGUSR1', function() {
 /*
 
 process.on('uncaughtException', function (err) {
-	console.log('Caught exception: ' + err);
-	if(config.send_crash_reports) require(root_path + '/lib/crash_notifier').send(err);
+	console.log('Caught exception: ' + err.stack);
+	if(config.send_crash_reports && Prey.connection_found) 
+		require(root_path + '/lib/crash_notifier').send(err);
 });
 
 */
