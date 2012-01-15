@@ -12,11 +12,11 @@ var connected_at = null;
 // var schema = require('./../spec/fixtures/response_schema');
 
 var getHTML = function(){
-	var html = "<h1>Client connected since " + connected_at.toUTCString() + "</h1>";
+	var html = "<h1>Client connected since " + connected_at.toUTCString() + "</h1><ul>";
 	html += "<li><a href='/start_action'>Start action</a></li>";
 	html += "<li><a href='/stop_action'>Stop action</a></li>";
 	html += "<li><a href='/get_trace'>Get trace</a></li>";
-	html += "<li><a href='/update_setting'>Update setting</a></li>";
+	html += "<li><a href='/update_setting'>Update setting</a></li></ul>";
 	return html;
 }
 
@@ -58,7 +58,7 @@ var http_server = http.createServer(function(req, res){
 
 	}
 	
-	res.end("Command sent. " + "<a href='/'>Return</a>")
+	res.end("Command sent. " + "<a href='/'>Back</a>")
 	
 }).listen(http_port);
 
