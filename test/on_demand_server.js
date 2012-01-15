@@ -75,7 +75,7 @@ var options = {
 
 var tcp_server = tls.createServer(options, function(stream) {
 	
-  console.log('server connected', stream.authorized ? 'authorized' : 'unauthorized');
+  console.log(' - New connection, ', stream.authorized ? 'authorized' : 'unauthorized');
   stream.setEncoding('utf8');
 
 	client = stream;
@@ -88,7 +88,7 @@ var tcp_server = tls.createServer(options, function(stream) {
 	})
 	
 	stream.on('data', function(data){
-		console.log("Got data: " + data.toString());
+		console.log(" - Got data: " + data.toString());
 	})
 	
 	stream.on('close', function(err){
