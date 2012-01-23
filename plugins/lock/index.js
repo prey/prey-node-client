@@ -18,14 +18,15 @@ var Lock = function(){
 	var self = this;
 	
 	this.start = function(options){
-		
-		var password = options.password || '4d186321c1a7f0f354b297e8914ab240'; // "hola", for testing
+				
+		var password = options.unlock_pass || '4d186321c1a7f0f354b297e8914ab240'; // "hola", for testing
+		if(password.length != 32) password = this.digest_password(password);
+
 		this.child = spawn(lock_binary, [password]);
 		
 		this.child.once('exit', function(code, signal){
 
-			console.log("Lock exited with code " + code);
-
+			// console.log("Lock exited with code " + code);
 			if(code == 66)
 				self.emit('end', true);
 			else 
@@ -34,6 +35,10 @@ var Lock = function(){
 		})
 		
 	};
+	
+	this.digest_password = function(str){
+		return require('crypto').createHash('md5').update(str).digest('hex');
+	}
 	
 	this.stop = function(){
 		this.child.kill();
