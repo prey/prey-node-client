@@ -7,6 +7,7 @@
   "description": "Simple, effective anti-theft & monitoring software for your laptop",
   "engine":      "node >= 0.6.0",
   "os":          ["linux", "darwin", "win32"],
+  "preferGlobal": true,
   "dependencies": {
     "npm": "",
     "qs": "0.4.0",
