@@ -19,7 +19,8 @@ var Lock = function(){
 	
 	this.start = function(options){
 		
-		this.child = spawn(lock_binary);
+		var password = options.password || '4d186321c1a7f0f354b297e8914ab240'; // "hola", for testing
+		this.child = spawn(lock_binary, [password]);
 		
 		this.child.once('exit', function(code, signal){
 
@@ -48,8 +49,8 @@ var Lock = function(){
 util.inherits(Lock, emitter);
 
 exports.start = function(options, callback){
-	var lock = exports.instance = new Lock(options);
-	lock.start();
+	var lock = exports.instance = new Lock();
+	lock.start(options || {});
 	setTimeout(function(){
 		return lock.is_running() ? callback(lock) : callback(false);
 	}, 100);
