@@ -1,7 +1,7 @@
 module.exports = {
-	status: {
-		missing: true,
-		current_release: '1.0.2'
+	missing: true,
+	current_release: '1.0.2',
+	delay: 10,
 	},
 	settings: { // stuff that overrides settings in config.js
 		auto_update: true,
