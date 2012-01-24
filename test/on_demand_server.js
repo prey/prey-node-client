@@ -48,7 +48,7 @@ var http_server = http.createServer(function(req, res){
 				sendCommand("get_trace", {name: 'modified_files'});
 				break;
 			case 'update_setting':
-				sendCommand("update_setting", {key: 'auto_connect', value: false, save: true});
+				sendCommand("update_setting", {'auto_connect': false});
 				break;
 			default: 
 				var msg = "Unknown request: " + req.url;
