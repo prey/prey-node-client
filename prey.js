@@ -18,6 +18,7 @@ var path = require('path'),
 program
 	.version(common.version)
 	.option('-p, --path <path>', 'Path to config file [/etc/prey or C:\\$WINDIR\\Prey]')
+	.option('-l, --load <plugins>', 'Comma-separated list of plugins to load on startup')
 	.option('-d, --debug', 'Output debugging info')
 	.option('-s, --setup', 'Run setup routine')
 	.parse(process.argv);
