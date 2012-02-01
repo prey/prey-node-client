@@ -52,8 +52,10 @@ class LockView(NSView):
     # get background image
     image = NSImage.alloc().initWithContentsOfFile_(bg_path)
     rep = image.representations()[0]
-    bg_width = rep.pixelsWide()
-    bg_height = rep.pixelsHigh()
+    # bg_width = rep.pixelsWide()
+    # bg_height = rep.pixelsHigh()
+    bg_height = self.bounds().size.height 
+    bg_width = int((self.bounds().size.height / rep.pixelsHigh()) * rep.pixelsWide())
     image.drawInRect_fromRect_operation_fraction_(((self.getLeftOffset(bg_width), self.getTopOffset(bg_height)), (bg_width, bg_height)), NSZeroRect, NSCompositeCopy, 1.0)
 
     # draw background image
@@ -62,9 +64,9 @@ class LockView(NSView):
     self.addSubview_(imageView)
 
   def addInputField(self):
-    width = 430
-    height = 38
-    field = NSSecureTextField.alloc().initWithFrame_(NSMakeRect(self.getLeftOffset(width), self.getTopOffset(height) - 13, width, height))
+    width = 360
+    height = 32
+    field = NSSecureTextField.alloc().initWithFrame_(NSMakeRect(self.getLeftOffset(width), self.getTopOffset(height) - 11, width, height))
     # field.setStringValue_("Type here")
     field.setBezeled_(False)
     field.setBordered_(False)
