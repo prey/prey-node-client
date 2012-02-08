@@ -115,7 +115,7 @@ These are bits the information we need to inform about.
   On Demand we shouldn't need to register an event for *that* call, the function
   should be called and the main hook should take care of sending a notification.
 - Define the way that third-party modules will be included.
- -> Possible implementations: Haraka, Hubot, Hook.io
+ -> Possible implementations: Haraka, Hubot, Hook.io, node-dbmon, 
 - How will we handle exceptions? We should probably set up a server
   to keep track of what's happening. We can set up something like
   node-telemetry server to store exceptions sent by the clients, obviosly

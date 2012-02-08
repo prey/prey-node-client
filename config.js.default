@@ -30,7 +30,7 @@ module.exports = {
 	destinations: ["control_panel"],
 
 	// these will be loaded by Prey on startup
-	// load_plugins: [ ],
+	load_plugins: [ ],
 
 	//////////////////////////////////////////////////////////////
 	// SSL keys, for tunnels and On Demand. To generate:
@@ -56,7 +56,7 @@ module.exports = {
 	extended_headers: true,
 
 	// when offline actions are enabled, this is filename where Prey stores a backup
-	// of the last response it received from the web server. you probably don't need
+	// of the last response it received from the server. you probably don't need
 	// to change it.
 	last_response_file: "last-response.xml",
 
