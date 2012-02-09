@@ -21,14 +21,13 @@
     "jasmine-node": "*"
   },
   "bundledDependencies": [],
+  "main": "./lib/prey",
   "files": [
     "prey.js",
     "config.js.default"
   ],
   "directories": {
-    "core": "./core",
-    "lib" : "./lib",
-    "prey_modules": "./prey_modules"
+    "lib" : "./lib"
   },
   "bin": {
     "prey": "./prey.js"
