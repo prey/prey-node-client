@@ -18,6 +18,7 @@ var path = require('path'),
 program
 	.version(common.version)
 	.option('-p, --path <path>', 'Path to config file [/etc/prey or C:\\$WINDIR\\Prey]')
+	.option('-d, --driver <driver>', 'Driver to use for fetching instructions')
 	.option('-a, --load <actions>', 'Comma-separated list of actions to run on startup')
 	.option('-d, --debug', 'Output debugging info')
 	.option('-s, --setup', 'Run setup routine')
@@ -37,14 +38,14 @@ if(!common.config || program.setup){
 
 var logger = common.logger,
 		pid_file = common.helpers.tempfile_path('prey.pid'),
-		Prey = require(root_path + '/lib/prey');
+		Prey = require('./lib/prey');
 
 /////////////////////////////////////////////////////////////
 // event, signal handlers
 /////////////////////////////////////////////////////////////
 
 process.on('exit', function(code) {
-	Prey.shutdown();
+	Prey.agent.shutdown();
 	if(code != 10) common.helpers.clean_up(pid_file);
 	logger.info('Have a jolly good day sir.\n');
 });
@@ -60,7 +61,7 @@ process.on('SIGINT', function() {
 
 process.on('SIGUSR1', function() {
 	logger.notice('Got SIGUSR1 signal!');
-	Prey.engage();
+	Prey.agent.engage();
 });
 
 /*
@@ -81,11 +82,11 @@ common.helpers.check_and_store_pid(pid_file, function(running_pid){
 
 	if(running_pid){
 		// process.kill(running_pid, 'SIGUSR1');
-		Prey.poke('localhost', function(){
+		Prey.agent.poke('localhost', function(){
 			process.exit(10);
 		});
 	} else {
-		Prey.run();
+		Prey.agent.run();
 	}
 
 });
