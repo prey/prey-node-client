@@ -19,9 +19,9 @@ module.exports = {
 	// where to get instructions from
 	driver: 'control_panel',
 
-	// destination(s) for sending reports
+	// destination(s) for sending data returned by actions (report, hardware_scan, etc)
 	// valid values: control_panel, http, smtp
-	endpoints: ["control_panel"],
+	endpoints: ['control_panel'],
 
 	// these will be loaded by Prey on startup
 	load_actions: [ ],
