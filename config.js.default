@@ -13,24 +13,18 @@ module.exports = {
 
 	// auto-connect feature. enable it and Prey will try to connect to the first
 	// open WiFi network available in the area
-	auto_connect: true,
-	max_auto_connect_attempts: 2,
+	auto_connect_attempts: 2,
 	auto_connect_timeout: 5000,
 
-	// additional endpoints for fetching instruction set
-	alternate_check_urls: [ ],
-
-	// in case Prey cannot find a missing: true value in the response schema,
-	// it will compare the response status code to this one. if it matches, Prey
-	// will assume the device is marked as missing and send a report.
-	missing_status_code: 404,
+	// where to get instructions from
+	driver: 'control_panel',
 
 	// destination(s) for sending reports
 	// valid values: control_panel, http, smtp
-	destinations: ["control_panel"],
+	endpoints: ["control_panel"],
 
 	// these will be loaded by Prey on startup
-	load_plugins: [ ],
+	load_actions: [ ],
 
 	//////////////////////////////////////////////////////////////
 	// SSL keys, for tunnels and On Demand. To generate:
