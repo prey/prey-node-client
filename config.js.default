@@ -7,21 +7,39 @@
 
 module.exports = {
 
-	// API & Device keys for Control Panel remote control
-	api_key: "",
-	device_key: "",
+	// where to get instructions from
+	driver: 'control_panel',
+
+	drivers: {
+	
+		control_panel: {
+
+			// API & Device keys for Control Panel remote control
+			api_key: "",
+			device_key: "",
+
+			// this option prepends a random number as a subdomain to the check URL on http mode
+			// makes it harder for other programs to block Prey so its a good idea to be on
+			randomize_check_host: false,
+
+			// whether to send your device's LAN and gateway IP address as headers when
+			// checking its status. currently only for testing purposes, but maybe in the
+			// future it may prove useful. :)
+			extended_headers: true,
+
+			// when offline actions are enabled, this is filename where Prey stores a backup
+			// of the last response it received from the server. you probably don't need
+			// to change it.
+			last_response_file: "last-response.xml",
+
+		}
+	
+	},
 
 	// auto-connect feature. enable it and Prey will try to connect to the first
 	// open WiFi network available in the area
 	auto_connect_attempts: 2,
 	auto_connect_timeout: 5000,
-
-	// where to get instructions from
-	driver: 'control_panel',
-
-	// destination(s) for sending data returned by actions (report, hardware_scan, etc)
-	// valid values: control_panel, http, smtp
-	endpoints: ['control_panel'],
 
 	// these will be loaded by Prey on startup
 	load_actions: [ ],
@@ -35,24 +53,6 @@ module.exports = {
 
 	certificate_file: "ssl.cert",
 	private_key_file: "ssl.key",
-
-	//////////////////////////////////////////////////////////////
-	// http request options
-	//////////////////////////////////////////////////////////////
-
-	// this option prepends a random number as a subdomain to the check URL on http mode
-	// makes it harder for other programs to block Prey so its a good idea to be on
-	randomize_check_host: false,
-
-	// whether to send your device's LAN and gateway IP address as headers when
-	// checking its status. currently only for testing purposes, but maybe in the
-	// future it may prove useful. :)
-	extended_headers: true,
-
-	// when offline actions are enabled, this is filename where Prey stores a backup
-	// of the last response it received from the server. you probably don't need
-	// to change it.
-	last_response_file: "last-response.xml",
 
 	//////////////////////////////////////////////////////////////
 	// additional options
