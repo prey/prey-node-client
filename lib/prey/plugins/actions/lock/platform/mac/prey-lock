@@ -96,6 +96,7 @@ class LockView(NSView):
       # app.terminate_(self)
       os._exit(66)      
     else:
+      print "Invalid password."
       self.show_message("Invalid password. Try again.")
 
   def show_message(self, message):
@@ -153,9 +154,7 @@ def main():
 
 if __name__ == '__main__':
 
-  if len(sys.argv) < 2:
-    passwd = 'e75f0173be748b6f68b3feb61255693c'
-  elif len(sys.argv[1]) != 32:
+  if len(sys.argv) < 2 or len(sys.argv[1]) != 32:
     print "You need to pass an MD5 hexdigested string."
     sys.exit(1)
   else:
