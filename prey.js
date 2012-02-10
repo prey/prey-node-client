@@ -19,8 +19,8 @@ program
 	.version(common.version)
 	.option('-p, --path <path>', 'Path to config file [/etc/prey or C:\\$WINDIR\\Prey]')
 	.option('-d, --driver <driver>', 'Driver to use for fetching instructions')
-	.option('-a, --load <actions>', 'Comma-separated list of actions to run on startup')
-	.option('-d, --debug', 'Output debugging info')
+	.option('-a, --actions <actions>', 'Comma-separated list of actions to run on startup')
+	.option('-D, --debug', 'Output debugging info')
 	.option('-s, --setup', 'Run setup routine')
 	.parse(process.argv);
 
@@ -32,9 +32,8 @@ if (program.debug) process.env.DEBUG = true;
 
 common.load_config();
 
-if(!common.config || program.setup){
+if(!common.config || program.setup)
 	return require(root_path + '/lib/prey/setup');
-}
 
 var logger = common.logger,
 		pid_file = common.helpers.tempfile_path('prey.pid'),
@@ -81,10 +80,11 @@ process.on('uncaughtException', function (err) {
 common.helpers.check_and_store_pid(pid_file, function(running_pid){
 
 	if(running_pid){
-		// process.kill(running_pid, 'SIGUSR1');
-		Prey.agent.poke('localhost', function(){
-			process.exit(10);
-		});
+		process.kill(running_pid, 'SIGUSR1');
+		process.exit(10);
+		// Prey.agent.poke('localhost', function(){
+			// process.exit(10);
+		// });
 	} else {
 		Prey.agent.run();
 	}
