@@ -63,7 +63,12 @@ process.on('SIGINT', function() {
 
 process.on('SIGUSR1', function() {
 	logger.notice('Got SIGUSR1 signal!');
-	Prey.agent.engage();
+	Prey.agent.engage('SIGUSR1');
+});
+
+process.on('SIGUSR2', function() {
+	logger.notice('Got SIGUSR2 signal!');
+	Prey.agent.engage('SIGUSR2');
 });
 
 /*
@@ -83,7 +88,8 @@ process.on('uncaughtException', function (err) {
 common.helpers.check_and_store_pid(pid_file, function(running_pid){
 
 	if(running_pid){
-		process.kill(running_pid, 'SIGUSR1');
+		var signal = process.env.TRIGGER ? 'SIGUSR2' : 'SIGUSR1';
+		process.kill(running_pid, signal);
 		process.exit(10);
 		// Prey.agent.poke('localhost', function(){
 			// process.exit(10);
