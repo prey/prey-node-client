@@ -32,6 +32,7 @@ if (program.debug) process.env.DEBUG = true;
 
 common.load_config();
 
+// if config file does not exist or setup was requested, stop here
 if(!common.config || program.setup)
 	return require(root_path + '/lib/prey/setup');
 
@@ -45,8 +46,10 @@ var logger = common.logger,
 
 process.on('exit', function(code) {
 	Prey.agent.shutdown();
-	if(code != 10) common.helpers.clean_up(pid_file);
-	logger.info('Have a jolly good day sir.\n');
+	if(code != 10) {
+		common.helpers.clean_up(pid_file);
+		logger.info('Have a jolly good day sir.\n');
+	}
 });
 
 if (process.platform != 'win32') {
