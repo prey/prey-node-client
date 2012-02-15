@@ -1,20 +1,20 @@
 var common = require('./../lib/prey/common').load_config();
-var OnDemand = require('./../lib/prey/on_demand');
-var Prey = require('./../lib/prey');
+var on_demand = require('./../lib/prey/plugins/drivers/on-demand');
+var Prey = require('./../lib/prey/agent');
 
 process.env.DEBUG = true;
 
 var options = {
 	host: 'localhost',
-	port: 9000
+	port: 9000,
+	key: 'xxx',
+	group_key: '503030303'
 }
 
-Prey.initialize_action_hooks();
+Prey.load_action_hooks();
 
-var on_demand = OnDemand.connect(options, function(stream){
+on_demand.on('command', function(data){
+	console.log(data)
+})
 
-	stream.on('command', function(command, data){
-		Prey.handle_incoming_message(command, data);
-	});
-
-});
+var on_demand = on_demand.load(options);
