@@ -30,11 +30,12 @@ if (program.debug) process.env.DEBUG = true;
 // base initialization
 ////////////////////////////////////////
 
+// we need to load config after we parse the arguments, in case a custom config path was given
 common.load_config();
 
 // if config file does not exist or setup was requested, stop here
 if(!common.config || program.setup)
-	return require(root_path + '/lib/prey/setup');
+	return require(root_path + '/lib/prey/setup').run();
 
 var logger = common.logger,
 		pid_file = common.helpers.tempfile_path('prey.pid'),
