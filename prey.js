@@ -1,8 +1,8 @@
 #!/usr/local/bin/node
 //////////////////////////////////////////
-// Prey JS Client
+// Prey NodeJS Client
 // Written by Tomás Pollak
-// (c) 2011, Fork Ltd. - http://forkhq.com
+// (c) 2012, Fork Ltd. - http://forkhq.com
 // Licensed under the GPLv3
 //////////////////////////////////////////
 
