@@ -64,12 +64,12 @@ process.on('SIGINT', function() {
 
 process.on('SIGUSR1', function() {
 	logger.notice('Got SIGUSR1 signal!');
-	Prey.agent.engage('SIGUSR1');
+	Prey.agent.engage('interval');
 });
 
 process.on('SIGUSR2', function() {
 	logger.notice('Got SIGUSR2 signal!');
-	Prey.agent.engage('SIGUSR2');
+	Prey.agent.engage('network');
 });
 
 /*
