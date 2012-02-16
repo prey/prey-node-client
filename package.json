@@ -1,6 +1,6 @@
 {
   "name":        "prey",
-  "version":     "0.6.1",
+  "version":     "0.6.3",
   "private":      true,
   "author":      "Tomás Pollak <tomas@forkhq.com>",
   "keywords":    ["prey", "anti", "theft", "tracking", "remote", "monitoring"],
