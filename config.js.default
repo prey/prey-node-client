@@ -7,20 +7,21 @@
 
 module.exports = {
 
-	// where to get instructions from. look for available options 
-	// in ${prey_root}/lib/prey/plugins/drivers 
+	// where to get instructions from. to modify settings run Prey
+	// with the -s switch, or check [config_path]/drivers/[driver_name]
 	driver: 'control-panel',
 
-	// auto-connect feature. enable it and Prey will try to connect to the first
-	// open WiFi network available in the area
+	// when auto connect attempts is higher than 0, Prey will try to connect 
+	// to the nearest open WiFi network available in the area.
 	auto_connect_attempts: 2,
 	auto_connect_timeout: 5000,
 
-	// these will be loaded by Prey on startup
+	// if you wish to load any actions on startup, enter them here.
+	// this can be overriden by passing -a [actions] on startup.
 	load_actions: [ ],
 
 	//////////////////////////////////////////////////////////////
-	// SSL keys, for tunnels and On Demand. To generate:
+	// SSL keys for TLS-enabled transports. To regenerate:
 	// $ openssl genrsa -out ssl.key 2048
 	// $ openssl req -new -key ssl.key -out ssl.csr
 	// $ openssl x509 -req -in ssl.csr -signkey ssl.key -out ssl.cert
@@ -34,7 +35,7 @@ module.exports = {
 	//////////////////////////////////////////////////////////////
 
 	// help us in the debugging process by sending anonymous crash reports,
-	// containing the exception message and a (hopefully small) backtrace
+	// containing the exception message and a (hopefully small) backtrace.
 	send_crash_reports: true,
 
 	//////////////////////////////////////////////////////////////
@@ -50,7 +51,7 @@ module.exports = {
 	}
 
 	//////////////////////////////////////////////////////////////
-	// if you have any questions please visit preyproject.com
+	// for more information please visit http://preyproject.com
 	//////////////////////////////////////////////////////////////
 
 }
