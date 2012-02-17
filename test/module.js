@@ -10,7 +10,7 @@ if(module_name == null || module_name == ""){
 
 console.log("loading " + module_name);
 
-var mod = require(__dirname + '/../plugins/' + module_name);
+var mod = require(__dirname + '/../lib/prey/plugins/actions/' + module_name);
 
 mod.start({}, function(return_object){
 	console.log(return_object);
