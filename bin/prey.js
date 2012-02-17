@@ -7,8 +7,8 @@
 //////////////////////////////////////////
 
 var path = require('path'),
-		root_path = process.env.ROOT_PATH = path.resolve(__dirname),
-		common = require('./lib/prey/common'),
+		common = require('./../lib/prey/common'),
+		root_path = common.root_path,
 		program = common.program;
 
 /////////////////////////////////////////////////////////////
@@ -39,7 +39,7 @@ if(!common.config || program.setup)
 
 var logger = common.logger,
 		pid_file = common.helpers.tempfile_path('prey.pid'),
-		Prey = require('./lib/prey');
+		Prey = require(root_path + '/lib/prey');
 
 /////////////////////////////////////////////////////////////
 // event, signal handlers
