@@ -7,7 +7,8 @@
 
 module.exports = {
 
-	// where to get instructions from
+	// where to get instructions from. look for available options 
+	// in ${prey_root}/lib/prey/plugins/drivers 
 	driver: 'control-panel',
 
 	// auto-connect feature. enable it and Prey will try to connect to the first
@@ -45,57 +46,6 @@ module.exports = {
 		enable: false,
 		host: 'localhost',
 		port: 3128,
-
-	},
-
-	//////////////////////////////////////////////////////////////
-	// transports config, for reports, events and traces
-	// values are overridden with the ones received remotely
-	//////////////////////////////////////////////////////////////
-
-	transports: {
-
-		//////////////////////////////////////////////////////////////
-		// HTTP transport settings
-		//////////////////////////////////////////////////////////////
-
-		http: {
-
-			// encoding: 'utf8',
-			// followRedirects: true,
-
-			// http basic auth for generic http
-			username: '',
-			password: '',
-
-		},
-
-		//////////////////////////////////////////////////////////////
-		// SMTP settings, for email posting
-		//////////////////////////////////////////////////////////////
-
-		smtp: {
-
-			// mailbox to send the report
-			recipient: "mailbox@domain.com",
-
-			// you dont need to change this
-			from: "Prey <no-reply@gmail.com>",
-			subject: "[Prey] Status Report",
-
-		},
-
-		//////////////////////////////////////////////////////////////
-		// Amazon S3 keys
-		//////////////////////////////////////////////////////////////
-
-		s3: {
-
-			access_key_id: "",
-			secret_access_key: "",
-			bucket_name: "",
-
-		}
 
 	}
 
