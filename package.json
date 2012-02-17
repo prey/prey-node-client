@@ -30,7 +30,7 @@
     "lib" : "./lib"
   },
   "bin": {
-    "prey": "./prey.js"
+    "prey": "./bin/prey.js"
   },
   "scripts": {
     "start": "node prey.js",
