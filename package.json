@@ -27,6 +27,7 @@
     "config.js.default"
   ],
   "directories": {
+	"bin" : "./bin",
     "lib" : "./lib"
   },
   "bin": {
