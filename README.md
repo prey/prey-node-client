@@ -1,139 +1,59 @@
-== Prey NodeJS client
+### Prey Node.js client
 
-It rocks.
+Event-driven client for the Prey anti-theft software. In pure javascript.
 
-== Installation
-
-npm install prey
-
-Then you need to configure your device/API keys in the config.js file. You can
-also not set up those keys and use your own server by setting the correct check
-url (you can use more than one, by the way).
-
-== How to run
-
-$ node prey
-
-== Plugins (a.k.a. Actions)
-
-Plugins perform tasks exposing start() and (optionally) stop() methods. Do not return stuff.
-
-  - Persistent actions: lock, terminal, desktop, filebrowser.
-
-    - These normally depend on child processes or listening servers, and run until the user cancels the action.
-    - Should return (1) whether the process was succesfully launched and (2) when it is finished.
-
-  - Long running actions: file retrieval (search and upload), wipe (file deletion).
-    - Should return whether the task is being run and when it is finished.
-
-  - Fire and forget actions: alarm, alert, standby, shutdown.
-    - Should return whether the task was succesfully ran or not.
-
-== Triggers
-
-Plugins can also export hooks and events. If a loaded plugin advertises an event,
-then the process is kept running until the event is fired. Examples for triggers
-include: wifi_network_change, low_battery_detected, latest_win_iso_being_downloaded,
-you know, whatever.
-
-When an event is triggered then a hook is fired for all listening plugins to take
-action. Unlike base hooks (i.e. report_sent), these triggers are also passed to
-Notifier so that the user can take action as well.
-
-A plugin can also subscribe to a hook in order to do something about it. For
-example,you could wait for a wifi_network_change and in case you get "Starbucks"
-you could use text-to-speech to shout a message and wait for the hero of the hour
-to go after the guy and get your PC back. Be creative!
-
-After all plugins are loaded, Prey will check whether the subscribed-to hook is
-indeed advertised by someone else. If it isn't, then the hook will be removed as
-there is no point in keeping the process running if nothing will ever happen.
-
-== Messaging
-
-Prey should be able to receive specific instructions, so that it's able to fetch
-specific bits of information or run specific actions. These commands could (and
-probably should) contain information about how to process the instruction. An
-initial draft of different requests that could be made:
-
- - send_reports (interval, options)
-   - i.e. send_reports(10, {screenshot: false, picture: true})
- - get_info (what, options)
-   - i.e. get_info('modified_files', {path: '/home/', from: 5.minutes.ago})
- - start_action (which, options)
-   - i.e. start_action('alarm', {sound: 'siren.mp3', loops: 3})
- - stop_action (which)
-   - i.e. stop_action('lock')
- - update_config (key, val)
-   - i.e. update_config('auto_connect', true)
+## How it works
 
 
-== Providers
-
- - Providers provide information on request. They return the result as a callback.
-
-	var Network = require('./providers/network');
-	Network.get('active_wifi_network', function(result){
-		console.log("Current wifi network: " + result);
-	};
-
-== Hooks
-
-initialized
-loop_start
-no_connection
-fetch_start
-fetch_end
-report_start
-report_ready
-report_sent
-actions_start
-[action_name]_start
-[action_name]_end
-actions_end
-command_received
-command_sent
-loop_end
-shutdown
-
-== Events
-
-These are bits the information we need to inform about.
-
-- action_run (successful or not)
-- client_updated (succesful or not)
-- delay_updated (succesful or not)
-- config_updated (succesful or not)
-- event_triggered (from action) -> motion sensor, etc.
-
-== Todo
-
-- Define the way transports are configured, either globally or specifically
-  for report vs. data vs. event/trigger notifications.
-- Test hooks. The point is that Main itself should register hooks to be notified
-  when asynchronous stuff happens. i.e. when a hardware scan is triggered through
-  On Demand we shouldn't need to register an event for *that* call, the function
-  should be called and the main hook should take care of sending a notification.
-- Define the way that third-party modules will be included.
- -> Possible implementations: Haraka, Hubot, Hook.io, node-dbmon, 
-- How will we handle exceptions? We should probably set up a server
-  to keep track of what's happening. We can set up something like
-  node-telemetry server to store exceptions sent by the clients, obviosly
-  without using authentication so the data is kept anonymous.
-  We can also use the nlogger logging system that keeps track of modules
-  and line numbers on the output.
-- Some kind of authentication (probably using 1 time passwds) for tunnel modules.
- -> github.com/markbao/speakeasy module may help.
-- Decide whether prey.js will keep running all the time or not.
- -> Pros: We can keep the config stored in memory, without needing to
-    save stuff to the config file. First request should be empty and
-    from then on, Prey will know whether to send extended headers or not,
-    depending on the instructions received on each response.
- -> Cons: Mem usage?
- -> We can use the forever module for this.
+## Requirements
 
 
-== Legal
+
+## Installation
+
+Use `npm`. Global scope [is recommended|#] as the intended usage is to be run via command line.
+
+    npm install -g prey
+
+Then you can call it through a terminal and Prey will take of setting everything up. This includes setting up a cron job under the running user, generating SSL keys and loading the network trigger script which will invoke it whenever a network change is detected.
+
+    $ prey
+
+If you wish to use another driver, simply call Prey using -s (for setup) and -d (with the name of your chosen driver). For instance:
+
+    $ prey -s -d campfire
+
+This will ask for the campfire driver's config values and set it as the default driver to use.
+
+## Configuration
+
+Prey keeps a set of config files plus the generated SSL keys in its configuration path, which defaults to /etc/prey (Mac, Linux) or C:\Windows\Prey (Windows). You can call Prey with a -p (path) argument in case you wish to run Prey using a different path for the config files. (Note: this only affects at run time, so if you wished to change it permanently you should modify the cron line plus the network trigger script).
+
+When Prey is run and it doesn't find a config.js file in that path, it will attempt to copy a default config.js file and run the setup process for the driver that's being used. The driver defaults to 'control-panel'.
+
+## How to run
+
+Prey runs automatically by being called either through cron or the network trigger daemon. However if you want to run it and play around you can call it command line arguments. Let's say you wanted to try the console driver:
+
+``` sh
+$ prey -d console
+```
+
+And play around for a while! For additional command line options, type:
+
+``` sh
+$ prey -h
+```
+
+## Plugins
+
+Except for the agent itself --who acts as a controller -- everything on the Prey Node.js client is a plugin. There are four kinds of them: drivers, providers, actions and transports.
+
+## Credits
+
+Written by Tomás Pollak.
+
+## Legal
 
 Copyright © 2011, Fork Ltd.
 Released under the GPLv3 license.
