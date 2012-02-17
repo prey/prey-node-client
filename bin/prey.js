@@ -24,7 +24,10 @@ program
 	.option('-s, --setup', 'Run setup routine')
 	.parse(process.argv);
 
-if (program.debug) process.env.DEBUG = true;
+if (program.debug) {
+	process.env.DEBUG = true;
+	common.logger.set_level('debug');
+}
 
 ////////////////////////////////////////
 // base initialization
