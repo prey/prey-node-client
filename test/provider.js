@@ -10,7 +10,7 @@ if(provider_name == null || provider_name == ""){
 
 console.log("Loading " + provider_name);
 
-var provider = require(__dirname + '/../lib/prey/providers/' + provider_name);
+var provider = require(__dirname + '/../lib/prey/plugins/providers/' + provider_name);
 
 provider.getters.forEach(function(data){
 
