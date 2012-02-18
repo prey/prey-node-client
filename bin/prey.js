@@ -89,7 +89,9 @@ process.on('uncaughtException', function (err) {
 // launcher
 /////////////////////////////////////////////////////////////
 
-common.helpers.check_and_store_pid(pid_file, function(running_pid){
+common.helpers.check_and_store_pid(pid_file, function(err, running_pid){
+
+	if(err) throw(err);
 
 	if(running_pid){
 		var signal = process.env.TRIGGER ? 'SIGUSR2' : 'SIGUSR1';
