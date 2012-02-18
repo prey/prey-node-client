@@ -97,9 +97,6 @@ common.helpers.store_pid(pid_file, function(err, running_pid){
 		var signal = process.env.TRIGGER ? 'SIGUSR2' : 'SIGUSR1';
 		process.kill(running_pid, signal);
 		process.exit(10);
-		// Prey.agent.poke('localhost', function(){
-			// process.exit(10);
-		// });
 	} else {
 		Prey.agent.run();
 	}
