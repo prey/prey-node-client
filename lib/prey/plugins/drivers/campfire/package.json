@@ -1,13 +1,9 @@
-{ "name":        "prey-campfire-driver"
-, "description": "Campfire driver for managing Prey"
-, "version":     "0.0.1"
+{ "name":        "prey-driver-campfire"
+, "description": "Campfire driver for Prey"
+, "private":     true
+, "version":     "0.1.0"
 , "author":      "Tomás Pollak <tomas@forkhq.com>"
-, "engines" :    [ "node >= 0.4.0" ]
-, "main":        "./index"
-, "directories":
-  { "lib": "./lib"
-  }
 , "dependencies": {
-    "node-campfire": "*"
+    "campfire": "*"
   }
 }
