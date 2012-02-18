@@ -89,7 +89,7 @@ process.on('uncaughtException', function (err) {
 // launcher
 /////////////////////////////////////////////////////////////
 
-common.helpers.check_and_store_pid(pid_file, function(err, running_pid){
+common.helpers.store_pid(pid_file, function(err, running_pid){
 
 	if(err) throw(err);
 
