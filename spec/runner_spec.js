@@ -11,10 +11,14 @@ describe('prey.js', function(){
 //			stdout = stdout;
 //		});
 //	});
-
-	it('should set a ROOT_PATH var in process.env', function(){
+	
+	it('should set Preys ROOT_PATH in process.env', function(){
 
 	});
+	
+	it('should parse command line arguments', function(){
+		
+	})
 
 	describe('when no config file is found', function(){
 
@@ -28,11 +32,7 @@ describe('prey.js', function(){
 
 	});
 
-	it('should load initial stuff', function(){
-
-	});
-
-	it('should parse command line arguments', function(){
+	it('should set up listeners for SIGINT and SIGUSR signals', function(){
 
 	});
 
