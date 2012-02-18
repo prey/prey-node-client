@@ -3,19 +3,17 @@
   "version":     "0.6.3",
   "private":      true,
   "author":      "Tomás Pollak <tomas@forkhq.com>",
-  "keywords":    ["prey", "anti", "theft", "tracking", "remote", "monitoring"],
-  "description": "Simple, effective anti-theft & monitoring software for your laptop",
+  "contributors": [],
+  "keywords":    ["prey", "anti", "theft", "tracking", "remote", "monitoring", "stolen", "laptop"],
+  "description": "Simple, effective anti-theft & monitoring software",
   "engine":      "node >= 0.6.0",
   "os":          ["linux", "darwin", "win32"],
   "preferGlobal": true,
   "dependencies": {
     "npm": "",
-    "qs": "0.4.0",
-    "xml2js": "",
     "needle": "",
-    "connect": "",
-    "nodemailer": "",
-    "commander": ""
+    "commander": "",
+    "mime": ""
   },
   "devDependencies": {
     "jasmine-node": "*"
