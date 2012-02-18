@@ -1,0 +1,6 @@
+{
+  "name":        "prey-action-alarm",
+  "version":     "0.1.1",
+  "private":      true,
+  "author":      "Tomás Pollak <tomas@forkhq.com>"
+}
