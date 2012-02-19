@@ -16,6 +16,9 @@ module.exports = {
 	auto_connect_attempts: 2,
 	auto_connect_timeout: 5000,
 
+	// whether to check for updates every week and install the automatically
+	auto_update: false,
+
 	// if you wish to load any actions on startup, enter them here.
 	// this can be overriden by passing -a [actions] on startup.
 	load_actions: [ ],
