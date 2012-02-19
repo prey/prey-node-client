@@ -32,7 +32,7 @@
     "prey": "./bin/prey.js"
   },
   "scripts": {
-    "start": "node prey.js",
+    "start": "node ./bin/prey.js",
     "test" : "jasmine-node spec"
   },
   "bugs"   :  {
