@@ -25,7 +25,7 @@ program
 	.parse(process.argv);
 
 if (program.debug) {
-	process.env.DEBUG = true;
+	// process.env.DEBUG = true;
 	common.logger.set_level('debug');
 }
 
@@ -51,7 +51,7 @@ var logger = common.logger,
 process.on('exit', function(code) {
 	Prey.agent.shutdown();
 	if(code != 10) {
-		common.helpers.clean_up(pid_file);
+		common.helpers.remove_pid_file(pid_file);
 		logger.info('Have a jolly good day sir.\n');
 	}
 });
