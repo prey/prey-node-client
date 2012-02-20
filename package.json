@@ -6,34 +6,33 @@
   "contributors": [],
   "keywords":    ["prey", "anti", "theft", "tracking", "remote", "monitoring", "stolen", "laptop"],
   "description": "Simple, effective anti-theft & monitoring software",
-  "engine":      "node >= 0.6.0",
+  "engine":      "node >= 0.6",
   "os":          ["linux", "darwin", "win32"],
   "preferGlobal": true,
   "dependencies": {
-    "npm": "",
-    "needle": "",
-    "commander": "",
-    "mime": ""
+    "npm": "1.1.0",
+    "needle": "0.2.0",
+    "commander": "0.5.2",
+    "mime": "1.2.5",
+    "spaghetti": ""
   },
   "devDependencies": {
-    "jasmine-node": "*"
+    "jasmine-node": "1.0.x"
   },
-  "bundledDependencies": [],
   "main": "./lib/prey",
-  "files": [
-    "prey.js",
-    "config.js.default"
-  ],
-  "directories": {
-	"bin" : "./bin",
-    "lib" : "./lib"
-  },
   "bin": {
     "prey": "./bin/prey.js"
   },
+  "directories": {
+    "bin" : "./bin",
+    "lib" : "./lib",
+    "scripts" : "./scripts",
+    "spec": "./spec"
+  },
   "scripts": {
     "start": "node ./bin/prey.js",
-    "test" : "jasmine-node spec"
+    "test" : "jasmine-node spec",
+    "postinstall": "./scripts/post_install.sh"
   },
   "bugs"   :  {
     "url" : "http://github.com/prey/prey-nodejs/issues"
