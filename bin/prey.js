@@ -89,13 +89,14 @@ process.on('uncaughtException', function (err) {
 // launcher
 /////////////////////////////////////////////////////////////
 
-common.helpers.store_pid(pid_file, function(err, running_pid){
+common.helpers.store_pid(pid_file, function(err, running){
 
 	if(err) throw(err);
 
-	if(running_pid){
+	if(running){
+		console.error("Poking running instance, live since " + running.stat.ctime.toString() + "\n");
 		var signal = process.env.TRIGGER ? 'SIGUSR2' : 'SIGUSR1';
-		process.kill(running_pid, signal);
+		process.kill(running.pid, signal);
 		process.exit(10);
 	} else {
 		Prey.agent.run();
