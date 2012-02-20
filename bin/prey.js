@@ -20,6 +20,7 @@ program
 	.option('-p, --path <path>', 'Path to config file [/etc/prey or C:\\$WINDIR\\Prey]')
 	.option('-d, --driver <driver>', 'Driver to use for fetching instructions')
 	.option('-a, --actions <actions>', 'Comma-separated list of actions to run on startup')
+//	.option('-n, --nolog', 'Do not output to log file even if running via cron or trigger')
 	.option('-D, --debug', 'Output debugging info')
 	.option('-s, --setup', 'Run setup routine')
 	.parse(process.argv);
@@ -94,7 +95,9 @@ common.helpers.store_pid(pid_file, function(err, running){
 	if(err) throw(err);
 
 	if(running){
-		console.error("Poking running instance, live since " + running.stat.ctime.toString() + "\n");
+		var run_time = (new Date() - running.stat.ctime)/(60 * 1000);
+		console.error("Poking running instance, live for " + run_time + " minutes\n");
+
 		var signal = process.env.TRIGGER ? 'SIGUSR2' : 'SIGUSR1';
 		process.kill(running.pid, signal);
 		process.exit(10);
