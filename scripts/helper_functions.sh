@@ -10,7 +10,7 @@ download_deps(){
 
   echo "Installing dependencies in ${root}..."
 
-  for file in $(find "$root" -name package.json | grep -v node_modules); do 
+  for file in $(find "$root" -name package.json | grep -v "${root}/node_modules"); do
     path=$($dirname "$file")
     if [ "$path" != "$root" ]; then
       cd "$path"
