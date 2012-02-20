@@ -8,13 +8,15 @@ download_deps(){
   local dirname=$(which dirname)
   [ -n "$2" ] && export BUNDLE_ONLY=1
 
-  echo "Bundling package.json dependencies in ${root}..."
+  echo "Installing dependencies in ${root}..."
 
   for file in $(find "$root" -name package.json | grep -v node_modules); do 
     path=$($dirname "$file")
-    cd "$path"
-    # echo $path
-    $npm install --production > /dev/null  
+    if [ "$path" != "$root" ]; then
+      cd "$path"
+      echo "Found package.json in ${path}"
+      $npm install --production > /dev/null
+    fi
   done
   
   cd "$cwd"
