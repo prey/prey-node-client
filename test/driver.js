@@ -12,9 +12,4 @@ var options = {
 }
 
 Prey.load_action_hooks();
-
-on_demand.on('command', function(data){
-	console.log(data)
-})
-
-var on_demand = on_demand.load(options);
+Prey.load_driver(process.argv[2]);
