@@ -3,7 +3,7 @@
 # Output is: dist/prey-$VERSION.tar.gz
 
 SCRIPT_PATH="$(dirname $0)"
-. "$SCRIPT_PATH/helper_functions.sh"
+# . "$SCRIPT_PATH/helper_functions.sh"
 
 VERSION=$(node -e 'console.log(JSON.parse(require("fs").readFileSync("package.json","utf8")).version)')
 DIST="$(pwd)/dist"
@@ -13,14 +13,14 @@ PACKAGE="$FOLDER"
 # [ $(uname) == 'Darwin' ] && PACKAGE="prey-mac-$FOLDER" || PACKAGE="prey-linux-$FOLDER"
 
 mkdir -p "$ROOT/$FOLDER/node_modules"
-cp -R config.js.default package.json bin lib scripts "$ROOT/$FOLDER"
+cp -R index.js config.js.default package.json bin lib scripts spec "$ROOT/$FOLDER"
 cd "$ROOT/$FOLDER"
 
-download_deps "$ROOT/$FOLDER" 'bundle'
+BUNDLE_ONLY=1 npm install --production # > /dev/null
 cd "$ROOT/$FOLDER"
 
-echo "Copying node binary..."
-cp `which node` bin
+# echo "Copying node binary..."
+# cp `which node` bin
 
 echo "Building tarball..."
 cd "$ROOT"
