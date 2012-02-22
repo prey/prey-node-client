@@ -10,12 +10,12 @@ finder.eachFileMatching(/lib.*\/package.json/, './', function(err, file, stat){
 		return;
 
 		var dir = path.resolve(path.dirname(file));
-		console.log('Found package.json in ' + dir)
+		console.log('Installing local dependencies in ' + dir)
 
 		var child = spawn('npm', ['install', '--local'], {cwd: dir});
 		
 		child.stdout.on('data', function(data){
-			console.log(data.toString());
+			// console.log(data.toString());
 		});
 		
 		child.on('exit', function(code){
