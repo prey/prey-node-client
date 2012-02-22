@@ -9,10 +9,10 @@ finder.eachFileMatching(/lib.*\/package.json/, './', function(err, file, stat){
 	if(!file || file.match(/\/node_modules/))
 		return;
 
-		var dir = path.dirname(file);
+		var dir = path.resolve(path.dirname(file));
 		console.log('Found package.json in ' + dir)
 
-		var child = spawn('npm', ['install'], {cwd: dir});
+		var child = spawn('npm', ['install', '--local'], {cwd: dir});
 		
 		child.stdout.on('data', function(data){
 			console.log(data.toString());
