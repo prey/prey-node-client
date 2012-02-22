@@ -2,10 +2,11 @@
 // this program installs required dependencies and sets up
 // system configuration files for the network trigger daemon
 
-var path = require('path');
-var execFile = require('child_process').execFile;
-var os_name = process.platform.replace('darwin', 'mac').replace('win32', 'windows');
-var line = '\n=====================================================\n';
+var path = require('path'),
+		execFile = require('child_process').execFile,
+		os_name = process.platform.replace('darwin', 'mac').replace('win32', 'windows'),
+		line = '\n=====================================================\n',
+		prey_bin = '/usr/local/bin/prey';
 
 var run = function(script_name, callback){
 
