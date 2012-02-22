@@ -40,8 +40,9 @@ run('install_deps.js', function(err){
 		
 		if(!exists){
 			var msg = "We couldn't found the Prey executable in " + prey_bin;
-				 msg += "\nIf you installed the package locally, then link it to the\n";
-				 msg += "\nglobal path by running: \n\n  $ sudo npm link";
+				 msg += "\nIf you installed the package locally, then you need to";
+				 msg += "\nlink it to the global path by running\n\n  $ sudo npm link\n";
+				 msg += "\nOnce you're done please run this script again.";
 			console.log(line + msg + line);
 			process.exit(1);
 		}
@@ -49,7 +50,7 @@ run('install_deps.js', function(err){
 		run(os_name + '/post_install.js', function(err){
 
 			if(err) return console.log(err);
-			console.log("System setup successful!");
+			console.log("System setup successful! You can run Prey now.");
 
 		});
 
