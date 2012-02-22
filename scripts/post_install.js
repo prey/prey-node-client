@@ -6,7 +6,9 @@ var path = require('path'),
 		execFile = require('child_process').execFile,
 		os_name = process.platform.replace('darwin', 'mac').replace('win32', 'windows'),
 		line = '\n=====================================================\n',
-		prey_bin = '/usr/local/bin/prey';
+		hooks = require('./' + os_name + '/hooks');
+
+var prey_bin = '/usr/local/bin/prey',
 
 var run = function(script_name, callback){
 
@@ -47,11 +49,9 @@ run('install_deps.js', function(err){
 			process.exit(1);
 		}
 
-		run(os_name + '/post_install.js', function(err){
-
+		hooks.post_install(function(err){
 			if(err) return console.log(err);
 			console.log("System setup successful! You can run Prey now.");
-
 		});
 
 	});
