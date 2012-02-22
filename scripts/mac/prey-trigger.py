@@ -35,16 +35,18 @@ from Cocoa import \
 debug = True
 min_interval = 2 # minutes
 # log_file = "/var/log/prey.log"
-prey_command = "/usr/local/bin/prey"
 command_env = {'TERM':'xterm', 'TRIGGER': 'true', 'USER': getuser()}
+
+try:
+	prey_bin = sys.argv[1]
+except IndexError, e:
+	prey_bin = '/usr/local/bin/prey'
 
 #try:
 #	log_output = open(log_file, 'wb')
 #except IOError:
 #	print "No write access to " + log_file + ". Log output will go to /dev/null!"
 #	log_output = open('/dev/null', 'w')
-
-log_output = open('/dev/null', 'w')
 
 #######################
 # helpers
@@ -81,7 +83,7 @@ def run_prey():
 	if (run_at is None) or (now - run_at > two_minutes):
 		log("The vulture has flown")
 		try:
-			p = Popen(prey_command, stdout=PIPE, stderr=PIPE, env=command_env)
+			p = Popen(prey_bin, stdout=PIPE, stderr=PIPE, env=command_env)
 			run_at = datetime.now()
 			p.wait()
 			log("Elvis has left the building")

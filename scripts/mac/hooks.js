@@ -16,10 +16,12 @@ var launchd_plist_path = launchdaemons_path + '/' + launchd_plist;
 
 var copy_plist = function(callback){
 	var plist = fs.readFileSync(__dirname + '/' + launchd_plist);
-	var data = plist.toString().replace('{{trigger_script}}', trigger_script_path);
+	var data = plist.toString() 
+		.replace('{{trigger_script}}', trigger_script_path)
+		.replace('{{prey_bin}}', prey_bin);
 
 	if(data === plist.toString())
-		return callback(new Error("Trigger script variable not found in plist template!"))
+		return callback(new Error("Unable to replace variables in plist template!"))
 	
 	fs.writeFile(launchd_plist_path, data, callback);
 };
