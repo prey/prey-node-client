@@ -8,7 +8,7 @@ var path = require('path'),
 		line = '\n=====================================================\n',
 		hooks = require('./' + os_name + '/hooks');
 
-var prey_bin = '/usr/local/bin/prey',
+var prey_bin = '/usr/local/bin/prey';
 
 var run = function(script_name, callback){
 
