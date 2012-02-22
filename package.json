@@ -10,7 +10,7 @@
   "os":          ["linux", "darwin", "win32"],
   "preferGlobal": true,
   "dependencies": {
-    "npm": "1.1.0",
+    "xml2js": "",
     "needle": "0.2.0",
     "commander": "0.5.2",
     "mime": "1.2.5",
@@ -32,7 +32,7 @@
   "scripts": {
     "start": "node ./bin/prey.js",
     "test" : "jasmine-node spec",
-    "postinstall": "node ./scripts/install_deps.js"
+    "postinstall": "node ./scripts/post_install.js"
   },
   "bugs"   :  {
     "url" : "http://github.com/prey/prey-nodejs/issues"
