@@ -32,7 +32,7 @@
   "scripts": {
     "start": "node ./bin/prey.js",
     "test" : "jasmine-node spec",
-    "postinstall": "./scripts/post_install.sh"
+    "postinstall": "node ./scripts/install_deps.js"
   },
   "bugs"   :  {
     "url" : "http://github.com/prey/prey-nodejs/issues"
