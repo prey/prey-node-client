@@ -10,7 +10,7 @@ finder.eachFileMatching(/lib.*\/package.json/, './', function(err, file, stat){
 		return;
 
 		var dir = path.resolve(path.dirname(file));
-		console.log('Installing local dependencies in ' + dir)
+		console.log('Installing local dependencies for plugin ' + path.basename(dir));
 
 		var child = spawn('npm', ['install', '--local'], {cwd: dir});
 		
