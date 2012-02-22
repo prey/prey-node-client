@@ -93,16 +93,15 @@ process.on('uncaughtException', function (err) {
 common.helpers.store_pid(pid_file, function(err, running){
 
 	if(err) throw(err);
+	
+	if(!running)
+		return Prey.agent.run();
 
-	if(running){
-		var run_time = (new Date() - running.stat.ctime)/(60 * 1000);
-		console.error("Poking running instance, live for " + run_time + " minutes\n");
+	var run_time = (new Date() - running.stat.ctime)/(60 * 1000);
+	console.error("Poking running instance, live for " + run_time + " minutes\n");
 
-		var signal = process.env.TRIGGER ? 'SIGUSR2' : 'SIGUSR1';
-		process.kill(running.pid, signal);
-		process.exit(10);
-	} else {
-		Prey.agent.run();
-	}
+	var signal = process.env.TRIGGER ? 'SIGUSR2' : 'SIGUSR1';
+	process.kill(running.pid, signal);
+	process.exit(10);
 
 });
