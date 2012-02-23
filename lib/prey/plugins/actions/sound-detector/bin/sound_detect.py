@@ -7,7 +7,7 @@
 from sys import stdout, exit
 import pyaudio
 import struct
-import matx
+import math
 # from time import sleep
 
 INITIAL_TAP_THRESHOLD = 0.010
