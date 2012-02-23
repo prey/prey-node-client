@@ -29,9 +29,19 @@ var copy_plist = function(callback){
 	fs.writeFile(launchd_plist_path, data, callback);
 };
 
+var is_plist_loaded = function(callback){
+
+	exec('launchctl list', function(err, stdout, stderr){
+		if (err) return callback(err);
+		var bool = stdout.toString.match(launchd_plist) ? true : false;
+		callback(null, bool);
+	})
+	
+}
+
 var load_plist = function(callback){
 	call_launchctl('load', callback);
-};
+}
 
 var unload_plist = function(callback){
 	call_launchctl('unload', callback);
