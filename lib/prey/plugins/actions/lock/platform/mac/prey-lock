@@ -98,6 +98,7 @@ class LockView(NSView):
     else:
       print "Invalid password."
       self.show_message("Invalid password. Try again.")
+      sys.stdout.flush()
 
   def show_message(self, message):
     width = 300
