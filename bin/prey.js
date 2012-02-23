@@ -98,7 +98,10 @@ common.helpers.store_pid(pid_file, function(err, running){
 		return Prey.agent.run();
 
 	var run_time = (new Date() - running.stat.ctime)/(60 * 1000);
-	console.error("Poking running instance, live for " + run_time + " minutes\n");
+	console.error("Running instance, live for " + run_time + " minutes\n");
+
+	// don't poke instance if running since less than two minutes ago
+	if(run_time < 2) return;
 
 	var signal = process.env.TRIGGER ? 'SIGUSR2' : 'SIGUSR1';
 	process.kill(running.pid, signal);
