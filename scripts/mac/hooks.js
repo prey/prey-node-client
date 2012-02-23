@@ -2,6 +2,8 @@ var fs = require('fs'),
 		path = require('path'),
 		exec = require('child_process').exec;
 
+var running_user = 'root';
+
 var launchdaemons_path = '/Library/LaunchDaemons';
 var launchd_plist = 'com.prey.trigger.plist';
 var trigger_script = 'prey-trigger.py';
@@ -18,7 +20,8 @@ var copy_plist = function(callback){
 	var plist = fs.readFileSync(__dirname + '/' + launchd_plist);
 	var data = plist.toString() 
 		.replace('{{trigger_script}}', trigger_script_path)
-		.replace('{{prey_bin}}', prey_bin);
+		.replace('{{prey_bin}}', prey_bin)
+		.replace('{{user}}', running_user);
 
 	if(data === plist.toString())
 		return callback(new Error("Unable to replace variables in plist template!"))

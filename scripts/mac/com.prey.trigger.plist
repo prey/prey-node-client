@@ -14,6 +14,6 @@
 	<key>RunAtLoad</key>
 	<true/>
 	<key>UserName</key>
-	<string>root</string>
+	<string>{{user}}</string>
 </dict>
 </plist>
