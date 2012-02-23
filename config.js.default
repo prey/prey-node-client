@@ -14,7 +14,6 @@ module.exports = {
 	// when auto connect attempts is higher than 0, Prey will try to connect 
 	// to the nearest open WiFi network available in the area.
 	auto_connect_attempts: 2,
-	auto_connect_timeout: 5000,
 
 	// whether to check for updates every week and install the automatically
 	auto_update: false,
