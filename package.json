@@ -11,7 +11,7 @@
   "preferGlobal": true,
   "dependencies": {
     "xml2js": "",
-    "needle": "0.2.0",
+    "needle": "",
     "commander": "0.5.2",
     "mime": "1.2.5",
     "spaghetti": ""

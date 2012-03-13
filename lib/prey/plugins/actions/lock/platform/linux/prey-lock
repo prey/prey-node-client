@@ -212,11 +212,11 @@ def disable_XF86Switch():
 
 if __name__ == "__main__":
 
-  if len(sys.argv) < 2 or len(sys.argv[1]) != 32:
-    print "You need to pass an MD5 hexdigested string."
-    sys.exit(1)
-  else:
-    passwd = sys.argv[1]
+	if len(sys.argv) < 2 or len(sys.argv[1]) != 32:
+		print "You need to pass an MD5 hexdigested string."
+		sys.exit(1)
+	else:
+		passwd = sys.argv[1]
 
 	lock = Lock()
 	gtk.main()
