@@ -1,8 +1,8 @@
 # Prey Node.js client
 
-Asynchronous, event-driven client for the [Prey anti-theft software](http://preyproject.com), written in Node.
+Asynchronous, event-driven client for the [Prey anti-theft software](http://preyproject.com), written in Node.js.
 
-## What is Prey
+## What is Prey?
 
 Good question.
 
@@ -10,18 +10,17 @@ In plain klingon, Prey is a command-line application that runs in the background
 
 ## How it works
 
-In principle, this client works in a very similar way to the [Bash client](https://github.com/prey/prey-baash-client). The script is called at regular intervals via Cron (Mac, Linux) or CronSVC (a Windows System Service), and in addition whenever a network change is detected in the system. 
+In principle, this client works in a very similar way to the [Bash client](https://github.com/prey/prey-baash-client). The script is called at regular intervals via Cron (Mac, Linux) or CronSVC (a Windows System Service), and in addition whenever a network change is detected in the system.
 
-Network events are triggered whenever an interface goes down or up, e.g. when the system boots up, when the laptop's lid is opened, or when the computer connects to a different Wifi network. 
+Network events are triggered whenever an interface goes down or up, e.g. when the system boots up, when the laptop's lid is opened, or when the computer connects to a different Wifi network.
 
-In addition, this client includes a number of new features such as the ability to use different drivers for fetching data or triggering actions. One example is the Campfire driver, which dresses Prey as a chat bot and lets you control it simply by chatting with it. 
+In addition, this client includes a number of new features such as the ability to use different drivers for fetching data or triggering actions. One example is the Campfire driver, which masks Prey as a chat bot and lets you control it simply by chatting with it, very much like Github's Hubot.
 
 ## Requirements
 
-This client requires Node (version 0.6 or above) and (optionally) NPM. Since NodeJS has been natively ported to Windows, this means it can run on OSX, Linux and Windows as well. We're all on the same boat.
+This client requires Node (version 0.6 or above) and (optionally) NPM. Since Node.js has been natively ported to Windows, this means it can run on OSX, Linux and Windows as well. We're all on the same boat.
 
 ## Installation
-
 
 ### Installing from official packages
 
@@ -29,32 +28,27 @@ We're not there yet but we'll provide one-click packages in the near future. Kee
 
 ### Installing via NPM
 
-[NPM](http://npmjs.org) is the official package manager for [Node.js](http://nodejs.org). Like rubygems for Ruby. 
+[NPM](http://npmjs.org) is the official package manager for [Node.js](http://nodejs.org). Like rubygems for Ruby.
 
 In case you haven't, you need to install Node on your system by [downloading the installer](http://nodejs.org/dist/latest/) for your platform. NPM is now installed as part of Node so once the install is through, you can open up a terminal and do:
 
-    [sudo] npm install prey -g
+    [sudo] npm install -g prey
 
-This will install the Prey package from NPM's repository and fetch all the necessary dependencies. The `-g` argument instructs `npm` to install the package on a global scope rather than a local one. 
-
-Global means the package is installed to a shared path on your system, rather than a local path (e.g. inside your home folder). Since Prey needs to run as an admin user (not necessarily root, by the way) it makes more sense to put it there.
-
-Besides, as the NPM folks [say](http://blog.nodejs.org/2011/03/23/npm-1-0-global-vs-local-installation/):
+This will install the Prey package from NPM's repository and fetch all the necessary dependencies. The `-g` argument instructs `npm` to install the package on a global (shared) path rather than a local one (e.g. your home folder). This is because Prey is meant to be run as a system user, not a local one. As the NPM folks [say](http://blog.nodejs.org/2011/03/23/npm-1-0-global-vs-local-installation/):
 
     If you’re installing something that you want to use in your shell, on the command line or something, install it globally, so that its binaries end up in your PATH environment variable.
 
 NPM will automatically run Prey's post install script, which will do four things:
 
-  - install system scripts (the network trigger daemon), 
-  - set up a new user (so that we don't run Prey as root),
-  - run the script for the first time, so that the cron entry is set.
+  - install system scripts (the network trigger daemon),
+  - run the script for the first time, so that the cron entry is set,
   - and achieve nirvana.
 
 Done!
 
 ## Playing around
 
-Then you can call it through a terminal and Prey will take of setting everything up. This includes setting up a cron job under the running user, generating SSL keys and loading the network trigger script which will invoke it whenever a network change is detected.
+Once installed, you can call Prey through a terminal and it will take of setting everything up by asking you a couple of questions.
 
     $ prey
 
