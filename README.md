@@ -51,23 +51,31 @@ local one.
 
 NPM will automatically run Prey's post install script, which will do three things:
 
-  - install system scripts (the network trigger daemon),
-  - run the script for the first time, so that the cron entry is set,
+  - install dependencies for plugins that require them,
+  - install system scripts (i.e. the network trigger daemon),
   - and achieve nirvana.
 
-## Playing around
-
-Once installed, you can call Prey through a terminal and it will take of setting everything up by asking you a couple of
-questions.
+Once done, you can call Prey through a terminal and it will take of setting the driver up by asking you a couple of
+questions:
 
     $ prey
 
-If you wish to use another driver, simply call Prey using -s (for setup) and -d (with the name of your chosen driver).
+And that's it. If everything went well, you can now begin controlling your device remotely through your chosen driver.
+
+## Playing around
+
+Prey runs automatically by being called either through cron or the network trigger daemon. However if you want to run it
+and play around you can call it command line arguments.
+
+If you wish to use another driver, simply call Prey using the `-d` argument, with the name of your chosen driver.
 For instance:
 
-    $ prey -s -d campfire
+    $ prey -d console
 
-This will ask for the campfire driver's config values and set it as the default driver to use.
+If you wish to change the default driver to use at runtime, use the `-s` argument in addition to `-d` and you'll be 
+prompted to set it up. For additional command line options, type:
+
+    $ prey -h
 
 ## Configuration
 
@@ -79,30 +87,19 @@ you should modify the cron line plus the network trigger script).
 When Prey is run and it doesn't find a config.js file in that path, it will attempt to copy a default config.js file and
 run the setup process for the driver that's being used. The driver defaults to 'control-panel'.
 
-## How to run
-
-Prey runs automatically by being called either through cron or the network trigger daemon. However if you want to run it
-and play around you can call it command line arguments. Let's say you wanted to try the console driver:
-
-``` sh
-$ prey -d console
-```
-
-And play around for a while! For additional command line options, type:
-
-``` sh
-$ prey -h
-```
-
 ## Plugins
 
 Except for the agent itself --who acts as a controller -- everything on this client works as a plugin. There are
 four kinds of them: drivers, providers, actions and transports. For more information about creating your plugins or 
 extending the existing ones, take a look at [HACKING.md](http://github.com/prey/prey-node-client/master/HACKING.md).
 
+## Authors
+
+Tomás Pollak
+
 ## Credits
 
-Written by Tomás Pollak.
+To Robert Harder for the ImageSnap OSX utility.
 
 ## Legal
 
