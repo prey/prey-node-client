@@ -93,6 +93,12 @@ Except for the agent itself --who acts as a controller -- everything on this cli
 four kinds of them: drivers, providers, actions and transports. For more information about creating your plugins or 
 extending the existing ones, take a look at [HACKING.md](http://github.com/prey/prey-node-client/master/HACKING.md).
 
+## TODO
+
+Spec the crap out of this thing. I began writing some of them but since the API is still in the works the plan is to
+retake the challenge once it stabilizes a bit. Feel free to give your opinion on how it could be improved. Good ideas 
+get a free cookie!
+
 ## Authors
 
 Tomás Pollak
