@@ -1,4 +1,5 @@
 #!/usr/local/bin/node
+
 // this program installs required dependencies and sets up
 // system configuration files for the network trigger daemon
 
@@ -34,11 +35,11 @@ run('install_deps.js', function(err){
 		console.log(line + msg + line);
 		process.exit(0)
 	}
-	
+
 	// make sure the executable exists before setting up any triggers
 
 	path.exists(prey_bin, function(exists){
-		
+
 		if(!exists){
 			var msg = "We couldn't found the Prey executable in " + prey_bin;
 				 msg += "\nIf you installed the package locally, then you need to";
@@ -54,5 +55,5 @@ run('install_deps.js', function(err){
 		});
 
 	});
-	
+
 });
