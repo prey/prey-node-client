@@ -1,11 +1,10 @@
 {
   "name":        "prey",
-  "version":     "0.7.0",
-  "private":      true,
+  "version":     "0.7.1",
   "author":      "Tomás Pollak <tomas@forkhq.com>",
   "contributors": [],
   "keywords":    ["prey", "anti", "theft", "tracking", "remote", "monitoring", "stolen", "laptop"],
-  "description": "Simple, effective anti-theft & monitoring software",
+  "description": "They can run but they can't hide.",
   "engine":      "node >= 0.6",
   "os":          ["linux", "darwin", "win32"],
   "preferGlobal": true,
