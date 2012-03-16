@@ -67,7 +67,7 @@ And that's it. If everything went well, you can now begin controlling your devic
 Prey runs automatically by being called either through cron or the network trigger daemon. However if you want to run it
 and play around you can call it command line arguments.
 
-If you wish to use another driver, simply call Prey using the `-d` argument, with the name of your chosen driver.
+If you wish to use another driver, simply call Prey using the `-d` argument, with the name of your driver of choice.
 For instance:
 
     $ prey -d console
