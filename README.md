@@ -55,8 +55,6 @@ NPM will automatically run Prey's post install script, which will do three thing
   - run the script for the first time, so that the cron entry is set,
   - and achieve nirvana.
 
-And boom.
-
 ## Playing around
 
 Once installed, you can call Prey through a terminal and it will take of setting everything up by asking you a couple of
