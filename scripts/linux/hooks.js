@@ -1,7 +1,9 @@
 var fs = require('fs'),
+		path = require('path'),
+		exec = require('child_process').exec,
 		system = require('./../../lib/prey/plugins/providers/system');
 
-var prey_bin = exports.prey_bin = '/usr/local/prey/bin';
+var prey_bin = exports.prey_bin = '/usr/local/bin/prey';
 
 var init_script_name = 'prey-trigger',
 		common_initd_path = '/etc/init.d';
@@ -14,7 +16,7 @@ var weird_initd_paths = {
 var initd_commands = {
 	debian: {
 		load: 'update-rc.d $1 defaults',
-		unload: 'update-rc.d $1 remove',
+		unload: 'update-rc.d -f $1 remove',
 	},
 	redhat: {
 		load: 'chkconfig $1 on',
@@ -33,28 +35,34 @@ initd_commands.fedora = initd_commands.redhat;
 // helpers
 /////////////////////////////////////////////////
 
+var get_init_script_path = function(distro){
+
+	var initd_path = weird_initd_paths[distro] || common_initd_path;
+	return path.join(initd_path, init_script_name);
+
+};
+
 var copy_init_script = function(distro, callback){
 
-	var path = weird_initd_paths[distro] || common_initd_path;
-	var full_path = path.join(path, init_script_name);
+	var full_path = get_init_script_path(distro);
 
-	path.exits(full_path, function(exists){
+	path.exists(full_path, function(exists){
 		if(exists) return callback(new Error("File already exists!"))
-		
+
 		var template = fs.readFileSync(path.resolve(__dirname + "/" + init_script_name));
 		var data = template.toString().replace('{{prey_bin}}', prey_bin);
-		
+
 		if(data === template.toString())
 			return callback(new Error("Unable to replace template variables!"));
-		
+
 		fs.writeFile(full_path, data, callback);
 
 	});
 
 };
 
-var remove_init_script = function(path, callback){
-	var file = path.resolve(path.join(path, init_script_name));
+var remove_init_script = function(distro, callback){
+	var file = get_init_script_path(distro);
 	fs.unlink(file, callback);
 }
 
@@ -68,40 +76,43 @@ var unload_init_script = function(distro, callback){
 	exec(command, callback);
 }
 
-
 /////////////////////////////////////////////////
 // hooks
 /////////////////////////////////////////////////
 
 exports.post_install = function(callback){
-	
-	System.get('os_name', function(err, name){
-		
-		var distro = name;
+
+	system.get('os_name', function(err, name){
+
+		var distro = name.toLowerCase();
 		copy_init_script(distro, function(err){
-			
+
 			if(err) return callback(err);
 			load_init_script(distro, callback)
 
 		})
-		
+
 	})
 
 }
 
 exports.pre_uninstall = function(callback){
 
-	
-	System.get('os_name', function(err, name){
-		
-		var distro = name;
+	system.get('os_name', function(err, name){
+
+		var distro = name.toLowerCase();
 		unload_init_script(distro, function(err){
-			
+
 			if(err) return callback(err);
-			remove_init_script(distro, callback);
+			remove_init_script(distro, function(err){
+
+				if(!err || err.code == 'ENOENT') callback();
+				else callback(err);
+
+			});
 
 		})
-		
+
 	})
 
 }
