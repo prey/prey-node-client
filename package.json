@@ -8,6 +8,7 @@
   "engine":      "node >= 0.6",
   "os":          ["linux", "darwin", "win32"],
   "preferGlobal": true,
+  "repository": { "type": "git", "url": "https://github.com/prey/prey-node-client.git" },
   "dependencies": {
     "xml2js": "",
     "needle": "",
@@ -35,10 +36,10 @@
     "preuninstall": "node ./scripts/pre_uninstall.js"
   },
   "bugs"   :  {
-    "url" : "http://github.com/prey/prey-nodejs/issues"
+    "url" : "http://github.com/prey/prey-node-client/issues"
   },
   "licenses" : [{
     "type" : "GPLv3",
-    "url"  : "https://github.com/prey/prey-nodejs/raw/master/LICENSE"
+    "url"  : "https://github.com/prey/prey-node-client/raw/master/LICENSE"
   }]
 }
