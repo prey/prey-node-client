@@ -99,6 +99,13 @@ Spec the crap out of this thing. I began writing some of them but since the API 
 retake the challenge once it stabilizes a bit. Feel free to give your opinion on how it could be improved. Good ideas 
 get a free cookie!
 
+Also:
+
+ - Finish Windows suppors. There are still a couple of things missing.
+ - Fix some of the actions which haven't been upgraded to used the current plugin API.
+ - Add support for missing OS's to specific actions and providers (i.e. motion/sound detectors only work on OSX now).
+ - Add auto-complete support for the Console driver. Would make testing much easier.
+
 ## Authors
 
 Tomás Pollak
