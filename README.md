@@ -47,14 +47,14 @@ run:
 
 This will install the Prey package from NPM's repository and fetch all the necessary dependencies. The `-g` argument
 instructs `npm` to install the package on a [global, shared path](http://blog.nodejs.org/2011/03/23/npm-1-0-global-vs-local-installation/) 
-rather than a local one (e.g. your home folder). This is because Prey is meant to be run as a system user, not a 
+rather than a local one (e.g. your home folder). This is because Prey is meant to be run as a system user rather than a 
 local one. 
 
-NPM will automatically run Prey's post install script, which will do three things:
+`npm` will automatically run Prey's post install script, which will do three things:
 
   - install dependencies for plugins that require them,
-  - install system scripts (i.e. the network trigger daemon),
-  - and achieve nirvana.
+  - install system scripts (i.e. the network trigger daemon), and
+  - achieve nirvana.
 
 Once done, you can call Prey through a terminal and it will take of setting the driver up by asking you a couple of
 questions:
