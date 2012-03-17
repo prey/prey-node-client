@@ -5,7 +5,7 @@ var path = require('path'),
 		finder = require('./../lib/prey/plugins/providers/files/lib/finder');
 
 finder.eachFileMatching(/lib.*\/package.json/, './', function(err, file, stat){
-	
+
 	if(!file || file.match(/\/node_modules/))
 		return;
 
@@ -13,11 +13,11 @@ finder.eachFileMatching(/lib.*\/package.json/, './', function(err, file, stat){
 		console.log('Installing local dependencies for plugin ' + path.basename(dir));
 
 		var child = spawn('npm', ['install', '--local'], {cwd: dir});
-		
+
 		child.stdout.on('data', function(data){
 			// console.log(data.toString());
 		});
-		
+
 		child.on('exit', function(code){
 			// console.log("Exited with code " + code);
 		})
