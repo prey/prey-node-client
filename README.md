@@ -20,15 +20,14 @@ Network events are triggered whenever an interface goes down or up, e.g. when th
 is opened, or when the computer connects to a different Wifi network.
 
 In addition, this client includes a number of new features such as the ability to use different drivers for fetching data
-or triggering actions. One example is the Campfire driver, which masks Prey as a chat bot and lets you control it simply
-by chatting with it, very much like Github's Hubot.
+or triggering actions. One example is the Campfire driver, which disguises Prey as a chat bot and lets you control it by 
+chatting with it, very much like Github's [Hubot](http://hubot.github.com).
 
 ## Requirements
 
-This client requires Node (version 0.6 or above) and (optionally) NPM. Since Node.js has been natively ported to Windows,
-this means it can run on OSX, Linux and Windows as well. We're all on the same boat.
-
- - Linux requires hwinfo, streamer, scrot, and mpg123 or GStreamer.
+This client requires Node (version 0.6 or above) and (optionally) `npm`. Since Node.js has been natively ported to Windows,
+this means it can run on OSX, Linux and -- that's right -- Windows. In Linux we do require a few packages in order to
+work: `hwinfo`, `streamer` `(xawtv)`, `scrot` and `mpg123`.
 
 ## Installation
 
@@ -38,13 +37,13 @@ We're not there yet but we'll provide one-click packages in the near future. Kee
 
 ### Installing via NPM
 
-[NPM](http://npmjs.org) is the official package manager for [Node.js](http://nodejs.org). Like rubygems for Ruby.
+[npm](http://npmjs.org) is the official package manager for [Node.js](http://nodejs.org). Like rubygems for Ruby.
 
 In case you haven't, you need to install Node on your system by [downloading the installer](http://nodejs.org/dist/latest/)
-for your platform. NPM is now installed as part of Node so once the install is through, you can open up a terminal and
+for your platform. `npm` is now installed as part of Node so once the install is through, you can open up a terminal and
 run:
 
-    [sudo] npm install -g prey
+    $ [sudo] npm install -g prey
 
 This will install the Prey package from NPM's repository and fetch all the necessary dependencies. The `-g` argument
 instructs `npm` to install the package on a [global, shared path](http://blog.nodejs.org/2011/03/23/npm-1-0-global-vs-local-installation/) 
