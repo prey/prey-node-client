@@ -28,6 +28,8 @@ by chatting with it, very much like Github's Hubot.
 This client requires Node (version 0.6 or above) and (optionally) NPM. Since Node.js has been natively ported to Windows,
 this means it can run on OSX, Linux and Windows as well. We're all on the same boat.
 
+ - Linux requires hwinfo, streamer, scrot, and mpg123 or GStreamer.
+
 ## Installation
 
 ### Installing from official packages
@@ -101,7 +103,7 @@ get a free cookie!
 
 Also:
 
- - Finish Windows suppors. There are still a couple of things missing.
+ - Finalize Windows support. There are still a couple of things missing.
  - Fix some of the actions which haven't been upgraded to used the current plugin API.
  - Add support for missing OS's to specific actions and providers (i.e. motion/sound detectors only work on OSX now).
  - Add auto-complete support for the Console driver. Would make testing much easier.
