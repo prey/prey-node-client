@@ -11,8 +11,8 @@ console.log("loading " + module_name);
 
 var mod = require(__dirname + '/../lib/prey/plugins/actions/' + module_name);
 
-mod.start({}, function(return_object){
-	console.log(return_object);
+mod.start({}, function(err){
+	console.log(err);
 });
 
 process.on('SIGINT', function () {
