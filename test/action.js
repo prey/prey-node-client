@@ -15,6 +15,13 @@ mod.start({}, function(err){
 	console.log(err);
 });
 
+(mod.events || []).forEach(function(ev){
+	mod.on(ev), function(data){
+		console.log("Event triggered " + ev);
+		if(data) console.log(data);
+	}
+})
+
 process.on('SIGINT', function () {
 	console.log(' >> Got Ctrl-C!');
 	try {
