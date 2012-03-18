@@ -1,5 +1,4 @@
-var common = require('./../lib/prey/common');
-common.load_config();
+var common = require('./../lib/prey/common').load_config();
 
 var module_name = process.argv[2];
 
@@ -18,6 +17,10 @@ mod.start({}, function(return_object){
 
 process.on('SIGINT', function () {
 	console.log(' >> Got Ctrl-C!');
-	mod.stop();
+	try {
+		mod.stop();		
+	} catch(e) {
+		console.log("Action is not stoppable!");
+	}
 	process.exit(1);
 });
