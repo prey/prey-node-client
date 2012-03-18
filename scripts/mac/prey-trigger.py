@@ -8,10 +8,8 @@
 #######################################################
 
 # import signal
-# import os
 import sys
 import shlex
-# import logging
 from subprocess import Popen, call, PIPE, STDOUT
 from datetime import datetime, timedelta
 from PyObjCTools import AppHelper
@@ -31,8 +29,7 @@ from Cocoa import \
 	NSRunLoop, \
 	kCFRunLoopCommonModes
 	
-### run variables
-debug = True
+debug = False
 min_interval = 2 # minutes
 # log_file = "/var/log/prey.log"
 command_env = {'TERM':'xterm', 'TRIGGER': 'true', 'USER': getuser()}
@@ -58,7 +55,6 @@ def connected():
 def interface_connected(interface):
 	try:
 		x = call(["ipconfig", "getifaddr", interface], stdout=PIPE)
-		# print(x)
 		return x == 0
 	except:
 	 	return False
