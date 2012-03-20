@@ -51,7 +51,7 @@ var logger = common.logger,
 
 process.on('exit', function(code) {
 	Prey.agent.shutdown();
-	if(code != 10) {
+	if(typeof code != 'undefined') {
 		common.helpers.remove_pid_file(pid_file);
 		logger.info('Have a jolly good day sir.\n');
 	}
@@ -67,12 +67,12 @@ process.on('SIGINT', function() {
 }
 
 process.on('SIGUSR1', function() {
-	logger.notice('Got SIGUSR1 signal!');
+	logger.warn('Got SIGUSR1 signal!');
 	Prey.agent.engage('interval');
 });
 
 process.on('SIGUSR2', function() {
-	logger.notice('Got SIGUSR2 signal!');
+	logger.warn('Got SIGUSR2 signal!');
 	Prey.agent.engage('network');
 });
 
@@ -93,12 +93,10 @@ process.on('uncaughtException', function (err) {
 common.helpers.store_pid(pid_file, function(err, running){
 
 	if(err) throw(err);
-	
-	if(!running)
-		return Prey.agent.run();
+	if(!running) return Prey.agent.run();
 
 	var run_time = (new Date() - running.stat.ctime)/(60 * 1000);
-	console.error("Running instance, live for " + run_time + " minutes\n");
+	console.error("Instance has been live for " + run_time.toString().substring(0,5) + " minutes\n");
 
 	// don't poke instance if running since less than two minutes ago
 	if(run_time < 2) return;
