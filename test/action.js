@@ -9,7 +9,7 @@ if(module_name == null || module_name == ""){
 
 var parse_options = function(){
 
-	if(!process.argv[3]) return;
+	if(!process.argv[3]) return {};
 
 	var args = process.argv[3];
 
