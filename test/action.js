@@ -7,11 +7,29 @@ if(module_name == null || module_name == ""){
 	process.exit(1);
 }
 
+var parse_options = function(){
+
+	if(!process.argv[3]) return;
+
+	var args = process.argv[3];
+
+	try{
+		var formatted = args.trim().replace(/([\w\.]+)/g,'"$1"').replace(/ /g, ',');
+		return JSON.parse("{" + formatted + "}");
+	} catch(e){
+		console.log("Invalid argument format.");
+		return {};
+	}
+
+};
+
 console.log("loading " + module_name);
 
 var mod = require(__dirname + '/../lib/prey/plugins/actions/' + module_name);
 
-var instance = mod.start({}, function(err){
+var opts = parse_options();
+
+var instance = mod.start(opts, function(err){
 	console.log(err);
 });
 
@@ -25,13 +43,13 @@ if(instance && mod.events){
 		});
 
 	});
-	
+
 }
 
 process.on('SIGINT', function () {
 	console.log(' >> Got Ctrl-C!');
 	try {
-		mod.stop();		
+		mod.stop();
 	} catch(e) {
 		console.log("Action is not stoppable!");
 	}
