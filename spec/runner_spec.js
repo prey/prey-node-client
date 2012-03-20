@@ -31,10 +31,19 @@ describe('prey.js', function(){
 		});
 
 	});
+	
+	describe('signals', function(){
+		
+		it('should set listeners and wait for them to be sent', function(){
+			
+		})
+		
+		it('should call encage on agent once SIGUSR1 or SIGUSR2 is received', function(){
+			
+		})
+		
+	})
 
-	it('should set up listeners for SIGINT and SIGUSR signals', function(){
-
-	});
 
 	it('should check if pidfile exists', function(){
 
