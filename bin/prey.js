@@ -50,8 +50,9 @@ var logger = common.logger,
 /////////////////////////////////////////////////////////////
 
 process.on('exit', function(code) {
+	var remove_pid = Prey.agent.running;
 	Prey.agent.shutdown();
-	if(typeof code != 'undefined') {
+	if(remove_pid) {
 		common.helpers.remove_pid_file(pid_file);
 		logger.info('Have a jolly good day sir.\n');
 	}
