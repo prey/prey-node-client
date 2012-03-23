@@ -11,6 +11,8 @@ import hashlib
 import gtk
 import pango
 
+image_file = "/../../lib/bg-lock-with-input.png"
+
 class Lock:
 	def get_md5(self, string):
 		return hashlib.md5(string).hexdigest()
@@ -115,8 +117,26 @@ class Lock:
 
 		image = gtk.Image()
 		script_path = sys.path[0]
-		bg_path = script_path + "/../../lib/bg-lock-with-input.png"
-		image.set_from_file(bg_path)
+		bg_path = script_path + image_file
+		pixbuf = gtk.gdk.pixbuf_new_from_file(bg_path)
+		image_width = pixbuf.get_width()
+		image_height = pixbuf.get_height()
+
+		# print main_screen_width
+		# print image_width
+		# print main_screen_height
+		# print image_height
+
+		scale = 1
+
+		if image_width > main_screen_width or image_height > main_screen_height:
+			scale = min(float(main_screen_width)/image_width, float(main_screen_height)/image_height)
+			new_width = int(scale*image_width)
+			new_height = int(scale*image_height)
+			# print new_height
+			pixbuf = pixbuf.scale_simple(new_width, new_height, gtk.gdk.INTERP_BILINEAR)
+
+		image.set_from_pixbuf(pixbuf)
 		image.show()
 		vbox.set_size_request(main_screen_width, main_screen_height)
 		vbox.add(image)
@@ -133,23 +153,29 @@ class Lock:
 		self.entry.set_max_length(40)
 
 		self.entry.set_inner_border(None)
-		self.entry.set_width_chars(32)
+		self.entry.set_width_chars(24)
 		self.entry.set_visibility(False)
 		self.entry.set_has_frame(False)
-		self.entry.modify_font(pango.FontDescription("sans 20"))
+		self.entry.modify_base(gtk.STATE_NORMAL, gtk.gdk.color_parse("#FFFFFF"))
+		self.entry.modify_font(pango.FontDescription("sans 16"))
 		self.entry.set_flags(gtk.CAN_FOCUS | gtk.HAS_FOCUS | gtk.HAS_GRAB | gtk.CAN_DEFAULT | gtk.SENSITIVE)
 		self.entry.connect("activate", self.enter_callback, self.entry)
 		# self.entry.show()
 
+		padding_left = int(240*scale)
+		padding_top = 18
+		if image_height > main_screen_height:
+			padding_top = 18 - int((image_height - main_screen_height)/8)
+
 		fixed = gtk.Fixed()
-		fixed.put(self.entry, main_screen_middle-240, -(main_screen_height/2)+18)
+		fixed.put(self.entry, main_screen_middle-padding_left, -(main_screen_height/2)+padding_top)
 		fixed.show()
 		hbox.pack_start(fixed, False, False, 30)
 
 		text = 'Invalid password. Access denied.'
 		self.label = gtk.Label()
 		self.label.set_markup('<span foreground="#aa0000">'+text+'</span>');
-		self.label.modify_font(pango.FontDescription("sans 20"))
+		self.label.modify_font(pango.FontDescription("sans 16"))
 		self.label.set_size_request(main_screen_width, 30)
 
 		fixed2 = gtk.Fixed()
