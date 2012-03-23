@@ -27,7 +27,7 @@ chatting with it, very much like Github's [Hubot](http://hubot.github.com).
 
 This client requires Node (version 0.6 or above) and (optionally) `npm`. Since Node.js has been natively ported to Windows,
 this means it can run on OSX, Linux and -- that's right -- Windows. In Linux we do require a few packages in order to
-work: `hwinfo`, `streamer (xawtv)`, `scrot` and `mpg123`.
+work: `dmidecode`, `streamer (xawtv)`, `scrot` and `mpg123`.
 
 ## Installation
 
