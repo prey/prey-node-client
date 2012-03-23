@@ -164,6 +164,8 @@ class Lock:
 
 		padding_left = int(240*scale)
 		padding_top = 18
+
+		# if image was scaled down, calculate offset for positioning elements
 		if image_height > main_screen_height:
 			padding_top = 18 - int((image_height - main_screen_height)/8)
 
@@ -179,7 +181,7 @@ class Lock:
 		self.label.set_size_request(main_screen_width, 30)
 
 		fixed2 = gtk.Fixed()
-		fixed2.put(self.label, -main_screen_width/2-240, -(main_screen_height/2)+60)
+		fixed2.put(self.label, -main_screen_width/2-padding_left, -(main_screen_height/2)+padding_top + 42)
 		hbox.pack_start(fixed2, True, False, 30)
 
 		disable_XF86Switch()
