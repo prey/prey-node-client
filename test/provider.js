@@ -16,7 +16,7 @@ provider.getters.forEach(function(data){
 
 	console.log("Requesting " + data)
 
-	provider.get(data, function(result){
+	provider.get(data, function(err, result){
 
 		console.log(" - Got " + data + " -> " + util.inspect(result));
 
