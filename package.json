@@ -14,7 +14,8 @@
     "needle": "",
     "commander": "0.5.2",
     "mime": "1.2.5",
-    "spaghetti": ""
+    "spaghetti": "",
+    "reply": ""
   },
   "devDependencies": {
     "jasmine-node": "1.0.x"
