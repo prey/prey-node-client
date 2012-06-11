@@ -1,4 +1,4 @@
-#!/usr/local/bin/node
+#!/usr/bin/env node
 
 var os_name = process.platform.replace('darwin', 'mac').replace('win32', 'windows'),
 		os_hooks = require('./' + os_name + '/hooks');

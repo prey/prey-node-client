@@ -1,4 +1,4 @@
-#!/usr/local/bin/node
+#!/usr/bin/env node
 
 // this program installs required dependencies and sets up
 // system configuration files for the network trigger daemon

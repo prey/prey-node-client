@@ -1,4 +1,4 @@
-#!/usr/local/bin/node
+#!/usr/bin/env node
 
 var path = require('path'),
 		spawn = require('child_process').spawn,

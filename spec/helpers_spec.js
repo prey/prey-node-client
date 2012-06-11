@@ -115,7 +115,9 @@ describe('helpers', function(){
 			
 		});
 		
-		it('should callback with error if destination folder does not exist', fuc)
+		it('should callback with error if destination folder does not exist', function(){
+
+		});
 		
 	})
 	

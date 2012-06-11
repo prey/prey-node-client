@@ -1,4 +1,4 @@
-#!/usr/local/bin/node
+#!/usr/bin/env node
 //////////////////////////////////////////
 // Prey NodeJS Client
 // Written by Tomás Pollak
