@@ -1,4 +1,5 @@
-{ "name":        "prey-driver-campfire"
+{
+  "name":        "prey-driver-campfire"
 , "description": "Campfire driver for Prey"
 , "private":     true
 , "version":     "0.1.0"
