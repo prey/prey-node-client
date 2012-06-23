@@ -84,7 +84,7 @@ def run_prey():
 			p.wait()
 			log("Elvis has left the building")
 		except OSError, e:
-			print "\nWait a second! Seems we couldn't find Prey at " + prey_command
+			print "\nWait a second! Seems we couldn't find Prey at " + prey_bin
 			print e
 			sys.exit(1)
 
