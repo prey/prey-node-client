@@ -66,7 +66,7 @@ exports.post_install = function(callback){
 
 	console.log('Setting up launchd script...');
 
-	path.exists(launchd_plist_path, function(exists){
+	fs.exists(launchd_plist_path, function(exists){
 
 		if(exists){
 			console.log("LaunchDaemon plist file already exists. Skipping...");
@@ -91,7 +91,7 @@ exports.post_install = function(callback){
 exports.pre_uninstall = function(callback){
 
 	console.log('Removing launchd script...');
-	path.exists(launchd_plist_path, function(exists){
+	fs.exists(launchd_plist_path, function(exists){
 
 		if(!exists){
 			console.log("LaunchDaemon plist file already removed. Skipping...");
