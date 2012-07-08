@@ -25,20 +25,10 @@ program
 	.option('-s, --setup', 'Run setup routine')
 	.parse(process.argv);
 
-if (program.debug) {
-	// process.env.DEBUG = true;
+if (program.debug)
 	common.logger.set_level('debug');
-}
 
-////////////////////////////////////////
-// base initialization
-////////////////////////////////////////
-
-// we need to load config after we parse the arguments, in case a custom config path was given
-common.load_config();
-
-// if config file does not exist or setup was requested, stop here
-if(!common.config || program.setup)
+if(!common.config.exists() || program.setup)
 	return require(root_path + '/lib/prey/setup').run();
 
 var logger = common.logger,
@@ -50,9 +40,8 @@ var logger = common.logger,
 /////////////////////////////////////////////////////////////
 
 process.on('exit', function(code) {
-	var remove_pid = Prey.agent.running;
 	Prey.agent.shutdown();
-	if(remove_pid) {
+	if(Prey.agent.running) {
 		common.helpers.remove_pid_file(pid_file);
 		logger.info('Have a jolly good day sir.\n');
 	}
@@ -81,7 +70,7 @@ process.on('SIGUSR2', function() {
 
 process.on('uncaughtException', function (err) {
 	console.log('Caught exception: ' + err.stack);
-	if(config.send_crash_reports && Prey.connection_found) 
+	if(config.send_crash_reports && Prey.connection_found)
 		require(root_path + '/lib/crash_notifier').send(err);
 });
 
