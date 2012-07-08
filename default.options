@@ -1,0 +1,37 @@
+module.exports = [
+  {
+    name: 'driver',
+    message: 'What driver should Prey use? (for options look in plugins/drivers)',
+    empty: false,
+    default: 'control-panel'
+  },
+  {
+    name: 'auto_connect_attempts',
+    message: 'How many times should Prey try to connect if connection is not found',
+    empty: false,
+    default: 2
+  },
+  {
+    name: 'auto_update',
+    message: 'Should Prey auto-update itself if a new version is found?',
+    empty: false,
+    default: false
+  },
+  {
+    name: 'send_crash_reports',
+    message: 'Whether to inform about runtime errors to the dev team.',
+    empty: false,
+    default: false
+  },
+  {
+    name: 'try_proxy',
+    message: 'Should we try to use a proxy server if connection fails?',
+    default: false
+  },
+  {
+    name: 'proxy_url',
+    message: 'Location of proxy endpoint',
+    validator: /^http(s)?:\/\/([\w\.]+):(\d+)$/,
+    default: "http://my.proxy.server.com:3128"
+  }
+]
