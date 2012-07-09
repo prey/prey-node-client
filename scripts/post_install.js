@@ -38,7 +38,7 @@ run('install_deps.js', function(err){
 
 	// make sure the executable exists before setting up any triggers
 
-	path.exists(prey_bin, function(exists){
+	fs.exists(prey_bin, function(exists){
 
 		if(!exists){
 			var msg = "We couldn't found the Prey executable in " + prey_bin;
