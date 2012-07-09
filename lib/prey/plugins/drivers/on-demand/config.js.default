@@ -1,8 +1,0 @@
-module.exports = {
-
-	host: "",
-	port: "",
-	device_key: "",
-	group_key: ""
-
-}
