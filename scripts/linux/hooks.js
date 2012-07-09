@@ -46,7 +46,7 @@ var copy_init_script = function(distro, callback){
 
 	var full_path = get_init_script_path(distro);
 
-	path.exists(full_path, function(exists){
+	fs.exists(full_path, function(exists){
 		if(exists) return callback(new Error("File already exists!"))
 
 		var template = fs.readFileSync(path.resolve(__dirname + "/" + init_script_name));
