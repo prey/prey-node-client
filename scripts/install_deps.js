@@ -4,7 +4,7 @@ var path = require('path'),
 		spawn = require('child_process').spawn,
 		finder = require('./../lib/prey/plugins/providers/files/lib/finder');
 
-finder.eachFileMatching(/lib.*\/package.json/, './', function(err, file, stat){
+finder.eachFileMatching(/lib.*\/package.json$/, './', function(err, file, stat){
 
 	if(!file || file.match(/\/node_modules/))
 		return;
