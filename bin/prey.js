@@ -28,7 +28,7 @@ program
 if (program.debug)
 	common.logger.set_level('debug');
 
-if(!common.config.exists() || program.setup)
+if(!common.config.persisted() || program.setup)
 	return require(root_path + '/lib/prey/setup').run();
 
 var logger = common.logger,
@@ -40,8 +40,9 @@ var logger = common.logger,
 /////////////////////////////////////////////////////////////
 
 process.on('exit', function(code) {
-	Prey.agent.shutdown();
-	if(Prey.agent.running) {
+	var remove_pid = Prey.agent.running;
+	Prey.agent.shutdown(); // sets agent.running = false
+	if(remove_pid) {
 		common.helpers.remove_pid_file(pid_file);
 		logger.info('Have a jolly good day sir.\n');
 	}

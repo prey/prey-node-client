@@ -1,0 +1,25 @@
+driver = control-panel
+auto_connect_attempts = 2
+auto_update = true
+send_crash_reports = false
+try_proxy = false
+proxy_url = http://my.proxy.server.com:3128
+private_key = ssl.key
+certificate = ssl.cert
+
+[control-panel]
+host = control.preyproject.com
+api_key =
+device_key =
+randomize_check_host = false
+report_status = true
+cached_response_filename = last-response.xml
+
+[imgur]
+api_key =
+
+[on-demand]
+host =
+port =
+device_key =
+group_key = 
