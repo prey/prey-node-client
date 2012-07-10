@@ -3,10 +3,18 @@
 var fs = require('path'),
     path = require('path'),
     config = require('getset'),
+    version = require(__dirname + "/../package").version,
     finder = require('./../lib/prey/plugins/providers/files/lib/finder');
 
 var config_file = __dirname + '/../config.default';
+var config_header = ";;;;;\n;Prey " + version + " configuration file\n;;;;;\n";
 var files = {};
+
+var merge_data = function(type, plugin_name, results){
+	var data = {};
+	data[plugin_name] = results;
+	config.merge_data(type, data, true);
+}
 
 finder.eachFileMatching(/default.options$/, './', function(err, file, stat){
 
@@ -23,9 +31,12 @@ finder.eachFileMatching(/default.options$/, './', function(err, file, stat){
 	// sort plugin names alphabetically before appending
 	Object.keys(files).sort().forEach(function(plugin_name){
 
-		var opts = config.read(files[plugin_name]);
+		var result = config.read(files[plugin_name]);
+		merge_data('values', plugin_name, result.values);
+		merge_data('comments', plugin_name, result.comments);
+
 		// console.log(plugin_name + " -> " + JSON.stringify(opts));
-		config.set(plugin_name, opts, true);
+		// config.set(plugin_name, opts, true);
 
 	});
 
