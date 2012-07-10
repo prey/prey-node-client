@@ -12,7 +12,7 @@
   "dependencies": {
     "xml2js": "",
     "needle": "",
-    "commander": "0.5.2",
+    "commander": "",
     "mime": "1.2.5",
     "spaghetti": "",
     "reply": ""
