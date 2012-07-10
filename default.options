@@ -1,3 +1,7 @@
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Prey configuration file
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;
 ; What driver should Prey use? (for options look in plugins/drivers)
 driver = control-panel
 
