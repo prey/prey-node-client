@@ -1,7 +1,7 @@
 var fs = require('fs'),
 		tls = require('tls'),
 		http = require('http'),
-		common = require('./../lib/prey/common').load_config();
+		common = require('./../lib/prey/common');
 
 var tcp_port = 9000;
 var http_port = 9001;
@@ -20,6 +20,11 @@ var getHTML = function(){
 	return html;
 }
 
+var redirect = function(res){
+	res.writeHead(302, {'Location': 'http://localhost:' + http_port});
+	res.end();
+}
+
 var sendCommand = function(command, data){
 	console.log("Sending " + command + " command to client");
 	var msg = JSON.stringify({command: command, data: data || {}});
@@ -33,33 +38,34 @@ var http_server = http.createServer(function(req, res){
 
 	if(!client)
 		return res.end("Client not connected");
-	
+
 	if(req.url == '/'){
 		return res.end(getHTML());
 	} else {
 		switch(req.url.replace('/', '')){
 			case 'start_action':
-				sendCommand("start_action", {name: "alarm", options: {"sound_file": 'alarm.mp3'}});
+				sendCommand("start", {name: "alarm", options: {"sound_file": 'alarm.mp3'}});
 				break;
 			case 'stop_action':
-				sendCommand("stop_action", {name: "alarm"});
+				sendCommand("stop", {name: "alarm"});
 				break;
 			case 'get_trace':
-				sendCommand("get_trace", {name: 'modified_files'});
+				sendCommand("get", {name: 'status'});
 				break;
 			case 'update_setting':
-				sendCommand("update_setting", {'auto_connect': false});
+				sendCommand("set", {'auto_connect': false});
 				break;
-			default: 
+			default:
 				var msg = "Unknown request: " + req.url;
 				console.log(msg);
 				return res.end(msg);
 		}
 
 	}
-	
-	res.end("Command sent. " + "<a href='/'>Back</a>")
-	
+
+	redirect(res);
+	// res.end("Command sent. " + "<a href='/'>Back</a>")
+
 }).listen(http_port);
 
 var options = {
@@ -74,23 +80,23 @@ var options = {
 };
 
 var tcp_server = tls.createServer(options, function(stream) {
-	
+
   console.log(' - New connection, ', stream.authorized ? 'authorized' : 'unauthorized');
   stream.setEncoding('utf8');
 
 	client = stream;
 	connected_at = new Date();
-	
+
 	sendCommand('welcome')
 
 	stream.on('secureConnect', function(){
 		console.log(" - Connection succesfully handshaked");
 	})
-	
+
 	stream.on('data', function(data){
 		console.log(" - Got data: " + data.toString());
 	})
-	
+
 	stream.on('close', function(err){
 		console.log(" - Connection closed");
 		client = null;

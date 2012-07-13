@@ -1,5 +1,5 @@
 var util = require('util'),
-	common = require('./../lib/prey/common').load_config();
+	common = require('./../lib/prey/common').config;
 
 var provider_name = process.argv[2];
 
@@ -22,14 +22,13 @@ var load_provider = function(provider_name){
 
 	});
 
-
 }
 
 if(provider_name == null || provider_name == ""){
 	console.log("No provider name given");
 	process.exit(1);
 } else if(provider_name == 'all'){
-	
+
 	require('fs').readdir(__dirname + '/../lib/prey/plugins/providers/', function(err, list){
 
 		list.forEach(function(p){
@@ -37,7 +36,9 @@ if(provider_name == null || provider_name == ""){
 		})
 
 	})
-	
+
 } else {
+
 	load_provider(provider_name);
+
 }
