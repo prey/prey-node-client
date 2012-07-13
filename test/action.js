@@ -1,4 +1,4 @@
-var common = require('./../lib/prey/common').load_config();
+var common = require('./../lib/prey/common').config;
 
 var module_name = process.argv[2];
 
@@ -30,7 +30,7 @@ var mod = require(__dirname + '/../lib/prey/plugins/actions/' + module_name);
 var opts = parse_options();
 
 var instance = mod.start(opts, function(err){
-	console.log(err);
+	if(err) console.log("Error: " + err.message);
 });
 
 if(instance && mod.events){
