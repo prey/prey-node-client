@@ -6,17 +6,15 @@
 // Licensed under the GPLv3
 //////////////////////////////////////////
 
-var path = require('path'),
-		common = require('./../lib/prey/common'),
-		root_path = common.root_path,
-		program = common.program;
+var program = require('commander'),
+		version = require(__dirname + '/../package').version;
 
 /////////////////////////////////////////////////////////////
 // command line options
 /////////////////////////////////////////////////////////////
 
 program
-	.version(common.version)
+	.version(version)
 	.option('-p, --path <path>', 'Path to config file [/etc/prey or C:\\$WINDIR\\Prey]')
 	.option('-d, --driver <driver>', 'Driver to use for fetching instructions')
 	.option('-a, --actions <actions>', 'Comma-separated list of actions to run on startup')
@@ -25,15 +23,18 @@ program
 	.option('-s, --setup', 'Run setup routine')
 	.parse(process.argv);
 
+var path = require('path'),
+		common = require('./../lib/prey/common'),
+		root_path = common.root_path,
+		logger = common.logger,
+		pid_file = common.helpers.tempfile_path('prey.pid'),
+		Prey = require(root_path + '/lib/prey');
+
 if (program.debug)
 	common.logger.set_level('debug');
 
 if(!common.config.persisted() || program.setup)
 	return require(root_path + '/lib/prey/setup').run();
-
-var logger = common.logger,
-		pid_file = common.helpers.tempfile_path('prey.pid'),
-		Prey = require(root_path + '/lib/prey');
 
 /////////////////////////////////////////////////////////////
 // event, signal handlers
