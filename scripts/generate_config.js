@@ -6,7 +6,7 @@ var fs = require('path'),
     version = require(__dirname + "/../package").version,
     finder = require('./../lib/prey/plugins/providers/files/lib/finder');
 
-var config_file = __dirname + '/../config.default';
+var config_file = __dirname + '/../prey.conf.default';
 // var config_header = ";;;;;\n;Prey " + version + " configuration file\n;;;;;\n";
 var files = {};
 
