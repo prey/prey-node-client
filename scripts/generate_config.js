@@ -7,7 +7,7 @@ var fs = require('path'),
     finder = require('./../lib/prey/plugins/providers/files/lib/finder');
 
 var config_file = __dirname + '/../config.default';
-var config_header = ";;;;;\n;Prey " + version + " configuration file\n;;;;;\n";
+// var config_header = ";;;;;\n;Prey " + version + " configuration file\n;;;;;\n";
 var files = {};
 
 var merge_data = function(type, plugin_name, results){
@@ -29,7 +29,9 @@ finder.eachFileMatching(/default.options$/, './', function(err, file, stat){
 }, function(){
 
 	// sort plugin names alphabetically before appending
-	Object.keys(files).sort().forEach(function(plugin_name){
+	var sort_method = function(a,b) { return a != 'control-panel' && a > b };
+	
+	Object.keys(files).sort(sort_method).forEach(function(plugin_name){
 
 		var result = config.read(files[plugin_name]);
 		merge_data('values', plugin_name, result.values);
