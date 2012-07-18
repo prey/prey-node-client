@@ -26,6 +26,13 @@ private_key = ssl.key
 ; Certificate file for TLS-encrypted connections
 certificate = ssl.cert
 
+[campfire]
+token = USER_TOKEN
+subdomain = ACCOUNT_SUBDOMAIN
+room_id = ROOM_ID
+nickname = prey
+magic_word = prettyplease
+
 [control-panel]
 
 ; host for checking device status and sending gathered data
@@ -43,13 +50,6 @@ randomize_check_host = false
 ; active wifi network, etc)  so that we can remotely show the current status
 ; of the device. required for Active Mode.
 report_status = true
-
-[campfire]
-token = USER_TOKEN
-subdomain = ACCOUNT_SUBDOMAIN
-room_id = ROOM_ID
-nickname = prey
-magic_word = prettyplease
 
 [imgur]
 api_key = 
