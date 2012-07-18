@@ -6,8 +6,9 @@
 // Licensed under the GPLv3
 //////////////////////////////////////////
 
-var program = require('commander'),
-		version = require(__dirname + '/../package').version;
+var path = require('path'),
+		program = require('commander'),
+		version = require(path.join(__dirname, '..', 'package')).version;
 
 /////////////////////////////////////////////////////////////
 // command line options
@@ -23,18 +24,17 @@ program
 	.option('-s, --setup', 'Run setup routine')
 	.parse(process.argv);
 
-var path = require('path'),
-		common = require('./../lib/prey/common'),
+var	common = require(path.join(__dirname, '..', 'lib', 'prey', 'common')),
 		root_path = common.root_path,
 		logger = common.logger,
 		pid_file = common.helpers.tempfile_path('prey.pid'),
-		Prey = require(root_path + '/lib/prey');
+		Prey = require(path.join(root_path, 'lib', 'prey'));
 
 if (program.debug)
 	common.logger.set_level('debug');
 
 if(!common.config.persisted() || program.setup)
-	return require(root_path + '/lib/prey/setup').run();
+	return require(path.join(root_path, 'lib', 'prey', 'setup')).run();
 
 /////////////////////////////////////////////////////////////
 // event, signal handlers
