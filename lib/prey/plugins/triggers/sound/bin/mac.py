@@ -1,4 +1,4 @@
-#!/usr/bin/python2.6
+#!/usr/bin/env python
 
 # open a microphone in pyAudio and listen for taps
 # credits to Rusell Borogove
