@@ -20,6 +20,7 @@ program
 	.option('-d, --driver <driver>', 'Driver to use for fetching instructions')
 	.option('-a, --actions <actions>', 'Comma-separated list of actions to run on startup')
 //	.option('-n, --nolog', 'Do not output to log file even if running via cron or trigger')
+	.option('-l, --logfile <logfile>', 'Logfile to use')
 	.option('-D, --debug', 'Output debugging info')
 	.option('-s, --setup', 'Run setup routine')
 	.parse(process.argv);
@@ -40,6 +41,7 @@ if(!common.config.persisted() || program.setup)
 process.on('exit', function(code) {
 	var remove_pid = Prey.agent.running;
 	Prey.agent.shutdown(); // sets agent.running = false
+
 	if(remove_pid) {
 		common.helpers.remove_pid_file(pid_file);
 		logger.info('Have a jolly good day sir.\n');
@@ -81,14 +83,15 @@ process.on('uncaughtException', function (err) {
 
 common.helpers.store_pid(pid_file, function(err, running){
 
-	if(err) throw(err);
-	if(!running) return Prey.agent.run();
+	if (err) throw(err);
+	if (!running) return Prey.agent.run();
 
 	var run_time = (new Date() - running.stat.ctime)/(60 * 1000);
-	console.error("Instance has been live for " + run_time.toString().substring(0,5) + " minutes\n");
+	var run_time_str = run_time.toString().substring(0,4);
+	console.error("Instance has been live for " + run_time_str + " minutes\n");
 
 	// don't poke instance if running since less than two minutes ago
-	if(run_time < 2) return;
+	if (run_time < 2) return;
 
 	var signal = process.env.TRIGGER ? 'SIGUSR2' : 'SIGUSR1';
 	process.kill(running.pid, signal);
