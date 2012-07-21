@@ -7,7 +7,7 @@
 #############################################
 
 import os, sys
-import hashlib
+from hashlib import md5
 import gtk
 import pango
 
@@ -15,7 +15,7 @@ image_file = "/../../lib/bg-lock-with-input.png"
 
 class Lock:
 	def get_md5(self, string):
-		return hashlib.md5(string).hexdigest()
+		return md5(string).hexdigest()
 
 	def enter_callback(self, widget, entry):
 		hashed_text = self.get_md5(entry.get_text())
@@ -79,7 +79,7 @@ class Lock:
 		self.bg_window.set_deletable(False)
 		self.bg_window.show()
 
-		monitors = self.bg_window.get_screen().get_n_monitors()
+		# monitors = self.bg_window.get_screen().get_n_monitors()
 
 		###################################
 		# window
@@ -107,7 +107,11 @@ class Lock:
 		main_screen_height = self.window.get_screen().get_monitor_geometry(0).height
 		main_screen_middle = main_screen_width/2
 
+		# print "Main screen size: %s x %s" % (main_screen_width, main_screen_height)
+		# print "Main screen middle: %s" % main_screen_middle
+
 		vbox = gtk.VBox(False, 0)
+		vbox.set_size_request(main_screen_width, main_screen_height)
 		self.window.add(vbox)
 		# vbox.show()
 
@@ -122,32 +126,24 @@ class Lock:
 		image_width = pixbuf.get_width()
 		image_height = pixbuf.get_height()
 
-		# print main_screen_width
-		# print image_width
-		# print main_screen_height
-		# print image_height
-
+		# print 'Image size: %s x %s' % (image_width, image_height)
 		scale = 1
 
 		if image_width > main_screen_width or image_height > main_screen_height:
 			scale = min(float(main_screen_width)/image_width, float(main_screen_height)/image_height)
 			new_width = int(scale*image_width)
 			new_height = int(scale*image_height)
-			# print new_height
+			# print "Scaled image to: %s x %s" % (new_width, new_height)
 			pixbuf = pixbuf.scale_simple(new_width, new_height, gtk.gdk.INTERP_BILINEAR)
 
 		image.set_from_pixbuf(pixbuf)
+		image.set_size_request(main_screen_width, main_screen_height)
 		image.show()
-		vbox.set_size_request(main_screen_width, main_screen_height)
 		vbox.add(image)
 
 		###################################
 		# label
 		###################################
-
-		hbox = gtk.HBox(False, 0)
-		vbox.add(hbox)
-		hbox.show()
 
 		self.entry = gtk.Entry(max=0)
 		self.entry.set_max_length(40)
@@ -162,27 +158,35 @@ class Lock:
 		self.entry.connect("activate", self.enter_callback, self.entry)
 		# self.entry.show()
 
-		padding_left = int(240*scale)
-		padding_top = 18
+		input_size = 210
+
+		padding_left = int(input_size*scale)
+		padding_top = -3
+		# print 'Padding: left %s, top %s' % (padding_left, padding_top)
 
 		# if image was scaled down, calculate offset for positioning elements
 		if image_height > main_screen_height:
 			padding_top = 18 - int((image_height - main_screen_height)/8)
 
+		x_position = main_screen_middle-padding_left
+		y_position = -(main_screen_height/2)+padding_top
+		# print "Fixed position: %s, %s" % (x_position, y_position)
+
 		fixed = gtk.Fixed()
-		fixed.put(self.entry, main_screen_middle-padding_left, -(main_screen_height/2)+padding_top)
+		fixed.put(self.entry, x_position, y_position)
 		fixed.show()
-		hbox.pack_start(fixed, False, False, 30)
+		vbox.pack_start(fixed, False, False, 0)
 
 		text = 'Invalid password. Access denied.'
 		self.label = gtk.Label()
 		self.label.set_markup('<span foreground="#aa0000">'+text+'</span>');
-		self.label.modify_font(pango.FontDescription("sans 16"))
-		self.label.set_size_request(main_screen_width, 30)
+		self.label.modify_font(pango.FontDescription("sans 15"))
+		# self.label.set_size_request(main_screen_width, 30)
 
 		fixed2 = gtk.Fixed()
-		fixed2.put(self.label, -main_screen_width/2-padding_left, -(main_screen_height/2)+padding_top + 42)
-		hbox.pack_start(fixed2, True, False, 30)
+		# push label down a bit, and left a bit so it remains centered
+		fixed2.put(self.label, x_position + 26, y_position + 44)
+		vbox.pack_start(fixed2, False, False, 0)
 
 		disable_XF86Switch()
 
@@ -230,7 +234,7 @@ def disable_XF86Switch():
 			subprocess.Popen(cmd)
 
 	except IndexError:
-		print "Couldnt parse Xmodmap list"
+		print "Couldn't parse Xmodmap list."
 
 	except OSError, subprocess.CalledProcessError:
 		# print "Xmodmap not found"
