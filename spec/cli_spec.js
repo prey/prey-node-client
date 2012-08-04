@@ -114,7 +114,23 @@ describe('prey.js', function(){
 
 		})
 
-		describe('when a different signal is received', function(){
+		describe('when SIGINT signal is received', function(){
+
+			it('should do nothing', function(){
+
+			})
+
+		})
+
+		describe('when SIGTERM signal is received', function(){
+
+			it('should do nothing', function(){
+
+			})
+
+		})
+
+		describe('when SIGQUIT signal is received', function(){
 
 			it('should do nothing', function(){
 
