@@ -9,7 +9,7 @@ var load_sandboxed = function(){
 			'/home/tomas/code/prey/client.node/lib/prey': {
 				agent: {
 					run: function(){ console.log('Fake run!') },
-					shutdown: function(){ console.log('Shutting down') }
+					shutdown: function(){ console.log('Fake shutdown!') }
 				}
 			}
 		}
@@ -21,12 +21,6 @@ describe('prey.js', function(){
 
 //	var child;
 //	var stdout;
-
-//	beforeEach(function(){
-//		child = exec(main_script, function(err, stdout, stderr){
-//			stdout = stdout;
-//		});
-//	});
 
 	describe('command line options', function(){
 
