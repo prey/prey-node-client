@@ -5,6 +5,7 @@ var should = require("should");
 var common = Prey.common;
 var hw = require("../lib/prey/plugins/providers/hardware");
 
+var platform = common.os_name;
 var td = require('./testdata').td;
 
 describe('Hardware', function(){
@@ -40,22 +41,22 @@ describe('Hardware', function(){
     it('should callback firmware_info',function(done) {
       hw.get_firmware_info(function(firmware) {
         should.exist(firmware);
-        firmware.should.have.property('vendor_name');
-        firmware.should.have.property('model_name');
-        firmware.should.have.property('serial_number');
-        firmware.should.have.property('uuid');
+        if (platform !== "windows") {
+          firmware.should.have.property('vendor_name');
+          firmware.should.have.property('model_name');
+          firmware.should.have.property('serial_number');
+          firmware.should.have.property('uuid');
+        }
         firmware.should.have.property('mb_vendor');
         firmware.should.have.property('mb_model');
         firmware.should.have.property('mb_version');
         firmware.should.have.property('mb_serial');
         firmware.should.have.property('bios_vendor');
-        firmware.should.have.property('bios_version');
-        
+        firmware.should.have.property('bios_version');        
         done();
       });
     });
   });
-
 
   describe('get_processor_info', function(){
     it('should callback an object with model, speed and cores',function(done) {
@@ -67,9 +68,7 @@ describe('Hardware', function(){
         done();
       });
     });
-  });
-
-  
+  });  
 });
 
 
