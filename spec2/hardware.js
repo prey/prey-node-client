@@ -1,26 +1,18 @@
 
+Prey = require("../lib/");
 
 var should = require("should");
-var common = require("../lib/prey/common");
+var common = Prey.common;
 var hw = require("../lib/prey/plugins/providers/hardware");
+
+var td = require('./testdata').td;
 
 describe('Hardware', function(){
   describe('get_mac_address', function(){
     it('should cb a valid mac address', function(done) {
-      var nic = (common.os_name === "windows") ? "Local Area Connection" : "eth0";
-      hw.get_mac_address(nic,function(err,mac) {
-        if (err) {
-          throw err;
-        }
-        
+      hw.get_mac_address(td("nic"),function(mac) {
         should.exist(mac);
-        
-        if (common.os_name === "windows") {
-          mac.should.equal("08:00:27:8D:55:F3");
-        } else {
-          mac.should.equal("00:1b:24:bc:b3:80");
-        }
-        
+        mac.should.equal(td("mac"));
         done();
       });
     });
@@ -35,6 +27,48 @@ describe('Hardware', function(){
     });
   });
   
+  describe('get_first_mac_address', function(){
+    it('there exists a mac address',function(done) {
+      hw.get_first_mac_address(function(mac) {
+        should.exist(mac);
+        done();
+      });
+    });
+  });
+
+  describe('get_firmware_info', function(){
+    it('should callback firmware_info',function(done) {
+      hw.get_firmware_info(function(firmware) {
+        should.exist(firmware);
+        firmware.should.have.property('vendor_name');
+        firmware.should.have.property('model_name');
+        firmware.should.have.property('serial_number');
+        firmware.should.have.property('uuid');
+        firmware.should.have.property('mb_vendor');
+        firmware.should.have.property('mb_model');
+        firmware.should.have.property('mb_version');
+        firmware.should.have.property('mb_serial');
+        firmware.should.have.property('bios_vendor');
+        firmware.should.have.property('bios_version');
+        
+        done();
+      });
+    });
+  });
+
+
+  describe('get_processor_info', function(){
+    it('should callback an object with model, speed and cores',function(done) {
+      hw.get_processor_info(function(obj) {
+        should.exist(obj);
+        obj.should.have.property('speed');
+        obj.should.have.property('model');
+        obj.should.have.property('cores');
+        done();
+      });
+    });
+  });
+
   
 });
 
