@@ -41,6 +41,8 @@ describe('Hardware', function(){
     it('should callback firmware_info',function(done) {
       hw.get_firmware_info(function(firmware) {
         should.exist(firmware);
+
+        // !! TOM what is the query on wmic for this stuff?? Not in bash windows file??
         if (platform !== "windows") {
           firmware.should.have.property('vendor_name');
           firmware.should.have.property('model_name');
