@@ -1,6 +1,0 @@
-module.exports = {
-
-	listen_port: 19191,
-	listen_address: '0.0.0.0'
-
-}
