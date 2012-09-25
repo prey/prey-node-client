@@ -13,6 +13,8 @@ import hashlib
 # import signal
 # from Foundation import *
 from AppKit import *
+from Quartz import CGCaptureAllDisplays, CGShieldingWindowLevel
+
 
 font_name = 'Helvetica'
 
@@ -45,10 +47,6 @@ class LockView(NSView):
     return True
 	
   def drawRect_(self, rect):
-    # black background
-    NSColor.blackColor().set()
-    NSRectFill(self.bounds())
-
     # get background image
     image = NSImage.alloc().initWithContentsOfFile_(bg_path)
     rep = image.representations()[0]
@@ -129,14 +127,16 @@ def main():
 
   # raise app
   app.activateIgnoringOtherApps_(True)
-
-  # window_rect = NSMakeRect(100.0, 350.0, 450.0, 400.0) 
   screen = NSScreen.mainScreen()
+
   myWindow = FullScreenWindow.alloc().initWithContentRect_styleMask_backing_defer_(
     screen.frame(), 
     NSBorderlessWindowMask,
     NSBackingStoreBuffered,
     True)
+
+  err = CGCaptureAllDisplays()
+  myWindow.setBackgroundColor_(NSColor.blackColor())
 
   # render view and draw input
   myView = LockView.alloc().initWithFrame_(screen.frame())
@@ -145,7 +145,7 @@ def main():
   # set window properties and display
   myWindow.setTitle_('Application')
   myWindow.setContentView_(myView)
-  myWindow.setLevel_(NSPopUpMenuWindowLevel)
+  myWindow.setLevel_(CGShieldingWindowLevel()+1)
   myWindow.orderFrontRegardless()
   myWindow.makeFirstResponder_(field)
   myWindow.makeKeyAndOrderFront_(myWindow)
