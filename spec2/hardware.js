@@ -11,7 +11,7 @@ var td = require('./testdata').td;
 describe('Hardware', function(){
   describe('get_mac_address', function(){
     it('should cb a valid mac address', function(done) {
-      hw.get_mac_address(td("nic"),function(mac) {
+      hw.get_mac_address(td("nic"),function(err,mac) {
         should.exist(mac);
         mac.should.equal(td("mac"));
         done();
@@ -21,7 +21,7 @@ describe('Hardware', function(){
 
   describe('get_network_interfaces_list', function(){
     it('should return at least 1 network interface',function(done) {
-      hw.get_network_interfaces_list(function(res) {
+      hw.get_network_interfaces_list(function(err,res) {
         res.length.should.be.above(0);
         done();
       });
@@ -30,7 +30,7 @@ describe('Hardware', function(){
   
   describe('get_first_mac_address', function(){
     it('there exists a mac address',function(done) {
-      hw.get_first_mac_address(function(mac) {
+      hw.get_first_mac_address(function(err,mac) {
         should.exist(mac);
         done();
       });
@@ -39,7 +39,7 @@ describe('Hardware', function(){
 
   describe('get_firmware_info', function(){
     it('should callback firmware_info',function(done) {
-      hw.get_firmware_info(function(firmware) {
+      hw.get_firmware_info(function(err,firmware) {
         should.exist(firmware);
 
         // !! TOM what is the query on wmic for this stuff?? Not in bash windows file??
@@ -62,7 +62,7 @@ describe('Hardware', function(){
 
   describe('get_processor_info', function(){
     it('should callback an object with model, speed and cores',function(done) {
-      hw.get_processor_info(function(obj) {
+      hw.get_processor_info(function(err,obj) {
         should.exist(obj);
         obj.should.have.property('speed');
         obj.should.have.property('model');
