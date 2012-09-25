@@ -4,7 +4,7 @@ Prey = require("../lib/");
 var should = require("should");
 var common = Prey.common;
 var hw = require("../lib/prey/plugins/providers/hardware");
-
+var inspect = require('util').inspect;
 var platform = common.os_name;
 var td = require('./testdata').td;
 
@@ -19,10 +19,26 @@ describe('Hardware', function(){
     });
   });
 
+  describe('get_broadcast_address', function(){
+    it('should get broadcast address', function(done) {
+      hw.get_broadcast_address(td("nic"),function(err,broadcast) {
+        console.log("broadcast:"+broadcast);
+        should.exist(broadcast);
+        done();
+      });
+    });
+  });
+  
   describe('get_network_interfaces_list', function(){
     it('should return at least 1 network interface',function(done) {
-      hw.get_network_interfaces_list(function(err,res) {
-        res.length.should.be.above(0);
+      hw.get_network_interfaces_list(function(err,nics) {
+        nics.should.be.an.instanceOf(Array);
+        nics.length.should.be.above(0);
+        var nic = nics[0];
+        nic.should.have.property('mac');
+        nic.should.have.property('name');
+        nic.should.have.property('ip_address');
+        console.log(inspect(nics));
         done();
       });
     });
