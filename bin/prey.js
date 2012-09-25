@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 //////////////////////////////////////////
-// Prey NodeJS Client
+// Prey Node.js Client
 // Written by Tomás Pollak
 // (c) 2012, Fork Ltd. - http://forkhq.com
 // Licensed under the GPLv3
@@ -15,14 +15,14 @@ var join = require('path').join,
 /////////////////////////////////////////////////////////////
 
 program
-  .version(version)
-  .option('-p, --path <path>', 'Path to config file [/etc/prey or C:\\$WINDIR\\Prey]')
-  .option('-d, --driver <driver>', 'Driver to use for fetching instructions')
-  .option('-a, --actions <actions>', 'Comma-separated list of actions to run on startup')
-  .option('-l, --logfile <logfile>', 'Logfile to use')
-  .option('-D, --debug', 'Output debugging info')
-  .option('-s, --setup', 'Run setup routine')
-  .parse(process.argv);
+   .version(version)
+   .option('-p, --path <path>', 'Path to config file [/etc/prey or C:\\$WINDIR\\Prey]')
+   .option('-d, --driver <driver>', 'Driver to use for fetching instructions')
+   .option('-a, --actions <actions>', 'Comma-separated list of actions to run on startup')
+   .option('-l, --logfile <logfile>', 'Logfile to use')
+   .option('-D, --debug', 'Output debugging info')
+   .option('-s, --setup', 'Run setup routine')
+   .parse(process.argv);
 
 var common = require(join(__dirname, '..', 'lib', 'prey', 'common')),
     root_path = common.root_path,
@@ -30,7 +30,7 @@ var common = require(join(__dirname, '..', 'lib', 'prey', 'common')),
     pid_file = common.helpers.tempfile_path('prey.pid'),
     Prey = require(join(root_path, 'lib', 'prey'));
 
-if(!common.config.persisted() || program.setup)
+if (!common.config.persisted() || program.setup)
   return require(join(root_path, 'lib', 'prey', 'setup')).run();
 
 /////////////////////////////////////////////////////////////
@@ -41,7 +41,7 @@ process.on('exit', function(code) {
   var remove_pid = Prey.agent.running;
   Prey.agent.shutdown(); // sets agent.running = false
 
-  if(remove_pid) {
+  if (remove_pid) {
     common.helpers.remove_pid_file(pid_file);
     logger.info('Have a jolly good day sir.\n');
   }
@@ -80,7 +80,7 @@ process.on('uncaughtException', function (err) {
 // launcher
 /////////////////////////////////////////////////////////////
 
-common.helpers.store_pid(pid_file, function(err, running){
+common.helpers.store_pid(pid_file, function(err, running) {
 
   if (err) throw(err);
   if (!running) return Prey.agent.run();
