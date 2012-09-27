@@ -12,8 +12,12 @@ describe('Hardware', function(){
   describe('get_mac_address', function(){
     it('should cb a valid mac address', function(done) {
       hw.get_mac_address(td("nic"),function(err,mac) {
-        should.exist(mac);
-        mac.should.equal(td("mac"));
+        if (err) {
+          err.code.should.equal("MALFORMED_MAC"); 
+        } else {
+          should.exist(mac);
+          mac.should.equal(td("mac"));
+        }
         done();
       });
     });
@@ -32,14 +36,18 @@ describe('Hardware', function(){
   describe('get_network_interfaces_list', function(){
     it('should return at least 1 network interface',function(done) {
       hw.get_network_interfaces_list(function(err,nics) {
-        nics.should.be.an.instanceOf(Array);
-        nics.length.should.be.above(0);
-        var nic = nics[0];
-        nic.should.have.property('mac');
-        nic.should.have.property('name');
-        nic.should.have.property('ip_address');
-        console.log(inspect(nics));
-        done();
+        if (err) {
+          err.code.should.equal("NO_OSINTERFACE");
+        } else {
+          nics.should.be.an.instanceOf(Array);
+          nics.length.should.be.above(0);
+          var nic = nics[0];
+          nic.should.have.property('mac');
+          nic.should.have.property('name');
+          nic.should.have.property('ip_address');
+          console.log(inspect(nics));
+          done();
+        }
       });
     });
   });
