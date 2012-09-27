@@ -1,5 +1,6 @@
 
-var platform = Prey.common.os_name;
+var platform = _ns("common").os_name;
+
 var data = {
   windows: {
     mac:"08:00:27:8D:55:F3",

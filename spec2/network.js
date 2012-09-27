@@ -2,7 +2,7 @@
 
 "use strict";
 
-Prey = require("../lib/");
+require("../lib/");
 
 var should = require("should");
 var td = require('./testdata').td;
@@ -73,7 +73,7 @@ describe('Network', function(){
     it('should return an array of interfaces',function(done) {
       net.get_wireless_interface_names(function(err,names) {
         should.exist(names);
-        console.log("Wireless interface names (array):"+names);
+        console.log("Wireless interface names (array):"+inspect(names));
         done();
       });
     });
