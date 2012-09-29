@@ -2,8 +2,8 @@
 require("../lib/");
 
 var should = require("should");
-var common = _ns("common")
-var hw = require("../lib/prey/plugins/providers/hardware");
+var common = _ns("common");
+var hw = _ns("hardware");
 var inspect = require('util').inspect;
 var platform = common.os_name;
 var td = require('./testdata').td;

@@ -7,7 +7,7 @@ require("../lib/");
 var should = require("should");
 var td = require('./testdata').td;
 var inspect = require('util').inspect;
-var net = require("../lib/prey/plugins/providers/network");
+var net = _ns('network');
 
 var nic_check = function(nic) {
   nic.should.be.a('object');
