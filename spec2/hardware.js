@@ -78,7 +78,8 @@ describe('Hardware', function(){
         firmware.should.have.property('mb_version');
         firmware.should.have.property('mb_serial');
         firmware.should.have.property('bios_vendor');
-        firmware.should.have.property('bios_version');        
+        firmware.should.have.property('bios_version');
+        _trace("FIRMWARE=",firmware);
         done();
       });
     });
