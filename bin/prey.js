@@ -1,4 +1,7 @@
 #!/usr/bin/env node
+
+"use strict";
+
 //////////////////////////////////////////
 // Prey NodeJS Client
 // Written by Tomás Pollak
@@ -6,9 +9,13 @@
 // Licensed under the GPLv3
 //////////////////////////////////////////
 
-var join = require('path').join,
+var
+    join = require('path').join,
+    root_path   = process.env.ROOT_PATH || join(__dirname, '..'),
     program = require('commander'),
-    version = require(join(__dirname, '..', 'package')).version;
+    version = require(join(__dirname, '..', 'package')).version,
+    control = require(join(root_path, 'lib')); // setup _ns, _error etc
+
 
 /////////////////////////////////////////////////////////////
 // command line options
@@ -24,22 +31,26 @@ program
   .option('-s, --setup', 'Run setup routine')
   .parse(process.argv);
 
-var common = require(join(__dirname, '..', 'lib', 'prey', 'common')),
-    root_path = common.root_path,
+if (program.debug) control.debugOn();
+
+var common = _ns('common'),
+    agent = _ns('agent'),
     logger = common.logger,
-    pid_file = common.helpers.tempfile_path('prey.pid'),
-    Prey = require(join(root_path, 'lib', 'prey'));
+    pid_file = common.helpers.tempfile_path('prey.pid');
 
 if(!common.config.persisted() || program.setup)
   return require(join(root_path, 'lib', 'prey', 'setup')).run();
+
+
+
 
 /////////////////////////////////////////////////////////////
 // event, signal handlers
 /////////////////////////////////////////////////////////////
 
 process.on('exit', function(code) {
-  var remove_pid = Prey.agent.running;
-  Prey.agent.shutdown(); // sets agent.running = false
+  var remove_pid = agent.running;
+  agent.shutdown(); // sets agent.running = false
 
   if(remove_pid) {
     common.helpers.remove_pid_file(pid_file);
@@ -47,7 +58,7 @@ process.on('exit', function(code) {
   }
 });
 
-if (process.platform != 'win32') {
+if (process.platform !== 'win32') {
 
 process.on('SIGINT', function() {
   logger.warn('Got Ctrl-C!');
@@ -58,12 +69,12 @@ process.on('SIGINT', function() {
 
 process.on('SIGUSR1', function() {
   logger.warn('Got SIGUSR1 signal!');
-  Prey.agent.engage('interval');
+  agent.engage('interval');
 });
 
 process.on('SIGUSR2', function() {
   logger.warn('Got SIGUSR2 signal!');
-  Prey.agent.engage('network');
+  agent.engage('network');
 });
 
 /*
@@ -83,7 +94,8 @@ process.on('uncaughtException', function (err) {
 common.helpers.store_pid(pid_file, function(err, running){
 
   if (err) throw(err);
-  if (!running) return Prey.agent.run();
+  
+  if (!running) return agent.run();
 
   var run_time = (new Date() - running.stat.ctime)/(60 * 1000);
   var run_time_str = run_time.toString().substring(0,4);
