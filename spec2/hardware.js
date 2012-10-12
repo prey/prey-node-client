@@ -16,7 +16,6 @@ describe('Hardware', function(){
           err.code.should.equal("MALFORMED_MAC"); 
         } else {
           should.exist(mac);
-          mac.should.equal(td("mac"));
         }
         done();
       });
