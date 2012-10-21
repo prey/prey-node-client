@@ -41,7 +41,7 @@ run('install_deps.js', function(err){
   fs.exists(prey_bin, function(exists){
 
     if (!exists){
-      var msg = "We couldn't found the Prey executable in " + prey_bin;
+      var msg = "We couldn't find the Prey executable in " + prey_bin;
          msg += "\nIf you installed the package locally, then you need to";
          msg += "\nlink it to the global path by running\n\n  $ sudo npm link\n";
          msg += "\nOnce you're done please run this script again.";
