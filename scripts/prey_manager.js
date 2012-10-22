@@ -21,7 +21,7 @@ var
 var dev_install_spec = process.env.HOME+"/.prey_installs";
 
 /**
- * Contains the current prey install to run.
+ * Contains the current prey version.
  **/
 var cur_file = '_cur';
 
@@ -168,7 +168,8 @@ var install_prey = function(temp_dir,callback) {
 commander
       .option('-i, --install <from_path>', 'Install Prey ')
       .option('-s, --setcurrent <version>','Set current version')
-      .option('-c, --current', 'Get current version')
+      .option('-c, --current', 'Path to current version')
+      .option('-r, --runscript','Path to bin/prey.js of current version') 
       .parse(process.argv);
 
 if (commander.install) {
@@ -194,6 +195,17 @@ if (commander.current) {
 if (commander.setcurrent) {
   set_cur_version(commander.setcurrent,function(err) {
     process.exit((err) ? 1 : 0); 
+  });
+}
+
+
+if (commander.runscript) {
+  get_current_prey_dir(function(err,prey_dir) {
+    if (!err) {
+      console.log(prey_dir+'/bin/prey.js');
+      process.exit(0);
+    } else
+      process.exit(1);
   });
 }
 
