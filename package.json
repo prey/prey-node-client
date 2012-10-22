@@ -16,7 +16,9 @@
     "commander": "",
     "mime": "1.2.5",
     "spaghetti": "",
-    "reply": ""
+    "reply": "",
+    "async":"",
+    "underscore":""
   },
   "devDependencies": {
     "mocha": "",
