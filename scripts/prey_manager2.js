@@ -33,8 +33,12 @@ var etc_dir = function() {
   return os_hooks.etc_dir;
 };
 
+/**
+ * I think this platform specific stuff needs to be here as I can't load os_hooks without knowing this
+ * in advance.
+ **/
 var prey_bin = function() {
-  return os_hooks.prey_bin;
+  if (platform === 'linux') return '/usr/local/bin/prey';
 };
 
 var _tr  = console.log;
@@ -244,11 +248,26 @@ var check_etc_dir = function(callback) {
 };
 
 /**
+ * Before most commands are executed this should be set, as commands may depend on an existing installation.
+ **/
+var set_globals = function(path) {
+  //set globals now we know the install dir ...
+  pathToPrey = path
+  
+  // initialise the prey global vars like _ns as the hooks files depends on provider system
+  // should probably remove this dependency ...
+  require(pathToPrey + '/lib');
+  
+  os_hooks = require(pathToPrey + '/scripts/' + platform + '/hooks');
+};
+
+/**
  * The installer calls this function with the path to it's options file.
  * The options file
  **/
 commander
       .option('-c, --configure <from_path>', 'Configure installation')
+      .option('-l, --list','List installed versions')
       .parse(process.argv);
 
 if (commander.configure) {
@@ -258,22 +277,13 @@ if (commander.configure) {
       _tr(inspect(err));
       process.exit(1);
     }
-    
-    //set globals now we know the install dir ...
-    pathToPrey = commander.configure;
 
-    // initialise the prey global vars like _ns as the hooks files depends on provider system
-    // should probably remove this dependency ...
-    require(pathToPrey + '/lib');
+    _tr('Installing Prey version '+version);
+    set_globals(commander.configure);
     
-    os_hooks = require(pathToPrey + '/scripts/' + platform + '/hooks');
-
     check_etc_dir(function(err) {
-      _tr('Installing Prey version '+version);
       create_new_version(pathToPrey,function(err) {
         if (!err) {
-          _tr('doing post_intall for '+platform);
-          _tr('os_hooks is '+inspect(os_hooks));
           os_hooks.post_install(function(err) {
              if (err) {
               console.log(inspect(err));
@@ -285,6 +295,25 @@ if (commander.configure) {
           });
         }
       });
+    });
+  });
+}
+
+if (commander.list) {
+  get_current_version_path(function(err,path) {
+    set_globals(path);
+    
+    read_versions(function(err,versions) {
+      if (err) {
+        _tr(err);
+        process.exit(1);
+      }
+      
+      versions.forEach(function(v) {
+        console.log(v);
+      });
+                       
+      process.exit(0);
     });
   });
 }
