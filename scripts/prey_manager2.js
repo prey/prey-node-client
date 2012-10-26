@@ -65,7 +65,7 @@ var _error = function(err,context) {
     if (err.error) return err; 
   }
 
-  var err = {error:err,context:context,location:whichFile()};
+  err = {error:err,context:context,location:whichFile()};
   
   console.log(">>> -----------------------------------------------------------------");
   console.log(inspect(err));
@@ -139,40 +139,45 @@ var read_versions = function(callback) {
 };
 
 /**
- * Update the global prey symlink to point to the newly installed version.
+ * Create the symlink to bin/prey.js.
  **/
-var create_new_version = function(installDir,callback) {
+var create_symlink = function(installDir,callback) {
   var bin = prey_bin();
-  _tr('checking for existing '+bin);
   fs.lstat(bin,function(err,stat) {
     if (stat) {
-      _tr('unlinking existing '+bin);
       fs.unlinkSync(bin);
     }
     
     fs.symlink(installDir + '/bin/prey.js',bin,function(err) {
       if (err) return callback(_error(err));
 
-      _tr('symlinked new version to '+bin);
+      callback(null);
+    });
+  });
+};
+
+/**
+ * Update the global prey symlink to point to the newly installed version.
+ **/
+var create_new_version = function(installDir,callback) {
+  create_symlink(installDir,function(err) {
+    // update versions array ...
+    read_versions(function(err,versions) {
+      if (err) return callback(_error(err));
       
-      // update versions array ...
-      read_versions(function(err,versions) {
+      // already have a note of this installation, don't add it again to the array
+      if (versions.indexOf(installDir) !== -1) {
+        _tr('Have reference to '+installDir + ' already');
+        return callback(null);
+      }
+      
+      // versions is always initialized to something in read_versions
+      versions.push(installDir);
+      
+      write_versions(versions,function(err) {
         if (err) return callback(_error(err));
         
-        // already have a note of this installation, don't add it again to the array
-        if (versions.indexOf(installDir) !== -1) {
-          _tr('Have reference to '+installDir + ' already');
-          return callback(null);
-        }
-        
-        // versions is always initialized to something in read_versions
-        versions.push(installDir);
-
-        write_versions(versions,function(err) {
-          if (err) return callback(_error(err));
-          
-          callback(null);
-        });
+        callback(null);
       });
     });
   });
@@ -198,7 +203,7 @@ var read_package_info = function(path,callback) {
     var info = require(path + '/package.json');
     callback(null,info);
   } catch(e) {
-    callback(_error(e));
+    callback(_error(e,path));
   }
 };
 
@@ -252,7 +257,7 @@ var check_etc_dir = function(callback) {
  **/
 var set_globals = function(path) {
   //set globals now we know the install dir ...
-  pathToPrey = path
+  pathToPrey = path;
   
   // initialise the prey global vars like _ns as the hooks files depends on provider system
   // should probably remove this dependency ...
@@ -262,12 +267,34 @@ var set_globals = function(path) {
 };
 
 /**
+ * Interate over versions
+ **/
+var each_version = function(callback) {
+ get_current_version_path(function(err,path) {
+   set_globals(path);
+    
+   read_versions(function(err,versions) {
+     if (err) return callback(_error(err));
+     
+     versions.forEach(function(path) {
+       read_package_info(path,function(err,info) {
+         if (err) return callback(_error(err));
+
+         callback(null,{pack:info,path:path});
+       });
+     });
+   });
+ });
+};
+
+/**
  * The installer calls this function with the path to it's options file.
  * The options file
  **/
 commander
       .option('-c, --configure <from_path>', 'Configure installation')
       .option('-l, --list','List installed versions')
+      .option('-s, --set <version>','Set current version')
       .parse(process.argv);
 
 if (commander.configure) {
@@ -300,21 +327,29 @@ if (commander.configure) {
 }
 
 if (commander.list) {
-  get_current_version_path(function(err,path) {
-    set_globals(path);
-    
-    read_versions(function(err,versions) {
-      if (err) {
-        _tr(err);
-        process.exit(1);
-      }
-      
-      versions.forEach(function(v) {
-        console.log(v);
-      });
-                       
-      process.exit(0);
-    });
+  each_version(function(err,ver) {
+    if (!err)
+      console.log(ver.pack.version+':'+ver.path);
   });
 }
+
+
+if (commander.set) {
+  each_version(function(err,ver) {
+    if (!err) {
+      if (ver.pack.version === commander.set) {
+        create_symlink(ver.path,function(err) {
+          if (err) {
+            _tr(err);
+            process.exit(1);
+          }
+          console.log(ver.path);
+          process.exit(1);
+        });
+      }
+    }
+  });
+}
+
+
 
