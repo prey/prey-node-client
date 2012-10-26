@@ -128,7 +128,7 @@ var install_prey = function(temp_dir,callback) {
   
   try {
    // what version of prey are we attempting to install
-   var version = require(temp_dir+'/package.json').version;
+   var version = require(temp_dir+'package.json').version;
 
    versions(function(err, vers) {
      if (err) return callback(_error(err));
@@ -141,7 +141,7 @@ var install_prey = function(temp_dir,callback) {
        exec('mkdir -p '+new_dir,function(err,so,se) {
          if (err) return callback(_error(err,se));
 
-         exec('cp -r '+temp_dir+' '+new_dir,function(err) {
+         exec('cp -r '+temp_dir+'* '+new_dir,function(err) {
            if (err) return callback(_error("can't copy files from "+temp_dir+" to "+ new_dir,err));
 
            // ok, new version has been installed so update _cur version,
@@ -155,15 +155,9 @@ var install_prey = function(temp_dir,callback) {
      });
    });
   } catch(e) {
-    console.log("can't find package.json in "+temp_dir);
+    console.log("can't find package.json in "+temp_dir+':'+e);
   }
 };
-
-
-
-/////////////////////////////////////////////////////////////
-// command line options
-/////////////////////////////////////////////////////////////
 
 commander
       .option('-i, --install <from_path>', 'Install Prey ')
@@ -173,6 +167,12 @@ commander
       .parse(process.argv);
 
 if (commander.install) {
+
+  if (commander.install.substr(0,0) !== "/")
+    commander.install = process.env.PWD + '/'+commander.install;
+  
+  console.log('path from commander = '+commander.install);
+  console.log('dirname = '+__dirname);
   install_prey(commander.install,function(err,new_dir) {
     if (!err) {
       console.log("installed prey to "+new_dir);
