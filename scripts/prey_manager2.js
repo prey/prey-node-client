@@ -248,14 +248,19 @@ var check_etc_dir = function(callback) {
  * The options file
  **/
 commander
-      .option('-i, --install <from_path>', 'Install dir ')
+      .option('-c, --configure <from_path>', 'Configure installation')
       .parse(process.argv);
 
-if (commander.install) {
-  check_prey_dir(commander.install,function(err,version) {
+if (commander.configure) {
+  check_prey_dir(commander.configure,function(err,version) {
 
+    if (err) {
+      _tr(inspect(err));
+      process.exit(1);
+    }
+    
     //set globals now we know the install dir ...
-    pathToPrey = commander.install;
+    pathToPrey = commander.configure;
 
     // initialise the prey global vars like _ns as the hooks files depends on provider system
     // should probably remove this dependency ...
