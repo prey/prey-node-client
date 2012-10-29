@@ -17,8 +17,6 @@
  **/
 
 var
-  exp = module.exports,
-  _ = require('underscore'),
   inspect = require('util').inspect,
   commander = require('commander'),
   fs = require('fs'),
@@ -26,8 +24,20 @@ var
   platform = os.platform().replace('darwin', 'mac').replace('win32', 'windows'),
   versions_file = 'versions.json',
   pathToPrey, // set after install path is checked for valid prey dir
-  os_hooks;  //  set after install path is checked for valid prey dir
+  os_hooks;   //  set after install path is checked for valid prey dir
 
+var config_keys =[
+  "auto_connect" ,
+  "extended_headers" ,
+  "post_method" ,
+  "api_key" ,
+  "device_key" ,
+  "check_url" ,
+  "mail_to" ,
+  "smtp_server" ,
+  "smtp_username" ,
+  "smtp_password" 
+];
 
 var etc_dir = function() {
   return os_hooks.etc_dir;
@@ -78,7 +88,7 @@ var _error = function(err,context) {
  * Read a file options.json from the root of the installation directory.
  * options.json is a file deposited by the installer based on the installation selections of the user.
  **/
-var read_options = function(installDir,callback) {
+var read_install_options = function(installDir,callback) {
   fs.exists(installDir,function(exists) {
     if (!exists) return callback(_error(installDir+' does not exist'));
     
@@ -98,10 +108,19 @@ var read_options = function(installDir,callback) {
 };
 
 /**
- * 
+ * Read options from installer deposited options file and use getset to write the values.
  **/
-var update_config = function(installDir,options) {
-  
+var update_config = function(installDir,callback) {
+  read_install_options(installDir,function(err,options) {
+    if (err) return callback(_error(err));
+    var config = _ns('common').config;
+
+    config_keys.forEach(function(key) {
+      config.set(key,options[key]);
+    });
+
+    callback(null);
+  });
 };
 
 /**
@@ -161,6 +180,8 @@ var create_symlink = function(installDir,callback) {
  **/
 var create_new_version = function(installDir,callback) {
   create_symlink(installDir,function(err) {
+    if (err) return callback(_error(err));
+
     // update versions array ...
     read_versions(function(err,versions) {
       if (err) return callback(_error(err));
@@ -267,13 +288,25 @@ var set_globals = function(path) {
 };
 
 /**
+ * Select the current prey version
+ **/
+var with_current_version = function(callback) {
+  get_current_version_path(function(err,path) {
+    if (err) return callback(_error(err)); 
+
+    set_globals(path);
+    callback(null,path);
+  });
+};
+
+/**
  * Interate over versions
  **/
 var each_version = function(callback) {
- get_current_version_path(function(err,path) {
-   set_globals(path);
-    
-   read_versions(function(err,versions) {
+  with_current_version(function(err,path) {
+    if (err) return callback(_error(err));
+
+    read_versions(function(err,versions) {
      if (err) return callback(_error(err));
      
      versions.forEach(function(path) {
@@ -284,46 +317,66 @@ var each_version = function(callback) {
        });
      });
    });
- });
+  });
+  };
+
+var exit_process = function(msg,code) {
+  _tr(msg);
+  if (code) process.exit(code);
+  process.exit(0);
 };
 
 /**
- * The installer calls this function with the path to it's options file.
- * The options file
+ * Take the path provided, usually by the installer gui, to the top level directory of a new
+ * Prey installation.
+ *
+ * After validating the path is a Prey installation, initialize it's globals file, and common.js 
+ * file to get valid paths to various system locations.
+ *
+ * Add the new installation to an array of installation paths.
+ *
+ * Read the install_options.json file from the root of the new installation and then update the default
+ * config based on the user selection.
+ * 
+ * Install os hooks, using installation's hook stuff. 
  **/
+var configure = function(path) {
+  check_prey_dir(commander.configure,function(err,version) {
+
+    if (err) exit_process(err,1);
+
+    _tr('Installing Prey version '+version);
+    set_globals(commander.configure);
+    
+    check_etc_dir(function(err) {
+      if (err) exit_process(err,1);
+
+      create_new_version(pathToPrey,function(err) {
+        if (err) exit_process(err,1);
+
+        update_config(pathToPrey,function(err) {
+          if (err) exit_process(err,1);
+
+          os_hooks.post_install(function(err) {
+            if (err) exit_process(err,1);
+
+            exit_process('Prey installed successfully.');
+          });
+        });
+      });
+    });
+  });
+};
+
 commander
       .option('-c, --configure <from_path>', 'Configure installation')
       .option('-l, --list','List installed versions')
       .option('-s, --set <version>','Set current version')
       .parse(process.argv);
 
+
 if (commander.configure) {
-  check_prey_dir(commander.configure,function(err,version) {
-
-    if (err) {
-      _tr(inspect(err));
-      process.exit(1);
-    }
-
-    _tr('Installing Prey version '+version);
-    set_globals(commander.configure);
-    
-    check_etc_dir(function(err) {
-      create_new_version(pathToPrey,function(err) {
-        if (!err) {
-          os_hooks.post_install(function(err) {
-             if (err) {
-              console.log(inspect(err));
-            }
-            
-            _tr('exiting ... ');
-            process.exit((err) ? 1 : 0);
-           
-          });
-        }
-      });
-    });
-  });
+  configure(commander.configure);
 }
 
 if (commander.list) {
@@ -332,7 +385,6 @@ if (commander.list) {
       console.log(ver.pack.version+':'+ver.path);
   });
 }
-
 
 if (commander.set) {
   each_version(function(err,ver) {
@@ -350,6 +402,5 @@ if (commander.set) {
     }
   });
 }
-
 
 
