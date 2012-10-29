@@ -9,6 +9,7 @@
  * This module should:
  *   writes new key/vals from opts to config, if any
  *   sets current version
+ *   verify account credentials, create user account or device
  *   sets crontab/system service for execution
  *   return code 0 if all was good
  *
@@ -23,10 +24,11 @@ var
   os = require('os'),
   platform = os.platform().replace('darwin', 'mac').replace('win32', 'windows'),
   versions_file = 'versions.json',
-  pathToPrey, // set after install path is checked for valid prey dir
   os_hooks;   //  set after install path is checked for valid prey dir
 
-var config_keys =[
+var config_keys = [
+  "email",
+  "password",
   "auto_connect" ,
   "extended_headers" ,
   "post_method" ,
@@ -198,6 +200,7 @@ var get_current_version_path = function(callback) {
  **/
 var read_package_info = function(path,callback) {
   try {
+    _tr("--- trying "+path + '/package.json');
     var info = require(path + '/package.json');
     callback(null,info);
   } catch(e) {
@@ -245,23 +248,18 @@ var check_etc_dir = function(callback) {
     
     fs.mkdir(etc_dir(),function(err) {
       if (err) return callback(_error(err));
+
       callback(null);
     });
   });
 };
 
 /**
- * Before most commands are executed this should be set, as commands may depend on an existing installation.
+ * Have path to an installation, initialize it's namespaces and global vars
  **/
-var set_globals = function(path) {
-  //set globals now we know the install dir ...
-  pathToPrey = path;
-  
-  // initialise the prey global vars like _ns as the hooks files depends on provider system
-  // should probably remove this dependency ...
-  require(pathToPrey + '/lib');
-  
-  os_hooks = require(pathToPrey + '/scripts/' + platform + '/hooks');
+var initialize_installation = function(path) {
+  require(path+'/lib');
+  os_hooks = require(path + '/scripts/' + platform + '/hooks');
 };
 
 /**
@@ -271,7 +269,7 @@ var with_current_version = function(callback) {
   get_current_version_path(function(err,path) {
     if (err) return callback(_error(err)); 
 
-    set_globals(path);
+    initialize_installation(path);
     callback(null,path);
   });
 };
@@ -295,13 +293,39 @@ var each_version = function(callback) {
      });
    });
   });
-  };
+};
 
-var exit_process = function(msg,code) {
-  _tr(msg);
+/**
+ * Print msg and exit process with given code.
+ **/
+var exit_process = function(error,code) {
+  console.log('EXIT_PROCESS '+error.error);
   if (code) process.exit(code);
   process.exit(0);
 };
+
+/**
+ * From the information provided by the installer, via the command line,
+ * make sure we have a valid user.
+ **/
+var validate_or_register_user = function(callback) {
+  
+  callback(null);
+
+  var register = _ns('register');
+    
+  if (commander.email && commander.password) { // validate
+    log("Verifying credentials...");
+
+    var options = { username: email, password: pass };
+    register.validate(options, function(err, data){
+      if (!err) {
+        callback(null);      
+      }
+    });
+  }
+};
+
 
 /**
  * Take the path provided, usually by the installer gui, to the top level directory of a new
@@ -319,37 +343,41 @@ var exit_process = function(msg,code) {
  **/
 var configure = function(path) {
   check_prey_dir(path,function(err,version) {
-
     if (err) exit_process(err,1);
 
     _tr('Installing Prey version '+version);
-    set_globals(commander.configure);
+    initialize_installation(path);
     
     check_etc_dir(function(err) {
       if (err) exit_process(err,1);
 
+      _tr('Creating new version ...');
       create_new_version(path,function(err) {
         if (err) exit_process(err,1);
 
+        _tr('Updating config ...')
         update_config(path,function(err) {
           if (err) exit_process(err,1);
 
+          _tr('Post install ...')
           os_hooks.post_install(function(err) {
             if (err) exit_process(err,1);
 
-            exit_process('Prey installed successfully.');
+            _tr('Validating user ...')
+            validate_or_register_user(function(err) {
+              exit_process('Prey installed successfully.');
+            });
           });
         });
       });
     });
-
   });
 };
 
 /**
  * Parameters that are specified in the gui (or whereever) are handled separately to the 
  * other command line options so they may be handled in bulk. Also the config_key options
- * are only be read on a --configure.
+ * are only read on a --configure.
  **/
 var make_parameters = function(commander) {
   config_keys.forEach(function(key) {
