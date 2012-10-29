@@ -99,8 +99,13 @@ var read_install_options = function(installDir,callback) {
       var optionsFile = installDir + '/install_options.json';
       fs.exists(optionsFile,function(exists) {
         if (!exists) return callback(_error(optionsFile + ' does not exist'));
+        var options;
+        try {
+          options = JSON.parse(optionsFile) ;
+        } catch(e) {
+          return callback(_error("Can't parse options file!",e));
+        }
         
-        var options = JSON.parse(optionsFile) ;
         callback(null,options);
       });
     });
