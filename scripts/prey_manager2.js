@@ -83,49 +83,21 @@ var _error = function(err,context) {
   return err;
 };
 
-
 /**
- * Read a file options.json from the root of the installation directory.
- * options.json is a file deposited by the installer based on the installation selections of the user.
- **/
-var read_install_options = function(installDir,callback) {
-  fs.exists(installDir,function(exists) {
-    if (!exists) return callback(_error(installDir+' does not exist'));
-    
-    fs.stat(installDir,function(err,stat) {
-      if (err) return callback(_error(err));
-      if (!stat.isDirectory()) return callback(_error(installDir +' is not a directory'));
-      
-      var optionsFile = installDir + '/install_options.json';
-      fs.exists(optionsFile,function(exists) {
-        if (!exists) return callback(_error(optionsFile + ' does not exist'));
-        var options;
-        try {
-          options = JSON.parse(optionsFile) ;
-        } catch(e) {
-          return callback(_error("Can't parse options file!",e));
-        }
-        
-        callback(null,options);
-      });
-    });
-  });
-};
-
-/**
- * Read options from installer deposited options file and use getset to write the values.
+ * The commander object should hold all of the options that have been set by the user.
+ * The keys are config_keys.
  **/
 var update_config = function(installDir,callback) {
-  read_install_options(installDir,function(err,options) {
-    if (err) return callback(_error(err));
-    var config = _ns('common').config;
-
-    config_keys.forEach(function(key) {
-      config.set(key,options[key]);
-    });
-
-    callback(null);
+  var config = _ns('common').config;
+  config_keys.forEach(function(key) {
+    var val = commander[key];
+    if (val) {
+      _tr('setting '+key+' to '+val);
+      config.set(key,val);
+    }
   });
+
+  callback(null);
 };
 
 /**
@@ -340,13 +312,13 @@ var exit_process = function(msg,code) {
  *
  * Add the new installation to an array of installation paths.
  *
- * Read the install_options.json file from the root of the new installation and then update the default
- * config based on the user selection.
- * 
+ * Read any of the config_options from the command line, and save them using getset to the default
+ * config file.
+ *
  * Install os hooks, using installation's hook stuff. 
  **/
 var configure = function(path) {
-  check_prey_dir(commander.configure,function(err,version) {
+  check_prey_dir(path,function(err,version) {
 
     if (err) exit_process(err,1);
 
@@ -356,10 +328,10 @@ var configure = function(path) {
     check_etc_dir(function(err) {
       if (err) exit_process(err,1);
 
-      create_new_version(pathToPrey,function(err) {
+      create_new_version(path,function(err) {
         if (err) exit_process(err,1);
 
-        update_config(pathToPrey,function(err) {
+        update_config(path,function(err) {
           if (err) exit_process(err,1);
 
           os_hooks.post_install(function(err) {
@@ -370,15 +342,35 @@ var configure = function(path) {
         });
       });
     });
+
   });
 };
 
-commander
-      .option('-c, --configure <from_path>', 'Configure installation')
-      .option('-l, --list','List installed versions')
-      .option('-s, --set <version>','Set current version')
-      .parse(process.argv);
+/**
+ * Parameters that are specified in the gui (or whereever) are handled separately to the 
+ * other command line options so they may be handled in bulk. Also the config_key options
+ * are only be read on a --configure.
+ **/
+var make_parameters = function(commander) {
+  config_keys.forEach(function(key) {
+    var param ;
+    if (key !== 'auto_connect') {
+      param = '--'+key+' <'+key+'>';
+    } else
+      param = '--'+key;
 
+    commander.option(param,'');
+  });
+} ;
+
+commander
+  .option('--configure <from_path>', 'Configure installation')
+  .option('--list','List installed versions')
+  .option('--set <version>','Set current version');
+
+make_parameters(commander);
+
+commander.parse(process.argv);
 
 if (commander.configure) {
   configure(commander.configure);
