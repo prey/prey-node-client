@@ -146,7 +146,7 @@ var create_symlink = function(installDir,callback) {
       fs.unlink(bin,function(err) {
         if (err) {
           if (err.code === 'EACCES') {
-            _tr('You should be running under root.')
+            _tr('You should be running under root.');
           } 
           return callback(_error(err));
         }
@@ -217,7 +217,7 @@ var read_package_info = function(path,callback) {
 /**
  * Get the package data for the current prey.
  **/
-var get_current_package_info = function(callback) {
+var get_current_info = function(callback) {
   get_current_version_path(function(err,path) {
     if (err) return callback(_error(err));
     
@@ -322,9 +322,9 @@ var validate_or_register_user = function(callback) {
   var register = _ns('register');
     
   if (commander.email && commander.password) { // validate
-    log("Verifying credentials...");
+    _tr("Verifying credentials...");
 
-    var options = { username: email, password: pass };
+    var options = { username: commander.email, password: commander.pass };
     register.validate(options, function(err, data){
       if (!err) {
         callback(null);      
@@ -362,15 +362,15 @@ var configure = function(path) {
       create_new_version(path,function(err) {
         if (err) exit_process(err,1);
 
-        _tr('Updating config ...')
+        _tr('Updating config ...');
         update_config(path,function(err) {
           if (err) exit_process(err,1);
 
-          _tr('Post install ...')
+          _tr('Post install ...');
           os_hooks.post_install(function(err) {
             if (err) exit_process(err,1);
 
-            _tr('Validating user ...')
+            _tr('Validating user ...');
             validate_or_register_user(function(err) {
               exit_process('Prey installed successfully.');
             });
@@ -402,7 +402,8 @@ var make_parameters = function(commander) {
 commander
   .option('--configure <from_path>', 'Configure installation')
   .option('--list','List installed versions')
-  .option('--set <version>','Set current version');
+  .option('--set <version>','Set current version')
+  .option('--current','Return current version');
 
 make_parameters(commander);
 
@@ -433,6 +434,13 @@ if (commander.set) {
         });
       }
     }
+  });
+}
+
+if (commander.current) {
+  get_current_info(function(err,info) {
+    if (err) exit_process(err,1);
+    console.log(info.version);
   });
 }
 
