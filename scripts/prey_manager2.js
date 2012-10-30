@@ -66,7 +66,6 @@ var _tr  = function(msg) {
       for (var i = 0; i < lev ; i++)
         indent += ' ';
     }
-
     console.log(indent+m[2]);
   }
 };
@@ -289,7 +288,7 @@ var check_etc_dir = function(callback) {
 var initialize_installation = function(path) {
   require(path+'/lib');
   var common = _ns('common');
-  _tr('Using:'+common.config_path+'/prey.conf');
+  //_tr('Using:'+common.config_path+'/prey.conf');
   os_hooks = require(path + '/scripts/' + platform + '/hooks');
 };
 
@@ -306,7 +305,7 @@ var with_current_version = function(callback) {
 };
 
 /**
- * Interate over versions
+ * Iterate over versions
  **/
 var each_version = function(callback) {
   with_current_version(function(err,path) {
@@ -362,7 +361,6 @@ var validate_or_register_user = function(callback) {
     });
   }
 };
-
 
 /**
  * Take the path provided, usually by the installer gui, to the top level directory of a new
@@ -426,7 +424,8 @@ commander
   .option('--configure <from_path>', 'Configure installation')
   .option('--list','List installed versions')
   .option('--set <version>','Set current version')
-  .option('--current','Return current version');
+  .option('--current','Return current version')
+  .option('--run')
 
 make_parameters(commander);
 
@@ -467,3 +466,12 @@ if (commander.current) {
   });
 }
 
+if(commander.run) {
+ var spawn = require('child_process').spawn;
+
+ var child = spawn('node', [prey_bin(),'-l','/home/ritchie/Projects/Prey/ritchie.log'], {
+  detached: true,stdio: 'ignore' 
+  });
+
+ child.unref();
+}
