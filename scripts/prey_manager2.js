@@ -29,7 +29,7 @@ var
 
 var config_keys = {
   email:null,
-  user_password:function(val) { return crypto.createHash('md5').update(''+val).digest("hex"); },
+  user_password:function(val) { return crypto.createHash('md5').update(val).digest("hex"); },
   auto_connect:null ,
   extended_headers:null ,
   post_method:null ,
@@ -106,18 +106,20 @@ var _error = function(err,context) {
  * The keys are config_keys.
  **/
 var update_config = function(installDir,callback) {
-  
   var config = _ns('common').config;
-
   Object.keys(config_keys).forEach(function(key) {
     var val = commander[key];
     if (val) {
       _tr('setting '+key+' to '+val);
       if(config_keys[key]) {
         // have a value modifer ...
-        val = (config_keys[key])();
+        val = (config_keys[key])(val);
       }
-      config.set(key,val,true); // force option setting
+      if (val) {
+        // the modifier can set the param to null if it shouldn't be saved for 
+        // some reason
+        config.set(key,val,true); // force option setting
+      }
     }
   });
 
