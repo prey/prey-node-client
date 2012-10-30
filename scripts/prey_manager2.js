@@ -31,7 +31,7 @@ var
  * The keys are the parameters that may be passed from the command line, the function is applied
  * to the value passed by the user before saving with getset.
  *
- * A modifier function returning null will prevent the given value being saved. 
+ * A modifier function returning null will prevent the given value being saved, a null function is simply ignored.
  **/
 var config_keys = {
   email:null,
@@ -481,10 +481,13 @@ if (commander.current) {
 
 if(commander.run) {
  var spawn = require('child_process').spawn;
+  get_current_info(function(err,info) {
+    if (err) exit_process(err,1);
 
- var child = spawn('node', [prey_bin(),'-l','/home/ritchie/Projects/Prey/ritchie.log'], {
-  detached: true,stdio: 'ignore' 
+    var child = spawn('node', [prey_bin(),'-l',info.version+'.log'], {
+      detached: true,stdio: 'ignore' 
+    });
+
+    child.unref();
   });
-
- child.unref();
 }
