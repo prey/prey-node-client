@@ -306,7 +306,13 @@ var each_version = function(callback) {
  * Print msg and exit process with given code.
  **/
 var exit_process = function(error,code) {
-  console.log('EXIT_PROCESS '+error.error);
+  if (typeof error === 'Object') {
+    _tr('EXIT_PROCESS ('+code)+')';
+    _tr(inspect(error));
+  }  else {
+    console.log('!EXIT_PROCESS ('+code + ') ' + error);
+  }
+
   if (code) process.exit(code);
   process.exit(0);
 };
@@ -372,7 +378,7 @@ var configure = function(path) {
 
             _tr('Validating user ...');
             validate_or_register_user(function(err) {
-              exit_process('Prey installed successfully.');
+              exit_process('Prey installed successfully.',0);
             });
           });
         });
