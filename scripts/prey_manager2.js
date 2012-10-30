@@ -28,7 +28,7 @@ var
 
 var config_keys = [
   "email",
-  "password",
+  "user_password",
   "auto_connect" ,
   "extended_headers" ,
   "post_method" ,
@@ -207,7 +207,6 @@ var get_current_version_path = function(callback) {
  **/
 var read_package_info = function(path,callback) {
   try {
-    _tr("--- trying "+path + '/package.json');
     var info = require(path + '/package.json');
     callback(null,info);
   } catch(e) {
@@ -392,6 +391,7 @@ var make_parameters = function(commander) {
     var param ;
     if (key !== 'auto_connect') {
       param = '--'+key+' <'+key+'>';
+ //     _tr('creating input param: '+param)
     } else
       param = '--'+key;
 
@@ -435,5 +435,4 @@ if (commander.set) {
     }
   });
 }
-
 
