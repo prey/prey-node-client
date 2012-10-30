@@ -24,23 +24,24 @@ var
   os = require('os'),
   platform = os.platform().replace('darwin', 'mac').replace('win32', 'windows'),
   versions_file = 'versions.json',
+  crypto = require('crypto'),
   os_hooks;   //  set after install path is checked for valid prey dir
 
-var config_keys = [
-  "email",
-  "user_password",
-  "auto_connect" ,
-  "extended_headers" ,
-  "post_method" ,
-  "api_key" ,
-  "device_key" ,
-  "check_url" ,
-  "mail_to" ,
-  "proxy_url",
-  "smtp_server" ,
-  "smtp_username" ,
-  "smtp_password" 
-];
+var config_keys = {
+  email:null,
+  user_password:function(val) { return crypto.createHash('md5').update(''+val).digest("hex"); },
+  auto_connect:null ,
+  extended_headers:null ,
+  post_method:null ,
+  api_key:null ,
+  device_key:null ,
+  check_url:null ,
+  mail_to:null,
+  proxy_url:null,
+  smtp_server:null ,
+  smtp_username:null ,
+  smtp_password:null 
+};
 
 var etc_dir = function() {
   return os_hooks.etc_dir;
@@ -108,10 +109,14 @@ var update_config = function(installDir,callback) {
   
   var config = _ns('common').config;
 
-  config_keys.forEach(function(key) {
+  Object.keys(config_keys).forEach(function(key) {
     var val = commander[key];
     if (val) {
       _tr('setting '+key+' to '+val);
+      if(config_keys[key]) {
+        // have a value modifer ...
+        val = (config_keys[key])();
+      }
       config.set(key,val,true); // force option setting
     }
   });
@@ -287,7 +292,7 @@ var check_etc_dir = function(callback) {
  **/
 var initialize_installation = function(path) {
   require(path+'/lib');
-  var common = _ns('common');
+  //var common = _ns('common');
   //_tr('Using:'+common.config_path+'/prey.conf');
   os_hooks = require(path + '/scripts/' + platform + '/hooks');
 };
@@ -400,7 +405,7 @@ var configure = function(path) {
 
             _tr('1:Validating user ...');
             validate_or_register_user(function(err) {
-              exit_process('1:Prey installed successfully.',0);
+              exit_process('1:Prey Configured successfully.',0);
             });
           });
         });
@@ -415,7 +420,7 @@ var configure = function(path) {
  * are only read on a --configure.
  **/
 var make_parameters = function(commander) {
-  config_keys.forEach(function(key) {
+  Object.keys(config_keys).forEach(function(key) {
     commander.option('--'+key+' <'+key+'>','');
   });
 } ;
@@ -425,7 +430,7 @@ commander
   .option('--list','List installed versions')
   .option('--set <version>','Set current version')
   .option('--current','Return current version')
-  .option('--run')
+  .option('--run');
 
 make_parameters(commander);
 
