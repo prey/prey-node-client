@@ -219,6 +219,7 @@ var get_current_package_info = function(callback) {
   });
 };
 
+
 /**
  * Validates that a given path is a path to a Prey installation dir, callsback the prey version if successful.
  **/
