@@ -40,17 +40,19 @@ initd_commands.fedora = initd_commands.redhat;
 /////////////////////////////////////////////////
 
 var get_init_script_path = function(distro){
-
   var initd_path = weird_initd_paths[distro] || common_initd_path;
   return path.join(initd_path, init_script_name);
-
 };
 
 var copy_init_script = function(distro, callback){
   var full_path = get_init_script_path(distro);
 
   fs.exists(full_path, function(exists){
-    if(exists) return callback(new Error("File already exists!"));
+    if (exists) { 
+      _tr('unlinking '+full_path)
+      fs.unlink(full_path);
+    }
+
 
     var template = fs.readFileSync(path.resolve(__dirname + "/" + init_script_name));
     var data = template.toString().replace('{{prey_bin}}', prey_bin);
@@ -62,7 +64,6 @@ var copy_init_script = function(distro, callback){
     fs.writeFile(full_path, data, callback);
 
   });
-
 };
 
 var remove_init_script = function(distro, callback){
