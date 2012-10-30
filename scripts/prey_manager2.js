@@ -143,14 +143,21 @@ var create_symlink = function(installDir,callback) {
   var bin = prey_bin();
   fs.lstat(bin,function(err,stat) {
     if (stat) {
-      fs.unlinkSync(bin);
-    }
-    
-    fs.symlink(installDir + '/bin/prey.js',bin,function(err) {
-      if (err) return callback(_error(err));
+      fs.unlink(bin,function(err) {
+        if (err) {
+          if (err.code === 'EACCES') {
+            _tr('You should be running under root.')
+          } 
+          return callback(_error(err));
+        }
 
-      callback(null);
-    });
+        fs.symlink(installDir + '/bin/prey.js',bin,function(err) {
+          if (err) return callback(_error(err));
+
+          callback(null);
+        });
+      });
+    }
   });
 };
 
