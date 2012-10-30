@@ -27,6 +27,12 @@ var
   crypto = require('crypto'),
   os_hooks;   //  set after install path is checked for valid prey dir
 
+/**
+ * The keys are the parameters that may be passed from the command line, the function is applied
+ * to the value passed by the user before saving with getset.
+ *
+ * A modifier function returning null will prevent the given value being saved. 
+ **/
 var config_keys = {
   email:null,
   user_password:function(val) { return crypto.createHash('md5').update(val).digest("hex"); },
