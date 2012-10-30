@@ -36,6 +36,7 @@ var config_keys = [
   "device_key" ,
   "check_url" ,
   "mail_to" ,
+  "proxy_url",
   "smtp_server" ,
   "smtp_username" ,
   "smtp_password" 
@@ -53,7 +54,22 @@ var prey_bin = function() {
   if (platform === 'linux') return '/usr/local/bin/prey';
 };
 
-var _tr  = console.log;
+var indent = '';
+var _tr  = function(msg) {
+  var m = msg.split(/^([0-9]):/);
+  if (m.length === 1)
+    console.log(indent + ' -- '+m[0]);
+  if (m.length === 3) {
+    var lev = m[1];
+    if (lev > 0 || lev !== indent.length) {
+      indent = '';
+      for (var i = 0; i < lev ; i++)
+        indent += ' ';
+    }
+
+    console.log(indent+m[2]);
+  }
+};
 
 var whichFile = function() {
 
@@ -90,16 +106,23 @@ var _error = function(err,context) {
  * The keys are config_keys.
  **/
 var update_config = function(installDir,callback) {
+  
   var config = _ns('common').config;
+
   config_keys.forEach(function(key) {
     var val = commander[key];
     if (val) {
       _tr('setting '+key+' to '+val);
-      config.set(key,val);
+      config.set(key,val,true); // force option setting
     }
   });
 
-  callback(null);
+  config.save(function(err) {
+    if (err) return callback(_error(err));
+
+    _tr('saved config ...');
+    callback(null);
+  });
 };
 
 /**
@@ -225,7 +248,6 @@ var get_current_info = function(callback) {
   });
 };
 
-
 /**
  * Validates that a given path is a path to a Prey installation dir, callsback the prey version if successful.
  **/
@@ -266,6 +288,8 @@ var check_etc_dir = function(callback) {
  **/
 var initialize_installation = function(path) {
   require(path+'/lib');
+  var common = _ns('common');
+  _tr('Using:'+common.config_path+'/prey.conf');
   os_hooks = require(path + '/scripts/' + platform + '/hooks');
 };
 
@@ -307,7 +331,7 @@ var each_version = function(callback) {
  **/
 var exit_process = function(error,code) {
   if (typeof error === 'Object') {
-    _tr('EXIT_PROCESS ('+code)+')';
+    _tr('EXIT_PROCESS ('+code+')');
     _tr(inspect(error));
   }  else {
     console.log('!EXIT_PROCESS ('+code + ') ' + error);
@@ -358,27 +382,27 @@ var configure = function(path) {
   check_prey_dir(path,function(err,version) {
     if (err) exit_process(err,1);
 
-    _tr('Installing Prey version '+version);
+    _tr('1:Configuring Prey '+version);
     initialize_installation(path);
     
     check_etc_dir(function(err) {
       if (err) exit_process(err,1);
 
-      _tr('Creating new version ...');
+      _tr('1:Creating new version ...');
       create_new_version(path,function(err) {
         if (err) exit_process(err,1);
 
-        _tr('Updating config ...');
+        _tr('1:Updating config ...');
         update_config(path,function(err) {
           if (err) exit_process(err,1);
 
-          _tr('Post install ...');
+          _tr('1:Post install ...');
           os_hooks.post_install(function(err) {
             if (err) exit_process(err,1);
 
-            _tr('Validating user ...');
+            _tr('1:Validating user ...');
             validate_or_register_user(function(err) {
-              exit_process('Prey installed successfully.',0);
+              exit_process('1:Prey installed successfully.',0);
             });
           });
         });
@@ -394,14 +418,7 @@ var configure = function(path) {
  **/
 var make_parameters = function(commander) {
   config_keys.forEach(function(key) {
-    var param ;
-    if (key !== 'auto_connect') {
-      param = '--'+key+' <'+key+'>';
- //     _tr('creating input param: '+param)
-    } else
-      param = '--'+key;
-
-    commander.option(param,'');
+    commander.option('--'+key+' <'+key+'>','');
   });
 } ;
 
