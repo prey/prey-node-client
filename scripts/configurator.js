@@ -26,8 +26,9 @@ var
   platform = os.platform().replace('darwin', 'mac').replace('win32', 'windows'),
   versions_file = 'versions.json',
   crypto = require('crypto'),
+  log_file,   // set if --log <log_file> is specified on command line
   os_hooks,   //  set after install path is checked for valid prey dir
-  register;  //  set after install path is checked for valid prey dir
+  register;   //  set after install path is checked for valid prey dir
 
 /**
  * The keys are the parameters that may be passed from the command line, the function is applied
@@ -68,8 +69,14 @@ var prey_bin = function() {
 var indent = '';
 var _tr  = function(msg) {
   var m = msg.split(/^([0-9]):/);
-  if (m.length === 1)
-    console.log(indent + ' -- '+m[0]);
+  
+  if (m.length === 1) {
+    if (log_file)
+      fs.appendFileSync(log_file,indent + ' -- '+m[0]+'\n');
+    else
+      console.log(indent + ' -- '+m[0]);
+  }
+
   if (m.length === 3) {
     var lev = m[1];
     if (lev > 0 || lev !== indent.length) {
@@ -77,8 +84,24 @@ var _tr  = function(msg) {
       for (var i = 0; i < lev ; i++)
         indent += ' ';
     }
-    console.log(indent+m[2]);
+
+    var log_line = indent+m[2];
+    if (log_file) 
+      fs.appendFileSync(log_file,log_line+'\n');
+    else 
+      console.log(log_line);
   }
+};
+
+/**
+ * Print msg and exit process with given code.
+ **/
+var exit_process = function(error,code) {
+  _tr('EXIT_PROCESS ('+code+')');
+  _tr(inspect(error));
+
+  if (code) process.exit(code);
+  process.exit(0);
 };
 
 var whichFile = function() {
@@ -502,12 +525,22 @@ commander
   .option('--register','Requires params name,email,user_password')
   .option('--validate','Requires params email, user_password')
   .option('--list_options','List options that be be used with --configure or --update')
-  .option('--update','Update options for the current installation');
-
+  .option('--update','Update options for the current installation')
+  .option('--log <log_file>','Log configurator output to log_file')
+  .option('--debug');
 
 make_parameters(commander);
 
 commander.parse(process.argv);
+
+if (commander.debug) {
+  _error = debug_error;
+}
+
+if (commander.log) {
+  log_file = commander.log;
+  if(fs.existsSync(log_file)) fs.unlinkSync(log_file);
+}
 
 if (commander.configure) {
   configure(commander.configure);
