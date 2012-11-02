@@ -396,21 +396,6 @@ var each_version = function(callback) {
   });
 };
 
-/**
- * Print msg and exit process with given code.
- **/
-var exit_process = function(error,code) {
-  if (typeof error === 'Object') {
-    _tr('EXIT_PROCESS ('+code+')');
-    _tr(inspect(error));
-  }  else {
-    console.log('!EXIT_PROCESS ('+code + ') ' + error);
-  }
-
-  if (code) process.exit(code);
-  process.exit(0);
-};
-
 var required = function(req) {
   var vals = [];
   var missing = [];
