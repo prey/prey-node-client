@@ -3,9 +3,8 @@
 /**
  * Assumptions:
  * 1. This is run under root.
- * 2. The install directory provided is the final resting place of the installation.
- * 3. The install deposits a file, install_options.json into the root directory of the installation.
- *
+ * 2. The install directory provided to --configure is the final resting place of the installation.
+ * 
  * This module should:
  *   writes new key/vals from opts to config, if any
  *   sets current version
@@ -35,7 +34,8 @@ var
  **/
 var config_keys = {
   email:null,
-  user_password:function(val) { return crypto.createHash('md5').update(val).digest("hex"); },
+//  user_password:function(val) { return crypto.createHash('md5').update(val).digest("hex"); },
+  user_password:null,
   auto_connect:null ,
   extended_headers:null ,
   post_method:null ,
@@ -108,24 +108,31 @@ var _error = function(err,context) {
 };
 
 /**
+ * Get a command line parameter value, and apply it's modifier.
+ **/
+var get_parameter_value = function(key) {
+  var val = commander[key];
+  if (val) {
+    if(config_keys[key]) {
+      // have a value modifer ...
+      val = (config_keys[key])(val);
+    }
+  }
+  return val;
+};
+
+/**
  * The commander object should hold all of the options that have been set by the user.
  * The keys are config_keys.
  **/
 var update_config = function(installDir,callback) {
   var config = _ns('common').config;
   Object.keys(config_keys).forEach(function(key) {
-    var val = commander[key];
+    var val = get_parameter_value(key);
     if (val) {
-      _tr('setting '+key+' to '+val);
-      if(config_keys[key]) {
-        // have a value modifer ...
-        val = (config_keys[key])(val);
-      }
-      if (val) {
-        // the modifier can set the param to null if it shouldn't be saved for 
-        // some reason
-        config.set(key,val,true); // force option setting
-      }
+      // the modifier can set the param to null if it shouldn't be saved for 
+       // some reason
+       config.set(key,val,true); // force option setting
     }
   });
 
@@ -357,20 +364,20 @@ var exit_process = function(error,code) {
  * From the information provided by the installer, via the command line,
  * make sure we have a valid user.
  **/
-var validate_or_register_user = function(callback) {
-  
-  callback(null);
+var validate_or_register_user = function(callback) { 
+  var register = _ns('register'),
+      email = get_parameter_value('email'),
+      password = get_parameter_value('user_password');
 
-  var register = _ns('register');
-    
-  if (commander.email && commander.password) { // validate
+  if (email && password) { // validate
     _tr("Verifying credentials...");
 
-    var options = { username: commander.email, password: commander.pass };
+    var options = { username: email, password: password };
     register.validate(options, function(err, data){
-      if (!err) {
-        callback(null);      
-      }
+      if (err) return callback(_error(err));
+
+      _tr('User verified ...')
+      callback(null);      
     });
   }
 };
@@ -491,3 +498,4 @@ if(commander.run) {
     child.unref();
   });
 }
+
