@@ -105,12 +105,8 @@ var exit_process = function(error,code) {
 };
 
 var whichFile = function() {
-
   var e = new Error('blah'); 
 
-  //  console.log("Error line: "+e.stack.split("\n")[3]);
-  //console.log(e.stack);
-  
   var m = e
         .stack
         .split("\n")[3]
@@ -122,7 +118,7 @@ var whichFile = function() {
 
 /**
  * Print the full context of the error and where it was generated 
- * and exits the process asap.
+ * then bails.
  **/
 var debug_error = function(err,context) {
   // check if first parameter is already an error object
@@ -623,7 +619,7 @@ if (commander.list_options) {
 if (commander.update) {
   with_current_version(function(err,path) {
     if (err) exit_process(err,1);
-    
+
     update_config(path,function(err) {
       if (err) exit_process(err,1);
 
