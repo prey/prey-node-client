@@ -516,6 +516,8 @@ var configure = function(path) {
 
             _tr('1:Validating user ...');
             validate_user(function(err) {
+              if (err) exit_process(err,1);
+
               exit_process('1:Prey Configured successfully.',0);
             });
           });
