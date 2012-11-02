@@ -120,19 +120,31 @@ var whichFile = function() {
   return (m) ? {func:m[1],file:m[2],line:m[4] } : null;
 };
 
-var _error = function(err,context) {
+/**
+ * Print the full context of the error and where it was generated 
+ * and exits the process asap.
+ **/
+var debug_error = function(err,context) {
   // check if first parameter is already an error object
   if (typeof  err === 'object') {
     if (err.error) return err; 
   }
 
   err = {error:err,context:context,location:whichFile()};
-  
-  console.log(">>> -----------------------------------------------------------------");
-  console.log(inspect(err));
-  console.log("<<< -----------------------------------------------------------------");
-  return err;
+  exit_process(err,1);
 };
+
+/**
+ * Create an error object - let top level functions handle printing/logging.
+ **/
+var standard_error = function(err,context) {
+  if (typeof err === 'object') {
+    if (err.error) return err;
+  }
+  return {error:err,context:context};
+};
+
+var _error = standard_error;
 
 /**
  * Parameters that are specified in the gui (or whereever) are handled separately to the 
