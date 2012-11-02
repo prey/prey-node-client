@@ -1,3 +1,4 @@
+
 "use strict";
 
 /**
@@ -37,6 +38,7 @@ var
 var config_keys = {
   email:null,
 //  user_password:function(val) { return crypto.createHash('md5').update(val).digest("hex"); },
+  user_name:null,
   user_password:null,
   auto_connect:null ,
   extended_headers:null ,
@@ -395,7 +397,7 @@ var required = function(req) {
 var register_user = function(callback) {
   _tr("Registering user...");
 
-  var req_params = required(['name','email','user_password']);
+  var req_params = required(['user_name','email','user_password']);
   
   if (!req_params.values) {
     return callback(_error('register_user: The following fields are required:',inspect(req_params.missing)));
@@ -496,12 +498,11 @@ commander
   .option('--versions','List installed versions')
   .option('--set <version>','Set current version')
   .option('--current','Return current version')
-  .option('--run')
+  .option('--run','Run currently set Prey installation')
   .option('--register','Requires params name,email,user_password')
   .option('--validate','Requires params email, user_password')
   .option('--list_options','List options that be be used with --configure or --update')
   .option('--update','Update options for the current installation');
-
 
 
 make_parameters(commander);
