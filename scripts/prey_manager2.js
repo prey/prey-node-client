@@ -496,8 +496,8 @@ commander
   .option('--set <version>','Set current version')
   .option('--current','Return current version')
   .option('--run')
-  .option('--register')
-  .option('--validate');
+  .option('--register','Requires params name,email,user_password')
+  .option('--validate','Requires params email, user_password');
 
 
 make_parameters(commander);
