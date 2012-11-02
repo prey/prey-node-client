@@ -24,7 +24,8 @@ var
   platform = os.platform().replace('darwin', 'mac').replace('win32', 'windows'),
   versions_file = 'versions.json',
   crypto = require('crypto'),
-  os_hooks;   //  set after install path is checked for valid prey dir
+  os_hooks,   //  set after install path is checked for valid prey dir
+  register;  //  set after install path is checked for valid prey dir
 
 /**
  * The keys are the parameters that may be passed from the command line, the function is applied
@@ -106,6 +107,17 @@ var _error = function(err,context) {
   console.log("<<< -----------------------------------------------------------------");
   return err;
 };
+
+/**
+ * Parameters that are specified in the gui (or whereever) are handled separately to the 
+ * other command line options so they may be handled in bulk. Also the config_key options
+ * are only read on a --configure.
+ **/
+var make_parameters = function(commander) {
+  Object.keys(config_keys).forEach(function(key) {
+    commander.option('--'+key+' <'+key+'>','');
+  });
+} ;
 
 /**
  * Get a command line parameter value, and apply it's modifier.
@@ -310,6 +322,7 @@ var initialize_installation = function(path) {
   //var common = _ns('common');
   //_tr('Using:'+common.config_path+'/prey.conf');
   os_hooks = require(path + '/scripts/' + platform + '/hooks');
+  register = _ns('register');  
 };
 
 /**
@@ -360,26 +373,70 @@ var exit_process = function(error,code) {
   process.exit(0);
 };
 
+var required = function(req) {
+  var vals = [];
+  var missing = [];
+  req.forEach(function(p) {
+    var val = get_parameter_value(p);
+    if (!val) 
+      missing.push(p);
+    else
+      vals.push(val);
+  });
+  if (missing.length > 0) return {values:null,missing:missing};
+  return {values:vals};
+};
+
 /**
- * From the information provided by the installer, via the command line,
- * make sure we have a valid user.
+ * From command line params, email,user_password and name, register a user.
+ * Make sure required params array are values are indexed in order. 
  **/
-var validate_or_register_user = function(callback) { 
-  var register = _ns('register'),
-      email = get_parameter_value('email'),
-      password = get_parameter_value('user_password');
+var register_user = function(callback) {
+  _tr("Registering user...");
 
-  if (email && password) { // validate
-    _tr("Verifying credentials...");
-
-    var options = { username: email, password: password };
-    register.validate(options, function(err, data){
-      if (err) return callback(_error(err));
-
-      _tr('User verified ...')
-      callback(null);      
-    });
+  var req_params = required(['name','email','user_password']);
+  
+  if (!req_params.values) {
+    return callback(_error('register_user: The following fields are required:',inspect(req_params.missing)));
   }
+  
+  var prms = req_params.values,
+      packet = {
+        user: {
+          name: prms[0],
+          email: prms[1],
+          password: prms[2],
+          password_confirmation: prms[2]
+        }
+      };
+
+  register.new_user(packet, function(err, data){
+    if (err) return callback(_error(err));
+
+    callback(null);
+  });
+};
+
+/**
+ * From command line params, email,user_password make sure we have a valid user.
+ **/
+var validate_user = function(callback) { 
+  _tr("Validating user...");
+
+  var req_params = required(['email','user_password']);
+
+  if (!req_params.values) {
+    return callback(_error('validate_user: The following fields are required:',inspect(req_params.missing)));
+  }
+  
+  var prms = req_params.values,
+      packet = { username: prms[0] , password: prms[1] };
+  
+  register.validate(packet, function(err, data){
+    if (err) return callback(_error(err));
+
+    callback(null);      
+  });
 };
 
 /**
@@ -419,7 +476,7 @@ var configure = function(path) {
             if (err) exit_process(err,1);
 
             _tr('1:Validating user ...');
-            validate_or_register_user(function(err) {
+            validate_user(function(err) {
               exit_process('1:Prey Configured successfully.',0);
             });
           });
@@ -430,22 +487,18 @@ var configure = function(path) {
 };
 
 /**
- * Parameters that are specified in the gui (or whereever) are handled separately to the 
- * other command line options so they may be handled in bulk. Also the config_key options
- * are only read on a --configure.
+ * Finally, read the command line.
  **/
-var make_parameters = function(commander) {
-  Object.keys(config_keys).forEach(function(key) {
-    commander.option('--'+key+' <'+key+'>','');
-  });
-} ;
 
 commander
   .option('--configure <from_path>', 'Configure installation')
   .option('--list','List installed versions')
   .option('--set <version>','Set current version')
   .option('--current','Return current version')
-  .option('--run');
+  .option('--run')
+  .option('--register')
+  .option('--validate');
+
 
 make_parameters(commander);
 
@@ -499,3 +552,26 @@ if(commander.run) {
   });
 }
 
+if (commander.register) {
+  with_current_version(function(err) {
+    if (err) exit_process(err,1);
+
+    register_user(function(err) {
+      if (err) exit_process(err,1);
+
+      exit_process('User registerd ok',0);
+    });
+  });
+}
+
+if (commander.validate) {
+  with_current_version(function(err) {
+    if (err) exit_process(err,1);
+
+    validate_user(function(err) {
+      if (err) exit_process(err,1);
+
+      exit_process('User validated ok',0);
+    });
+  });
+}
