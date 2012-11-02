@@ -636,9 +636,13 @@ if (commander.list_options) {
 }
 
 if (commander.update) {
-  update_config(path,function(err) {
+  with_current_version(function(err,path) {
     if (err) exit_process(err,1);
+    
+    update_config(path,function(err) {
+      if (err) exit_process(err,1);
 
-    exit_process('Options updated',0);
+      exit_process('Options updated',0);
+    });
   });
 }
