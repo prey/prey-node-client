@@ -491,15 +491,17 @@ var configure = function(path) {
 /**
  * Finally, read the command line.
  **/
-
 commander
-  .option('--configure <from_path>', 'Configure installation')
-  .option('--list','List installed versions')
+  .option('--configure <from_path>', 'Configure installation.')
+  .option('--versions','List installed versions')
   .option('--set <version>','Set current version')
   .option('--current','Return current version')
   .option('--run')
   .option('--register','Requires params name,email,user_password')
-  .option('--validate','Requires params email, user_password');
+  .option('--validate','Requires params email, user_password')
+  .option('--list_options','List options that be be used with --configure or --update')
+  .option('--update','Update options for the current installation');
+
 
 
 make_parameters(commander);
@@ -510,7 +512,7 @@ if (commander.configure) {
   configure(commander.configure);
 }
 
-if (commander.list) {
+if (commander.versions) {
   each_version(function(err,ver) {
     if (!err)
       console.log(ver.pack.version+':'+ver.path);
@@ -575,5 +577,10 @@ if (commander.validate) {
 
       exit_process('User validated ok',0);
     });
+  });
+}
+if (commander.list_options) {
+ Object.keys(config_keys).forEach(function(key) {
+    console.log('--'+key);
   });
 }
