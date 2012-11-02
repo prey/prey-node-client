@@ -4,6 +4,7 @@
  * Assumptions:
  * 1. This is run under root.
  * 2. The install directory provided to --configure is the final resting place of the installation.
+ * 3. Registering a user is not an interactive Q&A, but rather the correct details are passed on the CLI.
  * 
  * This module should:
  *   writes new key/vals from opts to config, if any
@@ -419,6 +420,7 @@ var register_user = function(callback) {
 
 /**
  * From command line params, email,user_password make sure we have a valid user.
+ * On success callsback a valid api_key.
  **/
 var validate_user = function(callback) { 
   _tr("Validating user...");
