@@ -437,7 +437,7 @@ var validate_user = function(callback) {
   register.validate(packet, function(err, data){
     if (err) return callback(_error(err));
 
-    callback(null);      
+    callback(null,data.api_key);      
   });
 };
 
