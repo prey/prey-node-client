@@ -572,13 +572,15 @@ if (commander.validate) {
   with_current_version(function(err) {
     if (err) exit_process(err,1);
 
-    validate_user(function(err) {
+    validate_user(function(err,api_key) {
       if (err) exit_process(err,1);
 
+      console.log(inspect(api_key));
       exit_process('User validated ok',0);
     });
   });
 }
+
 if (commander.list_options) {
  Object.keys(config_keys).forEach(function(key) {
     console.log('--'+key);
