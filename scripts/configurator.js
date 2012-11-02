@@ -104,6 +104,9 @@ var exit_process = function(error,code) {
   process.exit(0);
 };
 
+/**
+ * Used in debug_error for getting source file and line of error.
+ **/
 var whichFile = function() {
   var e = new Error('blah'); 
 
