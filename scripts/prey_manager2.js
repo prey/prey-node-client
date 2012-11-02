@@ -584,3 +584,11 @@ if (commander.list_options) {
     console.log('--'+key);
   });
 }
+
+if (commander.update) {
+  update_config(path,function(err) {
+    if (err) exit_process(err,1);
+
+    exit_process('Options updated',0);
+  });
+}
