@@ -547,11 +547,11 @@ var set_version = function(wanted_version,callback) {
 
     if (ver.pack.version === wanted_version) {
       create_symlink(ver.path,function(err) {
-        if (err) return callback(_erorr(err));
+        if (err) return callback(_error(err));
 
         os_hooks.post_install(function(err) {
           if (err) exit_process(err,1);
-          exit_process("Prey" + ver.path+' set',0)
+          exit_process("Prey" + ver.path+' set',0);
         });
       });
     }
