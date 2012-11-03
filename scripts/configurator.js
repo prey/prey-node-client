@@ -151,8 +151,7 @@ var _error = standard_error;
 
 /**
  * Parameters that are specified in the gui (or whereever) are handled separately to the 
- * other command line options so they may be handled in bulk. Also the config_key options
- * are only read on a --configure.
+ * other command line options so they may be handled in bulk.
  **/
 var make_parameters = function(commander) {
   Object.keys(config_keys).forEach(function(key) {
@@ -399,7 +398,8 @@ var check_keys = function(callback) {
 };
 
 /**
- * Select the current prey version
+ * Select the current prey version, and initializes it's
+ * namespaces.
  **/
 var with_current_version = function(callback) {
   get_current_version_path(function(err,path) {
