@@ -610,7 +610,7 @@ commander
   .option('--set <version>','Set current version')
   .option('--current','Return current version')
   .option('--run','Run currently set Prey installation')
-  .option('--signup','Requires params name,email,user_password')
+  .option('--signup','Requires params user_name,email,user_password')
   .option('--validate','Requires params email, user_password')
   .option('--list_options','List options that be be used with --configure or --update')
   .option('--update','Update options for the current installation')
