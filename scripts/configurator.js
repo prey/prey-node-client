@@ -366,20 +366,30 @@ var initialize_installation = function(path) {
 };
 
 /**
- * Must be called after initialize_installation.
+ * Get identifying keys from config file.
  **/
-var check_keys = function(callback) {
+var get_keys = function(callback) {
   var common = _ns('common'),
       conf = common.config;
 
-  if(!conf.get('control-panel','device_key')) {
-    _tr("Device key not present.");
-  }
+  callback({device:conf.get('control-panel','device_key'),api:conf.get('control-panel','api_key')});
+};
 
-  if(!conf.get('control-panel','api_key'))
-    return callback(_error("No API key found."));
+/**
+ * Must be called after initialize_installation.
+ **/
+var check_keys = function(callback) {
+  get_keys(function(keys) {
 
-  callback(null);
+    if(!keys.device) {
+      _tr("Device key not present.");
+    }
+
+    if(!keys.api)
+      return callback(_error("No API key found."));
+
+    callback(null,keys);
+  });
 };
 
 /**
@@ -466,7 +476,8 @@ var signup = function(callback) {
 
 /**
  * From command line params, email,user_password make sure we have a valid user.
- * On success callsback a valid api_key.
+ * Then saves the returned api_key to config.
+ * Callsback the api_key.
  **/
 var validate_user = function(callback) { 
   _tr("Validating user...");
@@ -483,7 +494,17 @@ var validate_user = function(callback) {
   register.validate(packet, function(err, data){
     if (err) return callback(_error(err));
 
-    callback(null,data.api_key);      
+    var api_key = data.api_key,
+        config = _ns('common').config;
+
+    // yuck
+    var hash = {'control-panel': {}};
+    hash['control-panel']['api_key'] = api_key;
+    config.merge(hash, true);
+    config.save(function(err) {
+      if (err) return callback(_error(err));
+      callback(null,api_key);     
+    });
   });
 };
 
