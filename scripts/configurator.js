@@ -367,21 +367,6 @@ var initialize_installation = function(path) {
 
 /**
  * Must be called after initialize_installation.
- * Check to make sure the init script has been copied to correct place
- * for platform.
- **/
-var check_init_script_exists = function(callback) {
-  var system = _ns('system');
-  system.get_os_name(function(err, name) {
-    var distro = name.toLowerCase();
-
-    var full_path = os_hooks.get_init_script_path(distro);
-    fs.exists(full_path,callback);
-  });
-};
-
-/**
- * Must be called after initialize_installation.
  **/
 var check_keys = function(callback) {
   var common = _ns('common'),
