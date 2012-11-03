@@ -438,13 +438,13 @@ var required = function(req) {
  * From command line params, email,user_password and name, register a user.
  * Make sure required params array are values are indexed in order. 
  **/
-var register_user = function(callback) {
-  _tr("Registering user...");
+var signup = function(callback) {
+  _tr("Signing up user...");
 
   var req_params = required(['user_name','email','user_password']);
   
   if (!req_params.values) {
-    return callback(_error('register_user: The following fields are required:',inspect(req_params.missing)));
+    return callback(_error('signup: The following fields are required:',inspect(req_params.missing)));
   }
   
   var prms = req_params.values,
@@ -567,7 +567,7 @@ commander
   .option('--set <version>','Set current version')
   .option('--current','Return current version')
   .option('--run','Run currently set Prey installation')
-  .option('--register','Requires params name,email,user_password')
+  .option('--signup','Requires params name,email,user_password')
   .option('--validate','Requires params email, user_password')
   .option('--list_options','List options that be be used with --configure or --update')
   .option('--update','Update options for the current installation')
@@ -626,11 +626,11 @@ if(commander.run) {
   });
 }
 
-if (commander.register) {
+if (commander.signup) {
   with_current_version(function(err) {
     if (err) exit_process(err,1);
 
-    register_user(function(err) {
+    signup(function(err) {
       if (err) exit_process(err,1);
 
       exit_process('User registerd ok',0);
