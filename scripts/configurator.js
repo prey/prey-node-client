@@ -580,6 +580,28 @@ var set_version = function(wanted_version,callback) {
 };
 
 /**
+ * Register the current device with the Prey control panel.
+ **/
+var register_device = function(callback) {
+  with_current_version(function(err) {
+    if (err) callback(_error(err));
+
+    get_keys(function(keys) {
+      if (!keys.api) return callback(_error('You need to signup first'));
+      if (keys.device) return callback(_error('Device key already registered'));
+      
+      var reg = _ns('register');
+      _tr('registering device with '+keys.api);
+      reg.new_device({api_key:keys.api},function(err) {
+        if (err) return callback(_error(err));
+
+        callback(null);
+      });
+    });
+  });
+};
+
+/**
  * Finally, read the command line.
  **/
 commander
@@ -593,6 +615,7 @@ commander
   .option('--list_options','List options that be be used with --configure or --update')
   .option('--update','Update options for the current installation')
   .option('--check','Check for valid installation')
+  .option('--register','Register the current device')
   .option('--log <log_file>','Log configurator output to log_file')
   .option('--debug');
 
@@ -698,11 +721,19 @@ if (commander.check) {
     os_hooks.post_install(function(err) {
       if (err) exit_process(err,1);
 
-      check_keys(function(err) {
+      check_keys(function(err,keys) {
         if (err) exit_process(err,1);
+        _tr('keys'+inspect(keys));
         exit_process('all good',0);
       });
     });
   });
 }
 
+if (commander.register) {
+  register_device(function(err) {
+    if (err) exit_process(err,1);
+
+    exit_process('Device registered',0);
+  });
+}
