@@ -22,6 +22,7 @@ var
   inspect = require('util').inspect,
   commander = require('commander'),
   fs = require('fs'),
+  
   os = require('os'),
   platform = os.platform().replace('darwin', 'mac').replace('win32', 'windows'),
   versions_file = 'versions.json',
@@ -143,6 +144,9 @@ var standard_error = function(err,context) {
   return {error:err,context:context};
 };
 
+/**
+ * Default to standard error handling add --debug on command line for debug error handler.
+ **/
 var _error = standard_error;
 
 /**
@@ -363,6 +367,38 @@ var initialize_installation = function(path) {
 };
 
 /**
+ * Must be called after initialize_installation.
+ * Check to make sure the init script has been copied to correct place
+ * for platform.
+ **/
+var check_init_script_exists = function(callback) {
+  var system = _ns('system');
+  system.get_os_name(function(err, name) {
+    var distro = name.toLowerCase();
+
+    var full_path = os_hooks.get_init_script_path(distro);
+    fs.exists(full_path,callback);
+  });
+};
+
+/**
+ * Must be called after initialize_installation.
+ **/
+var check_keys = function(callback) {
+  var common = _ns('common'),
+      conf = common.config;
+
+  if(!conf.get('control-panel','device_key')) {
+    _tr("Device key not present.");
+  }
+
+  if(!conf.get('control-panel','api_key'))
+    return callback(_error("No API key found."));
+
+  callback(null);
+};
+
+/**
  * Select the current prey version
  **/
 var with_current_version = function(callback) {
@@ -395,6 +431,10 @@ var each_version = function(callback) {
   });
 };
 
+/**
+ * Make sure all parameters specified in array are available from command line
+ * and have values.
+ **/
 var required = function(req) {
   var vals = [];
   var missing = [];
@@ -512,6 +552,28 @@ var configure = function(path) {
 };
 
 /**
+ * Set the current version of Prey to run.
+ * Always runs the os_hooks.post_install of the installation to make
+ * sure that that versions init scripts are copied.
+ **/
+var set_version = function(wanted_version,callback) {
+  each_version(function(err,ver) {
+    if (err) return callback(_error(err));
+
+    if (ver.pack.version === wanted_version) {
+      create_symlink(ver.path,function(err) {
+        if (err) return callback(_erorr(err));
+
+        os_hooks.post_install(function(err) {
+          if (err) exit_process(err,1);
+          exit_process("Prey" + ver.path+' set',0)
+        });
+      });
+    }
+  });
+};
+
+/**
  * Finally, read the command line.
  **/
 commander
@@ -524,6 +586,7 @@ commander
   .option('--validate','Requires params email, user_password')
   .option('--list_options','List options that be be used with --configure or --update')
   .option('--update','Update options for the current installation')
+  .option('--check','Check for valid installation')
   .option('--log <log_file>','Log configurator output to log_file')
   .option('--debug');
 
@@ -552,19 +615,9 @@ if (commander.versions) {
 }
 
 if (commander.set) {
-  each_version(function(err,ver) {
-    if (!err) {
-      if (ver.pack.version === commander.set) {
-        create_symlink(ver.path,function(err) {
-          if (err) {
-            _tr(err);
-            process.exit(1);
-          }
-          console.log(ver.path);
-          process.exit(1);
-        });
-      }
-    }
+  set_version(commander.set,function(err) {
+    if (err) exit_process(err,1);
+    exit_process('version now '+commander.set,0);
   });
 }
 
@@ -630,3 +683,20 @@ if (commander.update) {
     });
   });
 }
+
+if (commander.check) {
+  with_current_version(function(err,path) {
+    if (err) exit_process(err,1);
+
+    /* rather than checking for existence of file, just copy init script for this version */
+    os_hooks.post_install(function(err) {
+      if (err) exit_process(err,1);
+
+      check_keys(function(err) {
+        if (err) exit_process(err,1);
+        exit_process('all good',0);
+      });
+    });
+  });
+}
+
