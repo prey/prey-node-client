@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+//#!/usr/bin/env node
 
 "use strict";
 
@@ -42,8 +42,6 @@ if(!common.config.persisted() || program.setup)
   return require(join(root_path, 'lib', 'prey', 'setup')).run();
 
 
-
-
 /////////////////////////////////////////////////////////////
 // event, signal handlers
 /////////////////////////////////////////////////////////////
@@ -60,11 +58,10 @@ process.on('exit', function(code) {
 
 if (process.platform !== 'win32') {
 
-process.on('SIGINT', function() {
-  logger.warn('Got Ctrl-C!');
-  process.exit(0);
-});
-
+  process.on('SIGINT', function() {
+    logger.warn('Got Ctrl-C!');
+    process.exit(0);
+  });
 }
 
 process.on('SIGUSR1', function() {
@@ -92,7 +89,6 @@ process.on('uncaughtException', function (err) {
 /////////////////////////////////////////////////////////////
 
 common.helpers.store_pid(pid_file, function(err, running){
-
   if (err) throw(err);
   
   if (!running) return agent.run();
