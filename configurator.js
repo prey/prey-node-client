@@ -22,14 +22,16 @@ var
   inspect = require('util').inspect,
   commander = require('commander'),
   fs = require('fs'),
-  
   os = require('os'),
   platform = os.platform().replace('darwin', 'mac').replace('win32', 'windows'),
   versions_file = 'versions.json',
-  crypto = require('crypto'),
+  //crypto = require('crypto'),
   log_file,   // set if --log <log_file> is specified on command line
   os_hooks,   //  set after install path is checked for valid prey dir
   register;   //  set after install path is checked for valid prey dir
+
+var 
+  read_versions; // these are plugged based on platform
 
 /**
  * The keys are the parameters that may be passed from the command line, the function is applied
@@ -55,17 +57,20 @@ var config_keys = {
   smtp_password:null 
 };
 
-var etc_dir = function() {
-  return os_hooks.etc_dir;
-};
-
 /**
  * I think this platform specific stuff needs to be here as I can't load os_hooks without knowing this
- * in advance.
+ * in advance. prey and prey.bat are symlinks to the current real installation 'executables'
  **/
+
+var etc_dir = function() {
+  if (platform === 'linux') return '/etc/prey';
+  if (platform === 'windows') return '/Progra~1/Prey';
+};
+
 var prey_bin = function() {
   if (platform === 'linux') return '/usr/local/bin/prey';
-};
+  if (platform === 'windows') return 'c:\\\\Program\\ Files/Prey/prey.bat';
+ };
 
 var indent = '';
 var _tr  = function(msg) {
@@ -118,6 +123,21 @@ var whichFile = function() {
         .match(/at (\S+) (\(([A-Z]:)?[^:]+):([0-9]+)/);
   
   return (m) ? {func:m[1],file:m[2],line:m[4] } : null;
+};
+
+/**
+ * Make sure the directory exists.
+ **/
+var ensure_dir = function(path,callback) {
+  fs.exists(path,function(exists) {
+    if (exists)  return callback(null);
+    
+    fs.mkdir(path,function(err) {
+      if (err) return callback(_error(err));
+
+      callback(null);
+    });
+  });
 };
 
 /**
@@ -197,6 +217,64 @@ var update_config = function(installDir,callback) {
 };
 
 /**
+ * I'm not using helpers cos this must be used prior to the loading of namesspaces.
+ **/
+var copy_file = function(src, dest, callback){
+  var dest_file = path.resolve(dest);
+  var dest_path = path.dirname(dest);
+
+  var pump = function(){
+    var input = fs.createReadStream(path.resolve(src));
+    var output = fs.createWriteStream(dest_file);
+
+    util.pump(input, output, function(err){
+      // console.log('Copied ' + path.basename(src)  + ' to ' + dest);
+      input.destroy();
+      output.destroy();
+      callback(err);
+    });
+  };
+
+  var check_path_existance = function(dir){
+    fs.exists(dir, function(exists){
+      if(exists) return pump();
+
+      // console.log("Creating directory: " + dir);
+      fs.mkdir(dir, function(err){
+        if(err) return callback(_error(err));
+        pump();
+      });
+    });
+  };
+
+  fs.exists(dest_file, function(exists){
+    if(exists) return callback(new Error("Destination file exists: " + dest_file));
+    check_path_existance(dest_path);
+  });
+};
+
+/**
+ * Make sure the prey.conf exists in the etc dir.
+ **/
+var check_config_file = function(callback) {
+  var conf = etc_dir() + '/prey.conf';
+  fs.exists(conf,function(exists) {
+    if (!exists) {
+      _tr('prey.conf not found, copying default ...');
+      copy_file(etc_dir()+'/current/prey.conf.default',conf,function(err) {
+        if (err) return callback(_error(err));
+
+        _tr('default prey.conf copied');
+        callback(null);
+      });
+    } else {
+      _tr('prey.conf found ok');
+      callback(null);
+    }
+  });
+};
+
+/**
  * Write an array of all currently installed versions of prey into the /etc/prey/versions.json.
  **/
 var write_versions = function(versions,callback) {
@@ -211,33 +289,52 @@ var write_versions = function(versions,callback) {
 /**
  * Get an array of paths to installed versions of prey from /etc/prey/versions.json.
  **/
-var read_versions = function(callback) {
+var nix_read_versions = function(callback) {
   var vf  = etc_dir() + versions_file;
   fs.readFile(vf,'utf8',function(err,content) {
-
     if (err) {
       if (err.code !== 'ENOENT') {
-      // if the file does not exist, ignore the error, otherwise it's unexpected ...
-        return callback(_error(err));
-      } else {
-        // if the file simply does not exist, then there are no installations
-        return callback(null,[]);
-      }
-    } 
-
+          // if the file does not exist, ignore the error, otherwise it's unexpected ...
+          return callback(_error(err));
+        } else {
+          // if the file simply does not exist, then there are no installations
+          return callback(null,[]);
+        }
+      } 
     // otherwise return the array of installations
     callback(null,JSON.parse(content));
-  });
+  });  
 };
 
 /**
- * Create the symlink to bin/prey.js.
+ * Read the versions directory inside \Program Files\Prey\versions
+ **/
+var win_read_versions = function(callback) {
+  // first check to see if versions dir exists, if not create it
+  var versions = etc_dir() + '/versions';
+  ensure_dir(versions,function(err) {
+    if (err) return callback(_error(err));
+    
+    fs.readdir(versions,function(err,dirs) {
+      if (err) return callback(_error(err));
+    
+      callback(null,dirs.map(function(d) {
+        return versions + '/'+d;
+      }));
+    });
+  });
+};
+
+var read_versions = (platform === 'windows') ? win_read_versions :  nix_read_versions ;
+
+/**
+ * Create the symlink to the current prey version.
  **/
 var create_symlink = function(installDir,callback) {
-  var bin = prey_bin();
-  fs.lstat(bin,function(err,stat) {
+  var current = etc_dir() + '/current';
+  fs.lstat(current,function(err,stat) {
     if (stat) {
-      fs.unlink(bin,function(err) {
+      fs.unlink(current,function(err) {
         if (err) {
           if (err.code === 'EACCES') {
             _tr('You should be running under root.');
@@ -245,7 +342,8 @@ var create_symlink = function(installDir,callback) {
           return callback(_error(err));
         }
 
-        fs.symlink(installDir + '/bin/prey.js',bin,function(err) {
+        // junction only applicable on windows (ignored on other platforms)
+        fs.symlink(installDir,current,'junction',function(err) {
           if (err) return callback(_error(err));
 
           callback(null);
@@ -256,13 +354,17 @@ var create_symlink = function(installDir,callback) {
 };
 
 /**
- * Update the global prey symlink to point to the newly installed version.
+ * Update the global prey symlink to point to the newly installed version, and
+ * for nix plaforms only update the versions array. 
  **/
 var create_new_version = function(installDir,callback) {
   create_symlink(installDir,function(err) {
     if (err) return callback(_error(err));
 
-    // update versions array ...
+    if (platform === 'windows')
+      return callback(null);
+
+    // for nix's update versions array ...
     read_versions(function(err,versions) {
       if (err) return callback(_error(err));
       
@@ -274,10 +376,10 @@ var create_new_version = function(installDir,callback) {
       
       // versions is always initialized to something in read_versions
       versions.push(installDir);
-      
+
       write_versions(versions,function(err) {
         if (err) return callback(_error(err));
-        
+
         callback(null);
       });
     });
@@ -285,14 +387,14 @@ var create_new_version = function(installDir,callback) {
 };
 
 /**
- * Current version can be queried by reading the /usr/bin/prey (or equivalent) symlink
- * and stripping bin/prey.js off end.
+ * Get path to version directory.
  **/
 var get_current_version_path = function(callback) {
-  fs.readlink(prey_bin(),function(err,pathToBin) {
+  var current = etc_dir() + '/current';
+  fs.readlink(current,function(err,realDir) {
     if (err) return callback(_error(err));
 
-    callback(null,pathToBin.substr(0,pathToBin.length - ("bin/prey.js".length)));
+    callback(null,realDir);
   });
 };
 
@@ -340,29 +442,20 @@ var check_prey_dir = function(path,callback) {
 };
 
 /**
- * Make sure the etc dir exists
- **/
-var check_etc_dir = function(callback) {
-  fs.exists(etc_dir(),function(exists) {
-    if (exists)  return callback(null);
-    
-    fs.mkdir(etc_dir(),function(err) {
-      if (err) return callback(_error(err));
-
-      callback(null);
-    });
-  });
-};
-
-/**
  * Have path to an installation, initialize it's namespaces and global vars
  **/
-var initialize_installation = function(path) {
-  require(path+'/lib');
-  //var common = _ns('common');
-  //_tr('Using:'+common.config_path+'/prey.conf');
-  os_hooks = require(path + '/scripts/' + platform + '/hooks');
-  register = _ns('register');  
+var initialize_installation = function(path,callback) {
+  check_config_file(function(err) {
+    if (err) return callback(_error(err));
+
+    _tr("LOADING NAMESPACES");
+    require(path+'/lib');
+    _ns('common');
+    //_tr('Using:'+common.config_path+'/prey.conf');
+    os_hooks = require(path + '/scripts/' + platform + '/hooks');
+    register = _ns('register');  
+    callback(null);
+  });
 };
 
 /**
@@ -400,8 +493,10 @@ var with_current_version = function(callback) {
   get_current_version_path(function(err,path) {
     if (err) return callback(_error(err)); 
 
-    initialize_installation(path);
-    callback(null,path);
+    initialize_installation(path,function(err) {
+      if (err) return callback(_error(err));
+      callback(null,path);
+    });
   });
 };
 
@@ -499,7 +594,7 @@ var validate_user = function(callback) {
 
     // yuck
     var hash = {'control-panel': {}};
-    hash['control-panel']['api_key'] = api_key;
+    hash['control-panel'].api_key = api_key;
     config.merge(hash, true);
     config.save(function(err) {
       if (err) return callback(_error(err));
@@ -527,27 +622,23 @@ var configure = function(path) {
     if (err) exit_process(err,1);
 
     _tr('1:Configuring Prey '+version);
-    initialize_installation(path);
+    initialize_installation(path,function(err) {
     
-    check_etc_dir(function(err) {
-      if (err) exit_process(err,1);
-
-      _tr('1:Creating new version ...');
-      create_new_version(path,function(err) {
+      ensure_dir(etc_dir(),function(err) {
         if (err) exit_process(err,1);
 
-        _tr('1:Updating config ...');
-        update_config(path,function(err) {
+        _tr('1:Creating new version ...');
+        create_new_version(path,function(err) {
           if (err) exit_process(err,1);
 
-          _tr('1:Post install ...');
-          os_hooks.post_install(function(err) {
+          _tr('1:Updating config ...');
+          update_config(path,function(err) {
             if (err) exit_process(err,1);
 
-            _tr('1:Validating user ...');
-            validate_user(function(err) {
+            _tr('1:Post install ...');
+            os_hooks.post_install(function(err) {
               if (err) exit_process(err,1);
-
+          
               exit_process('1:Prey Configured successfully.',0);
             });
           });
@@ -638,8 +729,9 @@ if (commander.configure) {
 
 if (commander.versions) {
   each_version(function(err,ver) {
-    if (!err)
-      console.log(ver.pack.version+':'+ver.path);
+    if (err) exit_process(err,1);
+
+    console.log(ver.pack.version+':'+ver.path);
   });
 }
 
