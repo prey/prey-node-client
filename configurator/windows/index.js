@@ -63,7 +63,7 @@ var service_kill = function(pid,callback) {
  * Create a service, by providing the path to the executable. 
  **/
  var service_create = function(callback) {
-  var binPath = __dirname + '/PreyCronService.exe',
+  var binPath = '"'+ __dirname + '/PreyCronService.exe"';
   cmd = 'sc create prey binPath= '+binPath;
   console.log(cmd);
 
