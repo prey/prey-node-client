@@ -3,7 +3,6 @@
 var 
   async = require('async'),
   exec = require('child_process').exec,
-  common = _ns('common'),
   service_name = "PreyCronService.exe";
 
 /**
@@ -64,8 +63,9 @@ var service_kill = function(pid,callback) {
  * Create a service, by providing the path to the executable. 
  **/
  var service_create = function(callback) {
-  var binPath = common.root_path + 'bin/PreyCronService.exe',
+  var binPath = __dirname + '/PreyCronService.exe',
   cmd = 'sc create prey binPath= '+binPath;
+  console.log(cmd);
 
   exec(cmd,function(err,stdout) {
     if(err) return callback(_error(err));
