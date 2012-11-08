@@ -7,13 +7,13 @@ var
 
 /**
  * Callback a bool if the service is installed.
+ * sc qc returns error 1060 if the service is not found, so just check for an err
+ * to test for existence.
  **/
  var service_exists = function(callback) {
   var cmd = 'sc qc prey';
-  exec(cmd,function(err,stdout) {
-    if(err) return callback(_error(err));
-
-    callback(null,stdout.indexOf("SUCCESS") !== -1);
+  exec(cmd,function(err) {
+    callback(null,!err);
   });
 };
 
