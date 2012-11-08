@@ -90,8 +90,8 @@ var service_kill = function(pid,callback) {
   });  
 };
 
-exports.post_install = function(callback) {
-  async.waterfall([
+var remove_existing = function(callback) {
+ async.waterfall([
     service_exists,
 
     // remove running instance if it exists ...
@@ -119,8 +119,17 @@ exports.post_install = function(callback) {
         if (!success) return cb("Can't delete existing service");
         cb(null);
       });
-    },
+    }
+    ],
+  function(err) {
+    if (err) return callback(_error(err));
+    callback(null);
+  });
+};
 
+exports.post_install = function(callback) {
+  async.waterfall([
+    remove_existing,
     service_create,
 
     // start it, if creation successful ...
@@ -143,7 +152,7 @@ exports.post_install = function(callback) {
 };
 
 exports.pre_uninstall = function(callback){
-	callback();
+	remove_existing(callback);
 };
 
 
