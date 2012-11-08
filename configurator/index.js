@@ -130,7 +130,7 @@ var whichFile = function() {
  **/
 var ensure_dir = function(path,callback) {
   fs.exists(path,function(exists) {
-    if (exists)  return callback(null);
+    if (exists) return callback(null);
     
     fs.mkdir(path,function(err) {
       if (err) return callback(_error(err));
@@ -292,10 +292,13 @@ var write_versions = function(versions,callback) {
  * Get an array of paths to installed versions of prey from /etc/prey/versions.json.
  **/
 var nix_read_versions = function(callback) {
-  var vf  = etc_dir() + versions_file;
-  fs.readFile(vf,'utf8',function(err,content) {
-    if (err) {
-      if (err.code !== 'ENOENT') {
+  ensure_dir(etc_dir(),function(err) {
+    if (err) return callback(_error(err));
+    
+    var vf  = etc_dir() + versions_file;
+    fs.readFile(vf,'utf8',function(err,content) {
+      if (err) {
+        if (err.code !== 'ENOENT') {
           // if the file does not exist, ignore the error, otherwise it's unexpected ...
           return callback(_error(err));
         } else {
@@ -303,9 +306,10 @@ var nix_read_versions = function(callback) {
           return callback(null,[]);
         }
       } 
-    // otherwise return the array of installations
-    callback(null,JSON.parse(content));
-  });  
+      // otherwise return the array of installations
+      callback(null,JSON.parse(content));
+    });  
+  });
 };
 
 /**
@@ -334,24 +338,44 @@ var read_versions = (platform === 'windows') ? win_read_versions :  nix_read_ver
  **/
 var create_symlink = function(installDir,callback) {
   var current = etc_dir() + '/current';
+  
+  var make_link = function() {
+    // junction only applicable on windows (ignored on other platforms)
+    fs.symlink(installDir,current,'junction',function(err) {
+      if (err) {
+        if (err.code === 'EACCES') {
+          _tr('You should be running under root.');
+        } 
+        return callback(_error(err));
+      }
+
+      callback(null);
+    });
+  };
+
+  // first check for existence of link ...
   fs.lstat(current,function(err,stat) {
-    if (stat) {
-      fs.unlink(current,function(err) {
-        if (err) {
-          if (err.code === 'EACCES') {
-            _tr('You should be running under root.');
-          } 
-          return callback(_error(err));
-        }
-
-        // junction only applicable on windows (ignored on other platforms)
-        fs.symlink(installDir,current,'junction',function(err) {
-          if (err) return callback(_error(err));
-
-          callback(null);
-        });
-      });
+    if (err) {
+      if (err.code === 'ENOENT') {
+        // doesn't exist make it ...
+        return make_link();
+      } else {
+        // unknown error ...
+        return callback(_error(err));
+      }
     }
+
+    // otherwise the link exists, need to remove and recreate ...
+    fs.unlink(current,function(err) {
+      if (err) {
+        if (err.code === 'EACCES') {
+          _tr('You should be running under root.');
+        } 
+        return callback(_error(err));
+      }
+
+      make_link();
+    });
   });
 };
 
@@ -366,6 +390,7 @@ var create_new_version = function(installDir,callback) {
     if (platform === 'windows')
       return callback(null);
 
+    _tr("reading nix versions ...");
     // for nix's update versions array ...
     read_versions(function(err,versions) {
       if (err) return callback(_error(err));
@@ -437,7 +462,7 @@ var check_prey_dir = function(path,callback) {
       read_package_info(path,function(err,info) {
         if (err) return callback(_error(err));
 
-        callback(null,info.version);
+        callback(null,path);
       });
     });
   });
@@ -451,7 +476,7 @@ var initialize_installation = function(path,callback) {
     if (err) return callback(_error(err));
     require(path+'/lib');
     _ns('common');
-    callback(null);
+    callback(null,path);
   });
 };
 
@@ -541,6 +566,7 @@ var required = function(req) {
  * Make sure required params array are values are indexed in order. 
  **/
 var signup = function(callback) {
+  var register = _ns('register');
   _tr("Signing up user...");
 
   var req_params = required(['user_name','email','user_password']);
@@ -572,6 +598,8 @@ var signup = function(callback) {
  * Callsback the api_key.
  **/
 var validate_user = function(callback) { 
+  var register = _ns('register');
+
   _tr("Validating user...");
 
   var req_params = required(['email','user_password']);
@@ -589,12 +617,12 @@ var validate_user = function(callback) {
     var api_key = data.api_key,
         config = _ns('common').config;
 
-    // yuck
     var hash = {'control-panel': {}};
     hash['control-panel'].api_key = api_key;
     config.merge(hash, true);
     config.save(function(err) {
       if (err) return callback(_error(err));
+      _tr('updated config with api_key')
       callback(null,api_key);     
     });
   });
@@ -624,17 +652,17 @@ var configure = function(path) {
       check_prey_dir(path,cb);
     },
 
-    function(cb) {
+    function(path,cb) {
       _tr('1:Initializing installation ...');
-      initialize_installation(cb);
+      initialize_installation(path,cb);
     },
 
-    function(cb) {
+    function(path,cb) {
       ensure_dir(etc_dir(),cb);
     },
 
     function(cb) {
-      _tr('1:Creating new version ...');
+      _tr('1:Creating new version for ' + path);
       create_new_version(path,cb);
     },
 
@@ -680,8 +708,6 @@ var set_version = function(wanted_version,callback) {
  * Register the current device with the Prey control panel.
  **/
 var register_device = function(callback) {
-  var register = _ns('register');  
-
   with_current_version(function(err) {
     if (err) callback(_error(err));
 
