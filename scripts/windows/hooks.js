@@ -123,9 +123,9 @@ exports.post_install = function(callback) {
 
     service_create,
 
-    // service create now start it ...
+    // start it, if creation successful ...
     function(success,cb) {
-      if (!success) return cb('service creation unsuccessful');
+      if (!success) return cb('Service creation unsuccessful');
 
       service_start(function(err,pid) {
         if (err) return cb(err);
