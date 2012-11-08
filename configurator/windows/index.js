@@ -40,6 +40,7 @@ var
  **/
 var service_kill = function(pid,callback) {
   var cmd = 'taskkill /f /pid ' + pid;
+  console.log('doing '+cmd);
   exec(cmd, function(err, stdout){
     if (err) return callback(_error("!:"+cmd,err));
 
@@ -52,6 +53,7 @@ var service_kill = function(pid,callback) {
  **/
  var service_delete = function(callback) {
   var cmd = 'sc delete prey';
+  console.log('doing '+cmd);
   exec(cmd,function(err,stdout) {
     if(err) return callback(_error(err));
 
@@ -65,8 +67,9 @@ var service_kill = function(pid,callback) {
  var service_create = function(callback) {
   var binPath = '"'+ __dirname + '/PreyCronService.exe"',
       cmd = 'sc create prey binPath= '+binPath;
-      
-  console.log(cmd);
+
+  console.log('doing '+cmd);
+
 
   exec(cmd,function(err,stdout) {
     if(err) return callback(_error(err));
@@ -80,6 +83,9 @@ var service_kill = function(pid,callback) {
  **/
  var service_start = function(callback) {
   var cmd = 'sc start prey';
+
+  console.log('doing '+cmd);
+
   exec(cmd,function(err,stdout) {
     if(err) return callback(_error("!:"+cmd,err));
 
@@ -92,6 +98,8 @@ var service_kill = function(pid,callback) {
 };
 
 var remove_existing = function(callback) {
+    console.log('doing remove_existing');
+
  async.waterfall([
     service_exists,
 
