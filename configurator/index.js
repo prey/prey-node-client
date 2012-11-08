@@ -666,7 +666,7 @@ var configure = function(path) {
       initialize_installation(path,cb);
     },
 
-    function(cb) {
+    function(path,cb) {
       _tr('1:Updating config ...');
       update_config(path,cb);
     },
@@ -840,7 +840,7 @@ if (commander.update) {
 }
 
 if (commander.check) {
-  with_current_version(function(err,path) {
+  with_current_version(function(err,pathp) {
     if (err) exit_process(err,1);
 
     /* rather than checking for existence of file, just copy init script for this version */
