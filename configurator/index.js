@@ -622,7 +622,7 @@ var validate_user = function(callback) {
     config.merge(hash, true);
     config.save(function(err) {
       if (err) return callback(_error(err));
-      _tr('updated config with api_key')
+      _tr('updated config with api_key');
       callback(null,api_key);     
     });
   });
@@ -653,17 +653,17 @@ var configure = function(path) {
     },
 
     function(path,cb) {
-      _tr('1:Initializing installation ...');
-      initialize_installation(path,cb);
-    },
-
-    function(path,cb) {
       ensure_dir(etc_dir(),cb);
     },
 
     function(cb) {
       _tr('1:Creating new version for ' + path);
       create_new_version(path,cb);
+    },
+
+    function(cb) {
+      _tr('1:Initializing installation ...');
+      initialize_installation(path,cb);
     },
 
     function(cb) {
