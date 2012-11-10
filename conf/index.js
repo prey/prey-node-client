@@ -656,6 +656,15 @@ var validate_user = function(callback) {
   });
 };
 
+var npm_update = function(path,callback) {
+  process.chdir(path);
+  _tr('doing npm update in '+path);
+  exec('npm update',function(err,stdout) {
+    if (err) return callback(_error(err));
+    callback(null);
+  });
+};
+
 /**
  * Take the path provided, usually by the installer gui, to the top level directory of a new
  * Prey installation.
@@ -682,6 +691,13 @@ var configure = function(path,callback) {
 
     function(path,cb) {
       ensure_dir(etc_dir(),cb);
+    },
+
+    function(cb) {
+      fs.exists(path+'/node_modules',function(exists) {
+        if (exists) return cb(null);
+        npm_update(path,cb);
+      });
     },
 
     function(cb) {
@@ -817,10 +833,11 @@ var fetch = function(url,callback) {
                 });
               });
             });
-            });
+          });
         });
       });
-  });
+    });
+  });  
 };
 
 
