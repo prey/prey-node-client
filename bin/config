@@ -1,0 +1,3 @@
+
+/usr/bin/node configurator/index.js "$@"
+
