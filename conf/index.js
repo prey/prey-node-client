@@ -19,15 +19,19 @@
  **/
 
 var
-  inspect = require('util').inspect,
+  util = require('util'),
+  inspect = util.inspect,
+  gpath = require('path'),
   commander = require('commander'),
+  exec = require('child_process').exec,
   async = require('async'),
   fs = require('fs'),
   platform = require('os').platform().replace('darwin', 'mac').replace('win32', 'windows'),
   hooks = require('./'+platform), // os specific functions
   versions_file = 'versions.json',
   no_internet = false,
-  log_file;   // set if --log <log_file> is specified on command line
+  log_file,   // set if --log <log_file> is specified on command line,
+  installation_dir = "/usr/lib/prey";
 
   //crypto = require('crypto'),
 
@@ -214,6 +218,30 @@ var update_config = function(installDir,callback) {
 
     _tr('saved config ...');
     callback(null);
+  });
+};
+
+
+var cp = function(src, dst, callback) {
+  var is = fs.createReadStream(src);
+  var os = fs.createWriteStream(dst);
+  is.on("end", callback);
+  is.pipe(os);
+};
+
+var cp_r = function(src, dst, callback) {
+  fs.stat(src, function(err, stat) {
+    if (stat.isDirectory()) {
+      fs.mkdir(dst, function(err) {
+        fs.readdir(src, function(err, files) {
+          async.forEach(files, function(file, cb) {
+            cp_r(gpath.join(src, file), gpath.join(dst, file), cb);
+          }, callback);
+        });
+      });
+    } else {
+      cp(src, dst, callback);
+    }
   });
 };
 
@@ -644,7 +672,7 @@ var validate_user = function(callback) {
  *
  * Install os hooks, using installation's hook stuff. 
  **/
-var configure = function(path) {
+var configure = function(path,callback) {
   async.waterfall([
  
     function(cb) {
@@ -676,10 +704,8 @@ var configure = function(path) {
       hooks.post_install(cb);
     }
     ],
-    function(err) {
-      if (err) exit_process(err,1);
-      exit_process('Prey configured successfully.',0);
-    });
+    callback
+    );
 };
 
 /**
@@ -726,6 +752,78 @@ var register_device = function(callback) {
   });
 };
 
+var needle = function(url,to,callback) {
+  var needle = require('needle');
+  needle.get(url,to,function(err,resp,body) {
+    if (err) return callback(_error(err));
+    
+    var fd = fs.openSync(to,'w');
+    console.log('file size='+body.length);
+    fs.writeSync(fd,body,0,body.length,0,0);
+    callback(null);
+  });
+};
+
+var curl = function(url,to,callback) {
+  _tr('in curl')
+  exec('curl -L '+url+' > '+to,function(err,stdout) {
+    callback(err,'blah',stdout);
+  });
+};
+
+var unzip = function(file,to,callback) {
+  exec('unzip -d '+to+' '+file,function(err,stdout) {
+    if (err) return callback(_error(err));
+    callback(null);
+  });
+};
+
+/**
+ * Install a new version from a url. The url should point at a zip file containing a prey installation.
+ **/
+var fetch = function(url,callback) {
+  var tmp = require('tmp');
+  tmp.file(function(err, zipFile, fd) {
+    if (err) return callback(_error(err));
+
+    _tr('getting '+url);
+
+    needle(url,zipFile,function(err) {
+      if (err) return callback(_error(err));
+      _tr('saving ...');
+
+      tmp.dir(function(err,explodePath) {
+        if (err) return callback(_error(err));
+        unzip(zipFile,explodePath,function(err) {
+          if (err) return callback(_error(err));
+
+          var d = fs.readdirSync(explodePath);
+          _tr('zip dir is '+inspect(d));
+          var extracted = explodePath + '/' + d[0] ;
+          _tr('extracted dir='+inspect(fs.readdirSync(extracted)));
+          read_package_info(extracted,function(err,info) {
+            if (err) return callback(_error(err));
+
+            ensure_dir(installation_dir,function(err) {
+              if (err) return callback(_error(err));
+
+              var dest = installation_dir + '/versions/' + info.version;
+              _tr('copying files from '+extracted+' to '+dest);
+              cp_r(extracted,dest,function() {
+                _tr('files copied, configuring ...')
+                configure(dest,function(err) {
+                  if (err) return callback(_error(err));
+                  callback(null);
+                });
+              });
+            });
+            });
+        });
+      });
+  });
+};
+
+
 var fails_on_no_internet = function(action) {
   if (no_internet)
     exit_process(action+' action needs an internet connection',1);
@@ -744,7 +842,10 @@ var actions = function() {
   }
 
   if (commander.configure) {
-    configure(commander.configure);
+    configure(commander.configure,function(err) {
+      if (err) exit_process(err,1);
+      exit_process('Prey configured successfully.',0);
+    });
   }
 
   if (commander.versions) {
@@ -788,7 +889,7 @@ var actions = function() {
     });
   }
 
-  if (commander.options) {
+  if (commander.update) {
     with_current_version(function(err,path) {
       if (err) exit_process(err,1);
 
@@ -801,7 +902,7 @@ var actions = function() {
   }
 
   if (commander.check) {
-    with_current_version(function(err,pathp) {
+    with_current_version(function(err,path) {
       if (err) exit_process(err,1);
 
       /* rather than checking for existence of file, just copy init script for this version */
@@ -854,9 +955,16 @@ var actions = function() {
       exit_process('Device registered',0);
     });
   }
-  
-};
 
+  if (commander.install) {
+    fails_on_no_internet('install');
+    var url = commander.install;
+    fetch(url,function(err) {
+      if (err) exit_process(err,1);
+      exit_process('Downloaded',0);
+    });
+  }
+};
 
 /**
  * Finally, read the command line.
@@ -870,8 +978,9 @@ commander
   .option('--signup','Requires params user_name,email,user_password')
   .option('--validate','Requires params email, user_password')
   .option('--list_options','List options that be be used with --configure or --update')
-  .option('--options','Update options for the current installation')
+  .option('--update','Update options for the current installation')
   .option('--check','Check for valid installation')
+  .option('--install <url>','Fetch and configure a new version of Prey from the url.')
   .option('--register','Register the current device')
   .option('--log <log_file>','Log configurator output to log_file')
   .option('--debug');
@@ -883,6 +992,7 @@ require('dns').lookup('google.com',function(err) {
     console.log("Looks like you don't have an internet connection.");
     no_internet = true;
   }
+  console.log('doing actions')
   actions();
 });
 
