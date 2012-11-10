@@ -26,6 +26,7 @@ var
   platform = require('os').platform().replace('darwin', 'mac').replace('win32', 'windows'),
   hooks = require('./'+platform), // os specific functions
   versions_file = 'versions.json',
+  no_internet = false,
   log_file;   // set if --log <log_file> is specified on command line
 
   //crypto = require('crypto'),
@@ -725,6 +726,138 @@ var register_device = function(callback) {
   });
 };
 
+var fails_on_no_internet = function(action) {
+  if (no_internet)
+    exit_process(action+' action needs an internet connection',1);
+};
+
+var actions = function() { 
+  commander.parse(process.argv);
+
+  if (commander.debug) {
+    _error = debug_error;
+  }
+
+  if (commander.log) {
+    log_file = commander.log;
+    if(fs.existsSync(log_file)) fs.unlinkSync(log_file);
+  }
+
+  if (commander.configure) {
+    configure(commander.configure);
+  }
+
+  if (commander.versions) {
+    each_version(function(err,ver) {
+      if (err) exit_process(err,1);
+
+      console.log(ver.pack.version+':'+ver.path);
+    });
+  }
+
+  if (commander.set) {
+    set_version(commander.set,function(err) {
+      if (err) exit_process(err,1);
+      exit_process('version now '+commander.set,0);
+    });
+  }
+
+  if (commander.current) {
+    get_current_info(function(err,info) {
+      if (err) exit_process(err,1);
+      console.log(info.version);
+    });
+  }
+
+  if(commander.run) {
+    var spawn = require('child_process').spawn;
+    get_current_info(function(err,info) {
+      if (err) exit_process(err,1);
+
+      var child = spawn('node', [prey_bin(),'-l',info.version+'.log'], {
+        detached: true,stdio: 'ignore' 
+      });
+
+      child.unref();
+    });
+  }
+
+  if (commander.list_options) {
+    Object.keys(config_keys).forEach(function(key) {
+      console.log('--'+key);
+    });
+  }
+
+  if (commander.options) {
+    with_current_version(function(err,path) {
+      if (err) exit_process(err,1);
+
+      update_config(path,function(err) {
+        if (err) exit_process(err,1);
+
+        exit_process('Options updated',0);
+      });
+    });
+  }
+
+  if (commander.check) {
+    with_current_version(function(err,pathp) {
+      if (err) exit_process(err,1);
+
+      /* rather than checking for existence of file, just copy init script for this version */
+      hooks.post_install(function(err) {
+        if (err) exit_process(err,1);
+
+        check_keys(function(err,keys) {
+          if (err) exit_process(err,1);
+          _tr('keys'+inspect(keys));
+          exit_process('all good',0);
+        });
+      });
+    });
+  }
+
+  // actions with internet requirement ...
+
+  if (commander.signup) {
+    fails_on_no_internet('signup');
+    with_current_version(function(err) {
+      if (err) exit_process(err,1);
+
+      signup(function(err) {
+        if (err) exit_process(err,1);
+
+        exit_process('User registerd ok',0);
+      });
+    });
+  }
+
+  if (commander.validate) {
+    fails_on_no_internet('validate');
+    with_current_version(function(err) {
+      if (err) exit_process(err,1);
+
+      validate_user(function(err,api_key) {
+        if (err) exit_process(err,1);
+
+        console.log(inspect(api_key));
+        exit_process('User validated ok',0);
+      });
+    });
+  }
+
+  if (commander.register) {
+    fails_on_no_internet('register');
+    register_device(function(err) {
+      if (err) exit_process(err,1);
+
+      exit_process('Device registered',0);
+    });
+  }
+  
+};
+
+
 /**
  * Finally, read the command line.
  **/
@@ -737,7 +870,7 @@ commander
   .option('--signup','Requires params user_name,email,user_password')
   .option('--validate','Requires params email, user_password')
   .option('--list_options','List options that be be used with --configure or --update')
-  .option('--update','Update options for the current installation')
+  .option('--options','Update options for the current installation')
   .option('--check','Check for valid installation')
   .option('--register','Register the current device')
   .option('--log <log_file>','Log configurator output to log_file')
@@ -745,120 +878,12 @@ commander
 
 make_parameters(commander);
 
-commander.parse(process.argv);
+require('dns').lookup('google.com',function(err) {
+  if (err) {
+    console.log("Looks like you don't have an internet connection.");
+    no_internet = true;
+  }
+  actions();
+});
 
-if (commander.debug) {
-  _error = debug_error;
-}
 
-if (commander.log) {
-  log_file = commander.log;
-  if(fs.existsSync(log_file)) fs.unlinkSync(log_file);
-}
-
-if (commander.configure) {
-  configure(commander.configure);
-}
-
-if (commander.versions) {
-  each_version(function(err,ver) {
-    if (err) exit_process(err,1);
-
-    console.log(ver.pack.version+':'+ver.path);
-  });
-}
-
-if (commander.set) {
-  set_version(commander.set,function(err) {
-    if (err) exit_process(err,1);
-    exit_process('version now '+commander.set,0);
-  });
-}
-
-if (commander.current) {
-  get_current_info(function(err,info) {
-    if (err) exit_process(err,1);
-    console.log(info.version);
-  });
-}
-
-if(commander.run) {
- var spawn = require('child_process').spawn;
-  get_current_info(function(err,info) {
-    if (err) exit_process(err,1);
-
-    var child = spawn('node', [prey_bin(),'-l',info.version+'.log'], {
-      detached: true,stdio: 'ignore' 
-    });
-
-    child.unref();
-  });
-}
-
-if (commander.signup) {
-  with_current_version(function(err) {
-    if (err) exit_process(err,1);
-
-    signup(function(err) {
-      if (err) exit_process(err,1);
-
-      exit_process('User registerd ok',0);
-    });
-  });
-}
-
-if (commander.validate) {
-  with_current_version(function(err) {
-    if (err) exit_process(err,1);
-
-    validate_user(function(err,api_key) {
-      if (err) exit_process(err,1);
-
-      console.log(inspect(api_key));
-      exit_process('User validated ok',0);
-    });
-  });
-}
-
-if (commander.list_options) {
- Object.keys(config_keys).forEach(function(key) {
-    console.log('--'+key);
-  });
-}
-
-if (commander.update) {
-  with_current_version(function(err,path) {
-    if (err) exit_process(err,1);
-
-    update_config(path,function(err) {
-      if (err) exit_process(err,1);
-
-      exit_process('Options updated',0);
-    });
-  });
-}
-
-if (commander.check) {
-  with_current_version(function(err,pathp) {
-    if (err) exit_process(err,1);
-
-    /* rather than checking for existence of file, just copy init script for this version */
-    hooks.post_install(function(err) {
-      if (err) exit_process(err,1);
-
-      check_keys(function(err,keys) {
-        if (err) exit_process(err,1);
-        _tr('keys'+inspect(keys));
-        exit_process('all good',0);
-      });
-    });
-  });
-}
-
-if (commander.register) {
-  register_device(function(err) {
-    if (err) exit_process(err,1);
-
-    exit_process('Device registered',0);
-  });
-}
