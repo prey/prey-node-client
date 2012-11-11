@@ -33,8 +33,8 @@ var
   exit_process = base.exit_process,
   _tr = base._tr,
   _error = base.error,
-  _install_dir,
-  _versions_dir,
+  _install_dir,     // set at startup
+  _versions_dir,    // set at startup
   _no_internet = false;
 
   //crypto = require('crypto'),
@@ -73,21 +73,11 @@ var installations_dir = function(callback) {
   callback(null,'/usr/lib/prey');
 };
 
-/**
- * I think this platform specific stuff needs to be here as I can't load os_hooks without knowing this
- * in advance. prey and prey.bat are symlinks to the current real installation 'executables'
- **/
-
-var etc_dir = function() {
-  if (platform === 'linux') return '/etc/prey';
-  if (platform === 'windows') return '/Progra~1/Prey';
-};
-
 var prey_bin = function() {
-  if (platform === 'linux') return '/usr/local/bin/prey';
-  if (platform === 'windows') return '/Program Files/Prey/current/prey.bat';
+  var p = _install_dir + '/current/bin';
+  if (platform === 'linux') return p + '/prey';
+  if (platform === 'windows') return p+ '/prey.bat';
 };
-
 
 /**
  * Parameters that are specified in the gui (or whereever) are handled separately to the 
@@ -169,11 +159,14 @@ var cp_r = function(src, dst, callback) {
  * Make sure the prey.conf exists in the etc dir.
  **/
 var check_config_file = function(callback) {
-  var conf = etc_dir() + '/prey.conf';
-  fs.exists(conf,function(exists) {
+  var 
+    conf_dir = (platform === 'windows') ? _install_dir : '/etc/prey',
+    conf_file = conf_dir + '/prey.conf';
+  
+  fs.exists(conf_file,function(exists) {
     if (!exists) {
-      _tr('prey.conf not found, copying default ...');
-      cp(etc_dir()+'/current/prey.conf.default',conf,function(err) {
+      _tr(conf_file +' not found, copying default ...');
+      cp(_install_dir+'/current/prey.conf.default',conf_file,function(err) {
         if (err) return callback(_error(err));
 
         _tr('default prey.conf copied');
@@ -263,7 +256,7 @@ var create_new_version = function(newVersion,callback) {
  * Get path to version directory.
  **/
 var get_current_version_path = function(callback) {
-  var current = etc_dir() + '/current';
+  var current = _install_dir + '/current';
   fs.readlink(current,function(err,realDir) {
     if (err) return callback(_error(err));
 
