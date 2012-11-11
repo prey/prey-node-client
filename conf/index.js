@@ -19,6 +19,7 @@
  **/
 
 var
+  base = require('./base'),
   util = require('util'),
   inspect = util.inspect,
   gpath = require('path'),
@@ -29,9 +30,13 @@ var
   platform = require('os').platform().replace('darwin', 'mac').replace('win32', 'windows'),
   hooks = require('./'+platform), // os specific functions
   versions_file = 'versions.json',
-  no_internet = false,
-  log_file,   // set if --log <log_file> is specified on command line,
-  installation_dir = "/usr/lib/prey";
+  ensure_dir = base.ensure_dir,
+  exit_process = base.exit_process,
+  _tr = base._tr,
+  _error = base.error,
+  _install_dir,
+  _versions_dir,
+  _no_internet = false;
 
   //crypto = require('crypto'),
 
@@ -63,6 +68,16 @@ var config_keys = {
 };
 
 /**
+ * Get the top level directory for the current platform.
+ **/
+var installations_dir = async.memoize(function(callback) {
+  if (platform === 'windows') 
+    return hooks.get_prey_path(callback);
+  
+  callback(null,'/usr/lib/prey');
+},function() { return "key"; });
+
+/**
  * I think this platform specific stuff needs to be here as I can't load os_hooks without knowing this
  * in advance. prey and prey.bat are symlinks to the current real installation 'executables'
  **/
@@ -77,102 +92,6 @@ var prey_bin = function() {
   if (platform === 'windows') return '/Program Files/Prey/current/prey.bat';
 };
 
-var indent = '';
-var _tr  = function(msg) {
-  var m = msg.split(/^([0-9]):/);
-  
-  if (m.length === 1) {
-    if (log_file)
-      fs.appendFileSync(log_file,indent + ' -- '+m[0]+'\n');
-    else
-      console.log(indent + ' -- '+m[0]);
-  }
-
-  if (m.length === 3) {
-    var lev = m[1];
-    if (lev > 0 || lev !== indent.length) {
-      indent = '';
-      for (var i = 0; i < lev ; i++)
-        indent += ' ';
-    }
-
-    var log_line = indent+m[2];
-    if (log_file) 
-      fs.appendFileSync(log_file,log_line+'\n');
-    else 
-      console.log(log_line);
-  }
-};
-
-/**
- * Print msg and exit process with given code.
- **/
-var exit_process = function(error,code) {
-  _tr('EXIT_PROCESS ('+code+')');
-  _tr(inspect(error));
-
-  if (code) process.exit(code);
-  process.exit(0);
-};
-
-/**
- * Used in debug_error for getting source file and line of error.
- **/
-var whichFile = function() {
-  var e = new Error('blah'); 
-
-  var m = e
-        .stack
-        .split("\n")[3]
-        .trim()
-        .match(/at (\S+) (\(([A-Z]:)?[^:]+):([0-9]+)/);
-  
-  return (m) ? {func:m[1],file:m[2],line:m[4] } : null;
-};
-
-/**
- * Make sure the directory exists.
- **/
-var ensure_dir = function(path,callback) {
-  fs.exists(path,function(exists) {
-    if (exists) return callback(null);
-    
-    fs.mkdir(path,function(err) {
-      if (err) return callback(_error(err));
-
-      callback(null);
-    });
-  });
-};
-
-/**
- * Print the full context of the error and where it was generated 
- * then bails.
- **/
-var debug_error = function(err,context) {
-  // check if first parameter is already an error object
-  if (typeof  err === 'object') {
-    if (err.error) return err; 
-  }
-
-  err = {error:err,context:context,location:whichFile()};
-  exit_process(err,1);
-};
-
-/**
- * Create an error object - let top level functions handle printing/logging.
- **/
-var standard_error = function(err,context) {
-  if (typeof err === 'object') {
-    if (err.error) return err;
-  }
-  return {error:err,context:context};
-};
-
-/**
- * Default to standard error handling add --debug on command line for debug error handler.
- **/
-var _error = standard_error;
 
 /**
  * Parameters that are specified in the gui (or whereever) are handled separately to the 
@@ -669,22 +588,22 @@ var configure = function(path,callback) {
     },
 
     function(cb) {
-      _tr('Creating new version for ' + path);
+      _tr('1:Creating new version for ' + path);
       create_new_version(path,cb);
     },
 
     function(cb) {
-      _tr('Initializing installation ...');
+      _tr('1:Initializing installation ...');
       initialize_installation(path,cb);
     },
 
     function(path,cb) {
-      _tr('Updating config ...');
+      _tr('1:Updating config ...');
       update_config(path,cb);
     },
 
     function(cb) {
-      _tr('Post install ...');
+      _tr('1:Post install ...');
       hooks.post_install(cb);
     }
     ],
@@ -759,21 +678,15 @@ var unzip = function(from,to,callback) {
     is = fs.createReadStream(from),
     extractor = uz.Extract({ path: to });
 
-  extractor.on('end',function() { callback(null) }; );
-  extractor.on('error', function(err) { callback(_error(err);); }
-  is.pipe(extractor);
-  
-  /*
-  exec('unzip -d '+to+' '+file,function(err) {
-    if (err) return callback(_error(err));
-    callback(null);
-  });
-*/
+  extractor.on('end',function() { callback(null) ;});
+  extractor.on('error', function(err) { callback(_error(err)); });
+  is.pipe(extractor);  
 };
 
 /**
  * Install a new version from a url. The url should point at a zip file containing a prey installation, and 
- * assumes the installation is fully contained within another folder.
+ * assumes the installation is fully contained within another folder. Getting a zip from github is the canonical
+ * example of structure.
  *
  * zip is placed in temp file, then unzipped to a temp dir to find out the name of the containing folder, and
  * query package.json for the version#.
@@ -798,23 +711,19 @@ var install = function(url,callback) {
         unzip(zipFile,explodePath,function(err) {
           if (err) return callback(_error(err));
 
-          var d = fs.readdirSync(explodePath);
-          var extracted = explodePath + '/' + d[0] ;
+          var d = fs.readdirSync(explodePath),
+              extracted = explodePath + '/' + d[0] ;
+
           read_package_info(extracted,function(err,info) {
             if (err) return callback(_error(err));
 
-            ensure_dir(installation_dir,function(err) {
-              if (err) return callback(_error(err));
+            var dest_dir = _versions_dir + '/' + info.version;
+            _tr('copying files from '+extracted+' to '+dest_dir);
+            cp_r(extracted,dest_dir,function() {
+              configure(dest_dir,function(err) {
+                if (err) return callback(_error(err));
 
-              var dest = installation_dir + '/versions/' + info.version;
-              _tr('copying files from '+extracted+' to '+dest);
-              cp_r(extracted,dest,function() {
-                _tr('files copied, configuring ...');
-                configure(dest,function(err) {
-                  if (err) return callback(_error(err));
-
-                  callback(null);
-                });
+                callback(null);
               });
             });
           });
@@ -824,9 +733,11 @@ var install = function(url,callback) {
   });  
 };
 
-
+/**
+ * Exit config if no internet has been flagged.
+ **/
 var fails_on_no_internet = function(action) {
-  if (no_internet)
+  if (_no_internet)
     exit_process(action+' action needs an internet connection',1);
 };
 
@@ -834,12 +745,11 @@ var actions = function() {
   commander.parse(process.argv);
 
   if (commander.debug) {
-    _error = debug_error;
+    _error = base.debug_error;
   }
 
   if (commander.log) {
-    log_file = commander.log;
-    if(fs.existsSync(log_file)) fs.unlinkSync(log_file);
+    base.set_log_file(commander.log);
   }
 
   if (commander.configure) {
@@ -967,6 +877,23 @@ var actions = function() {
   }
 };
 
+var ensure_system_dirs = function(callback) {
+  installations_dir(function(err,installation_dir) {
+    if (err) return callback(_error(err));
+
+    _install_dir = installations_dir;
+    ensure_dir(installation_dir,function(err) {
+      if (err) return callback(_error(err));
+
+      _versions_dir = installation_dir + '/versions';
+      ensure_dir(_versions_dir,function(err) {
+          if (err) return callback(_error(err));
+          callback(null);
+        });
+    });
+  });
+};
+
 /**
  * Finally, read the command line.
  **/
@@ -991,9 +918,14 @@ make_parameters(commander);
 require('dns').lookup('google.com',function(err) {
   if (err) {
     console.log("Looks like you don't have an internet connection.");
-    no_internet = true;
+    _no_internet = true;
   }
-  actions();
+
+  ensure_system_dirs(function(err) {
+    if (err) return exit_process(err,1);
+
+    actions();
+  });
 });
 
 

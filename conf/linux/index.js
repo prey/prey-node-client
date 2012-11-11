@@ -2,7 +2,9 @@
 
 var fs = require('fs'),
     path = require('path'),
-    exec = require('child_process').exec;
+    exec = require('child_process').exec,
+    base = require('../base'),
+    _tr = base._tr;
 
 var get_os_name = function(callback){
   var cmd = 'lsb_release -i';
@@ -68,7 +70,7 @@ var copy_init_script = function(distro, callback){
     if(data === template.toString())
       return callback(new Error("Unable to replace template variables!"));
 
-    console.log('copying to '+full_path);
+    _tr('copying to '+full_path);
     fs.writeFile(full_path, data, callback);
 
   });
@@ -80,9 +82,9 @@ var remove_init_script = function(distro, callback){
 };
 
 var load_init_script = function(distro, callback){
-  console.log('distro is = '+distro);
+  _tr('distro is = '+distro);
   var command = initd_commands[distro].load.replace('$1', init_script_name);
-  console.log('command is '+command);
+  _tr('command is '+command);
   exec(command, callback);
 };
 
@@ -96,10 +98,8 @@ var unload_init_script = function(distro, callback){
 /////////////////////////////////////////////////
 
 exports.post_install = function(callback) {
-  console.log('in post_install');
   get_os_name(function(err, name) {
     var distro = name.toLowerCase();
-    console.log('distro is '+distro);
     copy_init_script(distro, function(err){
       if(err) return callback(err);
       
