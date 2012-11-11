@@ -348,7 +348,7 @@ var create_symlink = function(installDir,callback) {
   };
 
   // first check for existence of link ...
-  fs.lstat(current,function(err,stat) {
+  fs.lstat(current,function(err) {
     if (err) {
       if (err.code === 'ENOENT') {
         // doesn't exist make it ...
@@ -453,7 +453,7 @@ var check_prey_dir = function(path,callback) {
       if (err) return callback(_error(err));
       if (!stat.isDirectory()) return callback(_error(path +' is not a directory'));
 
-      read_package_info(path,function(err,info) {
+      read_package_info(path,function(err) {
         if (err) return callback(_error(err));
 
         callback(null,path);
@@ -463,7 +463,7 @@ var check_prey_dir = function(path,callback) {
 };
 
 /**
- * Have path to an installation, initialize it's namespaces and global vars
+! * Have path to an installation, initialize it's namespaces and global vars
  **/
 var initialize_installation = function(path,callback) {
   check_config_file(function(err) {
@@ -625,7 +625,7 @@ var validate_user = function(callback) {
 var npm_update = function(path,callback) {
   process.chdir(path);
   _tr('doing npm update in '+path);
-  exec('npm update',function(err,stdout) {
+  exec('npm update',function(err) {
     if (err) return callback(_error(err));
     callback(null);
   });
@@ -751,22 +751,24 @@ var get_zip = function(url,to,callback) {
 };
 
 /**
- * Unused, could be useful in testing.
- **/
-var curl = function(url,to,callback) {
-  exec('curl -L '+url+' > '+to,function(err,stdout) {
-    callback(err,'blah',stdout);
-  });
-};
-
-/**
  * Unzip file.
  **/
-var unzip = function(file,to,callback) {
-  exec('unzip -d '+to+' '+file,function(err,stdout) {
+var unzip = function(from,to,callback) {
+  var 
+    uz = require('unzip'),
+    is = fs.createReadStream(from),
+    extractor = uz.Extract({ path: to });
+
+  extractor.on('end',function() { callback(null) }; );
+  extractor.on('error', function(err) { callback(_error(err);); }
+  is.pipe(extractor);
+  
+  /*
+  exec('unzip -d '+to+' '+file,function(err) {
     if (err) return callback(_error(err));
     callback(null);
   });
+*/
 };
 
 /**
@@ -776,16 +778,16 @@ var unzip = function(file,to,callback) {
  * zip is placed in temp file, then unzipped to a temp dir to find out the name of the containing folder, and
  * query package.json for the version#.
  *
- * The containing folder is then copied and renamed to the version# toplevel/versions directory. Finally, 
+ * The containing folder is then copied and renamed to the version# installation_dir()/versions directory. Finally, 
  * configure is run on the new intallations path to update the current symlink etc.
  **/
 var install = function(url,callback) {
-  _tr('1:Installing ...')
+  _tr('1:Installing ...');
   var tmp = require('tmp');
   tmp.file(function(err, zipFile) {
     if (err) return callback(_error(err));
 
-    _tr('retrieving zip ...')
+    _tr('retrieving zip ...');
     get_zip(url,zipFile,function(err) {
       if (err) return callback(_error(err));
       
@@ -810,6 +812,7 @@ var install = function(url,callback) {
                 _tr('files copied, configuring ...');
                 configure(dest,function(err) {
                   if (err) return callback(_error(err));
+
                   callback(null);
                 });
               });
