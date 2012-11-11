@@ -29,7 +29,6 @@ var
   fs = require('fs'),
   platform = require('os').platform().replace('darwin', 'mac').replace('win32', 'windows'),
   hooks = require('./'+platform), // os specific functions
-  versions_file = 'versions.json',
   ensure_dir = base.ensure_dir,
   exit_process = base.exit_process,
   _tr = base._tr,
@@ -39,9 +38,6 @@ var
   _no_internet = false;
 
   //crypto = require('crypto'),
-
-var 
-  read_versions; // these are plugged based on platform
 
 /**
  * The keys are the parameters that may be passed from the command line, the function is applied
@@ -190,71 +186,32 @@ var check_config_file = function(callback) {
 };
 
 /**
- * Write an array of all currently installed versions of prey into the /etc/prey/versions.json.
+ * Read the versions directory.
  **/
-var write_versions = function(versions,callback) {
-  var vf = etc_dir() + versions_file;
-  fs.writeFile(vf,JSON.stringify(versions),function(err) {
-    if (err) return callback(_error(err));
-
-    callback(null);
-  });
-};
-
-/**
- * Get an array of paths to installed versions of prey from /etc/prey/versions.json.
- **/
-var nix_read_versions = function(callback) {
-  ensure_dir(etc_dir(),function(err) {
-    if (err) return callback(_error(err));
-    
-    var vf  = etc_dir() + versions_file;
-    fs.readFile(vf,'utf8',function(err,content) {
-      if (err) {
-        if (err.code !== 'ENOENT') {
-          // if the file does not exist, ignore the error, otherwise it's unexpected ...
-          return callback(_error(err));
-        } else {
-          // if the file simply does not exist, then there are no installations
-          return callback(null,[]);
-        }
-      } 
-      // otherwise return the array of installations
-      callback(null,JSON.parse(content));
-    });  
-  });
-};
-
-/**
- * Read the versions directory inside \Program Files\Prey\versions
- **/
-var win_read_versions = function(callback) {
+var read_versions = function(callback) {
   // first check to see if versions dir exists, if not create it
-  var versions = etc_dir() + '/versions';
-  ensure_dir(versions,function(err) {
+  ensure_dir(_versions_dir,function(err) {
     if (err) return callback(_error(err));
     
-    fs.readdir(versions,function(err,dirs) {
+    fs.readdir(_versions_dir,function(err,dirs) {
       if (err) return callback(_error(err));
     
       callback(null,dirs.map(function(d) {
-        return versions + '/'+d;
+        return _versions_dir + '/'+d;
       }));
     });
   });
 };
 
-var read_versions = (platform === 'windows') ? win_read_versions :  nix_read_versions ;
-
 /**
  * Create the symlink to the current prey version.
  **/
-var create_symlink = function(installDir,callback) {
-  var current = etc_dir() + '/current';
+var create_symlink = function(newVersion,callback) {
+  var current = _install_dir + '/current';
   
   var make_link = function() {
     // junction only applicable on windows (ignored on other platforms)
-    fs.symlink(installDir,current,'junction',function(err) {
+    fs.symlink(newVersion,current,'junction',function(err) {
       if (err) {
         if (err.code === 'EACCES') {
           _tr('You should be running under root.');
@@ -293,36 +250,12 @@ var create_symlink = function(installDir,callback) {
 };
 
 /**
- * Update the global prey symlink to point to the newly installed version, and
- * for nix plaforms only update the versions array. 
+ * Update the global prey symlink to point to the newly installed version.
  **/
-var create_new_version = function(installDir,callback) {
-  create_symlink(installDir,function(err) {
+var create_new_version = function(newVersion,callback) {
+  create_symlink(newVersion,function(err) {
     if (err) return callback(_error(err));
-
-    if (platform === 'windows')
-      return callback(null);
-
-    _tr("reading nix versions ...");
-    // for nix's update versions array ...
-    read_versions(function(err,versions) {
-      if (err) return callback(_error(err));
-      
-      // already have a note of this installation, don't add it again to the array
-      if (versions.indexOf(installDir) !== -1) {
-        _tr('Have reference to '+installDir + ' already');
-        return callback(null);
-      }
-      
-      // versions is always initialized to something in read_versions
-      versions.push(installDir);
-
-      write_versions(versions,function(err) {
-        if (err) return callback(_error(err));
-
-        callback(null);
-      });
-    });
+    callback(null);
   });
 };
 
@@ -571,12 +504,8 @@ var configure = function(path,callback) {
   async.waterfall([
  
     function(cb) {
-      _tr('Checking path ...');
+      _tr('Checking if Prey in path ...');
       check_prey_dir(path,cb);
-    },
-
-    function(path,cb) {
-      ensure_dir(etc_dir(),cb);
     },
 
     function(cb) {
