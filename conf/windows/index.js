@@ -6,12 +6,13 @@ var
   _error = base.error,
   async = require('async'),
   exec = require('child_process').exec,
-  service_name = "PreyCronService.exe";
+  service_name = "PreyCronService.exe",
+  exports = module.exports;
 
 /**
  * Find the top level prey path from the registry.
  **/
-var get_prey_path = function(callback) {
+var get_prey_path = exports.get_prey_path = function(callback) {
   exec("reg query HKLM\\SOFTWARE\\Prey /v Path",function(err,stdout) {
     if (err) return callback(_error(err));
 

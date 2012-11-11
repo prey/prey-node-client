@@ -67,21 +67,6 @@ var whichFile = function() {
 };
 
 /**
- * Make sure the directory exists.
- **/
-exp.ensure_dir = function(path,callback) {
-  fs.exists(path,function(exists) {
-    if (exists) return callback(null);
-    
-    fs.mkdir(path,function(err) {
-      if (err) return callback(_error(err));
-
-      callback(null);
-    });
-  });
-};
-
-/**
  * Print the full context of the error and where it was generated 
  * then bails.
  **/
@@ -106,5 +91,21 @@ exp.standard_error = function(err,context) {
 };
 
 
-exp.error = exp.debug_error;
+var _error = exp.error = exp.debug_error;
+
+/**
+ * Make sure the directory exists.
+ **/
+exp.ensure_dir = function(path,callback) {
+  fs.exists(path,function(exists) {
+    if (exists) return callback(null);
+    
+    fs.mkdir(path,function(err) {
+      if (err) return callback(_error(err));
+
+      callback(null);
+    });
+  });
+};
+
 
