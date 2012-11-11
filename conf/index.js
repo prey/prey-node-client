@@ -768,25 +768,32 @@ var register_device = function(callback) {
   });
 };
 
-var needle = function(url,to,callback) {
+/**
+ * Do a needle get to retrieve url, and then save it as a binary file 'to'.
+ **/
+var get_zip = function(url,to,callback) {
   var needle = require('needle');
   needle.get(url,to,function(err,resp,body) {
     if (err) return callback(_error(err));
     
     var fd = fs.openSync(to,'w');
-    console.log('file size='+body.length);
     fs.writeSync(fd,body,0,body.length,0,0);
     callback(null);
   });
 };
 
+/**
+ * Unused, could be useful in testing.
+ **/
 var curl = function(url,to,callback) {
-  _tr('in curl')
   exec('curl -L '+url+' > '+to,function(err,stdout) {
     callback(err,'blah',stdout);
   });
 };
 
+/**
+ * Unzip file.
+ **/
 var unzip = function(file,to,callback) {
   exec('unzip -d '+to+' '+file,function(err,stdout) {
     if (err) return callback(_error(err));
@@ -795,28 +802,34 @@ var unzip = function(file,to,callback) {
 };
 
 /**
- * Install a new version from a url. The url should point at a zip file containing a prey installation.
+ * Install a new version from a url. The url should point at a zip file containing a prey installation, and 
+ * assumes the installation is fully contained within another folder.
+ *
+ * zip is placed in temp file, then unzipped to a temp dir to find out the name of the containing folder, and
+ * query package.json for the version#.
+ *
+ * The containing folder is then copied and renamed to the version# toplevel/versions directory. Finally, 
+ * configure is run on the new intallations path to update the current symlink etc.
  **/
-var fetch = function(url,callback) {
+var install = function(url,callback) {
+  _tr('1:Installing ...')
   var tmp = require('tmp');
-  tmp.file(function(err, zipFile, fd) {
+  tmp.file(function(err, zipFile) {
     if (err) return callback(_error(err));
 
-    _tr('getting '+url);
-
-    needle(url,zipFile,function(err) {
+    _tr('retrieving zip ...')
+    get_zip(url,zipFile,function(err) {
       if (err) return callback(_error(err));
-      _tr('saving ...');
-
+      
       tmp.dir(function(err,explodePath) {
         if (err) return callback(_error(err));
+
+        _tr('unzipping ...');
         unzip(zipFile,explodePath,function(err) {
           if (err) return callback(_error(err));
 
           var d = fs.readdirSync(explodePath);
-          _tr('zip dir is '+inspect(d));
           var extracted = explodePath + '/' + d[0] ;
-          _tr('extracted dir='+inspect(fs.readdirSync(extracted)));
           read_package_info(extracted,function(err,info) {
             if (err) return callback(_error(err));
 
@@ -826,7 +839,7 @@ var fetch = function(url,callback) {
               var dest = installation_dir + '/versions/' + info.version;
               _tr('copying files from '+extracted+' to '+dest);
               cp_r(extracted,dest,function() {
-                _tr('files copied, configuring ...')
+                _tr('files copied, configuring ...');
                 configure(dest,function(err) {
                   if (err) return callback(_error(err));
                   callback(null);
@@ -976,9 +989,9 @@ var actions = function() {
   if (commander.install) {
     fails_on_no_internet('install');
     var url = commander.install;
-    fetch(url,function(err) {
+    install(url,function(err) {
       if (err) exit_process(err,1);
-      exit_process('Downloaded',0);
+      exit_process('Install successful.',0);
     });
   }
 };
@@ -1009,7 +1022,6 @@ require('dns').lookup('google.com',function(err) {
     console.log("Looks like you don't have an internet connection.");
     no_internet = true;
   }
-  console.log('doing actions')
   actions();
 });
 
