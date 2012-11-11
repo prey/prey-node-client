@@ -722,7 +722,9 @@ var actions = function() {
     get_current_info(function(err,info) {
       if (err) exit_process(err,1);
 
-      var child = spawn('node', [prey_bin(),'-l',info.version+'.log'], {
+      var log_file = info.version+'.log';
+      _tr('logging to '+log_file);
+      var child = spawn('node', [prey_bin(),'-l',log_file], {
         detached: true,stdio: 'ignore' 
       });
 
