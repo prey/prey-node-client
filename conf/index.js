@@ -508,7 +508,7 @@ var configure = function(path,callback) {
       check_prey_dir(path,cb);
     },
 
-    function(cb) {
+    function(p,cb) {
       fs.exists(path+'/node_modules',function(exists) {
         if (exists) return cb(null);
         _tr("node_modules doesn't exist doing npm update");
