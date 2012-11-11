@@ -221,7 +221,9 @@ var update_config = function(installDir,callback) {
   });
 };
 
-
+/**
+ * Copy a single file.
+ **/
 var cp = function(src, dst, callback) {
   var is = fs.createReadStream(src);
   var os = fs.createWriteStream(dst);
@@ -229,6 +231,9 @@ var cp = function(src, dst, callback) {
   is.pipe(os);
 };
 
+/**
+ * Recursive file copy.
+ **/
 var cp_r = function(src, dst, callback) {
   fs.stat(src, function(err, stat) {
     if (stat.isDirectory()) {
@@ -246,45 +251,6 @@ var cp_r = function(src, dst, callback) {
 };
 
 /**
- * I'm not using helpers cos this must be used prior to the loading of namesspaces.
- **/
-var copy_file = function(src, dest, callback){
-  var path = require('path'),
-      util = require('util'),
-      dest_file = path.resolve(dest),
-      dest_path = path.dirname(dest);
-
-  var pump = function(){
-    var input = fs.createReadStream(path.resolve(src));
-    var output = fs.createWriteStream(dest_file);
-
-    util.pump(input, output, function(err){
-      // console.log('Copied ' + path.basename(src)  + ' to ' + dest);
-      input.destroy();
-      output.destroy();
-      callback(err);
-    });
-  };
-
-  var check_path_existance = function(dir){
-    fs.exists(dir, function(exists){
-      if(exists) return pump();
-
-      // console.log("Creating directory: " + dir);
-      fs.mkdir(dir, function(err){
-        if(err) return callback(_error(err));
-        pump();
-      });
-    });
-  };
-
-  fs.exists(dest_file, function(exists){
-    if(exists) return callback(new Error("Destination file exists: " + dest_file));
-    check_path_existance(dest_path);
-  });
-};
-
-/**
  * Make sure the prey.conf exists in the etc dir.
  **/
 var check_config_file = function(callback) {
@@ -292,7 +258,7 @@ var check_config_file = function(callback) {
   fs.exists(conf,function(exists) {
     if (!exists) {
       _tr('prey.conf not found, copying default ...');
-      copy_file(etc_dir()+'/current/prey.conf.default',conf,function(err) {
+      cp(etc_dir()+'/current/prey.conf.default',conf,function(err) {
         if (err) return callback(_error(err));
 
         _tr('default prey.conf copied');
