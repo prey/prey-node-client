@@ -27,6 +27,7 @@ var
   exec = require('child_process').exec,
   async = require('async'),
   fs = require('fs'),
+  tmp = require('tmp'),
   platform = require('os').platform().replace('darwin', 'mac').replace('win32', 'windows'),
   hooks = require('./'+platform), // os specific functions
   ensure_dir = base.ensure_dir,
@@ -173,6 +174,7 @@ var check_config_file = function(callback) {
         callback(null);
       });
     } else {
+      _tr('config file exists '+conf_file);
       callback(null);
     }
   });
@@ -335,7 +337,6 @@ var get_keys = function(callback) {
  **/
 var check_keys = function(callback) {
   get_keys(function(keys) {
-
     if(!keys.device) {
       _tr("Device key not present.");
     }
@@ -540,7 +541,7 @@ var configure = function(path,callback) {
  * sure that that versions init scripts are copied.
  **/
 var set_version = function(version,callback) {
-  _tr('1:Set version ...')
+  _tr('1:Set version ...');
   var vp = _versions_dir + '/' + version;
   fs.exists(vp,function(exists) {
     if (!exists) exit_process('Versions '+version+' not installed.',1);
@@ -607,53 +608,65 @@ var unzip = function(from,to,callback) {
 };
 
 /**
- * Install a new version from a url. The url should point at a zip file containing a prey installation, and 
- * assumes the installation is fully contained within another folder. Getting a zip from github is the canonical
- * example of structure.
- *
- * zip is placed in temp file, then unzipped to a temp dir to find out the name of the containing folder, and
+ * Assume a zip file on the local disk.
+ * Unzip it into a temporary dir then find out the name of the containing folder, and
  * query package.json for the version#.
  *
- * The containing folder is then copied and renamed to the version# installation_dir()/versions directory. Finally, 
- * configure is run on the new intallations path to update the current symlink etc.
+ * The containing folder is then copied and renamed to the version# and copied to the versions directory. 
+ * Finally configure is run on the new installations path to update the current symlink etc.
  **/
-var install = function(url,callback) {
-  _tr('1:Installing ...');
-  var tmp = require('tmp');
-  tmp.file(function(err, zipFile) {
+var install_core = function(zipFile,callback) {
+  tmp.dir(function(err,explodePath) {
     if (err) return callback(_error(err));
 
-    _tr('retrieving zip ...');
-    get_zip(url,zipFile,function(err) {
+    _tr('unzipping ...');
+    unzip(zipFile,explodePath,function(err) {
       if (err) return callback(_error(err));
-      
-      tmp.dir(function(err,explodePath) {
+
+      var d = fs.readdirSync(explodePath),
+      extracted = explodePath + '/' + d[0] ;
+
+      read_package_info(extracted,function(err,info) {
         if (err) return callback(_error(err));
 
-        _tr('unzipping ...');
-        unzip(zipFile,explodePath,function(err) {
-          if (err) return callback(_error(err));
-
-          var d = fs.readdirSync(explodePath),
-              extracted = explodePath + '/' + d[0] ;
-
-          read_package_info(extracted,function(err,info) {
+        var dest_dir = _versions_dir + '/' + info.version;
+        _tr('copying files from '+extracted+' to '+dest_dir);
+        cp_r(extracted,dest_dir,function() {
+          configure(dest_dir,function(err) {
             if (err) return callback(_error(err));
 
-            var dest_dir = _versions_dir + '/' + info.version;
-            _tr('copying files from '+extracted+' to '+dest_dir);
-            cp_r(extracted,dest_dir,function() {
-              configure(dest_dir,function(err) {
-                if (err) return callback(_error(err));
-
-                callback(null);
-              });
-            });
+            callback(null);
           });
         });
       });
     });
-  });  
+  });
+};
+
+/**
+ * Install a new version from a uri pointing at a zip file.
+ * If the uri contains an http then needle is used to download the file.
+ * If no http then the zip is assumed to be local. 
+ * The zip file should expand to be the top level dir of a prey installation,
+ * getting a zip from github is the canonical example of structure.
+ **/
+var install = function(uri,callback) {
+  if (uri.substr(0,4) === 'http') {
+    _tr('1:Installing from url ...');
+
+    tmp.file(function(err, zipFile) {
+      if (err) return callback(_error(err));
+      _tr('retrieving zip ...');
+      get_zip(uri,zipFile,function(err) {
+        if (err) return callback(_error(err));
+        install_core(zipFile,callback);
+      });        
+    });
+  } else {
+    _tr('1:Installing from file ...');
+    // assume zip is on the local drive ...
+    install_core(uri,callback);
+  }
 };
 
 /**
