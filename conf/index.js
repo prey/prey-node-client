@@ -66,12 +66,12 @@ var config_keys = {
 /**
  * Get the top level directory for the current platform.
  **/
-var installations_dir = async.memoize(function(callback) {
+var installations_dir = function(callback) {
   if (platform === 'windows') 
     return hooks.get_prey_path(callback);
   
   callback(null,'/usr/lib/prey');
-},function() { return "key"; });
+};
 
 /**
  * I think this platform specific stuff needs to be here as I can't load os_hooks without knowing this
@@ -807,14 +807,14 @@ var actions = function() {
 };
 
 var ensure_system_dirs = function(callback) {
-  installations_dir(function(err,installation_dir) {
+  installations_dir(function(err,install_dir) {
     if (err) return callback(_error(err));
 
-    _install_dir = installations_dir;
-    ensure_dir(installation_dir,function(err) {
+    _install_dir = install_dir;
+    ensure_dir(_install_dir,function(err) {
       if (err) return callback(_error(err));
 
-      _versions_dir = installation_dir + '/versions';
+      _versions_dir = _install_dir + '/versions';
       ensure_dir(_versions_dir,function(err) {
           if (err) return callback(_error(err));
           callback(null);
