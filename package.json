@@ -1,6 +1,6 @@
 {
   "name":        "prey",
-  "version":     "0.7.5",
+  "version":     "0.8.0",
   "author":      "Tomás Pollak <tomas@forkhq.com>",
   "contributors": [],
   "keywords":    ["prey", "anti", "theft", "tracking", "remote", "monitoring", "stolen", "laptop"],
@@ -18,7 +18,9 @@
     "spaghetti": "",
     "reply": "",
     "async":"",
-    "underscore":""
+    "underscore":"",
+    "tmp":"",
+    "unzip":""
   },
   "devDependencies": {
     "mocha": "",
