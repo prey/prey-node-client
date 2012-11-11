@@ -212,6 +212,7 @@ var create_symlink = function(newVersion,callback) {
         return callback(_error(err));
       }
 
+      _tr('Symlink updated');
       callback(null);
     });
   };
@@ -365,18 +366,14 @@ var with_current_version = function(callback) {
  * Iterate over versions
  **/
 var each_version = function(callback) {
-  with_current_version(function(err,path) {
-    if (err) return callback(_error(err));
-
-    read_versions(function(err,versions) {
-     if (err) return callback(_error(err));
+  read_versions(function(err,versions) {
+   if (err) return callback(_error(err));
      
-     versions.forEach(function(path) {
-       read_package_info(path,function(err,info) {
-         if (err) return callback(_error(err));
+   versions.forEach(function(path) {
+     read_package_info(path,function(err,info) {
+       if (err) return callback(_error(err));
 
-         callback(null,{pack:info,path:path});
-       });
+       callback(null,{pack:info,path:path});
      });
    });
   });
@@ -476,6 +473,11 @@ var npm_update = function(path,callback) {
   });
 };
 
+var post_install = function(callback) {
+    _tr('1:Post install ...');
+    hooks.post_install(callback);
+};
+
 /**
  * Take the path provided, usually by the installer gui, to the top level directory of a new
  * Prey installation.
@@ -525,8 +527,7 @@ var configure = function(path,callback) {
     },
 
     function(cb) {
-      _tr('1:Post install ...');
-      hooks.post_install(cb);
+      post_install(cb);
     }
     ],
     callback
@@ -538,20 +539,20 @@ var configure = function(path,callback) {
  * Always runs the os_hooks.post_install of the installation to make
  * sure that that versions init scripts are copied.
  **/
-var set_version = function(wanted_version,callback) {
-  each_version(function(err,ver) {
-    if (err) return callback(_error(err));
+var set_version = function(version,callback) {
+  _tr('1:Set version ...')
+  var vp = _versions_dir + '/' + version;
+  fs.exists(vp,function(exists) {
+    if (!exists) exit_process('Versions '+version+' not installed.',1);
+    
+    create_symlink(vp,function(err) {
+      if (err) return callback(_error(err));
 
-    if (ver.pack.version === wanted_version) {
-      create_symlink(ver.path,function(err) {
-        if (err) return callback(_error(err));
-
-        hooks.post_install(function(err) {
-          if (err) exit_process(err,1);
-          exit_process("Prey" + ver.path+' set',0);
-        });
+      post_install(function(err) {
+        if (err) exit_process(err,1);
+        exit_process("Prey" + vp +' set',0);
       });
-    }
+    });
   });
 };
 
