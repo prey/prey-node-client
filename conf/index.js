@@ -648,10 +648,11 @@ var npm_update = function(path,callback) {
  * Install os hooks, using installation's hook stuff. 
  **/
 var configure = function(path,callback) {
+  _tr('1:Configuring ...');
   async.waterfall([
  
     function(cb) {
-      _tr('1:Checking path ...');
+      _tr('Checking path ...');
       check_prey_dir(path,cb);
     },
 
@@ -662,27 +663,28 @@ var configure = function(path,callback) {
     function(cb) {
       fs.exists(path+'/node_modules',function(exists) {
         if (exists) return cb(null);
+        _tr("node_modules doesn't exist doing npm update");
         npm_update(path,cb);
       });
     },
 
     function(cb) {
-      _tr('1:Creating new version for ' + path);
+      _tr('Creating new version for ' + path);
       create_new_version(path,cb);
     },
 
     function(cb) {
-      _tr('1:Initializing installation ...');
+      _tr('Initializing installation ...');
       initialize_installation(path,cb);
     },
 
     function(path,cb) {
-      _tr('1:Updating config ...');
+      _tr('Updating config ...');
       update_config(path,cb);
     },
 
     function(cb) {
-      _tr('1:Post install ...');
+      _tr('Post install ...');
       hooks.post_install(cb);
     }
     ],
