@@ -832,10 +832,9 @@ var ensure_system_dirs = function(callback) {
   });
 };
 
-/**
- * Finally, read the command line.
- **/
-commander
+
+var process_cli = function() {
+  commander
   .option('--configure <from_path>', 'Configure installation.')
   .option('--versions','List installed versions')
   .option('--set <version>','Set current version')
@@ -851,19 +850,26 @@ commander
   .option('--log <log_file>','Log configurator output to log_file')
   .option('--debug');
 
-make_parameters(commander);
+  make_parameters(commander);
 
-require('dns').lookup('google.com',function(err) {
-  if (err) {
-    console.log("Looks like you don't have an internet connection.");
-    _no_internet = true;
-  }
+  require('dns').lookup('google.com',function(err) {
+    if (err) {
+      console.log("Looks like you don't have an internet connection.");
+      _no_internet = true;
+    }
 
-  ensure_system_dirs(function(err) {
-    if (err) return exit_process(err,1);
+    ensure_system_dirs(function(err) {
+      if (err) return exit_process(err,1);
 
-    actions();
+      actions();
+    });
   });
-});
+};
 
 
+if(require.main === module) 
+  process_cli();
+else {
+   module.exports.configure = configure;  
+}
+  
