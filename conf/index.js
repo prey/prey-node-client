@@ -204,7 +204,6 @@ var read_versions = function(callback) {
 var create_symlink = function(newVersion,callback) {
   var current = _install_dir + '/current';
   
-  _tr('trying to make symlink '+current);
   var make_link = function() {
     // junction only applicable on windows (ignored on other platforms)
     fs.symlink(newVersion,current,'junction',function(err) {
@@ -834,7 +833,9 @@ var ensure_system_dirs = function(callback) {
   });
 };
 
-
+/**
+ * Handle command line processing.
+ **/
 var process_cli = function() {
   commander
   .option('--configure <from_path>', 'Configure installation.')
@@ -868,7 +869,9 @@ var process_cli = function() {
   });
 };
 
-
+/**
+ * Switch between use as module or from command line.
+ **/
 if(require.main === module) 
   process_cli();
 else {
