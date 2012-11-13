@@ -204,6 +204,7 @@ var read_versions = function(callback) {
 var create_symlink = function(newVersion,callback) {
   var current = _install_dir + '/current';
   
+  _tr('trying to make symlink '+current);
   var make_link = function() {
     // junction only applicable on windows (ignored on other platforms)
     fs.symlink(newVersion,current,'junction',function(err) {
@@ -497,10 +498,11 @@ var post_install = function(callback) {
  **/
 var configure = function(path,callback) {
   _tr('1:Configuring ...');
+
   async.waterfall([
  
     function(cb) {
-      _tr('Checking if Prey in path ...');
+      _tr('Checking if Prey in path '+path+ '...');
       check_prey_dir(path,cb);
     },
 
@@ -870,6 +872,12 @@ var process_cli = function() {
 if(require.main === module) 
   process_cli();
 else {
-   module.exports.configure = configure;  
+   module.exports.configure = function(path,callback) {
+      ensure_system_dirs(function(err) {
+        if (err) return exit_process(err,1);
+
+        configure(path,callback);
+    });
+   };
 }
   
