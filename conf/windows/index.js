@@ -5,6 +5,7 @@ var
   _tr = base._tr,
   _error = base.error,
   async = require('async'),
+  path = require('path'),
   exec = require('child_process').exec,
   service_name = "PreyCronService.exe",
   exports = module.exports;
@@ -16,9 +17,11 @@ var get_prey_path = exports.get_prey_path = function(callback) {
   exec("reg query HKLM\\SOFTWARE\\Prey /v Path",function(err,stdout) {
     if (err) return callback(_error(err));
 
-    var match = stdout.match(/Path\s+REG_SZ\s+(\S+)/);
+    var match = stdout.match(/Path\s+REG_SZ\s+(.*)/);
+    if(!match) _tr('no match! on '+stdout);
     if (!match) return callback("Can't find Prey path");
-    callback(null,match[1]);
+    _tr('matching '+match[1]);
+    callback(null,path.normalize(match[1]));
   });
 };
 
