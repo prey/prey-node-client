@@ -6,7 +6,7 @@ var common = _ns("common");
 var hw = _ns("hardware");
 var inspect = require('util').inspect;
 var platform = common.os_name;
-var td = require('./testdata').td;
+var td = require('../testdata').td;
 
 describe('Hardware', function(){
   describe('get_mac_address', function(){
@@ -25,7 +25,7 @@ describe('Hardware', function(){
   describe('get_broadcast_address', function(){
     it('should get broadcast address', function(done) {
       hw.get_broadcast_address(td("nic"),function(err,broadcast) {
-        console.log("broadcast:"+broadcast);
+        _tr("broadcast:"+broadcast);
         should.exist(broadcast);
         done();
       });
@@ -44,7 +44,7 @@ describe('Hardware', function(){
           nic.should.have.property('mac');
           nic.should.have.property('name');
           nic.should.have.property('ip_address');
-          console.log(inspect(nics));
+          _tr(inspect(nics));
           done();
         }
       });

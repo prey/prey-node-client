@@ -6,7 +6,7 @@ var common = _ns("common");
 var process = _ns("processes");
 var inspect = require('util').inspect;
 var platform = common.os_name;
-var td = require('./testdata').td;
+var td = require('../testdata').td;
 
 var check_process = function(val) {
   val.should.be.an.instanceOf(Array);
@@ -27,7 +27,7 @@ describe('Processes', function(){
     it('should be an array of process', function(done) {
       process.get_parent_process_list(function(err,val) {
         if (err) {
-          console.log(err);
+          _tr(err);
         }
         check_process(val);
         done();
@@ -39,7 +39,7 @@ describe('Processes', function(){
     it('should be an array of parent process', function(done) {
       process.get_parent_process_list(function(err,val) {
         if (err) {
-          console.log(err);
+          _tr(err);
         }
         check_process(val);
         done();

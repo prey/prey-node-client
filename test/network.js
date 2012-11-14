@@ -4,8 +4,9 @@
 
 require("../lib/");
 
+var common = _ns('common');
 var should = require("should");
-var td = require('./testdata').td;
+var td = require('../testdata').td;
 var inspect = require('util').inspect;
 var net = _ns('network');
 
@@ -22,7 +23,7 @@ describe('Network', function(){
     it('should cb a valid ipaddress', function(done) {
       net.get_public_ip(function(err,ip) {
         should.exist(ip);
-        console.log(ip);
+        _tr(ip);
         done();
       });
     });
@@ -32,7 +33,7 @@ describe('Network', function(){
     it('should cb a private ip',function(done) {
       net.get_private_ip(function(err,ip) {
         should.exist(ip);
-        console.log("Private"+ip);
+        _tr("Private"+ip);
         done();
       });
     });
@@ -42,7 +43,7 @@ describe('Network', function(){
     it('should cb a broadcast ip',function(done) {
       net.get_broadcast_address(td('nic'),function(err,broadcast) {
         should.exist(broadcast);
-        console.log('broadcast:'+broadcast);
+        _tr('broadcast:'+broadcast);
         done();
       });
     });
@@ -53,7 +54,7 @@ describe('Network', function(){
       net.get_nic_by_name(td('nic'),function(err,nic) {
         should.exist(nic);
         nic_check(nic);
-        console.log("NIC:"+inspect(nic));
+        _tr("NIC:"+inspect(nic));
         done();
       });
     });
@@ -62,18 +63,21 @@ describe('Network', function(){
   describe('get_active_network_interface',function() {
     it('should return a nic', function(done) {
       net.get_active_network_interface(function(err,nic) {
-        console.log("active network interface"+inspect(nic));
+        _tr("active network interface"+inspect(nic));
         nic_check(nic);
         done();
       });
     });
   });
 
+
+if (common.os_name !== 'windows') {
+
   describe('get_wireless_interface_names',function() {
     it('should return an array of interfaces',function(done) {
       net.get_wireless_interface_names(function(err,names) {
         should.exist(names);
-        console.log("Wireless interface names (array):"+inspect(names));
+        _tr("Wireless interface names (array):"+inspect(names));
         done();
       });
     });
@@ -83,7 +87,7 @@ describe('Network', function(){
     it('should return the first interface',function(done) {
       net.get_first_wireless_interface(function(err,name) {
         should.exist(name);
-        console.log("first interface:"+name);
+        _tr("first interface:"+name);
         done();
       });
     });
@@ -93,7 +97,7 @@ describe('Network', function(){
     it('should callback list of access points',function(done) {
       net.get_access_points_list(function(err,aps) {
         should.exist(aps);
-        console.log("access points:"+inspect(aps));
+        _tr("access points:"+inspect(aps));
         aps.length.should.be.above(0);
         var ap = aps[0];
         ap.should.have.property('ssid');
@@ -119,11 +123,12 @@ describe('Network', function(){
     it('should callback list of open access points',function(done) {
       net.get_open_access_points_list(function(err,aps) {
         should.exist(aps);
-        console.log("access points:"+inspect(aps));
+        _tr("access points:"+inspect(aps));
         done();
       });
     });
   });
 
+}
   
 });

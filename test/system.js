@@ -7,7 +7,7 @@
 require("../lib/");
 
 var should = require("should");
-var td = require('./testdata').td;
+var td = require('../testdata').td;
 var inspect = require('util').inspect;
 var sys = _ns('system');
 
@@ -26,7 +26,7 @@ describe('System', function(){
       sys.get_logged_user(function(err,name) {
         should.exist(name);
         (name.length > 0).should.be.ok;
-        console.log(name);
+        _tr(name);
         done();
       });
     });
@@ -46,9 +46,9 @@ describe('System', function(){
     it('should get remaining battery life as a % * 100, e.g. 80 = 80%', function(done) {
       sys.get_remaining_battery(function(err,life) {
         if (err) {
-          console.log(err);
+          _tr(err);
         }
-        console.log(life);
+        _tr(life);
         should.exist(life);
         life.should.be.a('string');
         life.slice(-1).should.equal('%');
@@ -62,7 +62,7 @@ describe('System', function(){
     it('should get cpu load', function(done) {
       sys.get_cpu_load(function(err,load) {
         if (err) {
-          console.log(err);
+          _tr(err);
         }
 
         load.should.have.property('last_min')
@@ -79,7 +79,7 @@ describe('System', function(){
     it('should get memory usage', function(done) {
       sys.get_memory_usage(function(err,usage) {
         if (err) {
-          console.log(err);
+          _tr(err);
         }
 
         should.exist(usage);
@@ -101,7 +101,7 @@ describe('System', function(){
     it('should get os name', function(done) {
       sys.get_os_name(function(err,name) {
         if (err) {
-          console.log(err);
+          _tr(err);
         }
 
         should.exist(name);
@@ -116,7 +116,7 @@ describe('System', function(){
     it('should get os version', function(done) {
       sys.get_os_name(function(err,version) {
         if (err) {
-          console.log(err);
+          _tr(err);
         }
 
         should.exist(version);
@@ -131,7 +131,7 @@ describe('System', function(){
     it('should get remaining disk space', function(done) {
       sys.get_remaining_storage(function(err,storage) {
         if (err) {
-          console.log(err);
+          _tr(err);
         }
 
         should.exist(storage);

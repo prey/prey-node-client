@@ -311,7 +311,7 @@ var check_prey_dir = function(path,callback) {
 };
 
 /**
-! * Have path to an installation, initialize it's namespaces and global vars
+ * Have path to an installation, initialize it's namespaces and global vars
  **/
 var initialize_installation = function(path,callback) {
   check_config_file(function(err) {
@@ -653,7 +653,7 @@ var install_core = function(zipFile,callback) {
  **/
 var install = function(uri,callback) {
   if (uri.substr(0,4) === 'http') {
-    _tr('1:Installing from url ...');
+    _tr('1:Installing from url ...';
 
     tmp.file(function(err, zipFile) {
       if (err) return callback(_error(err));
@@ -816,6 +816,10 @@ var actions = function() {
   }
 };
 
+/**
+ * Initialize _install_dir and _versions_dir global variables and make
+ * sure said directories exist.
+ **/
 var ensure_system_dirs = function(callback) {
   installations_dir(function(err,install_dir) {
     if (err) return callback(_error(err));
@@ -883,4 +887,3 @@ else {
     });
    };
 }
-  
