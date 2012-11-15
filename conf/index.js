@@ -653,7 +653,7 @@ var install_core = function(zipFile,callback) {
  **/
 var install = function(uri,callback) {
   if (uri.substr(0,4) === 'http') {
-    _tr('1:Installing from url ...';
+    _tr('1:Installing from url ...');
 
     tmp.file(function(err, zipFile) {
       if (err) return callback(_error(err));
