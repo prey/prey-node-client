@@ -18,6 +18,14 @@ var nic_check = function(nic) {
   nic.should.have.property('broadcast_address');
 };
 
+var ap_check = function(ap) {
+  ap.should.have.property('ssid');
+  ap.should.have.property('quality');
+  ap.should.have.property('signal_strength');
+  ap.should.have.property('noise_level');
+  ap.should.have.property('security');
+};
+
 describe('Network', function(){
   describe('get_public_ip', function(){
     it('should cb a valid ipaddress', function(done) {
@@ -63,21 +71,28 @@ describe('Network', function(){
   describe('get_active_network_interface',function() {
     it('should return a nic', function(done) {
       net.get_active_network_interface(function(err,nic) {
-        _tr("active network interface"+inspect(nic));
-        nic_check(nic);
+        if (nic) {
+          _tr("active network interface"+inspect(nic));
+          nic_check(nic);
+        } else {
+          _tr('no nic');
+        }
         done();
       });
     });
   });
 
-
-if (common.os_name !== 'windows') {
-
   describe('get_wireless_interface_names',function() {
     it('should return an array of interfaces',function(done) {
       net.get_wireless_interface_names(function(err,names) {
-        should.exist(names);
-        _tr("Wireless interface names (array):"+inspect(names));
+        if (names) {
+          names.should.be.an.instanceOf(Array);
+          names.length.should.be.above(0);
+          _tr("Wireless interface names (array):"+inspect(names));
+        } else {
+          _tr ('no wifi');
+        }
+
         done();
       });
     });
@@ -86,7 +101,11 @@ if (common.os_name !== 'windows') {
   describe('get_first_wireless_interface',function() {
     it('should return the first interface',function(done) {
       net.get_first_wireless_interface(function(err,name) {
-        should.exist(name);
+        if (!name) {
+          _tr('no wifi');
+          return done();
+        }
+
         _tr("first interface:"+name);
         done();
       });
@@ -96,8 +115,15 @@ if (common.os_name !== 'windows') {
   describe('get_access_points_list',function() {
     it('should callback list of access points',function(done) {
       net.get_access_points_list(function(err,aps) {
-        should.exist(aps);
+        if (!aps) {
+          _tr('no wifi')
+          return done();
+        }
+
+        aps.should.be.an.instanceOf(Array);
+        aps.length.should.be.above(0);
         _tr("access points:"+inspect(aps));
+
         aps.length.should.be.above(0);
         var ap = aps[0];
         ap.should.have.property('ssid');
@@ -113,7 +139,11 @@ if (common.os_name !== 'windows') {
   describe('get_active_access_point',function() {
     it('should return an active access point',function(done) {
       net.get_active_access_point(function(err,ap) {
-        should.exist(ap);
+        if (!ap) {
+          _tr('no wifi');
+        }
+
+        ap_check(ap); // actually mac address but that is checked by the func
         done();
       });
     });
@@ -122,13 +152,20 @@ if (common.os_name !== 'windows') {
   describe('get_open_access_points_list',function() {
     it('should callback list of open access points',function(done) {
       net.get_open_access_points_list(function(err,aps) {
-        should.exist(aps);
+        if (!aps) {
+          _tr('no wifi');
+          return done();
+        }
+
+        aps.should.be.an.instanceOf(Array);
+         
+        if (aps.length > 0) 
+          ap_check(ap);
+
         _tr("access points:"+inspect(aps));
         done();
       });
     });
   });
-
-}
   
 });
