@@ -141,6 +141,7 @@ describe('Network', function(){
       net.get_active_access_point(function(err,ap) {
         if (!ap) {
           _tr('no wifi');
+          return done();
         }
 
         ap_check(ap); // actually mac address but that is checked by the func
