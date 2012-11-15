@@ -12,7 +12,7 @@ describe('Bandwidth', function() {
 
   describe('get_bandwidth_usage', function(){
     it('', function(done) {
-      this.timeout(4000);
+      this.timeout(5000);
 
       bandwidth.get_bandwidth_usage(function(err,val) {
         if (err) {

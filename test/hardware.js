@@ -62,6 +62,9 @@ describe('Hardware', function(){
 
   describe('get_firmware_info', function(){
     it('should callback firmware_info',function(done) {
+
+      this.timeout(4000);
+      
       hw.get_firmware_info(function(err,firmware) {
         should.exist(firmware);
 
