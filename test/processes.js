@@ -20,6 +20,7 @@ var check_process = function(val) {
     x.should.have.property('time');
     x.should.have.property('name');
   }
+  _tr(val)
 };
 
 describe('Processes', function(){
@@ -28,6 +29,7 @@ describe('Processes', function(){
       process.get_parent_process_list(function(err,val) {
         if (err) {
           _tr(err);
+          return done();
         }
         check_process(val);
         done();
@@ -40,6 +42,7 @@ describe('Processes', function(){
       process.get_parent_process_list(function(err,val) {
         if (err) {
           _tr(err);
+          return done();
         }
         check_process(val);
         done();

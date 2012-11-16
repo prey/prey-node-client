@@ -8,7 +8,7 @@ var data = {
   },
   linux: {
     mac:"00:1b:24:bc:b3:80",
-    nic:"eth0"
+    nic:"wlan0"
   },
   mac: {
 

@@ -29,15 +29,6 @@ describe('Lan', function(){
   });
 
   describe('get_ip_from_hostname', function(){
-    it('should be an ip address', function(done) {
-      lan.get_ip_from_hostname('SOMENBIOSNAME',function(err,val) {
-        if (err) {
-          _tr(err);
-        }
-//        should.exist(val);
- //       _tr("ip from hostname:"+val);
-        done();
-      });
-    });
+    it('should be an ip address');
   });
 });

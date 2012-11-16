@@ -33,6 +33,9 @@ program
 
 if (program.debug) control.debugOn();
 
+control.debugOn();
+_tr('Starting ...')
+
 var common = _ns('common'),
     agent = _ns('agent'),
     logger = common.logger,
@@ -90,9 +93,11 @@ process.on('uncaughtException', function (err) {
 
 common.helpers.store_pid(pid_file, function(err, running){
   if (err) throw(err);
-  
+
+_tr("agent? "+running)  
   if (!running) return agent.run();
 
+_tr('it was running send a signal')
   var run_time = (new Date() - running.stat.ctime)/(60 * 1000);
   var run_time_str = run_time.toString().substring(0,4);
   console.error("Instance has been live for " + run_time_str + " minutes\n");
