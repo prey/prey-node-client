@@ -36,7 +36,9 @@ var
   _error = base.error,
   _install_dir,     // set at startup
   _versions_dir,    // set at startup
-  _no_internet = false;
+  _no_internet = false,
+  cp = base.cp,
+  cp_r = base.cp_r;
 
   //crypto = require('crypto'),
 
@@ -124,35 +126,6 @@ var update_config = function(installDir,callback) {
 
     _tr('saved config ...');
     callback(null);
-  });
-};
-
-/**
- * Copy a single file.
- **/
-var cp = function(src, dst, callback) {
-  var is = fs.createReadStream(src);
-  var os = fs.createWriteStream(dst);
-  is.on("end", callback);
-  is.pipe(os);
-};
-
-/**
- * Recursive file copy.
- **/
-var cp_r = function(src, dst, callback) {
-  fs.stat(src, function(err, stat) {
-    if (stat.isDirectory()) {
-      fs.mkdir(dst, function(err) {
-        fs.readdir(src, function(err, files) {
-          async.forEach(files, function(file, cb) {
-            cp_r(gpath.join(src, file), gpath.join(dst, file), cb);
-          }, callback);
-        });
-      });
-    } else {
-      cp(src, dst, callback);
-    }
   });
 };
 
@@ -571,12 +544,24 @@ var register_device = function(callback) {
       
       var reg = _ns('register');
       _tr('registering device with '+keys.api);
-      reg.new_device({api_key:keys.api},function(err) {
+      reg.new_device({api_key:keys.api},function(err,data) {
         if (err) return callback(_error(err));
 
-        callback(null);
+        var 
+          dev_key = data.device_key,
+          config = _ns('common').config;
+
+          var hash = {'control-panel': {}};
+          hash['control-panel'].device_key = dev_key;
+          config.merge(hash, true);
+          config.save(function(err) {
+            if (err) return callback(_error(err));
+            _tr('updated config with device_key');
+
+            callback(null);
+          });
+        });
       });
-    });
   });
 };
 

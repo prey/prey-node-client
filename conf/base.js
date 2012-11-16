@@ -13,7 +13,7 @@ exp.set_log_file = function(file) {
   if(fs.existsSync(_log_file)) fs.unlinkSync(_log_file);
 };
 
-var _tr = exp._tr  = function(msg) {
+var _tr = exp._tr  = function(msg,obj) {
   var m = msg.split(/^([0-9]):/);
   
   if (m.length === 1) {
@@ -37,7 +37,13 @@ var _tr = exp._tr  = function(msg) {
     else 
       console.log(log_line);
   }
+
+  if (obj) {
+    console.log(inspect(obj));
+  } 
 };
+
+global._tr = _tr;
 
 /**
  * Print msg and exit process with given code.
@@ -108,4 +114,32 @@ exp.ensure_dir = function(path,callback) {
   });
 };
 
+/**
+ * Copy a single file.
+ **/
+var cp = exp.cp = function(src, dst, callback) {
+  var is = fs.createReadStream(src);
+  var os = fs.createWriteStream(dst);
+  is.on("end", callback);
+  is.pipe(os);
+};
+
+/**
+ * Recursive file copy.
+ **/
+var cp_r = exp.cp_r = function(src, dst, callback) {
+  fs.stat(src, function(err, stat) {
+    if (stat.isDirectory()) {
+      fs.mkdir(dst, function(err) {
+        fs.readdir(src, function(err, files) {
+          async.forEach(files, function(file, cb) {
+            cp_r(gpath.join(src, file), gpath.join(dst, file), cb);
+          }, callback);
+        });
+      });
+    } else {
+      cp(src, dst, callback);
+    }
+  });
+};
 
