@@ -289,9 +289,13 @@ var check_prey_dir = function(path,callback) {
 var initialize_installation = function(path,callback) {
   check_config_file(function(err) {
     if (err) return callback(_error(err));
-    require(path+'/lib');
-    _ns('common');
-    callback(null,path);
+    check_prey_dir(path,function(err,path) {
+      if (err) return callback(_error(err));
+      
+      require(path+'/lib');
+      _ns('common');
+      callback(null,path);
+    });
   });
 };
 
