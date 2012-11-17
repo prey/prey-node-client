@@ -34,7 +34,6 @@ program
 if (program.debug) control.debugOn();
 
 control.debugOn();
-_tr('Starting ...')
 
 var common = _ns('common'),
     agent = _ns('agent'),

@@ -20,7 +20,6 @@ var check_process = function(val) {
     x.should.have.property('time');
     x.should.have.property('name');
   }
-  _tr(val)
 };
 
 describe('Processes', function(){
