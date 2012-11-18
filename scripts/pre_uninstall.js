@@ -1,11 +1,17 @@
 #!/usr/bin/env node
 
-var os_name = process.platform.replace('darwin', 'mac').replace('win32', 'windows'),
-    os_hooks = require('./' + os_name + '/hooks');
+var shared = require('./shared');
 
-os_hooks.pre_uninstall(function(err){
-  if (err){
-    console.log(err);
-    process.exit(1);
-  }
-});
+var pre_uninstall = function() {
+
+  shared.run_script('/../conf/index.js --pre-uninstall', function(err){
+    if (err) {
+      console.log(err);
+      process.exit(1);
+    }
+  });
+
+}
+
+// if (!process.env.DEV)
+  pre_uninstall();
