@@ -13,7 +13,7 @@ PACKAGE="$FOLDER"
 # [ $(uname) == 'Darwin' ] && PACKAGE="prey-mac-$FOLDER" || PACKAGE="prey-linux-$FOLDER"
 
 mkdir -p "$ROOT/$FOLDER/node_modules"
-cp -R index.js config.js.default package.json bin lib scripts spec "$ROOT/$FOLDER"
+cp -R README.md index.js default.options package.json bin conf lib scripts test "$ROOT/$FOLDER"
 cd "$ROOT/$FOLDER"
 
 BUNDLE_ONLY=1 npm install --production # > /dev/null
