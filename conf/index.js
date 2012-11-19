@@ -6,7 +6,7 @@
  * 1. This is run under root.
  * 2. The install directory provided to --configure is the final resting place of the installation.
  * 3. Registering a user is not an interactive Q&A, but rather the correct details are passed on the CLI.
- * 
+ *
  * This module should:
  *   writes new key/vals from opts to config, if any
  *   sets current version
@@ -19,7 +19,6 @@
  **/
 
 var
-  base = require('./base'),
   util = require('util'),
   inspect = util.inspect,
   gpath = require('path'),
@@ -29,51 +28,33 @@ var
   fs = require('fs'),
   tmp = require('tmp'),
   platform = require('os').platform().replace('darwin', 'mac').replace('win32', 'windows'),
-  hooks = require('./'+platform), // os specific functions
-  ensure_dir = base.ensure_dir,
-  exit_process = base.exit_process,
-  _tr = base._tr,
-  _error = base.error,
-  _install_dir,     // set at startup
-  _versions_dir,    // set at startup
-  _no_internet = false,
-  cp = base.cp,
-  cp_r = base.cp_r;
+  hooks = require('./' + platform), // os specific functions
+  utils = require('./../utils');
 
-  //crypto = require('crypto'),
+var _install_dir,     // set at startup
+    _versions_dir,    // set at startup
+    _no_internet = false;
 
-/**
- * The keys are the parameters that may be passed from the command line, the function is applied
- * to the value passed by the user before saving with getset.
- *
- * A modifier function returning null will prevent the given value being saved, a null function is simply ignored.
- **/
-var config_keys = {
-  email:null,
-//  user_password:function(val) { return crypto.createHash('md5').update(val).digest("hex"); },
-  user_name:null,
-  user_password:null,
-  auto_connect:null ,
-  extended_headers:null ,
-  post_method:null ,
-  api_key:null ,
-  device_key:null ,
-  check_url:null ,
-  mail_to:null,
-  proxy_url:null,
-  smtp_server:null ,
-  smtp_username:null ,
-  smtp_password:null 
+require('./../lib/index');
+var config = _ns('common').config,
+    config_keys = config._values;
+
+var exit_process = function(error, code) {
+  _tr('EXIT_PROCESS ('+code+')');
+  _tr(inspect(error));
+
+  if (code) process.exit(code);
+  process.exit(0);
 };
 
 /**
  * Get the top level directory for the current platform.
  **/
-var installations_dir = function(callback) {
-  if (platform === 'windows') 
+var get_install_dir = function(callback) {
+  if (platform === 'windows')
     return hooks.get_prey_path(callback);
-  
-  callback(null,'/usr/lib/prey');
+
+  callback(null, '/usr/lib/prey');
 };
 
 var prey_bin = function() {
@@ -82,8 +63,12 @@ var prey_bin = function() {
   if (platform === 'windows') return p+ '/prey.bat';
 };
 
+var config_keys = function(){
+
+}
+
 /**
- * Parameters that are specified in the gui (or whereever) are handled separately to the 
+ * Parameters that are specified in the gui (or whereever) are handled separately to the
  * other command line options so they may be handled in bulk.
  **/
 var make_parameters = function(commander) {
@@ -111,11 +96,11 @@ var get_parameter_value = function(key) {
  * The keys are config_keys.
  **/
 var update_config = function(installDir,callback) {
-  var config = _ns('common').config;
+
   Object.keys(config_keys).forEach(function(key) {
     var val = get_parameter_value(key);
     if (val) {
-      // the modifier can set the param to null if it shouldn't be saved for 
+      // the modifier can set the param to null if it shouldn't be saved for
        // some reason
        config.set(key,val,true); // force option setting
     }
@@ -133,14 +118,14 @@ var update_config = function(installDir,callback) {
  * Make sure the prey.conf exists in the etc dir.
  **/
 var check_config_file = function(callback) {
-  var 
+  var
     conf_dir = (platform === 'windows') ? _install_dir : '/etc/prey',
     conf_file = conf_dir + '/prey.conf';
-  
+
   fs.exists(conf_file,function(exists) {
     if (!exists) {
       _tr(conf_file +' not found, copying default ...');
-      cp(_install_dir+'/current/prey.conf.default',conf_file,function(err) {
+      utils.cp(_install_dir+'/current/prey.conf.default',conf_file,function(err) {
         if (err) return callback(_error(err));
 
         _tr('default prey.conf copied');
@@ -158,12 +143,12 @@ var check_config_file = function(callback) {
  **/
 var read_versions = function(callback) {
   // first check to see if versions dir exists, if not create it
-  ensure_dir(_versions_dir,function(err) {
+  utils.dir.ensure(_versions_dir,function(err) {
     if (err) return callback(_error(err));
-    
+
     fs.readdir(_versions_dir,function(err,dirs) {
       if (err) return callback(_error(err));
-    
+
       callback(null,dirs.map(function(d) {
         return _versions_dir + '/'+d;
       }));
@@ -176,14 +161,14 @@ var read_versions = function(callback) {
  **/
 var create_symlink = function(newVersion,callback) {
   var current = _install_dir + '/current';
-  
+
   var make_link = function() {
     // junction only applicable on windows (ignored on other platforms)
     fs.symlink(newVersion,current,'junction',function(err) {
       if (err) {
         if (err.code === 'EACCES') {
           _tr('You should be running under root.');
-        } 
+        }
         return callback(_error(err));
       }
 
@@ -209,7 +194,7 @@ var create_symlink = function(newVersion,callback) {
       if (err) {
         if (err.code === 'EACCES') {
           _tr('You should be running under root.');
-        } 
+        }
         return callback(_error(err));
       }
 
@@ -258,7 +243,7 @@ var read_package_info = function(path,callback) {
 var get_current_info = function(callback) {
   get_current_version_path(function(err,path) {
     if (err) return callback(_error(err));
-    
+
     read_package_info(path,callback);
   });
 };
@@ -269,7 +254,7 @@ var get_current_info = function(callback) {
 var check_prey_dir = function(path,callback) {
   fs.exists(path,function(exists) {
     if (!exists) return callback(_error(path +' does not exist'));
-    
+
     fs.stat(path,function(err,stat) {
       if (err) return callback(_error(err));
       if (!stat.isDirectory()) return callback(_error(path +' is not a directory'));
@@ -291,7 +276,7 @@ var initialize_installation = function(path,callback) {
     if (err) return callback(_error(err));
     check_prey_dir(path,function(err,path) {
       if (err) return callback(_error(err));
-      
+
       require(path+'/lib');
       _ns('common');
       callback(null,path);
@@ -331,7 +316,7 @@ var check_keys = function(callback) {
  **/
 var with_current_version = function(callback) {
   get_current_version_path(function(err,path) {
-    if (err) return callback(_error(err)); 
+    if (err) return callback(_error(err));
 
     initialize_installation(path,function(err) {
       if (err) return callback(_error(err));
@@ -346,7 +331,7 @@ var with_current_version = function(callback) {
 var each_version = function(callback) {
   read_versions(function(err,versions) {
    if (err) return callback(_error(err));
-     
+
    versions.forEach(function(path) {
      read_package_info(path,function(err,info) {
        if (err) return callback(_error(err));
@@ -366,7 +351,7 @@ var required = function(req) {
   var missing = [];
   req.forEach(function(p) {
     var val = get_parameter_value(p);
-    if (!val) 
+    if (!val)
       missing.push(p);
     else
       vals.push(val);
@@ -377,18 +362,18 @@ var required = function(req) {
 
 /**
  * From command line params, email,user_password and name, register a user.
- * Make sure required params array are values are indexed in order. 
+ * Make sure required params array are values are indexed in order.
  **/
 var signup = function(callback) {
   var register = _ns('register');
   _tr("Signing up user...");
 
   var req_params = required(['user_name','email','user_password']);
-  
+
   if (!req_params.values) {
     return callback(_error('signup: The following fields are required:',inspect(req_params.missing)));
   }
-  
+
   var prms = req_params.values,
       packet = {
         user: {
@@ -411,7 +396,7 @@ var signup = function(callback) {
  * Then saves the returned api_key to config.
  * Callsback the api_key.
  **/
-var validate_user = function(callback) { 
+var validate_user = function(callback) {
   var register = _ns('register');
 
   _tr("Validating user...");
@@ -421,10 +406,10 @@ var validate_user = function(callback) {
   if (!req_params.values) {
     return callback(_error('validate_user: The following fields are required:',inspect(req_params.missing)));
   }
-  
+
   var prms = req_params.values,
       packet = { username: prms[0] , password: prms[1] };
-  
+
   register.validate(packet, function(err, data){
     if (err) return callback(_error(err));
 
@@ -437,7 +422,7 @@ var validate_user = function(callback) {
     config.save(function(err) {
       if (err) return callback(_error(err));
       _tr('updated config with api_key');
-      callback(null,api_key);     
+      callback(null,api_key);
     });
   });
 };
@@ -460,23 +445,23 @@ var post_install = function(callback) {
  * Take the path provided, usually by the installer gui, to the top level directory of a new
  * Prey installation.
  *
- * After validating the path is a Prey installation, initialize it's globals file, and common.js 
+ * After validating the path is a Prey installation, initialize it's globals file, and common.js
  * file to get valid paths to various system locations.
  *
- * Add the new installation 
+ * Add the new installation
  *   linux/mac: to an array of installation paths,
  *   windows: array implicit in windows versions dir
  *
  * Read any of the config_options from the command line, and save them using getset to the default
  * config file.
  *
- * Install os hooks, using installation's hook stuff. 
+ * Install os hooks, using installation's hook stuff.
  **/
-var configure = function(path,callback) {
+var configure = function(path, callback) {
   _tr('1:Configuring ...');
 
   async.waterfall([
- 
+
     function(cb) {
       _tr('Checking if Prey in path '+path+ '...');
       check_prey_dir(path,cb);
@@ -523,7 +508,7 @@ var set_version = function(version,callback) {
   var vp = _versions_dir + '/' + version;
   fs.exists(vp,function(exists) {
     if (!exists) exit_process('Versions '+version+' not installed.',1);
-    
+
     create_symlink(vp,function(err) {
       if (err) return callback(_error(err));
 
@@ -545,13 +530,13 @@ var register_device = function(callback) {
     get_keys(function(keys) {
       if (!keys.api) return callback(_error('You need to signup first'));
       if (keys.device) return callback(_error('Device key already registered'));
-      
+
       var reg = _ns('register');
       _tr('registering device with '+keys.api);
       reg.new_device({api_key:keys.api},function(err,data) {
         if (err) return callback(_error(err));
 
-        var 
+        var
           dev_key = data.device_key,
           config = _ns('common').config;
 
@@ -576,7 +561,7 @@ var get_zip = function(url,to,callback) {
   var needle = require('needle');
   needle.get(url,to,function(err,resp,body) {
     if (err) return callback(_error(err));
-    
+
     var fd = fs.openSync(to,'w');
     fs.writeSync(fd,body,0,body.length,0,0);
     callback(null);
@@ -587,14 +572,14 @@ var get_zip = function(url,to,callback) {
  * Unzip file.
  **/
 var unzip = function(from,to,callback) {
-  var 
+  var
     uz = require('unzip'),
     is = fs.createReadStream(from),
     extractor = uz.Extract({ path: to });
 
   extractor.on('end',function() { callback(null) ;});
   extractor.on('error', function(err) { callback(_error(err)); });
-  is.pipe(extractor);  
+  is.pipe(extractor);
 };
 
 /**
@@ -602,7 +587,7 @@ var unzip = function(from,to,callback) {
  * Unzip it into a temporary dir then find out the name of the containing folder, and
  * query package.json for the version#.
  *
- * The containing folder is then copied and renamed to the version# and copied to the versions directory. 
+ * The containing folder is then copied and renamed to the version# and copied to the versions directory.
  * Finally configure is run on the new installations path to update the current symlink etc.
  **/
 var install_core = function(zipFile,callback) {
@@ -636,7 +621,7 @@ var install_core = function(zipFile,callback) {
 /**
  * Install a new version from a uri pointing at a zip file.
  * If the uri contains an http then needle is used to download the file.
- * If no http then the zip is assumed to be local. 
+ * If no http then the zip is assumed to be local.
  * The zip file should expand to be the top level dir of a prey installation,
  * getting a zip from github is the canonical example of structure.
  **/
@@ -647,10 +632,10 @@ var install = function(uri,callback) {
     tmp.file(function(err, zipFile) {
       if (err) return callback(_error(err));
       _tr('retrieving zip ...');
-      get_zip(uri,zipFile,function(err) {
+      get_zip(uri,zipFile, function(err) {
         if (err) return callback(_error(err));
         install_core(zipFile,callback);
-      });        
+      });
     });
   } else {
     _tr('1:Installing from file ...');
@@ -667,19 +652,19 @@ var fails_on_no_internet = function(action) {
     exit_process(action+' action needs an internet connection',1);
 };
 
-var actions = function() { 
+var actions = function() {
   commander.parse(process.argv);
 
   if (commander.debug) {
-    _error = base.debug_error;
+    require('./../utils').debug.enable();
   }
 
-  if (commander.log) {
-    base.set_log_file(commander.log);
-  }
+//  if (commander.log) {
+//    base.set_log_file(commander.log);
+//  }
 
   if (commander.configure) {
-    configure(commander.configure,function(err) {
+    configure(commander.configure, function(err) {
       if (err) exit_process(err,1);
       exit_process('Prey configured successfully.',0);
     });
@@ -694,7 +679,7 @@ var actions = function() {
   }
 
   if (commander.set) {
-    set_version(commander.set,function(err) {
+    set_version(commander.set, function(err) {
       if (err) exit_process(err,1);
       exit_process('version now '+commander.set,0);
     });
@@ -715,7 +700,7 @@ var actions = function() {
       var log_file = info.version+'.log';
       _tr('logging to '+log_file);
       var child = spawn('node', [prey_bin(),'-l',log_file], {
-        detached: true,stdio: 'ignore' 
+        detached: true,stdio: 'ignore'
       });
 
       child.unref();
@@ -810,15 +795,15 @@ var actions = function() {
  * sure said directories exist.
  **/
 var ensure_system_dirs = function(callback) {
-  installations_dir(function(err,install_dir) {
+  get_install_dir(function(err, install_dir) {
     if (err) return callback(_error(err));
 
     _install_dir = install_dir;
-    ensure_dir(_install_dir,function(err) {
+    utils.dir.ensure(_install_dir,function(err) {
       if (err) return callback(_error(err));
 
       _versions_dir = _install_dir + '/versions';
-      ensure_dir(_versions_dir,function(err) {
+      utils.dir.ensure(_versions_dir,function(err) {
           if (err) return callback(_error(err));
           callback(null);
         });
@@ -865,14 +850,14 @@ var process_cli = function() {
 /**
  * Switch between use as module or from command line.
  **/
-if(require.main === module) 
+if(require.main === module)
   process_cli();
 else {
-   module.exports.configure = function(path,callback) {
+   module.exports.configure = function(path, callback) {
       ensure_system_dirs(function(err) {
         if (err) return exit_process(err,1);
 
-        configure(path,callback);
+        configure(path, callback);
     });
    };
 }
