@@ -2,18 +2,7 @@
 
 var fs = require('fs'),
     path = require('path'),
-    exec = require('child_process').exec,
-    base = require('../base'),
-    _tr = base._tr;
-
-var get_os_name = function(callback){
-  var cmd = 'lsb_release -i';
-  exec(cmd, function(err, stdout){
-    if(err) return callback(_error("!:" + cmd,err));
-    
-    callback(null,stdout.toString().split(":")[1].trim());  
-  });
-};
+    exec = require('child_process').exec;
 
 var prey_bin = exports.prey_bin = '/usr/local/bin/prey';
 var etc_dir = exports.etc_dir = '/etc/prey';
@@ -49,6 +38,17 @@ initd_commands.fedora = initd_commands.redhat;
 // helpers
 /////////////////////////////////////////////////
 
+var get_distro_name = function(callback){
+  var cmd = 'lsb_release -i';
+
+  exec(cmd, function(err, stdout){
+    if (err) return callback(_error("!:" + cmd,err));
+
+    var name = stdout.toString().split(":")[1].trim().toLowerCase();
+    callback(null, name);
+  });
+};
+
 var get_init_script_path = function(distro){
   var initd_path = weird_initd_paths[distro] || common_initd_path;
   return path.join(initd_path, init_script_name);
@@ -58,7 +58,7 @@ var copy_init_script = function(distro, callback){
   var full_path = get_init_script_path(distro);
 
   fs.exists(full_path, function(exists){
-    if (exists) { 
+    if (exists) {
       _tr('unlinking '+full_path);
       fs.unlink(full_path);
     }
@@ -67,7 +67,7 @@ var copy_init_script = function(distro, callback){
     var template = fs.readFileSync(path.resolve(__dirname + "/" + init_script_name));
     var data = template.toString().replace('{{prey_bin}}', prey_bin);
 
-    if(data === template.toString())
+    if (data === template.toString())
       return callback(new Error("Unable to replace template variables!"));
 
     _tr('copying to '+full_path);
@@ -98,28 +98,26 @@ var unload_init_script = function(distro, callback){
 /////////////////////////////////////////////////
 
 exports.post_install = function(callback) {
-  get_os_name(function(err, name) {
-    var distro = name.toLowerCase();
+  get_distro_name(function(err, distro) {
+
     copy_init_script(distro, function(err){
       if(err) return callback(err);
-      
+
       load_init_script(distro, callback);
     });
   });
 };
 
 exports.pre_uninstall = function(callback){
-  get_os_name(function(err, name){
-    var distro = name.toLowerCase();
+  get_distro_name(function(err, distro){
+
     unload_init_script(distro, function(err){
       if(err) return callback(err);
-      
+
       remove_init_script(distro, function(err){
         if(!err || err.code === 'ENOENT') callback();
-        
         else callback(err);
       });
     });
   });
 };
-
