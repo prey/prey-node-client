@@ -63,10 +63,6 @@ var prey_bin = function() {
   if (platform === 'windows') return p+ '/prey.bat';
 };
 
-var config_keys = function(){
-
-}
-
 /**
  * Parameters that are specified in the gui (or whereever) are handled separately to the
  * other command line options so they may be handled in bulk.
