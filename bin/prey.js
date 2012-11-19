@@ -1,6 +1,4 @@
-//#!/usr/bin/env node
-
-"use strict";
+#!/usr/bin/env node
 
 //////////////////////////////////////////
 // Prey NodeJS Client
@@ -9,13 +7,14 @@
 // Licensed under the GPLv3
 //////////////////////////////////////////
 
-var
-    join = require('path').join,
-    root_path   = process.env.ROOT_PATH || join(__dirname, '..'),
-    program = require('commander'),
-    version = require(join(__dirname, '..', 'package')).version,
-    control = require(join(root_path, 'lib')); // setup _ns, _error etc
+"use strict";
 
+var join = require('path').join,
+    root_path = process.env.ROOT_PATH || join(__dirname, '..'),
+    program   = require('commander'),
+    version   = require(join(__dirname, '..', 'package')).version;
+
+require(join(root_path, 'lib')); // setup _ns, _error etc
 
 /////////////////////////////////////////////////////////////
 // command line options
@@ -31,18 +30,16 @@ program
   .option('-s, --setup', 'Run setup routine')
   .parse(process.argv);
 
-if (program.debug) control.debugOn();
-
-control.debugOn();
-
-var common = _ns('common'),
-    agent = _ns('agent'),
-    logger = common.logger,
+var common   = _ns('common'),
+    agent    = _ns('agent'),
+    logger   = common.logger,
     pid_file = common.helpers.tempfile_path('prey.pid');
 
-if(!common.config.persisted() || program.setup)
-  return require(join(root_path, 'lib', 'prey', 'setup')).run();
+if (program.debug)
+  common.logger.set_level(debug);
 
+if (!common.config.persisted() || program.setup)
+  return require(join(root_path, 'lib', 'prey', 'setup')).run();
 
 /////////////////////////////////////////////////////////////
 // event, signal handlers
@@ -92,11 +89,8 @@ process.on('uncaughtException', function (err) {
 
 common.helpers.store_pid(pid_file, function(err, running){
   if (err) throw(err);
-
-_tr("agent? "+running)  
   if (!running) return agent.run();
 
-_tr('it was running send a signal')
   var run_time = (new Date() - running.stat.ctime)/(60 * 1000);
   var run_time_str = run_time.toString().substring(0,4);
   console.error("Instance has been live for " + run_time_str + " minutes\n");
