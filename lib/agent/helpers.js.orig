@@ -29,7 +29,7 @@ exports.store_pid = function(pid_file, callback){
     if (!err) {
       var pid = parseInt(fs.readFileSync(pid_file).toString());
       console.error("\nPrey seems to be running already! (PID: " + pid.toString() + ")");
-      
+
       try {
         process.kill(pid, 0);
         return callback(null, {stat: stat, pid: pid});
@@ -37,7 +37,7 @@ exports.store_pid = function(pid_file, callback){
         if(e.code === 'ESRCH') console.error("Not really, pidfile was just lying around.");
       }
     }
-    
+
     // if all was good, then callback(err) will be null
     fs.writeFile(pid_file, process.pid.toString(), callback);
   });
@@ -55,6 +55,43 @@ exports.random_between = function(from, to){
   return Math.floor(Math.random() * (to - from + 1) + from);
 };
 
+<<<<<<< Updated upstream
+
+exports.copy_file = function(src, dest, callback){
+  var dest_file = path.resolve(dest);
+  var dest_path = path.dirname(dest);
+
+  var pump = function(){
+    var input = fs.createReadStream(path.resolve(src));
+    var output = fs.createWriteStream(dest_file);
+
+    util.pump(input, output, function(err){
+      // console.log('Copied ' + path.basename(src)  + ' to ' + dest);
+      input.destroy();
+      output.destroy();
+      callback(err);
+    });
+  };
+
+  var check_path_existance = function(dir){
+    fs.exists(dir, function(exists){
+      if(exists) return pump();
+
+      // console.log("Creating directory: " + dir);
+      fs.mkdir(dir, function(err){
+        if(err) return callback(_error(err));
+        pump();
+      });
+    });
+  };
+
+  fs.exists(dest_file, function(exists){
+    if(exists) return callback(new Error("Destination file exists: " + dest_file));
+    check_path_existance(dest_path);
+  });
+};
+=======
+>>>>>>> Stashed changes
 
 exports.remove_files = function(data){
   if(data.file && data.content_type)
@@ -121,6 +158,7 @@ exports.memoize = function (fn, hasher) {
   return memoized;
 };
 
+<<<<<<< Updated upstream
 /**
  * Just a testing function to sub in for memoize if you don't want memoization
  **/
@@ -129,6 +167,8 @@ exports.memoize1 = function(fn) {
 };
 
 
+=======
+>>>>>>> Stashed changes
 exports.report = function(fn) {
   fn.arity = 0;
   return fn;
@@ -137,4 +177,3 @@ exports.report = function(fn) {
 exports.is_report = function(fn) {
   return "arity" in fn && fn.arity === 0;
 };
-
