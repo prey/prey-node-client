@@ -30,7 +30,7 @@ program
 
 var agent    = require(join(root_path, 'lib', 'agent')),
     common   = require(join(root_path, 'lib', 'common')),
-    pid      = require(join(root_path, 'lib', 'utils', 'pid')),
+    pid      = require(join(root_path, 'lib', 'utils', 'pidfile')),
     pid_file = common.system.tempfile_path('prey.pid'),
     logger   = common.logger;
 
