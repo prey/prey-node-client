@@ -12,9 +12,7 @@
 var join = require('path').join,
     root_path = process.env.ROOT_PATH || join(__dirname, '..'),
     program   = require('commander'),
-    version   = require(join(__dirname, '..', 'package')).version;
-
-require(join(root_path, 'lib')); // setup _ns, _error etc
+    version   = require(join(root_path, 'package')).version;
 
 /////////////////////////////////////////////////////////////
 // command line options
@@ -30,13 +28,12 @@ program
   .option('-s, --setup', 'Run setup routine')
   .parse(process.argv);
 
-var common   = _ns('common'),
-    agent    = _ns('agent'),
-    logger   = common.logger,
-    pid_file = common.helpers.tempfile_path('prey.pid');
 
-if (program.debug)
-  common.logger.set_level(debug);
+var agent    = require(join(root_path, 'lib', 'agent')),
+    common   = require(join(root_path, 'lib', 'common')),
+    pid      = require(join(root_path, 'lib', 'utils', 'pid')),
+    logger   = common.logger,
+    pid_file = common.system.tempfile_path('prey.pid');
 
 if (!common.config.persisted() || program.setup)
   return require(join(root_path, 'lib', 'prey', 'setup')).run();
@@ -49,8 +46,8 @@ process.on('exit', function(code) {
   var remove_pid = agent.running;
   agent.shutdown(); // sets agent.running = false
 
-  if(remove_pid) {
-    common.helpers.remove_pid_file(pid_file);
+  if (remove_pid) {
+    pid.remove(pid_file);
     logger.info('Have a jolly good day sir.\n');
   }
 });
@@ -87,7 +84,7 @@ process.on('uncaughtException', function (err) {
 // launcher
 /////////////////////////////////////////////////////////////
 
-common.helpers.store_pid(pid_file, function(err, running){
+pid.store(pid_file, function(err, running){
   if (err) throw(err);
   if (!running) return agent.run();
 
