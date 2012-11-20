@@ -3,20 +3,18 @@
 // this program installs required dependencies and calls the conf
 // module for finishing the installation
 
-var path = require('path'),
-    shared = require('./shared'),
-    execFile = require('child_process').execFile,
-    os_name = process.platform.replace('darwin', 'mac').replace('win32', 'windows'),
+var execFile = require('child_process').execFile,
+    prey_bin = require('../lib/system').paths.prey_bin,
     line = '\n=====================================================\n';
 
 var post_install = function(){
 
-  shared.run_script('install_deps.js', function(err){
+  execFile('./install_deps.js', function(err){
 
     if (err) return console.log(err);
     console.log('Dependencies in place!')
 
-    if (process.getuid() != 0){
+    if (process.getuid() != 0) {
       var msg =  'You are running this script as an unprivileged user';
          msg +=  '\nso we cannot continue with the system configuration.';
          msg +=  '\nTo finalize the install process please run: \n\n';
@@ -29,7 +27,7 @@ var post_install = function(){
 
     fs.exists(prey_bin, function(exists){
 
-      if (!exists){
+      if (!exists) {
         var msg = "We couldn't find the Prey executable in " + prey_bin;
            msg += "\nIf you installed the package locally, then you need to";
            msg += "\nlink it to the global path by running\n\n  $ sudo npm link\n";
@@ -38,7 +36,7 @@ var post_install = function(){
         process.exit(1);
       }
 
-      shared.run_script('/../conf/index --post-install', function(err){
+      execFile('../lib/conf/index.js', ['post-install'], function(err){
         if (err) return console.log(err);
         console.log("System setup successful! You can run Prey now.");
       });

@@ -1,10 +1,13 @@
 #!/usr/bin/env node
+////////////////////////////////////////////////////////////
+// Generates new config file based on each driver settings.
+// Dumps new confil file in root_path/prey.conf.default
+////////////////////////////////////////////////////////////
 
-var fs = require('path'),
-    path = require('path'),
+var path = require('path'),
     config = require('getset'),
-    version = require(__dirname + "/../package").version,
-    finder = require('./../lib/prey/plugins/providers/files/lib/finder');
+    version = require(__dirname + '/../package').version,
+    finder = require('./../lib/utils/finder');
 
 var config_file = __dirname + '/../prey.conf.default';
 // var config_header = ";;;;;\n;Prey " + version + " configuration file\n;;;;;\n";
@@ -18,7 +21,7 @@ var merge_data = function(type, plugin_name, results){
 
 finder.eachFileMatching(/default.options$/, './', function(err, file, stat){
 
-  if(err || !file) return;
+  if (err || !file) return;
   var plugin_name = path.basename(path.dirname(file));
 
   if (plugin_name == '.') // root path
@@ -46,7 +49,7 @@ finder.eachFileMatching(/default.options$/, './', function(err, file, stat){
   console.log(config._values);
 
   config.save(function(err){
-    if(err) console.log(err);
+    if (err) console.log(err);
     else console.log("Config file saved in " + config_file);
   });
 

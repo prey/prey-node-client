@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 
-var shared = require('./shared');
+var execFile = require('child_process').execFile;
 
 var pre_uninstall = function() {
 
-  shared.run_script('/../conf/index.js --pre-uninstall', function(err){
+  execFile('/../conf/index.js', ['pre-uninstall'], function(err){
     if (err) {
       console.log(err);
       process.exit(1);
