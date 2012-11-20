@@ -1,1 +1,1 @@
-module.exports = require('./lib/prey');
+module.exports = require('./lib');
