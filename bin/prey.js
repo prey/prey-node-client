@@ -28,12 +28,11 @@ program
   .option('-s, --setup', 'Run setup routine')
   .parse(process.argv);
 
-
 var agent    = require(join(root_path, 'lib', 'agent')),
     common   = require(join(root_path, 'lib', 'common')),
     pid      = require(join(root_path, 'lib', 'utils', 'pid')),
-    logger   = common.logger,
-    pid_file = common.system.tempfile_path('prey.pid');
+    pid_file = common.system.tempfile_path('prey.pid'),
+    logger   = common.logger;
 
 if (!common.config.persisted() || program.setup)
   return require(join(root_path, 'lib', 'prey', 'setup')).run();
