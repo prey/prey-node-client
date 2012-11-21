@@ -40,7 +40,7 @@
   },
   "scripts": {
     "start": "node ./bin/prey.js",
-    "test" : "mocha spec",
+    "test" : "mocha spec --recursive",
     "postinstall": "node ./scripts/post_install.js",
     "preuninstall": "node ./scripts/pre_uninstall.js"
   },
