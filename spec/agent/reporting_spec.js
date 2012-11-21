@@ -41,13 +41,3 @@ describe('reporting', function(){
   })
 
 })
-
-describe('when something happens', function(){
-
-  it('should work', function(){
-
-    pending()
-
-  });
-
-});

@@ -1,7 +1,10 @@
-var helpers = {};
+var should  = require('should'),
+    sinon   = require('sinon'),
+    needle  = require('needle'),
+    helpers = {};
 
-helpers.should = require('should');
-helpers.sinon  = require('sinon');
+helpers.sinon  = sinon;
+helpers.should = should;
 
 /*
 helpers.base   = require('./../lib');
@@ -14,6 +17,24 @@ helpers.providers = helpers.base.providers;
 
 helpers.load = function(module_name){
   return require('./../lib/agent/' + module_name);
+}
+
+helpers.stub_request = function(type, err, response, body){
+
+  var stub = sinon.stub(needle, type, function(){
+
+    // look for callback
+    var cb;
+
+    for (var i = 0; i < arguments.length; i++) {
+      if (typeof arguments[i] == 'function')
+        cb = arguments[i];
+    }
+
+    cb(err, response, body);
+    needle[type].restore();
+  });
+
 }
 
 module.exports = helpers;
