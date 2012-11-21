@@ -25,7 +25,6 @@ program
   .option('-a, --actions <actions>', 'Comma-separated list of actions to run on startup')
   .option('-l, --logfile <logfile>', 'Logfile to use')
   .option('-D, --debug', 'Output debugging info')
-  .option('-s, --setup', 'Run setup routine')
   .parse(process.argv);
 
 var agent    = require(join(root_path, 'lib', 'agent')),
