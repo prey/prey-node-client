@@ -1,12 +1,6 @@
-
-require("../lib/");
-
-var should = require("should");
-var common = _ns("common");
-var process = _ns("processes");
-var inspect = require('util').inspect;
-var platform = common.os_name;
-var td = require('../testdata').td;
+var helpers    = require('./../../spec_helpers'),
+    should     = helpers.should,
+    provider   = helpers.load('providers').load('processes');
 
 var check_process = function(val) {
   val.should.be.an.instanceOf(Array);
@@ -25,7 +19,7 @@ var check_process = function(val) {
 describe('Processes', function(){
   describe('get_process_list', function(){
     it('should be an array of process', function(done) {
-      process.get_parent_process_list(function(err,val) {
+      provider.get_parent_process_list(function(err,val) {
         if (err) {
           _tr(err);
           return done();
@@ -38,7 +32,7 @@ describe('Processes', function(){
 
   describe('get_parent_process_list', function(){
     it('should be an array of parent process', function(done) {
-      process.get_parent_process_list(function(err,val) {
+      provider.get_parent_process_list(function(err,val) {
         if (err) {
           _tr(err);
           return done();
@@ -49,4 +43,3 @@ describe('Processes', function(){
     });
   });
 });
-

@@ -2,13 +2,9 @@
 
 "use strict";
 
-require("../lib/");
-
-var common = _ns('common');
-var should = require("should");
-var td = require('../testdata').td;
-var inspect = require('util').inspect;
-var net = _ns('network');
+var helpers    = require('./../../spec_helpers'),
+    should     = helpers.should,
+    provider   = helpers.load('providers').load('network');
 
 var nic_check = function(nic) {
   nic.should.be.a('object');
@@ -29,7 +25,7 @@ var ap_check = function(ap) {
 describe('Network', function(){
   describe('get_public_ip', function(){
     it('should cb a valid ipaddress', function(done) {
-      net.get_public_ip(function(err,ip) {
+      provider.get_public_ip(function(err,ip) {
         should.exist(ip);
         _tr(ip);
         done();
@@ -39,7 +35,7 @@ describe('Network', function(){
 
   describe('get_private_ip',function() {
     it('should cb a private ip',function(done) {
-      net.get_private_ip(function(err,ip) {
+      provider.get_private_ip(function(err,ip) {
         should.exist(ip);
         _tr("Private"+ip);
         done();
@@ -49,7 +45,7 @@ describe('Network', function(){
 
   describe('get_broadcast_address',function() {
     it('should cb a broadcast ip',function(done) {
-      net.get_broadcast_address(td('nic'),function(err,broadcast) {
+      provider.get_broadcast_address(td('nic'),function(err,broadcast) {
         should.exist(broadcast);
         _tr('broadcast:'+broadcast);
         done();
@@ -59,7 +55,7 @@ describe('Network', function(){
 
   describe('get_nic_by_name',function() {
     it('should get either eth0 or Local.. ', function(done) {
-      net.get_nic_by_name(td('nic'),function(err,nic) {
+      provider.get_nic_by_name(td('nic'),function(err,nic) {
         should.exist(nic);
         nic_check(nic);
         _tr("NIC:"+inspect(nic));
@@ -70,7 +66,7 @@ describe('Network', function(){
 
   describe('get_active_network_interface',function() {
     it('should return a nic', function(done) {
-      net.get_active_network_interface(function(err,nic) {
+      provider.get_active_network_interface(function(err,nic) {
         if (nic) {
           _tr("active network interface"+inspect(nic));
           nic_check(nic);
@@ -84,7 +80,7 @@ describe('Network', function(){
 
   describe('get_wireless_interface_names',function() {
     it('should return an array of interfaces',function(done) {
-      net.get_wireless_interface_names(function(err,names) {
+      provider.get_wireless_interface_names(function(err,names) {
         if (names) {
           names.should.be.an.instanceOf(Array);
           names.length.should.be.above(0);
@@ -114,7 +110,7 @@ describe('Network', function(){
 
   describe('get_access_points_list',function() {
     it('should callback list of access points',function(done) {
-      net.get_access_points_list(function(err,aps) {
+      provider.get_access_points_list(function(err,aps) {
         if (!aps) {
           _tr('no wifi')
           return done();
@@ -138,7 +134,7 @@ describe('Network', function(){
 
   describe('get_active_access_point',function() {
     it('should return an active access point',function(done) {
-      net.get_active_access_point(function(err,ap) {
+      provider.get_active_access_point(function(err,ap) {
         if (!ap) {
           _tr('no wifi');
           return done();
@@ -152,15 +148,15 @@ describe('Network', function(){
 
   describe('get_open_access_points_list',function() {
     it('should callback list of open access points',function(done) {
-      net.get_open_access_points_list(function(err,aps) {
+      provider.get_open_access_points_list(function(err,aps) {
         if (!aps) {
           _tr('no wifi');
           return done();
         }
 
         aps.should.be.an.instanceOf(Array);
-         
-        if (aps.length > 0) 
+
+        if (aps.length > 0)
           ap_check(ap);
 
         _tr("access points:"+inspect(aps));
@@ -168,5 +164,5 @@ describe('Network', function(){
       });
     });
   });
-  
+
 });

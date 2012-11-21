@@ -1,19 +1,13 @@
-
-require("../lib/");
-
-var should = require("should");
-var common = _ns("common");
-var hw = _ns("hardware");
-var inspect = require('util').inspect;
-var platform = common.os_name;
-var td = require('../testdata').td;
+var helpers    = require('./../../spec_helpers'),
+    should     = helpers.should,
+    provider   = helpers.load('providers').load('hardware');
 
 describe('Hardware', function(){
   describe('get_mac_address', function(){
     it('should cb a valid mac address', function(done) {
-      hw.get_mac_address(td("nic"),function(err,mac) {
+      provider.get_mac_address(td("nic"),function(err,mac) {
         if (err) {
-          err.code.should.equal("MALFORMED_MAC"); 
+          err.code.should.equal("MALFORMED_MAC");
         } else {
           should.exist(mac);
         }
@@ -24,17 +18,17 @@ describe('Hardware', function(){
 
   describe('get_broadcast_address', function(){
     it('should get broadcast address', function(done) {
-      hw.get_broadcast_address(td("nic"),function(err,broadcast) {
+      provider.get_broadcast_address(td("nic"),function(err,broadcast) {
         _tr("broadcast:"+broadcast);
         should.exist(broadcast);
         done();
       });
     });
   });
-  
+
   describe('get_network_interfaces_list', function(){
     it('should return at least 1 network interface',function(done) {
-      hw.get_network_interfaces_list(function(err,nics) {
+      provider.get_network_interfaces_list(function(err,nics) {
         if (err) {
           err.code.should.equal("NO_OSINTERFACE");
         } else {
@@ -50,10 +44,10 @@ describe('Hardware', function(){
       });
     });
   });
-  
+
   describe('get_first_mac_address', function(){
     it('there exists a mac address',function(done) {
-      hw.get_first_mac_address(function(err,mac) {
+      provider.get_first_mac_address(function(err,mac) {
         should.exist(mac);
         done();
       });
@@ -64,8 +58,8 @@ describe('Hardware', function(){
     it('should callback firmware_info',function(done) {
 
       this.timeout(4000);
-      
-      hw.get_firmware_info(function(err,firmware) {
+
+      provider.get_firmware_info(function(err,firmware) {
         should.exist(firmware);
 
         // !! TOM what is the query on wmic for this stuff?? Not in bash windows file??
@@ -89,7 +83,7 @@ describe('Hardware', function(){
 
   describe('get_processor_info', function(){
     it('should callback an object with model, speed and cores',function(done) {
-      hw.get_processor_info(function(err,obj) {
+      provider.get_processor_info(function(err,obj) {
         should.exist(obj);
         obj.should.have.property('speed');
         obj.should.have.property('model');
@@ -97,7 +91,5 @@ describe('Hardware', function(){
         done();
       });
     });
-  });  
+  });
 });
-
-

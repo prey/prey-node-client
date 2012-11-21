@@ -1,17 +1,11 @@
-
-require("../lib/");
-
-var should = require("should");
-var common = _ns("common");
-var lan = _ns("lan");
-var inspect = require('util').inspect;
-var platform = common.os_name;
-var td = require('../testdata').td;
+var helpers    = require('./../../spec_helpers'),
+    should     = helpers.should,
+    provider   = helpers.load('providers').load('lan');
 
 describe('Lan', function(){
   describe('get_active_nodes_list', function(){
     it('should be an array of name,ip pairs', function(done) {
-      lan.get_active_nodes_list(function(err,val) {
+      provider.get_active_nodes_list(function(err,val) {
         if (err) {
           _tr(err);
         }
@@ -22,7 +16,7 @@ describe('Lan', function(){
           x.should.have.property('ip_address');
           _tr(x);
         }
-        
+
         done();
       });
     });

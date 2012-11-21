@@ -1,20 +1,16 @@
-
-require("../lib/");
-
-var should = require("should");
-var common = _ns("common");
-var bandwidth = _ns("bandwidth");
-var inspect = require('util').inspect;
-var platform = common.os_name;
-var td = require('../testdata').td;
+var helpers    = require('./../../spec_helpers'),
+    should     = helpers.should,
+    provider   = helpers.load('providers').load('bandwidth');
 
 describe('Bandwidth', function() {
 
   describe('get_bandwidth_usage', function(){
-    it('', function(done) {
+
+    it('works', function(done) {
+
       this.timeout(5000);
 
-      bandwidth.get_bandwidth_usage(function(err,val) {
+      bandwidth.get_bandwidth_usage(function(err, val) {
         if (err) {
           _tr(err);
         }
@@ -22,7 +18,7 @@ describe('Bandwidth', function() {
         val.should.have.property('inBytes');
         val.should.have.property('outBytes');
         _tr(val);
-        
+
         done();
       });
     });
