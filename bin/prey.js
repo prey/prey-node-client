@@ -33,8 +33,10 @@ var agent    = require(join(root_path, 'lib', 'agent')),
     pid_file = common.system.tempfile_path('prey.pid'),
     logger   = common.logger;
 
-if (!common.config.persisted() || program.setup)
-  return require(join(root_path, 'lib', 'prey', 'setup')).run();
+if (!common.config.persisted()) {
+  console.error('\nNo config file found. Please run the configurator.\n');
+  process.exit(1);
+}
 
 /////////////////////////////////////////////////////////////
 // event, signal handlers
