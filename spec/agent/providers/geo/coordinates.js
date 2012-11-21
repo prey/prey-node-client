@@ -67,6 +67,24 @@ describe('coordinates', function(){
 
       });
 
+      describe('test real endpoint', function(){
+
+        it('works', function(done){
+
+          provider.send_data(list, function(err, data){
+            if (err) {
+              console.log('\n========================================');
+              console.log(' Geolocation endpoint seems to be down!');
+              console.log(' ' + err.message);
+              console.log('========================================\n');
+            }
+            done();
+          })
+
+        });
+
+      });
+
     });
 
   });
