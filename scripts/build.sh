@@ -10,7 +10,10 @@ DIST="$(pwd)/dist"
 ROOT="/tmp/prey-build.$$"
 FOLDER="prey-${VERSION}"
 PACKAGE="$FOLDER"
+TARBALL="${PACKAGE}.tar.gz"
 # [ $(uname) == 'Darwin' ] && PACKAGE="prey-mac-$FOLDER" || PACKAGE="prey-linux-$FOLDER"
+
+rm -f "${DIST}/${TARBALL}" 2> /dev/null
 
 mkdir -p "$ROOT/$FOLDER/node_modules"
 cp -R README.md index.js default.options package.json bin lib scripts test "$ROOT/$FOLDER"
@@ -22,13 +25,13 @@ cd "$ROOT/$FOLDER"
 # echo "Copying node binary..."
 # cp `which node` bin
 
-echo "Building tarball..."
+echo -e "\nBuilding tarball..."
 cd "$ROOT"
-tar czf "$PACKAGE.tar.gz" "$FOLDER"
+tar czf "$TARBALL" "$FOLDER"
 
 mkdir -p "$DIST"
 cd "$DIST"
-mv "$ROOT/$FOLDER.tar.gz" "$DIST"
-echo "$DIST/$FOLDER.tar.gz"
+mv "$ROOT/$TARBALL" "$DIST"
+echo "$DIST/$TARBALL"
 
 rm -fr "$ROOT"

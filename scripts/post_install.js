@@ -36,7 +36,10 @@ var post_install = function(){
         process.exit(1);
       }
 
-      execFile('../lib/conf/index.js', ['post-install'], function(err){
+      execFile('../lib/conf/index.js', ['post-install'], function(err, stdout, stderr){
+        if (stdout.length > 0) console.log(stdout);
+        if (stderr.length > 0) console.log(stderr);
+
         if (err) return console.log(err);
         console.log("System setup successful! You can run Prey now.");
       });

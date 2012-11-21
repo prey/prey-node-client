@@ -6,7 +6,7 @@ var path = require('path'),
 
 finder.eachFileMatching(/lib.*\/package.json$/, './', function(err, file, stat){
 
-  if (!file || file.match(/\/node_modules/))
+  if (!file || file.match(/\/dist|\/node_modules/))
     return;
 
   var dir = path.resolve(path.dirname(file));
