@@ -1,4 +1,4 @@
-var common = require('./../lib/prey/common')
+var common = require('./../lib/common');
 
 describe('common', function(){
 
