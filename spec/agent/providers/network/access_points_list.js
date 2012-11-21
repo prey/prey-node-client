@@ -1,7 +1,6 @@
-var should = require('should'),
+var helpers = require('./../../../spec_helpers'),
+    should = helpers.should,
     fs = require('fs');
-
-console.log('sss');
 
 describe('get_access_points_list', function(){
 
@@ -35,7 +34,7 @@ describe('get_access_points_list', function(){
 
       var mac = require('./../../../../lib/agent/plugins/providers/network/platform/mac');
 
-      describe('and an empty list is received', function(){
+      describe('with no output', function(){
 
         it('returns an error', function(){
 
@@ -43,16 +42,29 @@ describe('get_access_points_list', function(){
 
       });
 
-      describe('and at least one network is found', function(){
+      describe('with invalid output', function(){
 
-        var scan = fs.readFileSync(__dirname + '/fixtures/airport_scan.xml');
+        it('returns an error', function(){
 
-        it('returns a valid hash', function(){
-          var list = mac.parse_access_points_list(scan);
-          console.log(list);
-          list.should.be.a(Object);
-          list.length.should.be(4);
         });
+
+      });
+
+      describe('with valid output is received', function(){
+
+        var scan = fs.readFileSync(__dirname + '/../fixtures/airport_scan.txt');
+            list = mac.parse_access_points_list(scan);
+
+        it('returns an array of APs', function(){
+          list.should.be.an.instanceof(Object);
+          list.should.have.lengthOf(10);
+        });
+
+        it('returns a valid set of objects in array', function(){
+          var ap = list[0];
+          Object.keys(ap).length.should.equal(5);
+          ap.should.have.keys(['ssid', 'mac_address', 'signal_strength', 'channel', 'security'])
+        })
 
       });
 
