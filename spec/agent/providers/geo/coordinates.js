@@ -67,7 +67,7 @@ describe('coordinates', function(){
 
       });
 
-      describe('test real endpoint', function(){
+      describe('real endpoint', function(){
 
         it('works', function(done){
 
