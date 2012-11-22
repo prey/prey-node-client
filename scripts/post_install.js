@@ -1,15 +1,17 @@
 #!/usr/bin/env node
 
-// this program installs required dependencies and calls the conf
-// module for finishing the installation
+// this script is executed by npm after an 'npm install prey'
+// it installes dependencies and calls the conf module
+// to set up the config file and execution triggers
 
-var execFile = require('child_process').execFile,
+var fs = require('fs'),
+    execFile = require('child_process').execFile,
     prey_bin = require('../lib/system').paths.prey_bin,
     line = '\n=====================================================\n';
 
 var post_install = function(){
 
-  execFile('./install_deps.js', function(err){
+  execFile(__dirname + '/install_deps.js', function(err){
 
     if (err) return console.log(err);
     console.log('Dependencies in place!')
@@ -36,7 +38,7 @@ var post_install = function(){
         process.exit(1);
       }
 
-      execFile('../lib/conf/index.js', ['post-install'], function(err, stdout, stderr){
+      execFile(__dirname + '/../lib/conf/cli.js', ['post_install'], function(err, stdout, stderr){
         if (stdout.length > 0) console.log(stdout);
         if (stderr.length > 0) console.log(stderr);
 
