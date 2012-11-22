@@ -2,7 +2,7 @@
 basedir=$(dirname "$0")
 
 if [ -x "$basedir/node" ]; then
-  "$basedir/node" "$basedir/prey.js" "$@"
+  "$basedir/node" "$basedir/../lib/agent/cli.js" "$@"
 else
-  node "$basedir/prey.js" "$@"
+  node "$basedir/../lib/agent/cli.js" "$@"
 fi

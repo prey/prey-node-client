@@ -1,5 +1,5 @@
 @IF EXIST "%~dp0\node.exe" (
-  "%~dp0\node.exe" "%~dp0\.\agent.js" %*
+  "%~dp0\node.exe" "%~dp0\..\lib\agent\cli.js" %*
 ) ELSE (
-  node "%~dp0\.\agent.js" %*
+  node "%~dp0\..\lib\agent\cli.js" %*
 )
