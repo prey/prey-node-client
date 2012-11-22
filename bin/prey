@@ -6,7 +6,7 @@ cmd="$1"
 
 if [ "$cmd" = "config" ]; then
   script="lib/conf/cli.js"
-elif [ "$cmd" = "tests" ]; then
+elif [ "$cmd" = "test" ]; then
   script="node_modules/mocha/bin/mocha"
 # elif [ "$cmd" = "console" ]; then
 #  script="lib/agent/cli.js"
