@@ -30,7 +30,7 @@
   },
   "main": "./lib/prey",
   "bin": {
-    "prey": "./bin/prey.js"
+    "prey": "./bin/prey"
   },
   "directories": {
     "bin" : "./bin",

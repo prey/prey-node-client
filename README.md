@@ -1,6 +1,6 @@
 # Prey Node.js client
 
-Asynchronous, event-driven client for the [Prey anti-theft software](http://preyproject.com), written in Node.js.
+Asynchronous, ruthless event-driven client for the [Prey anti-theft software](http://preyproject.com), based on Node.js.
 
 ## What is Prey?
 
