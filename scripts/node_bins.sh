@@ -4,7 +4,7 @@ cwd=$(pwd)
 base_url="http://nodejs.org/dist"
 
 get_latest_version(){
-  local url="${base_url}/SHASUMS.txt"
+  local url="${base_url}/latest/SHASUMS.txt"
   curl -s $url | grep "node-v" | head -1 | sed "s/.*node-v\([^\-]*\)-.*/\1/"
 }
 
