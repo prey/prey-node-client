@@ -21,10 +21,12 @@ var merge_data = function(type, plugin_name, results){
 
 finder.eachFileMatching(/default.options$/, './', function(err, file, stat){
 
-  if (err || !file) return;
+  if (err || !file || file.match(/\/dist|\/node_modules/))
+    return;
+
   var plugin_name = path.basename(path.dirname(file));
 
-  if (plugin_name == '.') // root path
+  if (plugin_name == 'agent') // root path
     config.load(file);
   else
     files[plugin_name] = file;
