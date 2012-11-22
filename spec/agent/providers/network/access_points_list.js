@@ -32,7 +32,7 @@ describe('get_access_points_list', function(){
 
     describe('in mac', function(){
 
-      var mac = require('./../../../../lib/agent/plugins/providers/network/platform/mac');
+      var mac = require('./../../../../lib/agent/providers/network/mac');
 
       describe('with no output', function(){
 
