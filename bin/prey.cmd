@@ -13,10 +13,7 @@ if "%1" == "config" (
   )
 )
 
-echo %*
-
 if not "%1" == "" (
-  echo %no_shift%
   if not "%no_shift" == "0" (
     shift
  )
