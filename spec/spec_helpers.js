@@ -3,6 +3,8 @@ var should  = require('should'),
     needle  = require('needle'),
     helpers = {};
 
+console.log(' == NODE VERSION: ' + process.version);
+
 helpers.sinon  = sinon;
 helpers.should = should;
 
