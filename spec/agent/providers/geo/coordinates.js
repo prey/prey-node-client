@@ -30,7 +30,7 @@ describe('coordinates', function(){
       describe('and response is not valid', function(){
 
         before(function(){
-          helpers.stub_request('post', null, {}, 'Bad response');
+          helpers.stub_request('get', null, {}, 'Bad response');
         })
 
         it('returns error', function(done){
@@ -49,7 +49,7 @@ describe('coordinates', function(){
 
         before(function(done){
           fs.readFile(__dirname + '/../fixtures/location_response.json', function(err, data){
-            helpers.stub_request('post', null, {statusCode: 200}, data.toString());
+            helpers.stub_request('get', null, {statusCode: 200}, data.toString().trim());
             done()
           })
         })
