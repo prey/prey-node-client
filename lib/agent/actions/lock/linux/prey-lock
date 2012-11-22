@@ -11,7 +11,7 @@ from hashlib import md5
 import gtk
 import pango
 
-image_file = "/../../lib/bg-lock-with-input.png"
+image_file = "/../lib/bg-lock-with-input.png"
 
 class Lock:
 	def get_md5(self, string):
