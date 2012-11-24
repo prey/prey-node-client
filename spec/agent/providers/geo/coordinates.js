@@ -1,5 +1,5 @@
 var helpers  = require('./../../../helpers'),
-    should   = helpers.should,
+    should   = helpers.must,
     fs       = require('fs'),
     provider = helpers.load('providers').load('geo');
 

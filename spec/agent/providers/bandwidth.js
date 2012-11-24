@@ -1,5 +1,5 @@
 var helpers    = require('./../../helpers'),
-    should     = helpers.should,
+    should     = helpers.must,
     provider   = helpers.load('providers').load('bandwidth');
 
 describe('Bandwidth', function() {
@@ -10,15 +10,10 @@ describe('Bandwidth', function() {
 
       this.timeout(5000);
 
-      bandwidth.get_bandwidth_usage(function(err, val) {
-        if (err) {
-          _tr(err);
-        }
+      provider.get_bandwidth_usage(function(err, val) {
         should.exist(val);
         val.should.have.property('inBytes');
         val.should.have.property('outBytes');
-        _tr(val);
-
         done();
       });
     });

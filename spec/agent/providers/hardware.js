@@ -1,11 +1,19 @@
 var helpers    = require('./../../helpers'),
-    should     = helpers.should,
+    should     = helpers.must,
     provider   = helpers.load('providers').load('hardware');
+
+var nic_names = {
+  linux: 'eth0',
+  darwin: 'en0',
+  win32: 'Local Area Connection'
+}
+
+var nic_name = nic_names[process.platform];
 
 describe('Hardware', function(){
   describe('get_mac_address', function(){
     it('should cb a valid mac address', function(done) {
-      provider.get_mac_address(td("nic"),function(err,mac) {
+      provider.mac_address_for(nic_name,function(err,mac) {
         if (err) {
           err.code.should.equal("MALFORMED_MAC");
         } else {
@@ -16,38 +24,25 @@ describe('Hardware', function(){
     });
   });
 
-  describe('get_broadcast_address', function(){
-    it('should get broadcast address', function(done) {
-      provider.get_broadcast_address(td("nic"),function(err,broadcast) {
-        _tr("broadcast:"+broadcast);
-        should.exist(broadcast);
-        done();
-      });
-    });
-  });
-
   describe('get_network_interfaces_list', function(){
     it('should return at least 1 network interface',function(done) {
       provider.get_network_interfaces_list(function(err,nics) {
-        if (err) {
-          err.code.should.equal("NO_OSINTERFACE");
-        } else {
-          nics.should.be.an.instanceOf(Array);
-          nics.length.should.be.above(0);
-          var nic = nics[0];
-          nic.should.have.property('mac');
-          nic.should.have.property('name');
-          nic.should.have.property('ip_address');
-          _tr(inspect(nics));
-          done();
-        }
+
+        nics.should.be.an.instanceOf(Array);
+        nics.length.should.be.above(0);
+
+        var nic = nics[0];
+        nic.should.have.property('name');
+        nic.should.have.property('ip_address');
+        nic.should.have.property('mac_address');
+        done();
       });
     });
   });
 
   describe('get_first_mac_address', function(){
     it('there exists a mac address',function(done) {
-      provider.get_first_mac_address(function(err,mac) {
+      provider.get_first_mac_address(function(err, mac) {
         should.exist(mac);
         done();
       });
@@ -75,7 +70,6 @@ describe('Hardware', function(){
         firmware.should.have.property('mb_serial');
         firmware.should.have.property('bios_vendor');
         firmware.should.have.property('bios_version');
-        _tr("FIRMWARE=",firmware);
         done();
       });
     });

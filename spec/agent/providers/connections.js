@@ -1,14 +1,11 @@
 var helpers    = require('./../../helpers'),
-    should     = helpers.should,
+    should     = helpers.must,
     provider   = helpers.load('providers').load('connections');
 
 describe('Connections', function(){
   describe('get_outbound_connections_list', function(){
     it('should be an array of nic,ip pairs', function(done) {
       provider.get_outbound_connections_list(function(err,val) {
-        if (err) {
-          _tr(err);
-        }
         val.should.be.an.instanceOf(Array);
         var x = val[0];
         x.should.have.property('protocol');

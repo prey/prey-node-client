@@ -1,5 +1,5 @@
-var should  = require('should'),
-    sinon   = require('sinon'),
+var sinon   = require('sinon'),
+    should  = require('should'),
     needle  = require('needle'),
     helpers = {};
 
@@ -7,7 +7,7 @@ console.log(' == NODE VERSION: ' + process.version);
 
 helpers.path   = require('path');
 helpers.sinon  = sinon;
-helpers.should = should;
+helpers.must = should;
 
 /*
 helpers.base   = require('./../lib');

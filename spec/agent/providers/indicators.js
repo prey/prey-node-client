@@ -3,7 +3,7 @@
 "use strict";
 
 var helpers    = require('./../../helpers'),
-    should     = helpers.should,
+    should     = helpers.must,
     provider   = helpers.load('providers').load('indicators');
 
 describe('indicators', function(){
@@ -21,10 +21,6 @@ describe('indicators', function(){
    describe('get_remaining_battery', function(){
     it('should get remaining battery life as a % * 100, e.g. 80 = 80%', function(done) {
       provider.get_remaining_battery(function(err,life) {
-        if (err) {
-          _tr(err);
-        }
-        _tr(life);
         should.exist(life);
         life.should.be.a('string');
         life.slice(-1).should.equal('%');
@@ -37,10 +33,6 @@ describe('indicators', function(){
   describe('get_cpu_load', function(){
     it('should get cpu load', function(done) {
       provider.get_cpu_load(function(err,load) {
-        if (err) {
-          _tr(err);
-        }
-
         load.should.have.property('last_min')
         load.last_min.should.be.a('number');
         load.should.have.property('last_five');
@@ -54,10 +46,6 @@ describe('indicators', function(){
   describe('get_memory_usage', function(){
     it('should get memory usage', function(done) {
       provider.get_memory_usage(function(err,usage) {
-        if (err) {
-          _tr(err);
-        }
-
         should.exist(usage);
 
         usage.should.have.property('total_bytes');
@@ -76,10 +64,6 @@ describe('indicators', function(){
   describe('get_remaining_storage', function(){
     it('should get remaining disk space', function(done) {
       provider.get_remaining_storage(function(err,storage) {
-        if (err) {
-          _tr(err);
-        }
-
         should.exist(storage);
         storage.should.be.a('object');
         storage.should.have.keys(['size_gb','free_gb','used']);

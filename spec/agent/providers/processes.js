@@ -1,5 +1,5 @@
 var helpers    = require('./../../helpers'),
-    should     = helpers.should,
+    should     = helpers.must,
     provider   = helpers.load('providers').load('processes');
 
 var check_process = function(val) {
@@ -20,10 +20,6 @@ describe('Processes', function(){
   describe('get_process_list', function(){
     it('should be an array of process', function(done) {
       provider.get_parent_process_list(function(err,val) {
-        if (err) {
-          _tr(err);
-          return done();
-        }
         check_process(val);
         done();
       });
@@ -33,10 +29,6 @@ describe('Processes', function(){
   describe('get_parent_process_list', function(){
     it('should be an array of parent process', function(done) {
       provider.get_parent_process_list(function(err,val) {
-        if (err) {
-          _tr(err);
-          return done();
-        }
         check_process(val);
         done();
       });
