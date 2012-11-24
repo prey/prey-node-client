@@ -16,9 +16,9 @@ build(){
   VERSION=$(node -e 'console.log(JSON.parse(require("fs").readFileSync("package.json","utf8")).version)')
   DIST="$(pwd)/dist"
   ROOT="/tmp/prey-build.$$"
-  FOLDER="prey-${VERSION}"
+  FOLDER="${VERSION}"
   PACKAGE="$FOLDER"
-  TARBALL="${PACKAGE}.tar.gz"
+  TARBALL="prey-${PACKAGE}.zip"
   # [ $(uname) == 'Darwin' ] && PACKAGE="prey-mac-$FOLDER" || PACKAGE="prey-linux-$FOLDER"
 
   rm -f "${DIST}/${TARBALL}" 2> /dev/null
@@ -35,7 +35,8 @@ build(){
 
   echo -e "\nBuilding tarball..."
   cd "$ROOT"
-  tar czf "$TARBALL" "$FOLDER"
+  # tar czf "$TARBALL" "$FOLDER"
+  zip -9 -r "$TARBALL" "$FOLDER"
 
   mkdir -p "$DIST"
   cd "$DIST"
