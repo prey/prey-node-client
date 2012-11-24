@@ -24,7 +24,7 @@ build(){
   rm -f "${DIST}/${TARBALL}" 2> /dev/null
 
   mkdir -p "$ROOT/$FOLDER/node_modules"
-  cp -R README.md index.js default.options package.json bin lib scripts test "$ROOT/$FOLDER"
+  cp -R README.md index.js prey.conf.default package.json bin lib scripts spec "$ROOT/$FOLDER"
   cd "$ROOT/$FOLDER"
 
   BUNDLE_ONLY=1 npm install --production # > /dev/null
@@ -46,5 +46,5 @@ build(){
 
 }
 
-run_specs
+[ -z "$SKIP_TESTS" ] && run_specs || echo "Skipping tests!"
 [ $? -eq 0 ] && build
