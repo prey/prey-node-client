@@ -1,6 +1,6 @@
 var helpers = require('./../../../helpers'),
-    should = helpers.should,
-    fs = require('fs');
+    should  = helpers.must,
+    fs      = require('fs');
 
 describe('get_access_points_list', function(){
 
@@ -64,6 +64,10 @@ describe('get_access_points_list', function(){
           var ap = list[0];
           Object.keys(ap).length.should.equal(5);
           ap.should.have.keys(['ssid', 'mac_address', 'signal_strength', 'channel', 'security'])
+        })
+
+        it('sorts them by proximity', function(){
+
         })
 
       });
