@@ -40,7 +40,7 @@
   },
   "scripts": {
     "start": "./bin/prey",
-    "test" : "./bin/prey tests --recursive spec",
+    "test" : "./bin/prey test --recursive spec",
     "postinstall": "node ./scripts/post_install.js",
     "preuninstall": "node ./scripts/pre_uninstall.js"
   },
