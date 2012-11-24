@@ -1,4 +1,5 @@
-var should = require('should'),
+var helpers = require('./helpers'),
+    should = require('should'),
     sandbox = require('sandboxed-module'),
     exec = require('child_process').exec,
     main_script = require('./../package').scripts.start;
