@@ -5,6 +5,7 @@ var should  = require('should'),
 
 console.log(' == NODE VERSION: ' + process.version);
 
+helpers.path   = require('path');
 helpers.sinon  = sinon;
 helpers.should = should;
 

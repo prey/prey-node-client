@@ -1,7 +1,7 @@
-var helpers = require('./../../../spec_helpers'),
-    should = helpers.should,
-    fs = require('fs'),
-    provider   = helpers.load('providers').load('geo');
+var helpers  = require('./../../../helpers'),
+    should   = helpers.should,
+    fs       = require('fs'),
+    provider = helpers.load('providers').load('geo');
 
 describe('coordinates', function(){
 

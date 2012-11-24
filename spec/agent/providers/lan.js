@@ -1,4 +1,4 @@
-var helpers    = require('./../../spec_helpers'),
+var helpers    = require('./../../helpers'),
     should     = helpers.should,
     provider   = helpers.load('providers').load('lan');
 
