@@ -19,7 +19,7 @@ build(){
   DIST="$(pwd)/dist"
   ROOT="/tmp/prey-build.$$"
 
-  FOLDER=$VERSION
+  FOLDER="prey-${VERSION}"
   VERSION_PATH="${DIST}/${FOLDER}"
   ZIP="prey-${VERSION}.zip"
 
@@ -41,9 +41,9 @@ build(){
   mkdir -p "$VERSION_PATH"
 
   zip_file
+  pack windows
   pack linux
   pack mac
-  pack windows
 
   rm -fr "$ROOT"
 
@@ -57,7 +57,7 @@ zip_file(){
   if [ -z "$OS" ]; then
     zip -9 -r "$ZIP" "$FOLDER" 1> /dev/null
   elif [ "$OS" = 'windows' ]; then
-  	zip -9 -r "$ZIP" "$FOLDER" -x \*linux* -x \*mac* 1> /dev/null
+  	zip -9 -r "$ZIP" "$FOLDER" -x \*.sh -x \*linux* -x \*mac* 1> /dev/null
   elif [ "$OS" = 'mac' ]; then
   	zip -9 -r "$ZIP" "$FOLDER" -x \*windows* -x \*.exe -x \*linux* 1> /dev/null
   elif [ "$OS" = 'linux' ]; then
@@ -79,7 +79,7 @@ pack(){
 
   cp "$CURRENT_PATH/node/current/${NODE_BIN}" "${ROOT}/${FOLDER}/bin"
 
-  if [ "$OS" = "windows" ]; then
+  if [ "$OS" != "windows" ]; then
     mv "${ROOT}/${FOLDER}/bin/node.${OS}" "${ROOT}/${FOLDER}/bin/node"
   fi
 
