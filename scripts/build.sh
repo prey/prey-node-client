@@ -20,7 +20,7 @@ build(){
   ROOT="/tmp/prey-build.$$"
 
   FOLDER="prey-${VERSION}"
-  VERSION_PATH="${DIST}/${FOLDER}"
+  VERSION_PATH="${DIST}/${VERSION}"
   ZIP="prey-${VERSION}.zip"
 
   rm -Rf "${VERSION_PATH}" 2> /dev/null
