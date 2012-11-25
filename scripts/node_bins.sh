@@ -81,7 +81,10 @@ set_version(){
   [ "$(uname)" == 'Linux' ] && os='linux' || os='mac'
 
   rm -f bin/node
-  ln -s ${cwd}/node/${version}/${type}/node.${os} bin/node
+  # ln -s ${cwd}/node/${version}/${type}/node.${os} bin/node
+  ln -s "${cwd}/node/${version}/${type}" "${cwd}/node/current"
+  ln -s "${cwd}/node/current/node.${os}" "bin/node"
+
 }
 
 if [ "$1" == 'fetch' ]; then
@@ -91,7 +94,6 @@ elif [ "$1" == 'set' ]; then
   if [ "$2" ]; then
     set_version "$2"
   else
-    echo 'asd'
     echo $(readlink "bin/node")
   fi
 fi
