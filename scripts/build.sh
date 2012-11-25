@@ -26,7 +26,7 @@ build(){
   rm -Rf "${VERSION_PATH}" 2> /dev/null
 
   mkdir -p "$ROOT/$FOLDER"
-  cp -R README.md index.js prey.conf.default package.json bin lib scripts spec "$ROOT/$FOLDER"
+  cp -R README.md LICENSE index.js prey.conf.default package.json bin lib scripts spec "$ROOT/$FOLDER"
 
   cd "$ROOT/$FOLDER"
 
