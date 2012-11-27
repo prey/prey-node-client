@@ -690,7 +690,7 @@
                 <property name="label" translatable="yes" comments="Mnemonic: No&#10;Context: Application&#10;Item: SSL connection indicator">Connection secured with SSL.</property>
                 <attributes>
                   <attribute name="foreground" value="#999999999999"/>
-                  <attribute name="size" value="11000"/>
+                  <attribute name="size" value="10000"/>
                 </attributes>
               </object>
               <packing>
