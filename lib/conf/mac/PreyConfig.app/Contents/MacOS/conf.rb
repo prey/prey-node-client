@@ -166,7 +166,7 @@ class ConfigDelegate < NSObject
 	end
 
 	def drawTab(name)
-    tab = NSTabViewItem.alloc().initWithIdentifier_(name)
+    tab = NSTabViewItem.alloc().initWithIdentifier(name)
     tab.setLabel(name)
 
 		text = drawLabel(TEXTS[name], [400, 50, 15, 170])
