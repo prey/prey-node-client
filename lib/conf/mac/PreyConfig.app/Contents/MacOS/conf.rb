@@ -18,7 +18,8 @@ CENTER = WIDTH/2
 EMAIL_REGEX = /[A-Z0-9\._%-]+@([A-Z0-9-]+\.)+[A-Z]{2,4}\z/i
 
 PREY_CONFIG = File.expand_path(File.dirname(__FILE__) + '/../../../../../../bin/prey config')
-LOGO   = File.expand_path(File.dirname(__FILE__) + '/../../../../pixmaps/prey-text.png')
+PIXMAPS     = File.expand_path(File.dirname(__FILE__) + '/../../../../pixmaps')
+LOGO        = PIXMAPS + '/prey-text.png'
 
 TABS = ['welcome', 'new_user', 'existing_user', 'success']
 
@@ -26,7 +27,7 @@ TEXTS = {
 	'welcome' => 'Welcome wise friend. Please choose your destiny.',
 	'new_user' => "Please type in your info and we'll sign you up for a new account.",
 	'existing_user' => 'Please type in your credentials.',
-	'success' => 'All good!'
+	'success' => 'All good! Your computer is now protected by Prey.'
 }
 
 class ConfigWindow < NSWindow
@@ -78,7 +79,7 @@ class ConfigDelegate < NSObject
 	
 	def drawImage(file, coords, view)
     imageView = NSImageView.alloc.initWithFrame(getFrame(*coords))
-    image = NSImage.alloc.initWithContentsOfFile(LOGO)
+    image = NSImage.alloc.initWithContentsOfFile(file)
     imageView.setImage(image)
 		view.addSubview(imageView)
 	end
@@ -195,12 +196,11 @@ class ConfigDelegate < NSObject
 			tabs.addTabViewItem(tab)
 		end
 		tabs.setTabViewType(NSNoTabsBezelBorder)
-		# tabs.setDrawsBackground(true)
 		window.contentView.addSubview(tabs)
 	end
 	
 	def getCurrentTab
-    item = tabs.selectedTabViewItem()
+    item = tabs.selectedTabViewItem
     tabs.indexOfTabViewItem(item)
 	end
 
@@ -256,9 +256,9 @@ class ConfigDelegate < NSObject
 	
 	def submitData(index)
 		if TABS[index] == 'new_user'
-			userSignup()
+			userSignup
 		else
-			userVerify()
+			userVerify
 		end
 	end
 	
@@ -351,12 +351,12 @@ class ConfigDelegate < NSObject
 		elements << drawTextInput('existing_email', 'Email', 15, 140)
 		elements << drawPasswordInput('existing_pass', 'Password', 15, 85)
 		elements.flatten.each do |el|
-			tab.view.addSubview(el)			
+			tab.view.addSubview(el)
 		end
 	end
 
 	def drawSuccess(tab, name)
-		
+		drawImage(PIXMAPS + '/conf/check.png', [96, 88, CENTER-(70), 100], tab.view)
 	end
 
 end
