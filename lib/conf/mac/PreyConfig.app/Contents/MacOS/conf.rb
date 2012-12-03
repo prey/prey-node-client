@@ -102,10 +102,10 @@ class ConfigDelegate < NSObject
 	
 	def drawChooser
     cell = NSButtonCell.alloc.init
-    cell.setTitle "Watermelons"
+    cell.setTitle "Choose your destiny"
     cell.setButtonType(NSRadioButton)
 
-    frame = getFrame(100.0, 100.0, 20.0, 50.0)
+    frame = getFrame(100.0, 100.0, 50.0, 60.0)
 		@chooser = matrix = NSMatrix.alloc.initWithFrame_mode_prototype_numberOfRows_numberOfColumns(frame, 
 			NSRadioModeMatrix,
 			cell,
@@ -113,12 +113,19 @@ class ConfigDelegate < NSObject
 			1
 		)
 
-		matrix.setIntercellSpacing(NSSize.new(50, 20.0))
+		matrix.setIntercellSpacing(NSSize.new(50, 50.0))
     # matrix.setCellSize_((posSize[2], 15))
 
+ 		font = NSFont.fontWithName_size("LucidaGrande-Bold", 12)
+
 		arr = matrix.cells
-		arr.objectAtIndex(0).setTitle('New user')
-		arr.objectAtIndex(1).setTitle('Existing user')
+		button = arr.objectAtIndex(0)
+		button.setTitle('New user')
+		button.setFont(font)
+
+		button = arr.objectAtIndex(1)
+		button.setTitle('Existing user')
+		button.setFont(font)
 
 		matrix
 	end
@@ -327,13 +334,16 @@ class ConfigDelegate < NSObject
   end
 	
 	def drawWelcome(tab, name)
+		drawImage(PIXMAPS + '/conf/newuser.png', [48, 48, 0, 120], tab.view)
+		drawImage(PIXMAPS + '/conf/olduser.png', [48, 48, 0, 50], tab.view)
 		matrix = drawChooser
 		tab.view.addSubview(matrix)
-		return
-		# cb1 = drawRadio('New user', true, 1, [100, 100])
-		# cb2 = drawRadio('Existing user', false, 1, [200, 100])
-		# tab.view.addSubview(cb1)
-		# tab.view.addSubview(cb2)
+		label = drawLabel("Select this if this is the first time you installed Prey, or if you haven't created a Prey account yet.", [300, 50, 68, 90])
+		label.setTextColor(NSColor.grayColor)
+		tab.view.addSubview(label)
+		label = drawLabel("If you already know what your're doing.", [300, 50, 68, 23])
+		label.setTextColor(NSColor.grayColor)
+		tab.view.addSubview(label)
 	end
 	
 	def drawNewUser(tab, name)
