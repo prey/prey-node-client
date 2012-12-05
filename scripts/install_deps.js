@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
-var path = require('path'),
-    spawn = require('child_process').spawn,
+var path   = require('path'),
+    spawn  = require('child_process').spawn,
     finder = require('./../lib/utils/finder');
 
 finder.eachFileMatching(/lib.*\/package.json$/, './', function(err, file, stat){

@@ -6,7 +6,7 @@
 
 var fs = require('fs'),
     execFile = require('child_process').execFile,
-    prey_bin = require('../lib/system').paths.prey_bin,
+    prey_bin = __dirname + '/../bin/prey',
     line = '\n=====================================================\n';
 
 var post_install = function(){
@@ -22,7 +22,7 @@ var post_install = function(){
          msg +=  '\nTo finalize the install process please run: \n\n';
          msg +=  '  $ sudo scripts/post_install.js';
       console.log(line + msg + line);
-      process.exit(0)
+      process.exit(1);
     }
 
     // make sure the executable exists before setting up any triggers
@@ -38,7 +38,8 @@ var post_install = function(){
         process.exit(1);
       }
 
-      execFile(__dirname + '/../lib/conf/cli.js', ['post_install'], function(err, stdout, stderr){
+      var args = ['config', 'hooks', 'post_install'];
+      execFile(prey_bin, args, function(err, stdout, stderr){
         if (stdout.length > 0) console.log(stdout);
         if (stderr.length > 0) console.log(stderr);
 
