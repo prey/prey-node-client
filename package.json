@@ -13,6 +13,7 @@
     "xml2js": "",
     "getset": "",
     "needle": "",
+    "dialog": "",
     "commander": "",
     "mime": "1.2.5",
     "spaghetti": "",
