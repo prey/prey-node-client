@@ -1,0 +1,9 @@
+{
+  "name":        "prey-action-alert",
+  "version":     "0.1.0",
+  "private":      true,
+  "author":      "Tomás Pollak <tomas@forkhq.com>",
+  "dependencies": {
+    "dialog": ""
+  }
+}
