@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 
 var execFile = require('child_process').execFile,
-    prey_bin = __dirname + '/../prey';
+    prey_bin = __dirname + '/../bin/prey',
+    args = ['config', 'hooks', 'pre_uninstall'];
 
 var pre_uninstall = function() {
 
-  var args = ['config', 'hooks', 'pre-uninstall'];
   execFile(prey_bin, args, function(err, stdout, stderr){
     if (stdout.length > 0) console.log(stdout);
     if (stderr.length > 0) console.log(stderr);
