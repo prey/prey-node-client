@@ -7,6 +7,7 @@ if "%1" == "config" (
   shift
 ) else if "%1" == "test" (
   set script=\node_modules\mocha\bin\mocha
+  shift
 ) else (
   set script=\lib\agent\cli.js
 )
