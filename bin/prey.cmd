@@ -15,12 +15,15 @@ if "%1" == "config" (
 
 if not "%1" == "" (
   if not "%no_shift" == "0" (
-    shift
+	shift
  )
 )
 
+REM -- Shift has no affect on the %* batch parameter.
+set args=%1 %2 %3 %4 %5
+
 @IF EXIST "%path%\node.exe" (
-  "%path%\node.exe" "%path%\..\%script%" %*
+  "%path%\node.exe" "%path%\..\%script%" %args%
 ) ELSE (
-  node "%path%\..\%script%" %*
+  node "%path%\..\%script%" %args%
 )
