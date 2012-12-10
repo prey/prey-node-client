@@ -1,25 +1,20 @@
 #!/bin/sh
 
-basedir="$(dirname $0)"
-cmd="$1"
+path="$(dirname $0)"
 # [ -z "$script" ] && echo "Usage: prey.sh [script] <args>" && exit 1
 
-if [ "$cmd" = "config" ]; then
+if [ "$1" = "config" ]; then
   script="lib/conf/cli.js"
-elif [ "$cmd" = "test" ]; then
+  shift
+elif [ "$1" = "test" ]; then
   script="node_modules/mocha/bin/mocha"
-# elif [ "$cmd" = "console" ]; then
-#  script="lib/agent/cli.js"
+  shift
 else
   script="lib/agent/cli.js"
-  # if arguments were passed, dont shift
-  [ -n "$cmd" ] && no_shift=1
 fi
 
-[ -n "$cmd" ] && [ -z "$no_shift" ] && shift
-
-if [ -x "$basedir/node" ]; then
-  "$basedir/node" "$basedir/../${script}" "$@"
+if [ -x "$path/node" ]; then
+  "$path/node" "$path/../${script}" "$@"
 else
-  node "$basedir/../${script}" "$@"
+  node "$path/../${script}" "$@"
 fi
