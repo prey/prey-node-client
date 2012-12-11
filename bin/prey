@@ -5,10 +5,8 @@ path="$(dirname $0)"
 
 if [ "$1" = "config" ]; then
   script="lib/conf/cli.js"
-  shift
-elif [ "$1" = "test" ]; then
+elif [ "$1" = "spec" ]; then
   script="node_modules/mocha/bin/mocha"
-  shift
 else
   script="lib/agent/cli.js"
 fi
