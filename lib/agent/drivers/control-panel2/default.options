@@ -1,0 +1,15 @@
+; host for checking device status and sending gathered data
+host = control.preyproject.com
+
+; API key and unique identifier for device.
+api_key =
+device_key =
+
+; this option prepends a random number as a subdomain to the check URL on http mode
+; makes it harder for other programs to eventually block Prey
+randomize_check_host = false
+
+; unless disabled, Prey will send contextual info (remaining battery,
+; active wifi network, etc)  so that we can remotely show the current status
+; of the device. required for Active Mode.
+report_status = true
