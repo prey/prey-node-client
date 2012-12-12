@@ -33,10 +33,18 @@ describe('updating', function(){
 					})
 
 					describe('and has write permissions', function(){
-
-						it('updates keys and comments accordingly', function(){
-
-						})
+					  
+					  it('adds new keys if any', function(){
+					    
+					  })
+					  
+					  it('does not replace any existing values', function(){
+					    
+					  })
+					  
+					  it('updates for existing keys', function(){
+					    
+					  })
 
 					})
 

@@ -4,7 +4,7 @@ set dir=%~dp0
 
 if "%1" == "config" (
   set script=\lib\conf\cli.js
-) else if "%1" == "spec" (
+) else if "%1" == "test" (
   set script=\node_modules\mocha\bin\mocha
 ) else (
   set script=\lib\agent\cli.js
