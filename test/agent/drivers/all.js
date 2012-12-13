@@ -1,12 +1,12 @@
 var fs      = require('fs'),
     should  = require('should'),
     Emitter = require('events').EventEmitter,
-    valid_opts = require('./drivers/fixtures/valid_opts'),
-    default_config_path = __dirname + '/../../prey.conf.default';
+    valid_opts = require('./fixtures/valid_opts'),
+    default_config_path = __dirname + '/../../../prey.conf.default';
 
-describe('drivers', function(){
+describe('all drivers', function(){
 
-  var drivers_path = __dirname + '/../../lib/agent/drivers/';
+  var drivers_path = __dirname + '/../../../lib/agent/drivers/';
   var drivers = fs.readdirSync(drivers_path);
 
   // console driver works differently, so lets remove it from the list
@@ -28,7 +28,7 @@ describe('drivers', function(){
 
   })
 
-  describe('load', function(){
+  describe('on load', function(){
 
     describe('when no options are passed', function(){
 
@@ -98,7 +98,7 @@ describe('drivers', function(){
 
   })
 
-  describe('unload', function(){
+  describe('on unload', function(){
 
     describe('if not loaded', function(){
 
