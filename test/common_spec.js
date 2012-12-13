@@ -1,4 +1,5 @@
-var common = require('./../lib/common');
+var common = require('./../lib/common'),
+    should = require('should');
 
 describe('common', function(){
 
