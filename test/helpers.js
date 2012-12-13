@@ -7,7 +7,7 @@ console.log(' == NODE VERSION: ' + process.version);
 
 helpers.path   = require('path');
 helpers.sinon  = sinon;
-helpers.must = should;
+helpers.must   = should;
 
 /*
 helpers.base   = require('./../lib');
