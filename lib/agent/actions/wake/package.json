@@ -1,9 +1,0 @@
-{
-  "name":        "prey-action-wake",
-  "version":     "0.1.0",
-  "private":      true,
-  "author":      "Tomás Pollak <tomas@forkhq.com>",
-  "dependencies": {
-    "wake_on_lan": ""
-  }
-}
