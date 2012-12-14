@@ -26,7 +26,7 @@ build(){
   rm -Rf "${VERSION_PATH}" 2> /dev/null
 
   mkdir -p "$ROOT/$FOLDER"
-  cp -R README.md LICENSE index.js prey.conf.default package.json bin lib scripts spec "$ROOT/$FOLDER"
+  cp -R README.md LICENSE index.js prey.conf.default package.json bin lib scripts test "$ROOT/$FOLDER"
 
   cd "$ROOT/$FOLDER"
 
@@ -79,12 +79,12 @@ pack(){
   ZIP="prey-${OS}-${VERSION}-${ARCH}.zip"
 
   NODE_VER=$(readlink ${CURRENT_PATH}/node/current | tr "\/" " " | awk '{print $(NF-1)}')
-  [ ! -d "${CURRENT_PATH}/node/${NODE_VERSION}" ] && return 1
+  [ -z "${NODE_VER}" ] && return 1
 
   NODE_BIN="node.${OS}"
   [ "$OS" = "windows" ] && NODE_BIN="node.exe"
 
-  cp "$CURRENT_PATH/node/${NODE_VERSION}/${ARCH}/${NODE_BIN}" "${ROOT}/${FOLDER}/bin"
+  cp "$CURRENT_PATH/node/${NODE_VER}/${ARCH}/${NODE_BIN}" "${ROOT}/${FOLDER}/bin"
 
   if [ "$OS" != "windows" ]; then
     mv "${ROOT}/${FOLDER}/bin/node.${OS}" "${ROOT}/${FOLDER}/bin/node"
