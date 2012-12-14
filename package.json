@@ -43,8 +43,8 @@
   "scripts": {
     "start": "./bin/prey",
     "test" : "./bin/prey test --recursive",
-    "postinstall": "bin/prey config activate",
-    "preuninstall": "bin/prey config deactivate"
+    "postinstall": "node ./scripts/post_install.js",
+    "preuninstall": "node ./scripts/pre_uninstall.js"
   },
   "bugs"   :  {
     "url" : "http://github.com/prey/prey-node-client/issues"
