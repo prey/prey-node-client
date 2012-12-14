@@ -41,9 +41,13 @@ build(){
   mkdir -p "$VERSION_PATH"
 
   zip_file
-  pack windows
-  pack linux
-  pack mac
+  pack windows x86
+  pack linux x86
+  pack mac x86
+
+  pack windows x64
+  pack linux x64
+  pack mac x64
 
   rm -fr "$ROOT"
 
@@ -59,9 +63,9 @@ zip_file(){
   elif [ "$OS" = 'windows' ]; then
   	zip -9 -r "$ZIP" "$FOLDER" -x \*.sh -x \*linux* -x \*mac* 1> /dev/null
   elif [ "$OS" = 'mac' ]; then
-  	zip -9 -r "$ZIP" "$FOLDER" -x \*windows* -x \*.exe -x \*linux* 1> /dev/null
+  	zip -9 -r "$ZIP" "$FOLDER" -x \*.exe -x \*windows* -x \*linux* 1> /dev/null
   elif [ "$OS" = 'linux' ]; then
-  	zip -9 -r "$ZIP" "$FOLDER" -x \*windows* -x \*.exe -x \*mac* 1> /dev/null
+  	zip -9 -r "$ZIP" "$FOLDER" -x \*.exe -x \*windows* -x \*mac* 1> /dev/null
   fi
 
   mv "$ROOT/$ZIP" "$VERSION_PATH"
@@ -71,13 +75,16 @@ zip_file(){
 pack(){
 
   OS="$1"
-  # OS_FOLDER="${ROOT}/${1}"
-  ZIP="prey-${OS}-${VERSION}.zip"
+  ARCH="$2"
+  ZIP="prey-${OS}-${VERSION}-${ARCH}.zip"
+
+  NODE_VER=$(readlink ${CURRENT_PATH}/node/current | tr "\/" " " | awk '{print $(NF-1)}')
+  [ ! -d "${CURRENT_PATH}/node/${NODE_VERSION}" ] && return 1
 
   NODE_BIN="node.${OS}"
   [ "$OS" = "windows" ] && NODE_BIN="node.exe"
 
-  cp "$CURRENT_PATH/node/current/${NODE_BIN}" "${ROOT}/${FOLDER}/bin"
+  cp "$CURRENT_PATH/node/${NODE_VERSION}/${ARCH}/${NODE_BIN}" "${ROOT}/${FOLDER}/bin"
 
   if [ "$OS" != "windows" ]; then
     mv "${ROOT}/${FOLDER}/bin/node.${OS}" "${ROOT}/${FOLDER}/bin/node"
