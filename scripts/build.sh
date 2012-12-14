@@ -50,6 +50,9 @@ build(){
   pack mac x64
 
   rm -fr "$ROOT"
+  cd $DIST
+  ./checksum.sh $VERSION
+  cd $CURRENT_PATH
 
 }
 
