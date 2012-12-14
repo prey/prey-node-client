@@ -2,7 +2,7 @@
 
 var execFile = require('child_process').execFile,
     prey_bin = __dirname + '/../bin/prey',
-    args = ['config', 'hooks', 'pre_uninstall'];
+    args = ['config', 'deactivate'];
 
 var pre_uninstall = function() {
 

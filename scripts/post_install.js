@@ -6,7 +6,7 @@
 var fs = require('fs'),
     execFile = require('child_process').execFile,
     prey_bin = __dirname + '/../bin/prey',
-    args = ['config', 'hooks', 'post_install'],
+    args = ['config', 'activate'],
     line = '\n=====================================================\n';
 
 var post_install = function(){
