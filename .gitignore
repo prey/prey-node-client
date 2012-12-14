@@ -2,3 +2,5 @@ dist
 node
 node_modules
 *~
+install
+bin/node.*
