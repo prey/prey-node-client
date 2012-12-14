@@ -1,9 +1,0 @@
-{
-  "name":        "prey-action-filebrowser",
-  "version":     "0.1.0",
-  "private":      true,
-  "author":      "Tomás Pollak <tomas@forkhq.com>",
-  "dependencies": {
-    "connect": ""
-  }
-}
