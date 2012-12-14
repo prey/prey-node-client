@@ -18,6 +18,8 @@
   <string>6.0</string>
   <key>CFBundlePackageType</key>
   <string>APPL</string>
+  <key>IFPkgFlagAuthorizationAction</key>
+  <string>RootAuthorization</string>
   <key>IFMajorVersion</key>
   <integer>0</integer>
   <key>IFMinorVersion</key>
