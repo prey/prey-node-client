@@ -17,8 +17,8 @@
 ### END INIT INFO
 
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
-# PREY_PATH=/usr/share/prey
-DAEMON="{{prey_bin}}"
+DAEMON="{{trigger_script}}"
+DAEMON_OPTS="{{prey_bin}}"
 NAME=prey-trigger
 DESC=prey-trigger
 
