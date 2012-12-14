@@ -1,4 +1,4 @@
 #!/bin/sh
 
 export PATH="$PATH:/usr/local/bin"
-exec ruby "`dirname "$0"`/conf.rb"
+exec /usr/bin/ruby "`dirname "$0"`/conf.rb"
