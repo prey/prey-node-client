@@ -11,7 +11,7 @@ var fs = require('fs'),
 
 var post_install = function(){
 
-  if (process.getuid() != 0) {
+  if (process.getuid && process.getuid() != 0) {
     var msg =  'You are running this script as an unprivileged user';
        msg +=  '\nso we cannot continue with the system configuration.';
        msg +=  '\nTo finalize the install process please run: \n\n';
