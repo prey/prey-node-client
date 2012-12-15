@@ -10,7 +10,7 @@ if "%1" == "config" (
   set script=\lib\agent\cli.js
 )
 
-@IF EXIST "%path%\node.exe" (
+@IF EXIST "%dir%\node.exe" (
   "%dir%\node.exe" "%dir%\..\%script%" %*
 ) ELSE (
   node "%dir%\..\%script%" %*
