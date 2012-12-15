@@ -4,32 +4,32 @@
 // and calls the conf module to set up config and execution triggers
 
 var fs = require('fs'),
-    execFile = require('child_process').execFile,
-    prey_bin = __dirname + '/../bin/prey',
+    join = require('path').join,
     args = ['config', 'activate'],
-    line = '\n=====================================================\n';
+    line = '\n=====================================================\n',
+    os_name = process.platform.replace('darwin', 'mac').replace('win32', 'windows'),
+    exec = require('child_process').exec,
+    prey_bin = join(__dirname, '..', 'bin', 'prey');
 
 var post_install = function(){
 
-  if (process.getuid && process.getuid() != 0) {
-    var msg =  'You are running this script as an unprivileged user';
-       msg +=  '\nso we cannot continue with the system configuration.';
-       msg +=  '\nTo finalize the install process please run: \n\n';
-       msg +=  '  $ sudo scripts/post_install.js';
-    console.log(line + msg + line);
-    process.exit(1);
+  if (os_name !== "windows") {
+    if (process.getuid && process.getuid() != 0) {
+      var msg =  'You are running this script as an unprivileged user';
+         msg +=  '\nso we cannot continue with the system configuration.';
+         msg +=  '\nTo finalize the install process please run: \n\n';
+         msg +=  '  $ sudo scripts/post_install.js';
+      console.log(line + msg + line);
+      process.exit(1);
+    }
   }
 
-   // make sure the executable exists before setting up any triggers
-
-  execFile(prey_bin, args, function(err, stdout, stderr){
+  exec(prey_bin + " " + args.join(" "), function(err, stdout, stderr){
     if (stdout.length > 0) console.log(stdout);
     if (stderr.length > 0) console.log(stderr);
-
     if (err) return console.log(err);
     console.log("System setup successful! You can run Prey now.");
   });
-
 }
 
 if (!process.env.BUNDLE_ONLY)

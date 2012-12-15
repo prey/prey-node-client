@@ -1,12 +1,14 @@
 #!/usr/bin/env node
 
-var execFile = require('child_process').execFile,
-    prey_bin = __dirname + '/../bin/prey',
+var exec = require('child_process').exec,
+    os_name = process.platform.replace('darwin', 'mac').replace('win32', 'windows'),
+    join = require("path").join,
+    prey_bin = join(__dirname, "..", "bin", "prey"),
     args = ['config', 'deactivate'];
 
 var pre_uninstall = function() {
 
-  execFile(prey_bin, args, function(err, stdout, stderr){
+  exec(prey_bin + " " + args.join(" "), function(err, stdout, stderr){
     if (stdout.length > 0) console.log(stdout);
     if (stderr.length > 0) console.log(stderr);
 
@@ -15,8 +17,6 @@ var pre_uninstall = function() {
       process.exit(1);
     }
   });
-
 }
 
-// if (!process.env.DEV)
-  pre_uninstall();
+pre_uninstall();
