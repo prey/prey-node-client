@@ -24,7 +24,7 @@ LOGO        = PIXMAPS + '/prey-text.png'
 TABS = ['welcome', 'new_user', 'existing_user', 'success']
 
 TITLES = {
-	:welcome => 'Welcome, good friend. Please choose your destiny.',
+	:welcome => 'Greetings, good friend. Please choose your destiny.',
 	:new_user => "Please type in your info and we'll sign you up for a new Prey account.",
 	:existing_user => 'Please type in your Prey account credentials.',
 	:success => 'All good! Your computer is now protected by Prey. You can now visit preyproject.com and start tracking it.'
@@ -32,7 +32,7 @@ TITLES = {
 
 OPTIONS = {
 	:new => "Choose this option if this is the first time you've installed Prey.",
-	:existing => "If you've already set up Prey on another or this device."
+	:existing => "If you've already set up Prey on this or another device."
 }
 
 class ConfigWindow < NSWindow
@@ -67,10 +67,10 @@ class ConfigDelegate < NSObject
 
 	def drawWindow
 		frame = getFrame(WIDTH, HEIGHT, 300, 200)
-	  @window = ConfigWindow.alloc.initWithContentRect_styleMask_backing_defer(frame, 
+	  @window = ConfigWindow.alloc.initWithContentRect_styleMask_backing_defer(frame,
 #			NSTexturedBackgroundWindowMask |
 			NSTitledWindowMask |
-	  	NSClosableWindowMask | 
+	  	NSClosableWindowMask |
 	  	NSMiniaturizableWindowMask, NSBackingStoreBuffered, 1)
 
 	  window.setTitle(APP_NAME)
@@ -81,21 +81,21 @@ class ConfigDelegate < NSObject
 		# win.makeKeyAndOrderFront(self)
 		window
 	end
-	
+
 	def drawImage(file, coords, view)
     imageView = NSImageView.alloc.initWithFrame(getFrame(*coords))
     image = NSImage.alloc.initWithContentsOfFile(file)
     imageView.setImage(image)
 		view.addSubview(imageView)
 	end
-	
+
 	def drawButtons
 		@prev = drawButton([300.0, 10.0], [80, 30], 'Previous', 'previous_tab:')
 		@next = drawButton([400.0, 10.0], [80, 30], 'Next', 'next_tab:')
 		@prev.setHidden(true)
 		window.makeFirstResponder(@next)
 	end
-	
+
 	def drawRadio(title, default, tag, coords)
     checkbox = NSButton.alloc.initWithFrame(NSRect.new(NSSize.new(*coords), NSSize.new(94,18)))
     checkbox.setButtonType(NSRadioButton)
@@ -104,14 +104,14 @@ class ConfigDelegate < NSObject
     checkbox.setTag(tag)
 		checkbox
 	end
-	
+
 	def drawChooser
     cell = NSButtonCell.alloc.init
     cell.setTitle "Choose your destiny"
     cell.setButtonType(NSRadioButton)
 
     frame = getFrame(100.0, 100.0, 50.0, 60.0)
-		@chooser = matrix = NSMatrix.alloc.initWithFrame_mode_prototype_numberOfRows_numberOfColumns(frame, 
+		@chooser = matrix = NSMatrix.alloc.initWithFrame_mode_prototype_numberOfRows_numberOfColumns(frame,
 			NSRadioModeMatrix,
 			cell,
 			2,
@@ -134,7 +134,7 @@ class ConfigDelegate < NSObject
 
 		matrix
 	end
-	
+
 	def drawButton(size, position, text, action)
 	  button = NSButton.alloc.initWithFrame(NSRect.new(NSSize.new(*size), NSSize.new(*position)))
 	  window.contentView.addSubview(button)
@@ -169,7 +169,7 @@ class ConfigDelegate < NSObject
 		@inputs[id] = input
 		return label, input
 	end
-	
+
 	def drawTextInput(id, title, x, y)
 		return drawInput('text', id, title, x, y)
 	end
@@ -199,7 +199,7 @@ class ConfigDelegate < NSObject
 
 		tab
 	end
-	
+
 	def drawTabs
 		@tabs = NSTabView.alloc.initWithFrame(getFrame(470, 250, 15, 50))
 		TABS.each_with_index do |name, i|
@@ -210,7 +210,7 @@ class ConfigDelegate < NSObject
 		tabs.setTabViewType(NSNoTabsBezelBorder)
 		window.contentView.addSubview(tabs)
 	end
-	
+
 	def getCurrentTab
     item = tabs.selectedTabViewItem
     tabs.indexOfTabViewItem(item)
@@ -219,12 +219,12 @@ class ConfigDelegate < NSObject
 	def setTab(index)
   	tabs.selectTabViewItemAtIndex(index)
 	end
-	
+
 	def getDestiny
 		x = chooser.selectedRow()
 		return x == 0 ? 1 : 2
 	end
-	
+
 	def changeTab(dir)
 		index = getCurrentTab
 
@@ -248,7 +248,7 @@ class ConfigDelegate < NSObject
 		end
 		setTab(target)
 	end
-	
+
 	def parseError(message)
 		if message['already been taken']
 			return 'Email has been taken. Seems you already signed up!'
@@ -257,7 +257,7 @@ class ConfigDelegate < NSObject
 		end
 		message
 	end
-	
+
 	def showAlert(message)
 	 alert = NSAlert.alloc.init
 	 alert.setMessageText(message)
@@ -265,14 +265,14 @@ class ConfigDelegate < NSObject
    # alert.setIcon(nil)
 	 alert.runModal()
 	end
-	
+
 	def showSuccess
 		@prev.setHidden(true)
 		@next.setTitle('Close')
 		@next.setAction('terminate:')
 		setTab(TABS.count-1) # last one
 	end
-	
+
 	def submitData(index)
 		if TABS[index] == 'new_user'
 			userSignup
@@ -280,11 +280,11 @@ class ConfigDelegate < NSObject
 			userVerify
 		end
 	end
-	
+
 	def get_value(input_id)
 		inputs[input_id].objectValue
 	end
-	
+
 	def validate_email(email)
 		return email.to_s[EMAIL_REGEX] ? true : showAlert('Email address is not valid.') && false
 	end
@@ -296,7 +296,7 @@ class ConfigDelegate < NSObject
 	def validate_length(what, count, text)
 		return text.length >= count ? true : showAlert("#{what} needs to be at least #{count} chars long.") && false
 	end
-	
+
 	def userSignup
 		name, email, pass = get_value('name'), get_value('email'), get_value('pass')
 		validate_present('Name', name) and validate_email(email) and validate_length('Password', 6, pass) or return
@@ -308,7 +308,7 @@ class ConfigDelegate < NSObject
 			showSuccess
 		end
 	end
-	
+
 	def userVerify
 		email, pass = get_value('existing_email'), get_value('existing_pass')
 		validate_email(email) and validate_length('Password', 6, pass) or return
@@ -320,12 +320,12 @@ class ConfigDelegate < NSObject
 			showSuccess
 		end
 	end
-	
+
 	def run_config(args)
 		cmd = "#{PREY_CONFIG} account #{args}"
 		out = `#{cmd}`
 		code = $?.exitstatus
-		return code, out 
+		return code, out
 	end
 
   def previous_tab(sender)
@@ -339,16 +339,16 @@ class ConfigDelegate < NSObject
 	def terminate(sender)
     OSX::NSApp.stop(nil)
 	end
-	
+
 	def selectAll(sender)
 	end
-	
+
 	def edit(sender)
 	end
-	
+
 	def cut(sender)
 	end
-	
+
 	def copy(sender)
 	end
 
@@ -356,7 +356,7 @@ class ConfigDelegate < NSObject
     script = NSAppleScript.alloc.initWithSource("say \"#{str}\"")
     script.performSelector_withObject('executeAndReturnError:', nil)
   end
-	
+
 	def drawWelcome(tab, name)
 		drawImage(PIXMAPS + '/conf/newuser.png', [48, 48, 0, 120], tab.view)
 		drawImage(PIXMAPS + '/conf/olduser.png', [48, 48, 0, 50], tab.view)
@@ -369,14 +369,14 @@ class ConfigDelegate < NSObject
 		label.setTextColor(NSColor.grayColor)
 		tab.view.addSubview(label)
 	end
-	
+
 	def drawNewUser(tab, name)
 		elements = []
 		elements << drawTextInput('name', 'Your name', 15, 140)
 		elements << drawTextInput('email', 'Email', 15, 85)
 		elements << drawPasswordInput('pass', 'Password', 15, 30)
 		elements.flatten.each do |el|
-			tab.view.addSubview(el)			
+			tab.view.addSubview(el)
 		end
 	end
 
@@ -431,6 +431,6 @@ def openConfig
 	app.run
 end
 
-if $0 == __FILE__ then 
+if $0 == __FILE__ then
 	openConfig
 end

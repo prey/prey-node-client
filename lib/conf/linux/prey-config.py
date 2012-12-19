@@ -272,19 +272,28 @@ class PreyConfigurator(object):
 		self.result = proc.returncode
 		return proc
 
+	def parse_error(self, line):
+		if line.find('been taken') != -1:
+			return 'Email has been taken. Seems you already signed up!'
+		elif line.find('Unexpected status code: 401') != -1:
+			return 'Invalid account credentials. Please try again.'
+
+		return line
+
 	def error_or_exit(self):
 		if self.result == 0:
 			self.exit_ok()
 		else:
 			lines = self.out.strip().split("\n")
 			last_line = lines[len(lines)-1]
-			self.show_error(last_line)
+			message = self.parse_error(last_line)
+			self.show_error(message)
 
 	def show_error(self, message):
 		self.show_alert(_('Hold on!'), _(message), False)
 
 	def exit_ok(self):
-		self.show_alert(_('Success'), _("Configuration saved! Your device is now setup and being tracked by Prey. Happy hunting!"), True)
+		self.show_alert(_('Success'), _('All good! Your computer is now protected by Prey. To try it out or start tracking it, please visit preyproject.com.'), True)
 
 	def __init__(self):
 

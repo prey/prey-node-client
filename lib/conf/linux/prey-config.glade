@@ -150,10 +150,10 @@
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="yalign">0</property>
-                        <property name="label" translatable="yes" comments="Mnemonic: No&#10;Context: Page 2 (User determination)&#10;Item: new user description">Select this if this is the first time you installed Prey, or if you still haven't created an account in the Control Panel.</property>
+                        <property name="label" translatable="yes" comments="Mnemonic: No&#10;Context: Page 2 (User determination)&#10;Item: new user description">Choose this option if this is the first time you've installed Prey.</property>
                         <property name="wrap">True</property>
                         <attributes>
-                          <attribute name="foreground" value="#444444444444"/>
+                          <attribute name="foreground" value="#888888888888"/>
                         </attributes>
                       </object>
                       <packing>
@@ -202,10 +202,10 @@
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="yalign">0</property>
-                        <property name="label" translatable="yes" comments="Mnemonic: No&#10;Context: Page 2 (User determination)&#10;Item: existing user description">You already signed up at preyproject.com and wish to associate this device to your Control Panel account.</property>
+                        <property name="label" translatable="yes" comments="Mnemonic: No&#10;Context: Page 2 (User determination)&#10;Item: existing user description">If you've already set up Prey on this or another device.</property>
                         <property name="wrap">True</property>
                         <attributes>
-                          <attribute name="foreground" value="#444444444444"/>
+                          <attribute name="foreground" value="#888888888888"/>
                         </attributes>
                       </object>
                       <packing>
@@ -241,7 +241,7 @@
                         <property name="can_focus">False</property>
                         <property name="xalign">0</property>
                         <property name="yalign">0</property>
-                        <property name="label" translatable="yes" comments="Mnemonic: No&#10;Context: Page 3 (Create user)&#10;Item: create account page instructions">Please provide the following information so we can create your account. Once it's created we'll send you an email to confirm the address you entered is correct.</property>
+                        <property name="label" translatable="yes" comments="Mnemonic: No&#10;Context: Page 3 (Create user)&#10;Item: create account page instructions">Please type in your info and we'll sign you up for a new Prey account. We'll send you an email to confirm the address you entered is valid.</property>
                         <property name="wrap">True</property>
                       </object>
                       <packing>
@@ -399,7 +399,7 @@
                         <property name="can_focus">False</property>
                         <property name="xalign">0</property>
                         <property name="yalign">0</property>
-                        <property name="label" translatable="yes" comments="Mnemonic: No&#10;Context: Page 4 (Existing credentials)&#10;Item: existing user page instructions">Please type in your login credentials. This information is not stored locally, it's only used for registering this device under your Control Panel account.</property>
+                        <property name="label" translatable="yes" comments="Mnemonic: No&#10;Context: Page 4 (Existing credentials)&#10;Item: existing user page instructions">Please type in your Prey account credentials.</property>
                         <property name="wrap">True</property>
                       </object>
                       <packing>
