@@ -23,11 +23,16 @@ LOGO        = PIXMAPS + '/prey-text.png'
 
 TABS = ['welcome', 'new_user', 'existing_user', 'success']
 
-TEXTS = {
-	'welcome' => 'Welcome wise friend. Please choose your destiny.',
-	'new_user' => "Please type in your info and we'll sign you up for a new account.",
-	'existing_user' => 'Please type in your credentials.',
-	'success' => 'All good! Your computer is now protected by Prey.'
+TITLES = {
+	:welcome => 'Welcome, good friend. Please choose your destiny.',
+	:new_user => "Please type in your info and we'll sign you up for a new Prey account.",
+	:existing_user => 'Please type in your Prey account credentials.',
+	:success => 'All good! Your computer is now protected by Prey. You can now visit preyproject.com and start tracking it.'
+}
+
+OPTIONS = {
+	:new => "Choose this option if this is the first time you've installed Prey.",
+	:existing => "If you've already set up Prey on another or this device."
 }
 
 class ConfigWindow < NSWindow
@@ -177,7 +182,7 @@ class ConfigDelegate < NSObject
     tab = NSTabViewItem.alloc().initWithIdentifier(name)
     tab.setLabel(name)
 
-		text = drawLabel(TEXTS[name], [400, 50, 15, 170])
+		text = drawLabel(TITLES[name.to_sym], [420, 50, 15, 170])
 		tab.view.addSubview(text)
 
 		if name == 'welcome'
@@ -244,13 +249,20 @@ class ConfigDelegate < NSObject
 		setTab(target)
 	end
 	
+	def parseError(message)
+		if message['already been taken']
+			return 'Email has been taken. Seems you already signed up!'
+		elsif message['Unexpected status code: 401']
+			return 'Invalid account credentials. Please try again.'
+		end
+		message
+	end
+	
 	def showAlert(message)
 	 alert = NSAlert.alloc.init
 	 alert.setMessageText(message)
-	 # text = 'Hello there'
-	 # alert.setInformativeText(text)
-	 # NSRunAlertPanel(message, "Aloha", "OK", nil, nil);
-	 # alert.addButtonWithTitle(cancelButton)
+   alert.setAlertStyle(NSCriticalAlertStyle)
+   # alert.setIcon(nil)
 	 alert.runModal()
 	end
 	
@@ -289,9 +301,9 @@ class ConfigDelegate < NSObject
 		name, email, pass = get_value('name'), get_value('email'), get_value('pass')
 		validate_present('Name', name) and validate_email(email) and validate_length('Password', 6, pass) or return
 
-		code, out = run("signup -n '#{name}' -e '#{email}' -p '#{pass}'")
+		code, out = run_config("signup -n '#{name}' -e '#{email}' -p '#{pass}'")
 		if code == 1
-			showAlert(out.split("\n").last)
+			showAlert(parseError(out.split("\n").last))
 		else
 			showSuccess
 		end
@@ -301,15 +313,15 @@ class ConfigDelegate < NSObject
 		email, pass = get_value('existing_email'), get_value('existing_pass')
 		validate_email(email) and validate_length('Password', 6, pass) or return
 
-		code, out = run("authorize --email '#{email}' --password '#{pass}'")
+		code, out = run_config("authorize --email '#{email}' --password '#{pass}'")
 		if code == 1
-			showAlert(out.split("\n").last)
+			showAlert(parseError(out.split("\n").last))
 		else
 			showSuccess
 		end
 	end
 	
-	def run(args)
+	def run_config(args)
 		cmd = "#{PREY_CONFIG} account #{args}"
 		out = `#{cmd}`
 		code = $?.exitstatus
@@ -327,6 +339,18 @@ class ConfigDelegate < NSObject
 	def terminate(sender)
     OSX::NSApp.stop(nil)
 	end
+	
+	def selectAll(sender)
+	end
+	
+	def edit(sender)
+	end
+	
+	def cut(sender)
+	end
+	
+	def copy(sender)
+	end
 
   def speak(str)
     script = NSAppleScript.alloc.initWithSource("say \"#{str}\"")
@@ -338,10 +362,10 @@ class ConfigDelegate < NSObject
 		drawImage(PIXMAPS + '/conf/olduser.png', [48, 48, 0, 50], tab.view)
 		matrix = drawChooser
 		tab.view.addSubview(matrix)
-		label = drawLabel("Select this if this is the first time you installed Prey, or if you haven't created a Prey account yet.", [300, 50, 68, 90])
+		label = drawLabel(OPTIONS[:new], [380, 50, 68, 90])
 		label.setTextColor(NSColor.grayColor)
 		tab.view.addSubview(label)
-		label = drawLabel("If you already know what your're doing.", [300, 50, 68, 23])
+		label = drawLabel(OPTIONS[:existing], [380, 50, 68, 23])
 		label.setTextColor(NSColor.grayColor)
 		tab.view.addSubview(label)
 	end
@@ -366,7 +390,7 @@ class ConfigDelegate < NSObject
 	end
 
 	def drawSuccess(tab, name)
-		drawImage(PIXMAPS + '/conf/check.png', [96, 88, CENTER-(70), 100], tab.view)
+		drawImage(PIXMAPS + '/conf/check.png', [96, 88, CENTER-(70), 80], tab.view)
 	end
 
 end
@@ -374,14 +398,26 @@ end
 def setupMenus(app)
   menubar = NSMenu.new
 	appMenuItem = NSMenuItem.alloc.init
-	menubar.addItem(appMenuItem)
-	app.setMainMenu(menubar)
-	
+  editMenuItem = NSMenuItem.alloc.initWithTitle_action_keyEquivalent('Edit', 'edit:', '')
+
 	appmenu = NSMenu.new
 	quitMenuItem = NSMenuItem.alloc.initWithTitle_action_keyEquivalent('Quit', 'terminate:', 'q')
-	
-	appmenu.addItem(quitMenuItem)
 	appMenuItem.setSubmenu(appmenu)
+
+  editMenu = NSMenu.new
+  editMenu.addItemWithTitle_action_keyEquivalent('Select All', 'selectAll:', 'a')
+  editMenu.addItemWithTitle_action_keyEquivalent('Cut', 'cut:', 'x')
+  editMenu.addItemWithTitle_action_keyEquivalent('Copy', 'copy:', 'c')
+  editMenu.addItemWithTitle_action_keyEquivalent('Paste', 'paste:', 'v')
+	editMenuItem.setSubmenu(editMenu)
+  # editMenuItem.setEnabled(true)
+
+	appmenu.addItem(editMenuItem)
+	appmenu.addItem(quitMenuItem)
+
+	menubar.addItem(appMenuItem)
+	# menubar.addItem(editMenuItem)
+	app.setMainMenu(menubar)
 end
 
 def openConfig
@@ -391,8 +427,8 @@ def openConfig
   setupMenus(app)
 	app.activateIgnoringOtherApps(true)
 
-  trap('SIGINT') { puts "bye." ; exit 0 }
-  app.run
+  trap('SIGINT') { puts "Ctrl-C received." ; exit(1) }
+	app.run
 end
 
 if $0 == __FILE__ then 
