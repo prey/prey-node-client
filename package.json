@@ -22,7 +22,8 @@
     "unzip":"",
     "campfire": "",
     "nodemailer": "",
-    "connect": ""
+    "connect": "",
+    "request": ""
   },
   "devDependencies": {
     "mocha": "",

@@ -19,7 +19,7 @@ var merge_data = function(type, plugin_name, results){
   config.merge_data(type, data, true);
 }
 
-finder.eachFileMatching(/default.options$/, './', function(err, file, stat){
+finder.eachFileMatching(/default.options$/, './lib/', function(err, file, stat){
 
   if (err || !file || file.match(/\/dist|\/node_modules/))
     return;

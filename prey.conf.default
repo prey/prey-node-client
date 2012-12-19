@@ -2,10 +2,10 @@
 ; Prey configuration file
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
-; What driver should Prey use? (for options look in plugins/drivers)
+; What driver should Prey use? (you probably don't want to change this)
 driver = control-panel
 
-; How many times should Prey try to connect if connection is not found
+; How many times should Prey try to hook to a Wifi network when not connected.
 auto_connect_attempts = 2
 
 ; Should Prey auto-update itself if a new version is found?
@@ -14,35 +14,28 @@ auto_update = true
 ; Whether to inform about runtime errors to the dev team.
 send_crash_reports = false
 
-; Should we try to use a proxy server if connection fails?
-try_proxy = false
+; Proxy server to use when a direct HTTP requests fails?
+try_proxy = 
 
-; Location of proxy endpoint
-proxy_url = http://my.proxy.server.com:3128
-
-; Private Key file for TLS-encrypted connections
-private_key = ssl.key
-
-; Certificate file for TLS-encrypted connections
-certificate = ssl.cert
-
-[control-panel]
-
-; host for checking device status and sending gathered data
+; Prey Control Panel host, for fetching instructions and sending data.
 host = control.preyproject.com
+protocol = https
 
-; API key and unique identifier for device.
+; Prey API key and unique identifier for device.
 api_key = 
 device_key = 
 
-; this option prepends a random number as a subdomain to the check URL on http mode
-; makes it harder for other programs to eventually block Prey
-randomize_check_host = false
+; Includes status info (battery info, active Wi-Fi name) when checking in.
+send_status_info = false
 
-; unless disabled, Prey will send contextual info (remaining battery,
-; active wifi network, etc)  so that we can remotely show the current status
-; of the device. required for Active Mode.
-report_status = true
+; Includes current location when checking in, if found.
+send_location = false
+
+; Private Key file for TLS-encrypted connections.
+private_key = ssl.key
+
+; Certificate file for TLS-encrypted connections.
+certificate = ssl.cert
 
 [campfire]
 token = USER_TOKEN
