@@ -47,6 +47,7 @@
     <property name="step_increment">5</property>
   </object>
   <object class="GtkWindow" id="window">
+    <property name="width_request">520</property>
     <property name="visible">True</property>
     <property name="can_focus">False</property>
     <property name="border_width">5</property>
@@ -65,11 +66,11 @@
             <property name="can_focus">False</property>
             <property name="xpad">10</property>
             <property name="ypad">10</property>
-            <property name="pixbuf">../pixmaps/prey-text.png</property>
+            <property name="pixbuf">../pixmaps/prey-text-shadow.png</property>
           </object>
           <packing>
             <property name="expand">False</property>
-            <property name="fill">True</property>
+            <property name="fill">False</property>
             <property name="position">0</property>
           </packing>
         </child>
@@ -79,7 +80,7 @@
             <property name="can_focus">False</property>
             <child>
               <object class="GtkNotebook" id="reporting_mode_tabs">
-                <property name="width_request">560</property>
+                <property name="width_request">520</property>
                 <property name="height_request">280</property>
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
@@ -96,7 +97,7 @@
                     <property name="can_focus">False</property>
                     <child>
                       <object class="GtkLabel" id="lbl_user_determination_instructions">
-                        <property name="width_request">540</property>
+                        <property name="width_request">500</property>
                         <property name="height_request">55</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
@@ -145,7 +146,7 @@
                     </child>
                     <child>
                       <object class="GtkLabel" id="lbl_new_user_description">
-                        <property name="width_request">470</property>
+                        <property name="width_request">440</property>
                         <property name="height_request">55</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
@@ -197,7 +198,7 @@
                     </child>
                     <child>
                       <object class="GtkLabel" id="lbl_existing_user_description">
-                        <property name="width_request">470</property>
+                        <property name="width_request">440</property>
                         <property name="height_request">55</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
@@ -235,7 +236,7 @@
                     <property name="can_focus">False</property>
                     <child>
                       <object class="GtkLabel" id="lbl_new_user_instructions">
-                        <property name="width_request">540</property>
+                        <property name="width_request">500</property>
                         <property name="height_request">55</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
@@ -267,7 +268,7 @@
                     </child>
                     <child>
                       <object class="GtkEntry" id="user_name">
-                        <property name="width_request">350</property>
+                        <property name="width_request">280</property>
                         <property name="height_request">30</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
@@ -297,7 +298,7 @@
                     </child>
                     <child>
                       <object class="GtkEntry" id="email">
-                        <property name="width_request">350</property>
+                        <property name="width_request">280</property>
                         <property name="height_request">30</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
@@ -327,7 +328,7 @@
                     </child>
                     <child>
                       <object class="GtkEntry" id="password">
-                        <property name="width_request">350</property>
+                        <property name="width_request">280</property>
                         <property name="height_request">30</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
@@ -358,7 +359,7 @@
                     </child>
                     <child>
                       <object class="GtkEntry" id="password_confirm">
-                        <property name="width_request">350</property>
+                        <property name="width_request">280</property>
                         <property name="height_request">30</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
@@ -393,7 +394,7 @@
                     <property name="can_focus">False</property>
                     <child>
                       <object class="GtkLabel" id="lbl_existing_user_instructions">
-                        <property name="width_request">540</property>
+                        <property name="width_request">500</property>
                         <property name="height_request">55</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
@@ -425,7 +426,7 @@
                     </child>
                     <child>
                       <object class="GtkEntry" id="existing_email">
-                        <property name="width_request">350</property>
+                        <property name="width_request">280</property>
                         <property name="height_request">30</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
@@ -455,7 +456,7 @@
                     </child>
                     <child>
                       <object class="GtkEntry" id="existing_password">
-                        <property name="width_request">350</property>
+                        <property name="width_request">280</property>
                         <property name="height_request">30</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
