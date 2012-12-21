@@ -19,7 +19,7 @@ EMAIL_REGEX = /[A-Z0-9\._%-]+@([A-Z0-9-]+\.)+[A-Z]{2,4}\z/i
 
 PREY_CONFIG = File.expand_path(File.dirname(__FILE__) + '/../../../../../../bin/prey config')
 PIXMAPS     = File.expand_path(File.dirname(__FILE__) + '/../../../../pixmaps')
-LOGO        = PIXMAPS + '/prey-text.png'
+LOGO        = PIXMAPS + '/prey-text-shadow.png'
 
 TABS = ['welcome', 'new_user', 'existing_user', 'success']
 
@@ -55,7 +55,7 @@ class ConfigDelegate < NSObject
   def applicationDidFinishLaunching(aNotification)
     @inputs = {}
 		drawWindow
-		drawImage(LOGO, [350, 73, CENTER-(350/2), 310], window.contentView)
+		drawImage(LOGO, [292, 67, CENTER-(292/2), 310], window.contentView)
 		drawButtons
 		drawTabs
 		setTab(0)
@@ -85,6 +85,10 @@ class ConfigDelegate < NSObject
 	def drawImage(file, coords, view)
     imageView = NSImageView.alloc.initWithFrame(getFrame(*coords))
     image = NSImage.alloc.initWithContentsOfFile(file)
+		imageSize = image.size
+		imageSize.width  = coords[0]
+		imageSize.height = coords[1]
+		image.setSize(imageSize)
     imageView.setImage(image)
 		view.addSubview(imageView)
 	end
