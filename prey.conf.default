@@ -1,34 +1,34 @@
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; Prey configuration file
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;
-; What driver should Prey use? (you probably don't want to change this)
+#############################
+# Prey configuration file
+#############################
+#
+# What driver should Prey use? (you probably don't want to change this)
 driver = control-panel
 
-; How many times should Prey try to hook to a Wifi network when not connected.
+# How many times should Prey try to hook to a Wifi network when not connected.
 auto_connect_attempts = 2
 
-; Should Prey auto-update itself if a new version is found?
+# Should Prey auto-update itself if a new version is found?
 auto_update = true
 
-; Whether to inform about runtime errors to the dev team.
+# Whether to inform about runtime errors to the dev team.
 send_crash_reports = false
 
-; HTTP proxy server to try if a request fails (eg. http://my.proxy.com:3128)
+# HTTP proxy server to try if a request fails (eg. http://my.proxy.com:3128)
 try_proxy = 
 
-; Prey Control Panel host, for fetching instructions and sending data.
+# Prey Control Panel host, for fetching instructions and sending data.
 host = control.preyproject.com
 protocol = https
 
-; Prey API key and unique identifier for device.
+# Prey API key and unique identifier for device.
 api_key = 
 device_key = 
 
-; Includes status info (battery info, active Wi-Fi name) when checking in.
+# Includes status info (battery info, active Wi-Fi name) when checking in.
 send_status_info = false
 
-; Includes current location when checking in, if found.
+# Includes current location when checking in, if found.
 send_location = false
 
 [campfire]
