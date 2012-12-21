@@ -14,7 +14,7 @@ auto_update = true
 ; Whether to inform about runtime errors to the dev team.
 send_crash_reports = false
 
-; Proxy server to use when a direct HTTP requests fails?
+; HTTP proxy server to try if a request fails (eg. http://my.proxy.com:3128)
 try_proxy = 
 
 ; Prey Control Panel host, for fetching instructions and sending data.
@@ -30,12 +30,6 @@ send_status_info = false
 
 ; Includes current location when checking in, if found.
 send_location = false
-
-; Private Key file for TLS-encrypted connections.
-private_key = ssl.key
-
-; Certificate file for TLS-encrypted connections.
-certificate = ssl.cert
 
 [campfire]
 token = USER_TOKEN

@@ -30,9 +30,3 @@ send_status_info = false
 
 ; Includes current location when checking in, if found.
 send_location = false
-
-; Private Key file for TLS-encrypted connections.
-private_key = ssl.key
-
-; Certificate file for TLS-encrypted connections.
-certificate = ssl.cert
