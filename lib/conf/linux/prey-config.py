@@ -293,7 +293,7 @@ class PreyConfigurator(object):
 		self.show_alert(_('Hold on!'), _(message), False)
 
 	def exit_ok(self):
-		self.show_alert(_('Success'), _('All good! Your computer is now protected by Prey. To try it out or start tracking it, please visit preyproject.com.'), True)
+		self.show_alert(_('Success'), _('All good! Your computer is now protected by Prey. To try it out or to start tracking it, please visit preyproject.com.'), True)
 
 	def __init__(self):
 
