@@ -37,7 +37,7 @@ command_env = {'TERM':'xterm', 'TRIGGER': 'true', 'USER': getuser()}
 try:
 	prey_bin = sys.argv[1]
 except IndexError, e:
-	prey_bin = '/usr/local/bin/prey'
+	prey_bin = '/usr/lib/prey/current/bin/prey'
 
 #try:
 #	log_output = open(log_file, 'wb')
