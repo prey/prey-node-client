@@ -24,7 +24,7 @@ id $USER_NAME &> /dev/null
 
 if [ $? -eq 0 ]; then
   echo "${USER_NAME} user already exists!"
-  exit 1
+  exit 0
 fi
 
 echo -e "\nWe will now create a user '${USER_NAME}' with (limited) impersonation privileges."
@@ -104,7 +104,7 @@ create_user
 # to run the lock, get screenshot, imagesnap, etc
 
 if [ "$(uname)" == "Linux" ]; then
-  dpkg -l sudo &> /dev/null || apt-get update && apt-get -y install sudo
+  # dpkg -l sudo &> /dev/null || apt-get update && apt-get -y install sudo
   grant_privileges
 fi
 
