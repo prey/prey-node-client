@@ -13,7 +13,7 @@ ADMIN_GROUP=adm
 
 # this means user will be able to run commands as other users except root
 SUDOERS_FILE="/etc/sudoers.d/50_prey_switcher"
-SUDOERS_LINE="${USER_NAME} ALL = NOPASSWD: $(which su) [A-z]*, !$(which su) root"
+SUDOERS_LINE="${USER_NAME} ALL = NOPASSWD: $(which su) [A-z]*, !$(which su) root*, !$(which su) -*"
 
 if [ $EUID -ne 0 ]; then
   echo "$0 must be run as root."
