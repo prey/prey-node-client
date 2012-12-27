@@ -64,6 +64,8 @@ create_user() {
     dscl . -create /Users/${USER_NAME} RealName "${FULL_NAME}"
     dscl . -create /Users/${USER_NAME} UniqueID "$USER_ID"
     dscl . -create /Users/${USER_NAME} PrimaryGroupID "$ADMIN_GROUP_ID"
+	dscl . -delete /Users/${USER_NAME} AuthenticationAuthority
+	dscl . -create /Users/${USER_NAME} Password "*"
 
   fi
 }
