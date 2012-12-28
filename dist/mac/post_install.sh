@@ -1,7 +1,11 @@
 #!/bin/sh
 
-VERSION='0.8.7'
-INSTALL_PATH="/usr/lib/prey/versions/${VERSION}"
+bash "$INSTALL_PATH/scripts/create_user.sh" ${PREY_USER}
+mkdir -p /etc/prey
 
-# say $(whoami)
-${INSTALL_PATH}/bin/prey config activate --gui
+# set up permissions
+chown -R $PREY_USER: /etc/prey $BASE_PATH
+# as prey_user: symlink, write crontab, generate prey.conf
+su ${PREY_USER} -c "$BIN_PATH config activate"
+"$BIN_PATH" config hooks post_install
+su ${PREY_USER} -c "$BIN_PATH" config gui
