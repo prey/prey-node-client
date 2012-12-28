@@ -1,6 +1,8 @@
 #!/bin/bash
 
-USER_NAME="prey"
+USER_NAME="$1"
+[ -z "$USER_NAME" ] && echo "User name required." && exit 1
+
 FULL_NAME="Prey Anti-Theft"
 SHELL="/bin/bash"
 [ "$(uname)" == "Linux" ] && USERS_PATH="/home" || USERS_PATH="/Users"
