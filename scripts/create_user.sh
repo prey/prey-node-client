@@ -5,17 +5,23 @@ USER_NAME="$1"
 
 FULL_NAME="Prey Anti-Theft"
 SHELL="/bin/bash"
-[ "$(uname)" == "Linux" ] && USERS_PATH="/home" || USERS_PATH="/Users"
 EXISTING_USER=$(find ${USERS_PATH} -maxdepth 1 | grep -v ${USER_NAME} | tail -1 | cut -f3 -d "/")
+
+# this means user will be able to run commands as other users except root
+SUDOERS_FILE="/etc/sudoers.d/50_prey_switcher"
+
+if [ "$(uname)" == "Linux" ]; then
+  USERS_PATH="/home"
+  SUDOERS_LINE="${USER_NAME} ALL = NOPASSWD: $(which dmidecode), $(which iwlist), $(which su) [A-z]*, !$(which su) root*, !$(which su) -*"
+else
+  USERS_PATH="/Users"
+  SUDOERS_LINE="${USER_NAME} ALL = NOPASSWD: $(which su) [A-z]*, !$(which su) root*, !$(which su) -*"
+fi
 
 # osx
 ADMIN_GROUP_ID=80
 # linux
 ADMIN_GROUP=adm
-
-# this means user will be able to run commands as other users except root
-SUDOERS_FILE="/etc/sudoers.d/50_prey_switcher"
-SUDOERS_LINE="${USER_NAME} ALL = NOPASSWD: $(which dmidecode), $(which su) [A-z]*, !$(which su) root*, !$(which su) -*"
 
 if [ $EUID -ne 0 ]; then
   echo "$0 must be run as root."
@@ -73,6 +79,7 @@ create_user() {
 }
 
 grant_privileges() {
+
   if [ -f "$SUDOERS_FILE" ]; then
     echo "${USER_NAME} already seems to have impersonation privileges. Skipping..."
     return 1
@@ -97,19 +104,14 @@ test_impersonation() {
 
   if [[ $? -eq 0 && "$output" == "$EXISTING_USER" ]]; then
     echo "It worked!"
+    return 0
   else
     echo "Whoops, didn't work. Try removing the ${USER_NAME} user and running this script again."
+    return 1
   fi
 }
 
 create_user
-
-# on osx we don't need the sudo magic as belonging to the admin group is enough
-# to run the lock, get screenshot, imagesnap, etc
-
-if [ "$(uname)" == "Linux" ]; then
-  # dpkg -l sudo &> /dev/null || apt-get update && apt-get -y install sudo
-  grant_privileges
-fi
-
+grant_privileges
 test_impersonation
+exit $?
