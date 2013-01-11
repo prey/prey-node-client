@@ -24,7 +24,7 @@ case "$1" in
     # as prey_user: symlink, write crontab, generate prey.conf
     su $PREY_USER -c "$BIN_PATH config activate"
     "$BIN_PATH" config hooks post_install
-    su $PREY_USER -c "$BIN_PATH config gui"
+    "$BIN_PATH" config gui
   ;;
 
   abort-upgrade|abort-remove|abort-deconfigure)
