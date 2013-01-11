@@ -1,0 +1,13 @@
+Package: prey
+Version: 0.8.7-ubuntu2
+Architecture: all
+Section: utils
+Priority: optional
+Maintainer: Tomas Pollak <tomas@forkhq.com>
+Depends: adduser, sudo, python, gksu, scrot, streamer, mpg123, dmidecode
+Provides: prey
+Installed-Size: 1700
+Homepage: http://preyproject.com
+Description: Utility for tracking stolen or missing computers
+ Prey is a lightweight program that will help you find, lock and recover your
+ computer should it ever get lost or stolen.

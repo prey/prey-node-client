@@ -1,0 +1,21 @@
+#!/bin/bash
+
+set -e
+PREY_USER="prey"
+CONFIG_DIR="/etc/prey"
+
+case "$1" in
+	purge)
+		userdel $PREY_USER 2> /dev/null || true
+		rm -Rf $CONFIG_DIR
+		;;
+
+	remove|upgrade|failed-upgrade|abort-install|abort-upgrade|disappear)
+		;;
+
+	*)
+		echo "postrm called with unknown argument \`$1'" >&2
+		exit 1
+esac
+
+exit 0

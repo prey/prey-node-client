@@ -1,0 +1,34 @@
+#!/bin/bash
+####################################################################
+# Prey Debian Preremove Script - by Tomas Pollak (bootlog.org)
+# URL : http://preyproject.com
+# License: GPLv3
+####################################################################
+
+set -e
+
+PREY_USER='prey'
+INSTALL_PATH="/usr/lib/prey"
+
+if [ -d "${INSTALL_PATH}/current" ]; then
+  INSTALL_PATH="${INSTALL_PATH}/current"
+fi
+
+BIN_PATH="${INSTALL_PATH}/bin/prey"
+
+case "$1" in
+  remove|remove-in-favour|deconfigure|deconfigure-in-favour)
+    [ -f "$BIN_PATH" ] && $BIN_PATH config hooks pre_uninstall
+    [ -f "$BIN_PATH" ] && su $PREY_USER -c "$BIN_PATH config deactivate"
+    ;;
+
+  upgrade|failed-upgrade)
+    ;;
+
+  *)
+    echo "prerm called with unknown argument \`$1'" >&2
+    exit 1
+    ;;
+esac
+
+exit 0

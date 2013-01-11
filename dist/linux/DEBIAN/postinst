@@ -1,0 +1,40 @@
+#!/bin/bash
+####################################################################
+# Prey Debian Postinst Script
+# Written by Tomás Pollak <tomas@forkhq.com> - (c) 2011 Fork Ltd.
+# License: GPLv3
+####################################################################
+
+set -e
+
+VERSION='0.8.7'
+PREY_USER="prey"
+BASE_PATH="/usr/lib/prey"
+CONFIG_DIR="/etc/prey"
+INSTALL_PATH="${BASE_PATH}/versions/${VERSION}"
+BIN_PATH="${INSTALL_PATH}/bin/prey"
+
+case "$1" in
+  configure)
+    bash "$INSTALL_PATH/scripts/create_user.sh" $PREY_USER
+    mkdir -p $CONFIG_DIR
+
+    # set up permissions
+    chown -R $PREY_USER: $CONFIG_DIR $BASE_PATH
+    # as prey_user: symlink, write crontab, generate prey.conf
+    su $PREY_USER -c "$BIN_PATH config activate"
+    "$BIN_PATH" config hooks post_install
+    su $PREY_USER -c "$BIN_PATH config gui"
+  ;;
+
+  abort-upgrade|abort-remove|abort-deconfigure)
+  ;;
+
+  *)
+    echo "postinst called with unknown argument \`$1'" >&2
+    exit 1
+  ;;
+
+esac
+
+exit 0
