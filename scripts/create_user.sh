@@ -8,15 +8,17 @@ SHELL="/bin/bash"
 
 # this means user will be able to run commands as other users except root
 SUDOERS_FILE="/etc/sudoers.d/50_prey_switcher"
+SUDOERS_ARGS="$(which su) [A-z]*, !$(which su) root*, !$(which su) -*"
 
 if [ "$(uname)" == "Linux" ]; then
   USERS_PATH="/home"
-  SUDOERS_LINE="${USER_NAME} ALL = NOPASSWD: $(which dmidecode), $(which iwlist), $(which su) [A-z]*, !$(which su) root*, !$(which su) -*"
+  [ -n "$(which dmidecode)" ] && SUDOERS_ARGS="$(which dmidecode), ${SUDOERS_ARGS}"
+  [ -n "$(which iwlist)" ] && SUDOERS_ARGS="$(which iwlist), ${SUDOERS_ARGS}"
 else
   USERS_PATH="/Users"
-  SUDOERS_LINE="${USER_NAME} ALL = NOPASSWD: $(which su) [A-z]*, !$(which su) root*, !$(which su) -*"
 fi
 
+SUDOERS_LINE="${USER_NAME} ALL = NOPASSWD: ${SUDOERS_ARGS}"
 EXISTING_USER=$(find ${USERS_PATH} -maxdepth 1 | grep -v ${USER_NAME} | tail -1 | cut -f3 -d "/")
 
 # osx
@@ -36,20 +38,16 @@ if [ $? -eq 0 ]; then
   exit 0
 fi
 
-ask_confirmation() {
+echo -e "\nWe will now create a user '${USER_NAME}' with (limited) impersonation privileges."
+echo -e "This means he will be able to run commands on behalf of other users, in order to give Prey"
+echo -e "the ability to run actions (ie. alarm, lock) or get bits of information (ie. screenshot)"
+echo -e "regardless of the logged in user.\n"
 
-  echo -e "\nWe will now create a user '${USER_NAME}' with (limited) impersonation privileges."
-  echo -e "This means he will be able to run commands on behalf of other users, in order to give Prey"
-  echo -e "the ability to run actions (ie. alarm, lock) or get bits of information (ie. screenshot)"
-  echo -e "regardless of the logged in user.\n"
+echo -e "The '${USER_NAME}' user will not be able to run commands as root, however."
+echo -e "Should we continue? (y/n)"
+read ANSWER
 
-  echo -e "The '${USER_NAME}' user will not be able to run commands as root, however."
-  echo -e "Should we continue? (y/n)"
-  read ANSWER
-
-  [[ "$ANSWER" != 'y' && "$ANSWER" != 'yes' ]] && echo "Ok maybe some other day." && exit 1
-  
-}
+[[ "$ANSWER" != 'y' && "$ANSWER" != 'yes' ]] && echo "Ok maybe some other day." && exit 1
 
 create_user() {
   echo "Creating a user called ${USER_NAME}"
@@ -116,7 +114,6 @@ test_impersonation() {
   fi
 }
 
-# ask_confirmation
 create_user
 grant_privileges
 test_impersonation
