@@ -18,8 +18,8 @@ BIN_PATH="${INSTALL_PATH}/bin/prey"
 
 case "$1" in
   remove|remove-in-favour|deconfigure|deconfigure-in-favour)
-    [ -f "$BIN_PATH" ] && $BIN_PATH config hooks pre_uninstall
-    [ -f "$BIN_PATH" ] && su $PREY_USER -c "$BIN_PATH config deactivate"
+    [ -f "$BIN_PATH" ] && $BIN_PATH config hooks pre_uninstall > /dev/null
+    [ -f "$BIN_PATH" ] && su $PREY_USER -c "$BIN_PATH config deactivate" > /dev/null
     ;;
 
   upgrade|failed-upgrade)
