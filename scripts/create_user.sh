@@ -5,7 +5,6 @@ USER_NAME="$1"
 
 FULL_NAME="Prey Anti-Theft"
 SHELL="/bin/bash"
-EXISTING_USER=$(find ${USERS_PATH} -maxdepth 1 | grep -v ${USER_NAME} | tail -1 | cut -f3 -d "/")
 
 # this means user will be able to run commands as other users except root
 SUDOERS_FILE="/etc/sudoers.d/50_prey_switcher"
@@ -17,6 +16,8 @@ else
   USERS_PATH="/Users"
   SUDOERS_LINE="${USER_NAME} ALL = NOPASSWD: $(which su) [A-z]*, !$(which su) root*, !$(which su) -*"
 fi
+
+EXISTING_USER=$(find ${USERS_PATH} -maxdepth 1 | grep -v ${USER_NAME} | tail -1 | cut -f3 -d "/")
 
 # osx
 ADMIN_GROUP_ID=80
@@ -35,16 +36,20 @@ if [ $? -eq 0 ]; then
   exit 0
 fi
 
-echo -e "\nWe will now create a user '${USER_NAME}' with (limited) impersonation privileges."
-echo -e "This means he will be able to run commands on behalf of other users, in order to give Prey"
-echo -e "the ability to run actions (ie. alarm, lock) or get bits of information (ie. screenshot)"
-echo -e "regardless of the logged in user.\n"
+ask_confirmation() {
 
-echo -e "The '${USER_NAME}' user will not be able to run commands as root, however."
-echo -e "Should we continue? (y/n)"
-read ANSWER
+  echo -e "\nWe will now create a user '${USER_NAME}' with (limited) impersonation privileges."
+  echo -e "This means he will be able to run commands on behalf of other users, in order to give Prey"
+  echo -e "the ability to run actions (ie. alarm, lock) or get bits of information (ie. screenshot)"
+  echo -e "regardless of the logged in user.\n"
 
-[[ "$ANSWER" != 'y' && "$ANSWER" != 'yes' ]] && echo "Ok maybe some other day." && exit 1
+  echo -e "The '${USER_NAME}' user will not be able to run commands as root, however."
+  echo -e "Should we continue? (y/n)"
+  read ANSWER
+
+  [[ "$ANSWER" != 'y' && "$ANSWER" != 'yes' ]] && echo "Ok maybe some other day." && exit 1
+  
+}
 
 create_user() {
   echo "Creating a user called ${USER_NAME}"
@@ -111,6 +116,7 @@ test_impersonation() {
   fi
 }
 
+# ask_confirmation
 create_user
 grant_privileges
 test_impersonation
