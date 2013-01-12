@@ -3,11 +3,12 @@
 set -e
 PREY_USER="prey"
 CONFIG_DIR="/etc/prey"
+LOG_FILE="/var/log/prey.log"
 
 case "$1" in
 	purge)
 		userdel $PREY_USER 2> /dev/null || true
-		rm -Rf $CONFIG_DIR
+		rm -Rf $CONFIG_DIR $LOG_FILE
 		;;
 
 	remove|upgrade|failed-upgrade|abort-install|abort-upgrade|disappear)
