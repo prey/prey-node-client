@@ -18,7 +18,7 @@ from Quartz import CGCaptureAllDisplays, CGShieldingWindowLevel
 font_name = 'Helvetica'
 
 script_path = sys.path[0]
-bg_path = script_path + "/../../lib/bg-lock-with-input.png"
+bg_path = script_path + "/../lib/bg-lock-with-input.png"
 
 # class LockApp(NSApplication):
 
