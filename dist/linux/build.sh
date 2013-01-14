@@ -8,6 +8,9 @@ make_deb() {
   [ -z $(which dpkg-deb) ] && return 1
   [ -z "$version" ] && return 1
 
+  local debian_arch="i386"
+  [ "$arch" == "x64" ] && debian_arch="amd64"
+
   echo " -- Building Debian v${version} package..."
 
   # remove previous stuff
@@ -33,8 +36,10 @@ make_deb() {
   if [ "$deb_version" != "$version-ubuntu2" ]; then
     echo ' !! Debian control file still says old version. Updating...'
     sed -i "s/Version:.*/Version: $version-ubuntu2/" DEBIAN/control
-    sed -i "s/VERSION=.*/VERSION=$version/" DEBIAN/postinst
+    sed -i "s/VERSION=.*/VERSION='$version'/" DEBIAN/postinst
   fi
+
+  sed -i "s/Architecture:.*/Architecture: $debian_arch/" DEBIAN/control
 
   # DEBIAN control, postrm, etc
   cp -R DEBIAN ./build/prey/
@@ -48,15 +53,15 @@ make_deb() {
 # mkdir -p ./build/prey/usr/share/applications
 # cp linux/prey-config.desktop ./build/prey/usr/share/applications
 
-# # /usr/share/doc: changelog, copyright file, manual, etc
-# mkdir -p ./build/prey/usr/share/doc/prey
-# cp ../COPYRIGHT ./build/prey/usr/share/doc/prey/copyright
+  # /usr/share/doc: changelog, copyright file, manual, etc
+  mkdir -p ./build/prey/usr/share/doc/prey
+  cp COPYRIGHT ./build/prey/usr/share/doc/prey/copyright
 
-# # copy changelogs and gzip them
-# cp linux/CHANGES ./build/prey/usr/share/doc/prey
-# cp linux/changelog.Debian ./build/prey/usr/share/doc/prey
-# gzip --best ./build/prey/usr/share/doc/prey/CHANGES
-# gzip --best ./build/prey/usr/share/doc/prey/changelog.Debian
+ # copy changelogs and gzip them
+  cp CHANGES ./build/prey/usr/share/doc/prey
+  cp CHANGES ./build/prey/usr/share/doc/prey/changelog.Debian
+  gzip --best ./build/prey/usr/share/doc/prey/CHANGES
+  gzip --best ./build/prey/usr/share/doc/prey/changelog.Debian
 
   # ensure permissions
   chmod g-w ./build/prey -R

@@ -1,10 +1,11 @@
 Package: prey
-Version: 0.8.7-ubuntu2
-Architecture: all
+Version: 0.8.8-ubuntu2
+Architecture: i386
 Section: utils
 Priority: optional
 Maintainer: Tomas Pollak <tomas@forkhq.com>
-Depends: adduser, sudo, python, gksu, scrot, streamer, mpg123, dmidecode
+Depends: libc6, libgcc1, libstdc++6, adduser, sudo, python, gksu, scrot, streamer, mpg123, dmidecode
+Source: prey
 Provides: prey
 Installed-Size: 1700
 Homepage: http://preyproject.com
