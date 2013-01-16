@@ -3,22 +3,20 @@ var helpers    = require('./../../helpers'),
     provider   = helpers.load('providers').load('hardware');
 
 var nic_names = {
-  linux: 'eth0',
-  darwin: 'en0',
-  win32: 'Local Area Connection'
+  win32:  'Local Area Connection',
+  linux:  'eth0',
+  darwin: 'en0'
 }
 
 var nic_name = nic_names[process.platform];
 
 describe('Hardware', function(){
+
   describe('get_mac_address', function(){
     it('should cb a valid mac address', function(done) {
-      provider.mac_address_for(nic_name,function(err,mac) {
-        if (err) {
-          err.code.should.equal("MALFORMED_MAC");
-        } else {
-          should.exist(mac);
-        }
+      provider.mac_address_for(nic_name, function(err,mac) {
+        should.exist(mac);
+        mac.should.have.lengthOf(17);
         done();
       });
     });
@@ -49,41 +47,44 @@ describe('Hardware', function(){
     });
   });
 
+/*
+
   describe('get_firmware_info', function(){
+
     it('should callback firmware_info',function(done) {
 
-      this.timeout(4000);
-
-      provider.get_firmware_info(function(err,firmware) {
+      provider.get_firmware_info(function(err, firmware) {
         should.exist(firmware);
 
-        // !! TOM what is the query on wmic for this stuff?? Not in bash windows file??
+        var keys = 'mb_vendor mb_model mb_version mb_serial bios_vendor bios_version';
+
         if (platform !== "windows") {
-          firmware.should.have.property('vendor_name');
-          firmware.should.have.property('model_name');
-          firmware.should.have.property('serial_number');
-          firmware.should.have.property('uuid');
+          keys += 'model_name vendor_name serial_number uuid';
         }
-        firmware.should.have.property('mb_vendor');
-        firmware.should.have.property('mb_model');
-        firmware.should.have.property('mb_version');
-        firmware.should.have.property('mb_serial');
-        firmware.should.have.property('bios_vendor');
-        firmware.should.have.property('bios_version');
+
+        firmware.should.have.keys(keys.split(' '));
         done();
       });
     });
+
   });
 
+*/
+
   describe('get_processor_info', function(){
+
     it('should callback an object with model, speed and cores',function(done) {
-      provider.get_processor_info(function(err,obj) {
-        should.exist(obj);
-        obj.should.have.property('speed');
-        obj.should.have.property('model');
-        obj.should.have.property('cores');
+
+      provider.get_processor_info(function(err, obj) {
+        should.not.exist(err);
+        obj.should.be.an.instanceof(Object);
+        Object.keys(obj).should.have.lengthOf(3);
+        obj.should.have.keys(['speed', 'model', 'cores']);
         done();
       });
+
     });
+
   });
+
 });

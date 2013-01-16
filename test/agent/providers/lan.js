@@ -3,22 +3,33 @@ var helpers    = require('./../../helpers'),
     provider   = helpers.load('providers').load('lan');
 
 describe('Lan', function(){
+
   describe('get_active_nodes_list', function(){
-    it('should be an array of name,ip pairs', function(done) {
-      provider.get_active_nodes_list(function(err, val) {
-        val.should.be.an.instanceOf(Array);
-        if (val.length > 0) {
-          var x = val[0];
-          x.should.have.property('name');
-          x.should.have.property('ip_address');
-        }
 
-        done();
-      });
+    describe('when PC is not connected', function(){
+
+      it('returns an error');
+
     });
+
+    describe('when PC is connected', function(){
+
+      describe('and no PCs are nearby', function(){
+
+        it('returns an error');
+
+      });
+
+      describe('and one or more PCs are on the same LAN', function(){
+
+        it('does not return an error');
+
+        it('returns an array of name/ip pairs');
+
+      });
+
+    });
+
   });
 
-  describe('get_ip_from_hostname', function(){
-    it('should be an ip address');
-  });
 });

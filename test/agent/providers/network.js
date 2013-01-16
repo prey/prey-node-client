@@ -4,6 +4,7 @@
 
 var helpers    = require('./../../helpers'),
     should     = helpers.must,
+    sinon      = helpers.sinon,
     provider   = helpers.load('providers').load('network');
 
 var nic_check = function(nic) {
@@ -16,10 +17,9 @@ var nic_check = function(nic) {
 
 var ap_check = function(ap) {
   ap.should.have.property('ssid');
-  ap.should.have.property('quality');
+//   ap.should.have.property('quality');
   ap.should.have.property('mac_address');
   ap.should.have.property('signal_strength');
-  ap.should.have.property('noise_level');
   ap.should.have.property('security');
 };
 
@@ -39,6 +39,8 @@ describe('Network', function(){
   describe('get_public_ip', function(){
 
     describe('when not connected', function(){
+
+      it('returns an error');
 
     })
 
@@ -60,6 +62,8 @@ describe('Network', function(){
 
     describe('when all interfaces are down', function(){
 
+      it('returns an error');
+
     })
 
     describe('when one interface is up', function(){
@@ -77,6 +81,8 @@ describe('Network', function(){
       })
 
       describe('with no assigned ip', function(){
+
+        it('returns an error');
 
       })
 
@@ -214,12 +220,7 @@ describe('Network', function(){
 
         describe('and a match is found', function(){
 
-          it('should return an active access point',function(done) {
-            provider.get_active_access_point(function(err ,ap) {
-              ap_check(ap); // actually mac address but that is checked by the func
-              done();
-            });
-          });
+          it('should return an active access point');
 
         })
 
@@ -233,21 +234,57 @@ describe('Network', function(){
 
      describe('when no access points are found', function(){
 
+      it('returns an error');
+
      });
 
      describe('when access points are found', function(){
 
+       var list = require('./fixtures/parsed_access_points_list');
+
+/*
+
        describe('and none have security=false', function(){
+
+         before(function(){
+           list = list.filter(function(x){ return x.security !== false })
+
+           sinon.stub(provider, 'get_access_points_list', function(cb){
+             cb(null, list);
+           })
+         })
+
+         it('returns an error', function(done){
+
+           provider.get_open_access_points_list(function(err, aps) {
+            should.exist(err);
+            should.not.exist(aps);
+            provider.get_access_points_list.restore();
+            done();
+           });
+
+         });
 
        })
 
+*/
+
        describe('and one or more are open', function(){
 
-         it('should callback list of open access points',function(done) {
+         before(function(){
+           sinon.stub(provider, 'get_access_points_list', function(cb){
+             cb(null, list);
+           })
+         })
+
+         it('should callback list of open access points', function(done) {
 
           provider.get_open_access_points_list(function(err, aps) {
+            should.not.exist(err);
             aps.should.be.an.instanceOf(Array);
-            ap_check(ap[0]);
+            aps.should.have.lengthOf(2);
+            ap_check(aps[0]);
+            provider.get_access_points_list.restore();
             done();
           });
 

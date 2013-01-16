@@ -8,15 +8,17 @@ describe('Bandwidth', function() {
 
     it('works', function(done) {
 
-      this.timeout(5000);
+      this.timeout(3500); // this getter takes more than 3 secs to return
 
-      provider.get_bandwidth_usage(function(err, val) {
-        should.exist(val);
-        val.should.have.property('inBytes');
-        val.should.have.property('outBytes');
+      provider.get_bandwidth_usage(function(err, obj) {
+        should.not.exist(err);
+        obj.should.be.an.instanceof(Object);
+        obj.should.have.keys(['in', 'out']);
         done();
       });
+
     });
+
   });
 
 });

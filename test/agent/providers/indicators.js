@@ -1,5 +1,3 @@
-/*global describe:true it:true */
-
 "use strict";
 
 var helpers    = require('./../../helpers'),
@@ -11,69 +9,88 @@ describe('indicators', function(){
   describe('get_uptime', function(){
     it('checks how long has system been up', function(done) {
 
-      provider.get_uptime(function(err,uptime) {
-        should.exist(uptime);
+      provider.get_uptime(function(err, uptime) {
+        should.not.exists(err); // this getter should never return an error
+        uptime.should.be.a('number');
         done();
       });
     });
   });
 
    describe('get_remaining_battery', function(){
-    it('should get remaining battery life as a % * 100, e.g. 80 = 80%', function(done) {
-      provider.get_remaining_battery(function(err,life) {
-        should.exist(life);
-        life.should.be.a('string');
-        life.slice(-1).should.equal('%');
-        done();
-      });
-    });
-  });
+
+     describe('when computer has a battery', function(){
+       it('returns an object');
+     });
+
+     describe('when computer does not have a battery', function(){
+       it('returns an error');
+     });
+
+   });
 
 
   describe('get_cpu_load', function(){
-    it('should get cpu load', function(done) {
-      provider.get_cpu_load(function(err,load) {
-        load.should.have.property('last_min')
-        load.last_min.should.be.a('number');
-        load.should.have.property('last_five');
-        load.should.have.property('last_fifteen');
 
+    it('never returns an error');
+
+    it('returns an object', function(done) {
+      provider.get_cpu_load(function(err, load) {
+        load.should.have.keys(['last_min', 'last_five', 'last_fifteen']);
+        load.last_min.should.be.a('number');
         done();
       });
     });
+
   });
 
   describe('get_memory_usage', function(){
-    it('should get memory usage', function(done) {
-      provider.get_memory_usage(function(err,usage) {
-        should.exist(usage);
 
-        usage.should.have.property('total_bytes');
-        usage.should.have.property('free_bytes');
-        usage.should.have.property('used');
+    it('never returns an error');
 
-        usage.total_bytes.should.be.a('number');
+    it('returns an object', function(done){
+
+      provider.get_memory_usage(function(err, usage) {
+        Object.keys(usage).should.have.lengthOf(3);
+        usage.should.have.keys(['used', 'free_bytes', 'total_bytes']);
         usage.free_bytes.should.be.a('number');
-        usage.used.should.be.a('string');
-
         done();
       });
-    });
+
+    })
+
   });
 
   describe('get_remaining_storage', function(){
-    it('should get remaining disk space', function(done) {
-      provider.get_remaining_storage(function(err,storage) {
-        should.exist(storage);
-        storage.should.be.a('object');
-        storage.should.have.keys(['size_gb','free_gb','used']);
-        storage.size_gb.should.be.a('string');
-        storage.free_gb.should.be.a('string');
-        storage.used.should.be.a('string');
-        done();
-      });
-    });
-  });
 
+    describe('when pc does not have any storage devices', function(){
+
+      it('returns an error');
+
+    });
+
+    describe('when PC has one storage device', function(){
+
+      it('returns an object', function(done){
+
+        provider.get_remaining_storage(function(err, storage) {
+
+          storage.should.be.a('object');
+          storage.should.have.keys(['size_gb','free_gb','used']);
+          storage.used.should.be.a('string');
+          done();
+        });
+
+      });
+
+    });
+
+    describe('when PC has more than 1 storage devices', function(){
+
+      it('returns aggregated totals');
+
+    });
+
+  });
 
 });

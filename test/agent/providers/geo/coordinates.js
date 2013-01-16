@@ -71,6 +71,8 @@ describe('coordinates', function(){
 
         it('works', function(done){
 
+          this.timeout(3000); // response may take longer
+
           provider.send_data(list, function(err, data){
             if (err) {
               console.log('\n========================================');
