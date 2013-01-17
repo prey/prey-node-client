@@ -75,7 +75,7 @@ describe('all drivers', function(){
       });
 
     })
-*/
+
 
    describe('when valid options are passed', function(){
 
@@ -86,7 +86,7 @@ describe('all drivers', function(){
           var mod = require(drivers_path + driver_name);
 
           mod.load(valid_opts[driver_name], function(err, emitter){
-            should.equal(err, null);
+            should.not.exist(err);
             (emitter instanceof Emitter).should.equal(true);
           })
 
@@ -98,7 +98,7 @@ describe('all drivers', function(){
 
     })
 
-  })
+  }) // on load
 
   describe('on unload', function(){
 
@@ -163,6 +163,8 @@ describe('all drivers', function(){
       })
 
     })
+
+*/
 
   })
 

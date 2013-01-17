@@ -7,10 +7,13 @@ var helpers    = require('./../../helpers'),
 describe('indicators', function(){
 
   describe('get_uptime', function(){
-    it('checks how long has system been up', function(done) {
+
+    it('never returns an error');
+
+    it('returns an object', function(done) {
 
       provider.get_uptime(function(err, uptime) {
-        should.not.exists(err); // this getter should never return an error
+        should.not.exist(err); // this getter should never return an error
         uptime.should.be.a('number');
         done();
       });

@@ -12,7 +12,7 @@ var nic_check = function(nic) {
   nic.should.have.property('name');
   nic.should.have.property('ip_address');
   nic.should.have.property('mac_address');
-  nic.should.have.property('broadcast_address');
+  nic.should.have.property('netmask');
 };
 
 var ap_check = function(ap) {
@@ -108,33 +108,6 @@ describe('Network', function(){
 
   });
 
-  describe('broadcast_address', function() {
-
-    describe('when interface does not exist', function(){
-
-    })
-
-    describe('when interface exists', function(){
-
-      describe('and interface is down', function(){
-
-      })
-
-      describe('and interface has an active connection', function(){
-
-        it('should cb a broadcast ip', function(done) {
-          provider.broadcast_address_for(nic_name,function(err,broadcast) {
-            should.exist(broadcast);
-            done();
-          });
-        });
-
-      })
-
-    })
-
-  });
-
   describe('get_active_network_interface',function() {
 
     describe('when no interfaces are active', function(){
@@ -177,26 +150,6 @@ describe('Network', function(){
       });
 
     })
-
-  });
-
-  describe('get_first_wireless_interface',function() {
-
-    describe('when device has no wifi support', function(){
-
-
-    })
-
-    describe('when device has wifi support', function(){
-
-      it('should return the first interface',function(done) {
-        provider.get_first_wireless_interface(function(err, name) {
-          should.not.exist(err);
-          done();
-        });
-      });
-
-    });
 
   });
 
