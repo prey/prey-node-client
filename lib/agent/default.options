@@ -5,14 +5,14 @@
 # What driver should Prey use? (you probably don't want to change this)
 driver = control-panel
 
-# How many times should Prey try to hook to a Wifi network when not connected.
-auto_connect_attempts = 2
+# Whether or not to try to reconnect to an open Wifi network when not online.
+auto_connect = false
 
 # Should Prey auto-update itself if a new version is found?
-auto_update = true
+auto_update = false
 
-# Whether to inform about runtime errors to the dev team.
-send_crash_reports = false
+# Whether to inform about runtime errors to the development team.
+send_crash_reports = true
 
 # HTTP proxy server to try if a request fails (eg. http://my.proxy.com:3128)
 try_proxy =
@@ -25,8 +25,8 @@ protocol = https
 api_key =
 device_key =
 
-# Includes status info (battery info, active Wi-Fi name) when checking in.
+# Includes status info (battery info, logged user) when checking in.
 send_status_info = false
 
-# Includes current location when checking in, if found.
+# Includes current location when checking in, if available.
 send_location = false
