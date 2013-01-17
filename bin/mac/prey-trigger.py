@@ -28,11 +28,11 @@ from Cocoa import \
 	CFRunLoopTimerCreate, \
 	NSRunLoop, \
 	kCFRunLoopCommonModes
-	
+
 debug = False
 min_interval = 2 # minutes
 # log_file = "/var/log/prey.log"
-command_env = {'TERM':'xterm', 'TRIGGER': 'true', 'USER': getuser()}
+command_env = {'TERM': 'xterm', 'TRIGGER': 'true', 'USER': getuser()}
 
 try:
 	prey_bin = sys.argv[1]
