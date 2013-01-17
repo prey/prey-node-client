@@ -8,7 +8,7 @@ describe('Bandwidth', function() {
 
     it('works', function(done) {
 
-      this.timeout(3500); // this getter takes more than 3 secs to return
+      this.timeout(10000); // this getter takes more than 3 secs to return
 
       provider.get_bandwidth_usage(function(err, obj) {
         should.not.exist(err);
