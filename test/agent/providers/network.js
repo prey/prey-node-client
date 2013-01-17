@@ -132,7 +132,7 @@ describe('Network', function(){
 
   });
 
-  describe('get_wireless_interface_names',function() {
+  describe('get_wireless_interfaces_list',function() {
 
     describe('when device has no wifi support', function(){
 
@@ -142,9 +142,9 @@ describe('Network', function(){
     describe('when device has wifi support', function(){
 
       it('should return an array of interfaces',function(done) {
-        provider.get_wireless_interface_names(function(err,names) {
-          names.should.be.an.instanceOf(Array);
-          names.length.should.be.above(0);
+        provider.get_wireless_interfaces_list(function(err, list) {
+          list.should.be.an.instanceOf(Array);
+          list.length.should.be.above(0);
           done();
         });
       });
