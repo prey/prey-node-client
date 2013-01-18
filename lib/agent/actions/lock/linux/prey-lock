@@ -246,7 +246,7 @@ if __name__ == "__main__":
 
 	if len(sys.argv) < 2 or len(sys.argv[1]) != 32:
 		print "You need to pass an MD5 hexdigested string."
-		sys.exit(1)
+		sys.exit(67)
 	else:
 		passwd = sys.argv[1]
 

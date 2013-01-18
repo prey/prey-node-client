@@ -3,7 +3,7 @@
 # Python Mac Lock
 # Written by Tomas Pollak <tomas@forkhq.com>
 # (c) 2011 Fork Ltd.
-# Licensed under the GPLv3 
+# Licensed under the GPLv3
 #################################
 
 import os
@@ -35,7 +35,7 @@ class FullScreenWindow(NSWindow):
     return True
 
 class LockView(NSView):
-	
+
   def getTopOffset(self, height):
     return (self.bounds().size.height / 2) - height / 2
 
@@ -44,14 +44,14 @@ class LockView(NSView):
 
   def canBecomeKeyWindow(self):
     return True
-	
+
   def drawRect_(self, rect):
     # get background image
     image = NSImage.alloc().initWithContentsOfFile_(bg_path)
     rep = image.representations()[0]
     # bg_width = rep.pixelsWide()
     # bg_height = rep.pixelsHigh()
-    bg_height = self.bounds().size.height 
+    bg_height = self.bounds().size.height
     bg_width = int((self.bounds().size.height / rep.pixelsHigh()) * rep.pixelsWide())
     image.drawInRect_fromRect_operation_fraction_(((self.getLeftOffset(bg_width), self.getTopOffset(bg_height)), (bg_width, bg_height)), NSZeroRect, NSCompositeCopy, 1.0)
 
@@ -73,17 +73,17 @@ class LockView(NSView):
     field.setSelectable_(True)
     font = NSFont.fontWithName_size_(font_name, 25)
     field.setFont_(font)
-    
+
     field.setTarget_(self)
     field.setAction_("enter_pressed")
-    self.field = field    
+    self.field = field
     self.addSubview_(field)
     return field
 
   def focus_field(self):
     self.field.selectText_(self)
     self.field.currentEditor().setSelectedRange_(NSMakeRange(0,0))
-    
+
   def enter_pressed(self):
     value = self.field.stringValue()
     hashed = hashlib.md5(value).hexdigest()
@@ -91,7 +91,7 @@ class LockView(NSView):
     if hashed == passwd:
       # app.performSelector_withObject_afterDelay_("shutdown", self, 0.0)
       # app.terminate_(self)
-      os._exit(66)      
+      os._exit(66)
     else:
       print "Invalid password."
       self.show_message("Invalid password. Try again.")
@@ -114,10 +114,10 @@ def main():
 
   global app
   app = NSApplication.sharedApplication()
-  
+
   # enable kiosk mode
   app.setPresentationOptions_(NSApplicationPresentationHideDock
-    | NSApplicationPresentationHideMenuBar 
+    | NSApplicationPresentationHideMenuBar
     | NSApplicationPresentationDisableAppleMenu
     | NSApplicationPresentationDisableProcessSwitching
     | NSApplicationPresentationDisableForceQuit
@@ -129,7 +129,7 @@ def main():
   screen = NSScreen.mainScreen()
 
   myWindow = FullScreenWindow.alloc().initWithContentRect_styleMask_backing_defer_(
-    screen.frame(), 
+    screen.frame(),
     NSBorderlessWindowMask,
     NSBackingStoreBuffered,
     True)
@@ -156,7 +156,7 @@ if __name__ == '__main__':
 
   if len(sys.argv) < 2 or len(sys.argv[1]) != 32:
     print "You need to pass an MD5 hexdigested string."
-    sys.exit(1)
+    sys.exit(67)
   else:
     passwd = sys.argv[1]
 
