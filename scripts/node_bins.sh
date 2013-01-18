@@ -80,7 +80,8 @@ set_version(){
   [ "$(uname -m)" == 'i686' ] && type='x86' || type='x64'
   [ "$(uname)" == 'Linux' ] && os='linux' || os='mac'
 
-  rm -f bin/node
+  rm -f "${cwd}/node/current"
+  rm -f "${cwd}/bin/node"
   # ln -s ${cwd}/node/${version}/${type}/node.${os} bin/node
   ln -s "${cwd}/node/${version}/${type}" "${cwd}/node/current"
   ln -s "${cwd}/node/current/node.${os}" "bin/node"
@@ -96,4 +97,6 @@ elif [ "$1" == 'set' ]; then
   else
     echo $(readlink "bin/node")
   fi
+else
+  echo "Usage: [fetch|set] [version]"
 fi
