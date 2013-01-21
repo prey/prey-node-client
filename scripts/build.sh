@@ -101,6 +101,9 @@ pack(){
 
 }
 
-
-[ -z "$SKIP_TESTS" ] && run_specs
-[ $? -eq 0 ] && build
+if [ -z "$SKIP_TESTS" ]; then
+  run_specs && build
+else
+  echo "Skipping tests!"
+  build
+fi
