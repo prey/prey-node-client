@@ -3,7 +3,7 @@ var helpers  = require('./../../../helpers'),
     fs       = require('fs'),
     provider = helpers.load('providers').load('geo');
 
-describe('coordinates', function(){
+describe('location', function(){
 
   describe('when access points return error', function(){
 
