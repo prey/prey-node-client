@@ -102,5 +102,5 @@ pack(){
 }
 
 
-[ -z "$SKIP_TESTS" ] && run_specs || echo "Skipping tests!"
+[ -z "$SKIP_TESTS" ] && run_specs
 [ $? -eq 0 ] && build
