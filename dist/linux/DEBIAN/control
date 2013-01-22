@@ -1,5 +1,5 @@
 Package: prey
-Version: 0.9.0
+Version: 0.9.1
 Architecture: amd64
 Section: utils
 Priority: optional

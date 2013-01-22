@@ -54,7 +54,7 @@ build(){
 
   rm -fr "$ROOT"
   cd $DIST
-  ./checksum.sh $VERSION
+  # ./checksum.sh $VERSION
   cd $CURRENT_PATH
 
 }
