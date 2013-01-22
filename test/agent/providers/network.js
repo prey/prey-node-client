@@ -58,7 +58,7 @@ describe('Network', function(){
 
   });
 
-  describe('get_private_ip',function() {
+  describe('get private_ip',function() {
 
     describe('when all interfaces are down', function(){
 
