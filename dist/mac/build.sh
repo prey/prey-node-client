@@ -31,7 +31,7 @@ make_pkg() {
  packagesbuild -v prey-installer.pkgproj
  
  # rename file
- mv *.pkg out/${name}.pkg
+ mv *.pkg ../${version}/${name}.pkg
  rm -Rf versions/
 
 }
