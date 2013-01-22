@@ -32,6 +32,7 @@ make_pkg() {
  
  # rename file
  mv *.pkg out/${name}.pkg
+ rm -Rf versions/
 
 }
 
