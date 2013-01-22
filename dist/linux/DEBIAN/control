@@ -1,13 +1,13 @@
 Package: prey
-Version: 0.8.9-ubuntu2
-Architecture: i386
+Version: 0.9.0
+Architecture: amd64
 Section: utils
 Priority: optional
 Maintainer: Tomas Pollak <tomas@forkhq.com>
 Depends: libc6, libgcc1, libstdc++6, adduser, sudo, python, gksu, scrot, streamer, mpg123, dmidecode
 Source: prey
 Provides: prey
-Installed-Size: 1700
+Installed-Size: 17000
 Homepage: http://preyproject.com
 Description: Utility for tracking stolen or missing computers
  Prey is a lightweight program that will help you find, lock and recover your

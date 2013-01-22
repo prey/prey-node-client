@@ -1,6 +1,7 @@
 #!/bin/bash
 
 version=$1
+[ -z "$version" ] && exit 1
 
 make_deb() {
 
@@ -9,12 +10,9 @@ make_deb() {
   [ -z "$version" ] && return 1
 
   local debian_arch="i386"
-  [ "$arch" == "x64" ] && debian_arch="amd64"
+  test "$arch" = "x64" && debian_arch="amd64"
 
-  echo " -- Building Debian v${version} package..."
-
-  # remove previous stuff
-  rm -Rf build *.deb
+  echo " -- Building Debian v${version} package (${debian_arch})..."
 
   if [ ! -d prey ]; then
     unzip ../${version}/prey-linux-${version}-${arch}.zip -d .
@@ -33,9 +31,9 @@ make_deb() {
   mv prey build/prey${versions_path}/${version}
 
   local deb_version=$(grep "Version:" DEBIAN/control | cut -d" " -f2)
-  if [ "$deb_version" != "$version-ubuntu2" ]; then
+  if [ "$deb_version" != "$version" ]; then
     echo ' !! Debian control file still says old version. Updating...'
-    sed -i "s/Version:.*/Version: $version-ubuntu2/" DEBIAN/control
+    sed -i "s/Version:.*/Version: $version/" DEBIAN/control
     sed -i "s/VERSION=.*/VERSION='$version'/" DEBIAN/postinst
   fi
 
@@ -79,4 +77,8 @@ make_deb() {
 
 }
 
+# remove previous stuff
+rm -Rf build *.deb
 make_deb x86
+make_deb x64
+mv *.deb "../${version}"

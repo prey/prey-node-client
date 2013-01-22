@@ -67,11 +67,11 @@ zip_file(){
   if [ -z "$OS" ]; then
     zip -9 -r "$ZIP" "$FOLDER" 1> /dev/null
   elif [ "$OS" = 'windows' ]; then
-  	zip -9 -r "$ZIP" "$FOLDER" -x \*.sh -x \*linux* -x \*mac* 1> /dev/null
+    zip -9 -r "$ZIP" "$FOLDER" -x \*.sh -x \*linux* -x \*mac* 1> /dev/null
   elif [ "$OS" = 'mac' ]; then
-  	zip -9 -r "$ZIP" "$FOLDER" -x \*.exe -x \*windows* -x \*linux* 1> /dev/null
+    zip -9 -r "$ZIP" "$FOLDER" -x \*.exe -x \*windows* -x \*linux* 1> /dev/null
   elif [ "$OS" = 'linux' ]; then
-  	zip -9 -r "$ZIP" "$FOLDER" -x \*.exe -x \*windows* -x \*mac* 1> /dev/null
+    zip -9 -r "$ZIP" "$FOLDER" -x \*.exe -x \*windows* -x \*mac* 1> /dev/null
   fi
 
   mv "$ROOT/$ZIP" "$VERSION_PATH"

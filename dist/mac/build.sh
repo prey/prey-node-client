@@ -9,15 +9,16 @@ make_pkg() {
  local arch="$2"
  local name="prey-mac-${version}-${arch}"
  local file="${name}.zip"
+ local zip="../${version}/${file}"
 
- [ ! -d "../${version}" ] && return 1
+ [ ! -f "${zip}" ] && return 1
 
  # remove old stuff
  rm -f *.pkg
  rm -Rf versions/
 
  # fetch package and unzip
- cp ../${version}/${file} .
+ cp "$zip" .
  unzip $file
  rm -f $file
 
