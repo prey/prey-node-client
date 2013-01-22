@@ -14,7 +14,7 @@ make_pkg() {
 
  # remove old stuff
  rm -f *.pkg
- rm -Rf versions/${version}
+ rm -Rf versions/
 
  # fetch package and unzip
  cp ../${version}/${file} .
