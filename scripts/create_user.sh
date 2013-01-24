@@ -19,7 +19,7 @@ else
 fi
 
 SUDOERS_LINE="${USER_NAME} ALL = NOPASSWD: ${SUDOERS_ARGS}"
-EXISTING_USER=$(find ${USERS_PATH} -maxdepth 1 | grep -v ${USER_NAME} | tail -1 | cut -f3 -d "/")
+EXISTING_USER=$(find ${USERS_PATH} -maxdepth 1 -not -path "*/\.*" | grep -v ${USER_NAME} | tail -1 | cut -f3 -d "/")
 
 # osx
 ADMIN_GROUP_ID=80
