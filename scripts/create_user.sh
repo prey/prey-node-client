@@ -56,7 +56,14 @@ create_user() {
 
   if [ "$(uname)" == "Linux" ]; then
 
+    local groups="video audio plugdev netdev"
     useradd -r -M -U -G ${ADMIN_GROUP} -s $SHELL $USER_NAME
+
+    for group in $groups; do
+      if getent group $group >/dev/null && ! getent group $group | grep -q $PREY_USER; then
+        adduser $USER_NAME $group &> /dev/null
+      fi
+    done
 
   else
 
