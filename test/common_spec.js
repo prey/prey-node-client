@@ -23,5 +23,4 @@ describe('common', function(){
 
 	})
 
-
 })
