@@ -19,7 +19,7 @@ describe('prey.js', function (){
 
   describe('Command line options', function () {
     describe('--path',    testsCLIOptionsPath);
-    //describe('--driver', testsCLIOptionsDriver);
+    describe('--driver', testsCLIOptionsDriver);
     //describe('--logfile', testsCLIOptionsLogFile);
     //describe('--setup', testsCLIOptionsSetup);
   });
@@ -61,9 +61,12 @@ function testsCLIOptionsPath () {
       // Create a config file at `/tmp`
       tmpConfigFile = path.resolve('/tmp', 'prey.conf')
       copyFile(originalConfigFile, tmpConfigFile, onCopiedFile);
+
     }
 
     function onCopiedFile (err) {
+
+
       if (err) throw err;
 
       // Set up the `--path` parameter
@@ -102,7 +105,9 @@ function testsCLIOptionsPath () {
   /**
    * @test
    *
-   * @summary <Write a Sumamry>
+   * @summary Checks if prey exits when it can't find
+   *          the config file. This function rests on
+   *          `common.config.present()`
    */
   it('should exit when no config file is found', function (done) {
     // Let's create a `cli` file for testing purposes
@@ -183,6 +188,17 @@ function testsCLIOptionsPath () {
   });
 }
 
+function testsCLIOptionsDriver () {
+
+  it('should set the driver by default', function (done) {
+    throw 'Not Implemented';
+  });
+
+  it('should set driver given by `--driver`', function (done) {
+
+  });
+}
+
 /**
  *  AUXILIAR FUNCTIONS
  */
@@ -233,12 +249,8 @@ function copyFile (srcPath, dstPath, cb) {
   }
 }
 
-
 /**
-describe('--driver', testsCLIOptionsDriver);
-describe('--logfile', testsCLIOptionsLogFile);
-describe('--setup', testsCLIOptionsSetup);
-describe('when no config file is found', function(){
+
 describe('signals', function(){
 describe('when SIGUSR1 is received', function(){
 describe('when SIGUSR2 is received', function(){
@@ -247,7 +259,6 @@ describe('when SIGTERM signal is received', function(){
 describe('when SIGQUIT signal is received', function(){
 describe('when pidfile exists', function(){
 describe('when pidfile does NOT exist', function(){
-it('should check if config file exists', function(){
 it('should launch the setup routine', function(){
 it('should not continue with the rest of the process', function(){
 it('should verify that the driver actually exists', function(){
@@ -257,9 +268,7 @@ it("should set program's log output path", function(){
 it('should run the setup process', function(){
 it('should call agent.engage()', function(){
 it('should pass "network" as an argument to engage()', function(){
-it('should call agent.engage()', function(){
 it('should pass "trigger" as an argument to engage()', function(){
-it('should do nothing', function(){
 it('should check if pidfile exists', function(){
 it('should poke the other instance', function(){
 it('should exit', function(){

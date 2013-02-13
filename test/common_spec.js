@@ -23,5 +23,6 @@ var common = require('./../lib/common'),
 
 	})
 
+<<<<<<< HEAD
 
 })*/
