@@ -44,6 +44,8 @@ has lost its internet connection.
 
  == Account config
 
+ - What happens when run and config file does not exist.
+ - What happens when run with no write permission to config file.
  - Authorize/verify/signup: What happens when the endpoint is down.
  - Authorize/verify/signup: What happens when the HTTP request times out.
  - Authorize/verify/signup: What happens when the data is not valid.
