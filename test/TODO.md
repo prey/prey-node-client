@@ -15,7 +15,12 @@
  - What happens when the SIGUSR signal is received, and the client
 has lost its internet connection.
  - We should test that console.log() is never called when running as system user (no console access).
- - Also, test agent/index.js and agent/common.js. It's a core part of the agent.
+ 
+ == Agent/Connection
+
+ - Common.js. Check that it exports all what the different modules require from it.
+ - Connection. What happens when DNS fails (should we use a fallback?), or Google is down, or connecting via proxy, etc.
+ - Auto connect. What happens on different conditions (no NetworkManager, no Wifi card, etc).
 
  == Drivers
  - What happens when a driver that does not exist is requested via cli arguments.
