@@ -1,7 +1,8 @@
 
 // Module requirements
-var fs           = require('fs')
-  , execProcess  = require('child_process').exec;
+var execProcess  = require('child_process').exec
+  , fs           = require('fs')
+  , path         = require('path');
 
 // Module constructor
 var utils = module.exports = function () {};
@@ -54,9 +55,41 @@ utils.executeCommand = function (command, callback) {
     , exec      = execProcess(command, executed);
 
   function executed (error, stdout, stderr) {
-    if (error !== null) return callback(error);
+    if (error !== null) {
+      if (stdout) console.log(stdout);
+      return callback(error);
+    }
     if (stderr !== '') return callback(stderr);
     return callback(null, stdout);
+  }
+}
+
+/**
+ * @param   {String}    testingFunction
+ * @param   {Callback}  callback
+ *
+ * @summary Copies the file `scripts/create_user.hs` and modifies it
+ *          for testing purposes of one single functionality
+ */
+utils.modifyScriptCreateUser = function (testingFunction, callback) {
+  var filePath = path.resolve(__dirname, '../../scripts/create_user.sh')
+    , functionalities = [ 'create_user'
+                        , 'grant_privileges'
+                        , 'test_impersonation' ]
+    , index;
+
+  fs.readFile(filePath, 'utf8', onFileRead);
+
+  function onFileRead (err, data) {
+    if (err) return callback(err);
+    // Start the mods: Comment all function calls except the testee
+    functionalities.splice(functionalities.indexOf(testingFunction), 1);
+    functionalities.forEach(function (f) {
+      index = data.match(f + '\n')['index'];
+      data = data.slice(0, index) + '# ' + data.slice(index);
+    });
+
+    return callback(null, data);
   }
 }
 

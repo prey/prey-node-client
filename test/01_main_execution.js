@@ -8,9 +8,7 @@
  */
 
 // Module Requirements
-var exec      = require('child_process').exec
-  , sandbox   = require('sandboxed-module')
-  , path      = require('path')
+var path      = require('path')
   , should    = require('should')
   , testUtils = require('./lib/test_utils');
 
