@@ -3,6 +3,8 @@
  *
  *  Prey Client
  *
+ *  OSX
+ *
  *  00 - Installation
  *
  */
@@ -17,20 +19,10 @@ var assert    = require('assert')
 /**
  * Main Suite
  */
-// OSX
 describe('## __HERMAN__ (OSX) Installation', function (){
   describe('### `scripts/create_user.sh`', testsPreyInstallationOSX);
 });
-// Linux
-describe('## (LINUX) Installation', function (){
-  describe('### `scripts/create_user.sh`', testsPreyInstallationLINUX);
-});
-// Windows
-describe('## (WIN) Installation', function (){
-  describe('### `scripts/create_user.sh`', testsPreyInstallationWIN);
-});
 
-// TODO
 function testsPreyInstallationOSX () {
   it ('Should create a user', function (done) {
     this.timeout(4000)
@@ -102,19 +94,5 @@ function testsPreyInstallationOSX () {
         return done();
       });
     }
-  });
-}
-
-// TODO
-function testsPreyInstallationLINUX () {
-  it ('Should have a test here', function () {
-    throw "Nothing implemented for Linux Yet :-(";
-  });
-}
-
-// TODO
-function testsPreyInstallationWIN () {
-  it ('Should have a test here', function () {
-    throw "Nothing implemented for Windows Yet :-(";
   });
 }
