@@ -56,7 +56,7 @@ utils.executeCommand = function (command, callback) {
 
   function executed (error, stdout, stderr) {
     if (error !== null) {
-      if (stdout) console.log(stdout);
+      if (stdout) return callback(stdout);
       return callback(error);
     }
     if (stderr !== '') return callback(stderr);

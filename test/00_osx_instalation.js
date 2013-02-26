@@ -30,7 +30,7 @@ function testsScriptCreateUserOSX () {
 
   before(function (done) {
     // Prepare test directory
-    testDir = 'prey_exec_test'
+    testDir = 'prey_exec_test';
     dstFile = path.resolve('/tmp', testDir, 'create_user.sh');
     testUtils.generateTestDirectory(testDir, createdDir);
 
@@ -58,11 +58,14 @@ function testsScriptCreateUserOSX () {
   });
 
   it('Should exit, when no username is given', function (done) {
-    throw "Not Implemented Yet";
-  });
+    var execPath    = dstFile;
+    var execCommand = execPath;
+    testUtils.executeCommand(execCommand, executedCreationCommand);
 
-  it('should exit with 0, if user already exists', function (done) {
-    throw "Not Implemented Yet";
+    function executedCreationCommand (err, response) {
+      err.should.be.equal('User name required.\n');
+      done();
+    }
   });
 
   it('Should create a user, given the username', function (done) {
@@ -74,7 +77,7 @@ function testsScriptCreateUserOSX () {
     function executedCreationCommand (err, response) {
       if (err) throw err;
       // Let's test if the user was created
-      var execCommand = 'dscl . -read /Users/test___prey'
+      var execCommand = 'dscl . -read /Users/test___prey';
       testUtils.executeCommand(execCommand, executedQueryCommand);
     }
 
@@ -89,7 +92,18 @@ function testsScriptCreateUserOSX () {
       assert(userData.indexOf('PrimaryGroupID: 80') !== -1, 'PrimaryGroupID should be 80');
       assert(userData.indexOf('Password: *') !== -1, 'Password should be *');
 
-      // No errors, Cool, let's finish this
+      // No errors? Cool, let's finish this
+      done();
+    }
+  });
+
+  it('Should exit with 0, if user already exists', function (done) {
+    var execPath    = dstFile;
+    var execCommand = execPath + ' test___prey';
+    testUtils.executeCommand(execCommand, executedCreationCommand);
+
+    function executedCreationCommand (err, response) {
+      response.should.be.equal('test___prey user already exists!\n'),
       done();
     }
   });
