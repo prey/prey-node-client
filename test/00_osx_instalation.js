@@ -19,16 +19,19 @@ var assert    = require('assert')
 /**
  * Main Suite
  */
-describe('## __HERMAN__ (OSX) Installation', function (){
-  describe('### `scripts/create_user.sh`', testsPreyInstallationOSX);
+describe('# __HERMAN__ (OSX) Installation', function (){
+  describe('## scripts/create_user.sh#create_user()', testsScriptCreateUserOSX);
 });
 
-function testsPreyInstallationOSX () {
-  it ('Should create a user', function (done) {
-    this.timeout(4000)
+function testsScriptCreateUserOSX () {
+  // Suite Variables
+  var testDir
+    , dstFile
+
+  before(function (done) {
     // Prepare test directory
-    var testDir = 'prey_exec_test'
-      , dstFile = path.resolve('/tmp', testDir, 'create_user.sh');
+    testDir = 'prey_exec_test'
+    dstFile = path.resolve('/tmp', testDir, 'create_user.sh');
     testUtils.generateTestDirectory(testDir, createdDir);
 
     function createdDir (err) {
@@ -50,10 +53,23 @@ function testsPreyInstallationOSX () {
 
     function chmoedFile (err) {
       if (err) throw err;
-      var execPath = dstFile;
-      var execCommand = execPath + ' test___prey';
-      testUtils.executeCommand(execCommand, executedCreationCommand);
+      done();
     }
+  });
+
+  it('Should exit, when no username is given', function (done) {
+    throw "Not Implemented Yet";
+  });
+
+  it('should exit with 0, if user already exists', function (done) {
+    throw "Not Implemented Yet";
+  });
+
+  it('Should create a user, given the username', function (done) {
+    this.timeout(4000);
+    var execPath    = dstFile;
+    var execCommand = execPath + ' test___prey';
+    testUtils.executeCommand(execCommand, executedCreationCommand);
 
     function executedCreationCommand (err, response) {
       if (err) throw err;
@@ -63,7 +79,7 @@ function testsPreyInstallationOSX () {
     }
 
     function executedQueryCommand (err, response) {
-      // If the user is not created, we will have an error
+      // If the user was not created, we will have an error
       if (err) throw err;
       // Let's check the rest of the values:
       var userData = response.split('\n');
@@ -73,26 +89,26 @@ function testsPreyInstallationOSX () {
       assert(userData.indexOf('PrimaryGroupID: 80') !== -1, 'PrimaryGroupID should be 80');
       assert(userData.indexOf('Password: *') !== -1, 'Password should be *');
 
-      // No errors? Cool, let's clean up
-      cleanUp();
+      // No errors, Cool, let's finish this
+      done();
     }
+  });
 
-    ///
-    // CLEANUP
-    function cleanUp () {
-      // Delete user created
-      var execCommand = 'dscl . -delete /Users/test___prey'
-      testUtils.executeCommand(execCommand, executedDeleteCommand);
-    }
+  after(function (done) {
+    // Delete test user (test___prey)
+    var execCommand = 'dscl . -delete /Users/test___prey'
+    testUtils.executeCommand(execCommand, executedDeleteUser);
 
-    function executedDeleteCommand (err) {
+    function executedDeleteUser (err) {
       if (err) throw err;
       // Delete working test directory
       var command = 'rm -rf /tmp/' + testDir
-      testUtils.executeCommand(command, function (err) {
-        if (err) throw err;
-        return done();
-      });
+      testUtils.executeCommand(command, executedDeleteDir);
+    }
+
+    function executedDeleteDir (err) {
+      if (err) throw err;
+      done();
     }
   });
 }
