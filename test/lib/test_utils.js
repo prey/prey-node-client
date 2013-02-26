@@ -1,8 +1,17 @@
+/**
+ *  TEST LIBRARY
+ *
+ *  Prey Client
+ *
+ *  Generic
+ *
+ */
 
 // Module requirements
 var execProcess  = require('child_process').exec
   , fs           = require('fs')
-  , path         = require('path');
+  , path         = require('path')
+  , spawnProcess = require('child_process').spawn;
 
 // Module constructor
 var utils = module.exports = function () {};
@@ -48,7 +57,6 @@ utils.generateTestDirectory = function (testDir, callback) {
  * @param   {Callback}  callback
  *
  * @summary Encapsulates and executes a command
- *          sends the response on Exit or Error
  */
 utils.executeCommand = function (command, callback) {
   var response
@@ -62,6 +70,32 @@ utils.executeCommand = function (command, callback) {
     if (stderr !== '') return callback(stderr);
     return callback(null, stdout);
   }
+}
+
+/**
+ * @param   {String}    command
+ * @param   {Array}     args
+ * @param   {Object}    options
+ * @param   {Callback}  callback
+ *
+ * @summary Encapsulates and executes a command
+ *          sends the response based on events
+ *          callback must be `callback(stderr, stdout, exit {true | false})`
+ */
+utils.spawnCommand = function (command, args, options, callback) {
+  var cmd = spawnProcess(command, args, options);
+
+  cmd.stdout.on('data', function (data) {
+    callback(null, data.toString('utf8'));
+  });
+
+  cmd.stderr.on('data', function (data) {
+    callback(data.toString('utf8'));
+  });
+
+  cmd.on('exit', function (code) {
+    callback(null, null, true);
+  });
 }
 
 /**

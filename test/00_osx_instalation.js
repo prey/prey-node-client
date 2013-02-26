@@ -20,10 +20,13 @@ var assert    = require('assert')
  * Main Suite
  */
 describe('# __HERMAN__ (OSX) Installation', function (){
-  describe('## scripts/create_user.sh#create_user()', testsScriptCreateUserOSX);
+  describe('## scripts/create_user.sh#create_user()',
+    testsOSXScriptCreateUserFuncionCreateUser);
+  describe('## scripts/create_user.sh#grant_privileges()',
+    testsOSXScriptCreateUserFuncionGrantPrivileges);
 });
 
-function testsScriptCreateUserOSX () {
+function testsOSXScriptCreateUserFuncionCreateUser () {
   // Suite Variables
   var testDir
     , dstFile
@@ -57,7 +60,7 @@ function testsScriptCreateUserOSX () {
     }
   });
 
-  it('Should exit, when no username is given', function (done) {
+  it('Should exit when no username is given', function (done) {
     var execPath    = dstFile;
     var execCommand = execPath;
     testUtils.executeCommand(execCommand, executedCreationCommand);
@@ -97,7 +100,36 @@ function testsScriptCreateUserOSX () {
     }
   });
 
-  it('Should exit with 0, if user already exists', function (done) {
+  it('Should exit if it is executed with a user different than root', function (done) {
+    var execPath          = dstFile
+      , execCommand       = 'dscl . -read /Users/test___prey | grep UniqueID'
+      , creationResponse  = ''
+      , expectedText      = '/tmp/' + testDir + '/create_user.sh must be run as root.\n';
+
+    testUtils.executeCommand(execCommand, executedQueryCommand);
+
+    function executedQueryCommand (err, response) {
+      if (err) throw err;
+      var id = parseInt(response.split(' ')[1].replace('\n', ''));
+
+      testUtils.spawnCommand( execPath
+                            , ['test___prey']
+                            , {uid : id}
+                            , executedCreationCommand);
+    }
+
+    function executedCreationCommand (stderr, stdout, exit) {
+      if (stdout) {
+        creationResponse += stdout;
+      }
+      if (exit) {
+        creationResponse.should.be.equal(expectedText);
+        done();
+      }
+    }
+  });
+
+  it('Should exit if user already exists', function (done) {
     var execPath    = dstFile;
     var execCommand = execPath + ' test___prey';
     testUtils.executeCommand(execCommand, executedCreationCommand);
@@ -125,4 +157,18 @@ function testsScriptCreateUserOSX () {
       done();
     }
   });
+}
+
+function testsOSXScriptCreateUserFuncionGrantPrivileges () {
+  before(function (done) {
+    done();
+  });
+
+  it('Should have a Test here', function (done){
+    throw "Not Implemented Yet";
+  });
+
+  after(function (done) {
+    done();
+  })
 }

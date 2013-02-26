@@ -2,21 +2,63 @@
 
 A list of the tests implemented. See TODO.md for the roadmap.
 
-## Installation
+-------------------------------------------------------------------------------
+## OSX
 
-## Main/Execution
+### Installation
+
+### Main/Execution
 
 * What happens when bin/prey is called without params.
   - `cli.js` should be called
 
-## Reporting
+### Reporting
 
-## Actions
+### Actions
 
-## System/Utils
+### System/Utils
 
-## Account config
+### Account config
 
-## Updating
+### Updating
 
-## Other
+### Other
+
+-------------------------------------------------------------------------------
+
+## LINUX
+
+### Installation
+
+### Main/Execution
+
+### Reporting
+
+### Actions
+
+### System/Utils
+
+### Account config
+
+### Updating
+
+### Other
+
+-------------------------------------------------------------------------------
+## WIN
+
+### Installation
+
+### Main/Execution
+
+### Reporting
+
+### Actions
+
+### System/Utils
+
+### Account config
+
+### Updating
+
+### Other
