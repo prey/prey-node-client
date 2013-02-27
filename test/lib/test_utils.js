@@ -116,8 +116,10 @@ utils.checkForSudoPrivileges = function (username, callback) {
 
   function foundFile (err, data) {
     if (data) {
-      fs.unlink('/etc/sudoers.d/50_prey_switcher', deletedFile);
+      return fs.unlink('/etc/sudoers.d/50_prey_switcher', deletedFile);
     }
+    // No file, just return to the flow
+    return callback();
   }
 
   function deletedFile (err) {

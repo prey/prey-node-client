@@ -142,15 +142,27 @@ function suiteScriptsCreateUser () {
     it('Should, as <username>, impersonate the existing user', function (done) {
       var execCommand         = 'dscl . -read /Users/' + username
                               + ' | grep UniqueID'
+        , existingUser
+        , id
         , impersonateResponse = '';
 
-      testUtils.executeCommand(execCommand, executedQueryCommand);
 
-      function executedQueryCommand (err, response) {
-        var id = parseInt(response.split(' ')[1].replace('\n', ''));
+      testUtils.executeCommand(execCommand, executedQueryIDCommand);
 
+      function executedQueryIDCommand (err, response) {
+        if (err) throw err;
+        id = parseInt(response.split(' ')[1].replace('\n', ''));
+        execCommand = 'dscl . -list /Users | '
+                    + 'grep -Ev "^_|daemon|nobody|root|Guest|' + username
+                    + '" | tail -1';
+        testUtils.executeCommand(execCommand, executedQueryExistingCommand);
+      }
+
+      function executedQueryExistingCommand (err, response) {
+        if (err) throw err;
+        existingUser = response.replace('\n', '');
         testUtils.spawnCommand( 'sudo'
-                      , ['su', 'hermanjunge', '-c', 'whoami']
+                      , ['su', existingUser, '-c', 'whoami']
                       , {uid : id}
                       , executedImpersonateCommand);
       }
@@ -162,7 +174,7 @@ function suiteScriptsCreateUser () {
           impersonateResponse += stdout;
         }
         if (exit) {
-          impersonateResponse.should.be.equal(username + '\n');
+          impersonateResponse.should.be.equal(existingUser + '\n');
           done();
         }
       }
@@ -170,7 +182,7 @@ function suiteScriptsCreateUser () {
 
     it('Should, as <username>, be unable to '
       +'impersonate if the sudoers file doesn\'t exist', function () {
-      //throw "Not Implemented";
+      throw "Not Implemented";
     });
   });
 
