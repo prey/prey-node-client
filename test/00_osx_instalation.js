@@ -118,9 +118,24 @@ function suiteScriptsCreateUser () {
   });
 
   describe('###grant_privileges()', function () {
+    it('Should find the sudoers.d file and that it has the right privileges', function (done) {
+      var sudoersPath     = '/etc/sudoers.d/50_prey_switcher';
+      var privilegesText  =
+          username
+        + ' ALL = NOPASSWD: /usr/bin/su [A-z]*, !/usr/bin/su root*, !/usr/bin/su -*\n';
+      fs.stat(sudoersPath, foundFile);
 
-    it('Should find the sudoers.d file', function (done) {
-      throw "Not implemented Yet";
+      function foundFile (err) {
+        if (err) throw err;
+        fs.readFile(sudoersPath, 'utf8', readFile);
+      }
+
+      function readFile (err, data) {
+        if (err) throw err;
+        assert( data === privilegesText
+              , 'sudoers file text should be `' + privilegesText + '` and is `' + data + '`');
+        done();
+      }
     });
 
   });
