@@ -72,6 +72,7 @@ function suiteScriptsCreateUser () {
         assert(userData.indexOf('UserShell: /bin/bash') !== -1, 'UserShell should be /bin/bash');
         var indexRealName = userData.indexOf('RealName:');
         userData[indexRealName + 1].should.be.equal(' Prey Anti-Theft');
+        assert(response.toString().indexOf('AuthenticationAuthority:') === -1, 'AuthenticationAuthority exists!');
         assert(userData.indexOf('PrimaryGroupID: 80') !== -1, 'PrimaryGroupID should be 80');
         assert(userData.indexOf('Password: *') !== -1, 'Password should be *');
         done();
@@ -117,9 +118,11 @@ function suiteScriptsCreateUser () {
   });
 
   describe('###grant_privileges()', function () {
-    it('Should have a Test here', function (done) {
+
+    it('Should find the sudoers.d file', function (done) {
       throw "Not implemented Yet";
     });
+
   });
 
   after(function (done) {
