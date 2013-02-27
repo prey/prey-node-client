@@ -19,7 +19,7 @@ var assert    = require('assert')
 /**
  * Main Suite
  */
-describe('# __HERMAN__ (OSX) Installation', function () {
+describe('# (OSX) Installation', function () {
   describe('## scripts/create_user.sh', suiteScriptsCreateUser);
 });
 
@@ -53,7 +53,7 @@ function suiteScriptsCreateUser () {
     });
 
     it('Should create a user, given the username', function (done) {
-      this.timeout(4000);
+      this.timeout(10000);
       var execCommand = execPath + ' ' + username;
       testUtils.executeCommand(execCommand, executedCreationCommand);
 
@@ -118,6 +118,7 @@ function suiteScriptsCreateUser () {
   });
 
   describe('###grant_privileges()', function () {
+
     it('Should find the sudoers.d file and that it has the right privileges', function (done) {
       var sudoersPath     = '/etc/sudoers.d/50_prey_switcher';
       var privilegesText  =
@@ -138,6 +139,39 @@ function suiteScriptsCreateUser () {
       }
     });
 
+    it('Should, as <username>, impersonate the existing user', function (done) {
+      var execCommand         = 'dscl . -read /Users/' + username
+                              + ' | grep UniqueID'
+        , impersonateResponse = '';
+
+      testUtils.executeCommand(execCommand, executedQueryCommand);
+
+      function executedQueryCommand (err, response) {
+        var id = parseInt(response.split(' ')[1].replace('\n', ''));
+
+        testUtils.spawnCommand( 'sudo'
+                      , ['su', 'hermanjunge', '-c', 'whoami']
+                      , {uid : id}
+                      , executedImpersonateCommand);
+      }
+
+      function executedImpersonateCommand (stderr, stdout, exit) {
+        if (stderr) throw stderr;
+
+        if (stdout) {
+          impersonateResponse += stdout;
+        }
+        if (exit) {
+          impersonateResponse.should.be.equal(username + '\n');
+          done();
+        }
+      }
+    });
+
+    it('Should, as <username>, be unable to '
+      +'impersonate if the sudoers file doesn\'t exist', function () {
+      //throw "Not Implemented";
+    });
   });
 
   after(function (done) {
