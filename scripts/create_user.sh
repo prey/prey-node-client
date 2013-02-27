@@ -19,7 +19,12 @@ else
 fi
 
 SUDOERS_LINE="${USER_NAME} ALL = NOPASSWD: ${SUDOERS_ARGS}"
-EXISTING_USER=$(find ${USERS_PATH} -maxdepth 1 -not -path "*/\.*" | grep -v ${USER_NAME} | tail -1 | cut -f3 -d "/")
+
+if [ "$(uname)" == "Linux" ]; then
+  EXISTING_USER=$(find ${USERS_PATH} -maxdepth 1 -not -path "*/\.*" | grep -v ${USER_NAME} | tail -1 | cut -f3 -d "/")
+else
+  EXISTING_USER=$(dscl . -list /Users | grep -Ev '^_|daemon|nobody|root|Guest' | tail -1)
+fi
 
 # osx
 ADMIN_GROUP_ID=80
