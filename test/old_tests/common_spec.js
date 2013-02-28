@@ -1,7 +1,7 @@
 var common = require('./../lib/common'),
     should = require('should');
 
-describe('common', function(){
+/*describe('common', function(){
 
 	it('should set Preys ROOT_PATH in process.env', function(){
 		true.should.equal(true);
@@ -23,4 +23,6 @@ describe('common', function(){
 
 	})
 
-})
+<<<<<<< HEAD
+
+})*/
