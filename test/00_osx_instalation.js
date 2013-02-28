@@ -118,9 +118,14 @@ function suiteScriptsCreateUser () {
   });
 
   describe('###grant_privileges()', function () {
+    // Suite variables
+    var execCommand   = 'dscl . -read /Users/' + username
+                      + ' | grep UniqueID'
+      , existingUser
+      , id
+      , sudoersPath   = '/etc/sudoers.d/50_prey_switcher';
 
     it('Should find the sudoers.d file and that it has the right privileges', function (done) {
-      var sudoersPath     = '/etc/sudoers.d/50_prey_switcher';
       var privilegesText  =
           username
         + ' ALL = NOPASSWD: /usr/bin/su [A-z]*, !/usr/bin/su root*, !/usr/bin/su -*\n';
@@ -140,12 +145,7 @@ function suiteScriptsCreateUser () {
     });
 
     it('Should, as <username>, impersonate the existing user', function (done) {
-      var execCommand         = 'dscl . -read /Users/' + username
-                              + ' | grep UniqueID'
-        , existingUser
-        , id
-        , impersonateResponse = '';
-
+      var impersonateResponse = '';
 
       testUtils.executeCommand(execCommand, executedQueryIDCommand);
 
@@ -162,27 +162,64 @@ function suiteScriptsCreateUser () {
         if (err) throw err;
         existingUser = response.replace('\n', '');
         testUtils.spawnCommand( 'sudo'
-                      , ['su', existingUser, '-c', 'whoami']
+                      , ['-n', 'su', existingUser, '-c', 'whoami']
                       , {uid : id}
                       , executedImpersonateCommand);
       }
 
       function executedImpersonateCommand (stderr, stdout, exit) {
-        if (stderr) throw stderr;
-
         if (stdout) {
           impersonateResponse += stdout;
         }
         if (exit) {
           impersonateResponse.should.be.equal(existingUser + '\n');
+          // Reset cached credentials
+          testUtils.spawnCommand('sudo', ['-k'], {}, executedCleanUp);
+        }
+      }
+
+      function executedCleanUp (stderr, stdout, exit) {
+        if (stderr) {
+          impersonateResponse += stderr;
+        }
+        if (stdout) {
+          impersonateResponse += stdout;
+        }
+        if (exit) {
           done();
         }
       }
     });
 
     it('Should, as <username>, be unable to '
-      +'impersonate if the sudoers file doesn\'t exist', function () {
-      throw "Not Implemented";
+      +'impersonate if the sudoers file doesn\'t exist', function (done) {
+      var impersonateResponse = '';
+
+      // Delete this file...
+      fs.unlink(sudoersPath, deletedFile)
+
+      // ... Try to impersonate
+      function deletedFile (err) {
+        if (err) throw err;
+        testUtils.spawnCommand( 'sudo'
+                      , ['-n', 'su', existingUser, '-c', 'whoami']
+                      , {uid : id}
+                      , executedImpersonateCommand);
+      }
+
+      function executedImpersonateCommand (stderr, stdout, exit) {
+        if (stderr) {
+          impersonateResponse += stderr;
+        }
+        if (stdout) {
+          impersonateResponse += stdout;
+        }
+        if (exit) {
+          var expectedText = "sudo: sorry, a password is required to run sudo\n";
+          impersonateResponse.should.be.equal(expectedText);
+          done();
+        }
+      }
     });
   });
 
