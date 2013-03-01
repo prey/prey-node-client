@@ -1,6 +1,5 @@
  == Installation
 
- - We should test the scripts/create_user.sh script, because on that depends the installation and execution of the agent.
  - We should test 'config activate' under different conditions. It is essential to make Prey work (e.g. 'current' dir is created as well as log file).
  - We should test OS install/uninstall hooks under different conditions. They are also necessary for installations and updates to be completed.
 

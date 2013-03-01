@@ -18,7 +18,7 @@ helpers.base.providers.map(function(){
 helpers.providers = helpers.base.providers;
 */
 
-helpers.load = function(module_name){
+/*helpers.load = function(module_name){
   return require('./../lib/agent/' + module_name);
 }
 
@@ -40,4 +40,4 @@ helpers.stub_request = function(type, err, response, body){
 
 }
 
-module.exports = helpers;
+module.exports = helpers;*/
