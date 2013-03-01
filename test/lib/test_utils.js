@@ -33,7 +33,6 @@ utils.getMochaArgv = function (process) {
 
 /**
  * @param   {Object}    objVars
- * @param   {String}    username
  * @param   {Callback}  callback
  *
  * @summary Prepare environment for `create_user` tests
@@ -52,8 +51,8 @@ utils.prepareTestEnvScriptCreateUser = function (objVars, callback) {
   }
 
   function executedDeleteDir (err) {
-    if (err) throw err;
-    queryForExistingUser();
+    if (err) return callback(err);
+    return queryForExistingUser();
   }
 
   function queryForExistingUser () {
@@ -71,35 +70,63 @@ utils.prepareTestEnvScriptCreateUser = function (objVars, callback) {
   }
 
   function executedDeleteUser (err) {
-    if (err) throw err;
-    utils.checkForSudoPrivileges(objVars.username, privsChecked);
+    if (err) return callback(err);
+    return utils.checkForSudoPrivileges(objVars.username, privsChecked);
   }
 
   function privsChecked (err) {
-    if (err) throw err;
+    if (err) return callback(err);
     // We are good to go, Prepare test directory
     return utils.generateTestDirectory(objVars.testDir, createdDir);
   }
 
   function createdDir (err) {
-    if (err) throw err;
+    if (err) return callback(err);
     // modify and copy adapted file
-    utils.modifyScriptCreateUser(objVars.username, modifiedFile);
+    return utils.modifyScriptCreateUser(objVars.username, modifiedFile);
   }
 
   function modifiedFile (err, data) {
-    if (err) throw err;
-    if (!data) throw new Error ('Bad data!');
-    fs.writeFile(objVars.dstFile, data, wroteFile);
+    if (err) return callback(err);
+    if (!data) return callback(new Error ('Bad data!'));
+    return fs.writeFile(objVars.dstFile, data, wroteFile);
   }
 
   function wroteFile (err) {
-    if (err) throw err;
-    fs.chmod(objVars.dstFile, '777', chmoedFile);
+    if (err) return callback(err);
+    return fs.chmod(objVars.dstFile, '777', chmoedFile);
   }
 
   function chmoedFile (err) {
-    if (err) throw err;
+    if (err) return callback(err);
+    return callback();
+  }
+}
+
+/**
+ * @param   {Object}    objVars
+ * @param   {Callback}  callback
+ *
+ * @summary Prepare environment for `bin/prey` tests
+ */
+utils.prepareTestEnvPreyExecutable = function (objVars, callback) {
+  utils.generateTestDirectory(objVars.testDir, createdDir);
+
+  function createdDir (err) {
+    if (err) callback(err);
+    utils.createMockNodeExecFile(objVars.testDir, createdNodeMock);
+  }
+
+  function createdNodeMock (err) {
+    if (err) callback(err);
+    var srcFile = path.resolve(__dirname, '..', '..', 'bin', 'prey');
+    var dstFile = '/tmp/' + objVars.testDir + '/prey';
+    var command = 'cp ' + srcFile + ' ' + dstFile;
+    utils.executeCommand(command, copiedFile);
+  }
+
+  function copiedFile (err) {
+    if (err) callback(err);
     callback();
   }
 }
@@ -124,7 +151,7 @@ utils.checkForSudoPrivileges = function (username, callback) {
   }
 
   function deletedFile (err) {
-    if (err) throw err;
+    if (err) return callback(err);
     return callback();
   }
 }
@@ -142,15 +169,31 @@ utils.cleanUpScriptCreateUser = function (testDir, username, callback) {
   utils.executeCommand(execCommand, executedDeleteUser);
 
   function executedDeleteUser (err) {
-    if (err) throw err;
+    if (err) return callback(err);
     // Delete working test directory
-    var command = 'rm -rf /tmp/' + testDir
-    utils.executeCommand(command, executedDeleteDir);
+    var command = 'rm -rf /tmp/' + testDir;
+    return utils.executeCommand(command, executedDeleteDir);
   }
 
   function executedDeleteDir (err) {
-    if (err) throw err;
-    callback();
+    if (err) return callback(err);
+    return callback();
+  }
+}
+
+/**
+ * @param   {String}    testDir
+ * @param   {Callback}  callback
+ *
+ * @summary Cleans up directory and user for `bin/prey` tests
+ */
+utils.cleanUpEnvPreyExecutable = function (testDir, callback) {
+  var command = 'rm -rf /tmp/' + testDir;
+  utils.executeCommand(command, executedDeleteDir);
+
+  function executedDeleteDir (err) {
+    if (err) return callback(err);
+    return callback();
   }
 }
 

@@ -20,7 +20,7 @@ var assert    = require('assert')
  * Main Suite
  */
 describe('# (OSX) Installation', function () {
-  describe('## scripts/create_user.sh', suiteScriptsCreateUser);
+  //describe('## scripts/create_user.sh', suiteScriptsCreateUser);
   describe('## prey config activate',   suiteConfigActivate);
 });
 
@@ -225,15 +225,52 @@ function suiteScriptsCreateUser () {
   });
 
   after(function (done) {
-    testUtils.cleanUpScriptCreateUser(testDir, username, done);
+    testUtils.cleanUpScriptCreateUser(testDir, username, doneCleanup);
+    function doneCleanup (err) {
+      if (err) throw err;
+      done();
+    }
   });
 }
 
 function suiteConfigActivate () {
-  describe('### 1', function () {
-    it('Should have a test', function (done) {
-      throw "Not Implemented";
+  describe('### Execution', function () {
+    // Suite vars
+    var testDir = 'prey_exec_test';
+
+    before(function (done) {
+      var objVars = {
+        testDir     : testDir
+      }
+      testUtils.prepareTestEnvPreyExecutable(objVars, createdEnv);
+
+      function createdEnv (err) {
+        if (err) throw err;
+        done();
+      }
+    });
+
+    it('Should load `lib/conf/cli.js` on `config activate` command', function (done) {
+      var execCommand = '/tmp/' + testDir + '/prey' + ' config activate';
+      testUtils.executeCommand(execCommand, executedCommand);
+
+      function executedCommand (err, response) {
+        var expectedResponse = '-- ARGV:  /tmp/'
+                             + testDir
+                             + '/../lib/conf/cli.js'
+                             + ' config activate'
+                             + '\n'
+        response.should.equal(expectedResponse);
+        done();
+      }
+    });
+
+    after(function (done) {
+      testUtils.cleanUpEnvPreyExecutable(testDir, doneCleanup);
+      function doneCleanup (err) {
+        if (err) throw err;
+        done();
+      }
     });
   });
 }
-
