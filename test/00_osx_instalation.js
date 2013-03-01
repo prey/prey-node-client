@@ -124,7 +124,7 @@ function suiteScriptsCreateUser () {
                       + ' | grep UniqueID'
       , existingUser
       , id
-      , sudoersPath   = '/etc/sudoers.d/50_prey_switcher';
+      , sudoersPath   = '/etc/sudoers.d/50_' + username +'_switcher';
 
     it('Should find the sudoers.d file and that it has the right privileges', function (done) {
       var privilegesText  =

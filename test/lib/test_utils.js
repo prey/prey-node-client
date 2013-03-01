@@ -84,7 +84,7 @@ utils.prepareTestEnvScriptCreateUser = function (objVars, callback) {
   function createdDir (err) {
     if (err) throw err;
     // modify and copy adapted file
-    utils.modifyScriptCreateUser(modifiedFile);
+    utils.modifyScriptCreateUser(objVars.username, modifiedFile);
   }
 
   function modifiedFile (err, data) {
@@ -112,11 +112,12 @@ utils.prepareTestEnvScriptCreateUser = function (objVars, callback) {
  *          If we find the file, we delete it.
  */
 utils.checkForSudoPrivileges = function (username, callback) {
-  fs.stat('/etc/sudoers.d/50_prey_switcher', foundFile);
+  fs.stat('/etc/sudoers.d/50_' + username + '_switcher', foundFile);
 
   function foundFile (err, data) {
     if (data) {
-      return fs.unlink('/etc/sudoers.d/50_prey_switcher', deletedFile);
+      return fs.unlink( '/etc/sudoers.d/50_' + username
+                      + '_switcher', deletedFile);
     }
     // No file, just return to the flow
     return callback();
@@ -221,12 +222,13 @@ utils.spawnCommand = function (command, args, options, callback) {
 }
 
 /**
+ * @param   {String}    username
  * @param   {Callback}  callback
  *
  * @summary Copies the file `scripts/create_user.hs` and modifies it
  *          for testing purposes of one single functionality
  */
-utils.modifyScriptCreateUser = function (callback) {
+utils.modifyScriptCreateUser = function (username, callback) {
   var filePath = path.resolve(__dirname, '../../scripts/create_user.sh')
     , index;
 
@@ -234,6 +236,12 @@ utils.modifyScriptCreateUser = function (callback) {
 
   function onFileRead (err, data) {
     if (err) return callback(err);
+    // Change sudoers filePath
+    //data.replace( 'SUDOERS_FILE="/etc/sudoers.d/50_prey_switcher"'
+    //            , 'SUDOERS_FILE="/etc/sudoers.d/50_' + username + '_switcher"');
+    data = data.replace( 'SUDOERS_FILE="/etc/sudoers.d/50_prey_switcher"'
+                       , 'SUDOERS_FILE="/etc/sudoers.d/50_' + username + '_switcher"');
+    // Comment `test_impersonation` function
     index = data.match('test_impersonation\n')['index'];
     data  = data.slice(0, index) + '# ' + data.slice(index);
     return callback(null, data);
