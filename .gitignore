@@ -5,3 +5,6 @@ node_modules
 install
 bin/node.*
 npm-debug.log
+
+# Mac Devs
+.DS_Store
