@@ -4,3 +4,6 @@ node_modules
 *~
 install
 bin/node.*
+
+# Mac Devs:wq
+.DS_Store
