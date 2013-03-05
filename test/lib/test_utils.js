@@ -219,6 +219,53 @@ utils.generateTestDirectory = function (testDir, callback) {
 }
 
 /**
+ * @param   {Object}    objVars
+ * @param   {Callback}  callback
+ *
+ * @summary Prepare environment for `bin/prey config activate` tests
+ */
+utils.prepareTestSetVersion = function (objVars, callback) {
+  utils.cleanupTestSetVersion(objVars.testDir, cleanUpDone);
+
+  function cleanUpDone (err) {
+    if (err) return callback(err);
+    utils.generateTestDirectory(objVars.testDir, createdDir);
+  }
+
+  function createdDir (err) {
+    if (err) return callback(err);
+    var srcFile = path.resolve(__dirname, '..', '..', 'lib', 'conf', 'cli.js');
+    var dstFile = '/tmp/' + objVars.testDir + '/cli.js';
+    var command = 'cp ' + srcFile + ' ' + dstFile;
+    utils.executeCommand(command, copiedDir);
+  }
+
+  function copiedDir (err) {
+    if (err) return callback(err);
+    return callback();
+  }
+}
+
+/**
+ * @param   {String}    objVars
+ * @param   {Callback}  callback
+ *
+ * @summary Cleanup environment for `bin/prey config activate` tests
+ */
+utils.cleanupTestSetVersion = function (testDir, callback) {
+  var command = 'rm -rf /tmp/' + testDir;
+  utils.executeCommand(command, executedDeleteDir);
+
+  function executedDeleteDir (err) {
+    if (err) return callback(err);
+    return callback();
+  }
+}
+
+
+
+
+/**
  * @param   {String}    command
  * @param   {Callback}  callback
  *

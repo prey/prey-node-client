@@ -20,7 +20,7 @@ var assert    = require('assert')
  * Main Suite
  */
 describe('# (OSX) Installation', function () {
-  //describe('## scripts/create_user.sh', suiteScriptsCreateUser);
+  describe('## scripts/create_user.sh', suiteScriptsCreateUser);
   describe('## prey config activate',   suiteConfigActivate);
 });
 
@@ -271,6 +271,49 @@ function suiteConfigActivate () {
         if (err) throw err;
         done();
       }
+    });
+  });
+
+  // TODO: For now, we are copying the whole directory
+  describe('#### set_up_version()', function () {
+    // Suite vars
+    var testDir = 'prey_conf_lib_test';
+
+    before(function (done) {
+      var objVars = {
+        testDir     : testDir
+      }
+      testUtils.prepareTestSetVersion(objVars, createdEnv);
+
+      function createdEnv (err) {
+        if (err) throw err;
+        done();
+      }
+    });
+
+    it('Should not do anything if `process.env.BUNDLE_ONLY is on`', function (done) {
+      // Modify the file `cli.js` to output a message
+      // if it leaves after encountering `process.env.BUNDLE_ONLY`
+
+      // Modify process.argv & process.exit
+
+      // Prepare the other dependencies to be injected
+
+      // Load the module using dependecy injection
+
+
+      // The real test: Compare the outputs
+
+
+      // Cleanup: Modify `cli.js`
+
+
+
+      throw "Not Implemented";
+    });
+
+    after(function (done) {
+      testUtils.cleanupTestSetVersion(testDir, done);
     });
   });
 }
