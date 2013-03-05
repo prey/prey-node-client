@@ -1,8 +1,3 @@
- == Installation
-
- - We should test 'config activate' under different conditions. It is essential to make Prey work (e.g. 'current' dir is created as well as log file).
- - We should test OS install/uninstall hooks under different conditions. They are also necessary for installations and updates to be completed.
-
  == Main/Execution
 
  - What happens when bin/prey is called without params (cli.js should be called).
@@ -65,3 +60,5 @@ has lost its internet connection.
  == Other
 
   - hooks.js, helpers.js, dispatcher.js, tunnel.js.
+  - IMPORTANT: Should we add a test log?
+
