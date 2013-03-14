@@ -50,7 +50,11 @@ instructs `npm` to install the package on a [global, shared path](http://blog.no
 rather than a local one (e.g. your home folder). This is because Prey is meant to be run as a system user rather than a 
 local one. 
 
-`npm` will automatically run Prey's post install script, which will do three things:
+If you want `npm` to automatically run Prey's post install script, you must issue the flag `unsafe-perm` ( [see for reference: https://npmjs.org/doc/config.html#unsafe-perm](https://npmjs.org/doc/config.html#unsafe-perm)) into your `npm` command, like this:
+
+    $ [sudo] npm install -g --unsafe-perm prey
+
+This will do three things:
 
   - install dependencies for plugins that require them,
   - install system scripts (i.e. the network trigger daemon), and
