@@ -10,7 +10,7 @@ var join = require('path').join,
 
 var line = '\n=====================================================\n';
 
-var post_install = function(){
+var post_install = function () {
 
   if (process.platform !== 'win32') {
     if (process.getuid && process.getuid() != 0) {
