@@ -42,22 +42,26 @@ utils.execute_command = function (command, callback) {
  * @summary Encapsulates and executes a command using child_process#spawn
  */
 utils.spawn_command = function (command, args, options, callback) {
-  var cmd       = spawn_process(command, args, options),
-      error     = '',
-      response  = '';
+  try {
+    var cmd       = spawn_process(command, args, options),
+        error     = '',
+        response  = '';
 
-  cmd.stdout.on('data', function (data) {
-    response += data.toString('utf8');
-  });
+    cmd.stdout.on('data', function (data) {
+      response += data.toString('utf8');
+    });
 
-  cmd.stderr.on('data', function (data) {
-    error += data.toString('utf8');
-  });
+    cmd.stderr.on('data', function (data) {
+      error += data.toString('utf8');
+    });
 
-  cmd.on('exit', function (code) {
-    if (error !== '') return callback(error);
-    return callback(null, response);
-  });
+    cmd.on('exit', function (code) {
+      if (error !== '') return callback(error);
+      return callback(null, response);
+    });
+  } catch (e) {
+    return callback(e);
+  }
 }
 
 /**

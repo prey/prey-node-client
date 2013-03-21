@@ -103,9 +103,12 @@ describe('scripts/create_user.js', function () {
   });
 
   describe('#grant_privileges()', function (done) {
+    // Variables of this suite
+    var existing_username,
+        sudoers_path       = '/etc/sudoers.d/50_' + test_user +'_switcher',
+        test_user_id;
 
     it('Should find the sudoers.d file and that it has the right privileges', function (done) {
-      var sudoers_path = '/etc/sudoers.d/50_' + test_user +'_switcher';
       fs.stat(sudoers_path, found_file);
 
       function found_file (err) {
@@ -121,8 +124,7 @@ describe('scripts/create_user.js', function () {
       }
     });
 
-    it('Should, as <username>, impersonate the existing user', function (done) {
-      var existing_username;
+    it('Should, as <test_user>, impersonate the existing user', function (done) {
       test_utils.get_existing_user(test_user, got_user);
 
       function got_user (err, obj) {
@@ -131,10 +133,11 @@ describe('scripts/create_user.js', function () {
         // In a normal CLI, to test, you would do (as root)
         // $ sudo su <test_user> -c "sudo su <existing_user> -c 'whoami'"
         existing_username = obj.existing_username;
+        test_user_id      = obj.test_user_id;
         test_utils.spawn_command(
           'sudo',
           ['-n', 'su', existing_username, '-c', 'whoami'],
-          { uid : obj.test_user_id },
+          { uid : test_user_id },
           executed
         );
       }
@@ -146,7 +149,25 @@ describe('scripts/create_user.js', function () {
       }
     });
 
-    it('Should, as <username>, be unable to impersonate if the sudoers file doesn\'t exist');
+    it('Should, as <test_user>, be unable to impersonate if the sudoers file doesn\'t exist', function (done) {
+      fs.unlink(sudoers_path, deleted_file);
+
+      function deleted_file (err) {
+        if (err) throw err;
+        // Try to impersonate
+        test_utils.spawn_command(
+          'sudo',
+          ['-kn', 'su', existing_username, '-c', 'whoami'],
+          { uid : test_user_id },
+          executed
+        );
+      }
+
+      function executed (err, response) {
+        console.log(arguments)
+        done()
+      }
+    });
   });
 
   after(function (done) {
