@@ -7,7 +7,7 @@ FULL_NAME="Prey Anti-Theft"
 SHELL="/bin/bash"
 
 # this means user will be able to run commands as other users except root
-SUDOERS_FILE="/etc/sudoers.d/50_prey_switcher"
+SUDOERS_FILE="/etc/sudoers.d/50_${USER_NAME}_switcher"
 SUDOERS_ARGS="$(which su) [A-z]*, !$(which su) root*, !$(which su) -*"
 
 if [ "$(uname)" == "Linux" ]; then
