@@ -163,8 +163,8 @@ describe('scripts/create_user.js', function () {
         );
       }
 
-      function executed (err, response) {
-        console.log(arguments)
+      function executed (err) {
+        err.should.be.equal('sudo: sorry, a password is required to run sudo\n');
         done()
       }
     });
