@@ -10,6 +10,7 @@
 
 // Module Requirements
 var assert      = require('assert'),
+    fs          = require('fs'),
     path        = require('path'),
     should      = require('should'),
     test_utils  = require('./lib/test_utils');
@@ -89,12 +90,62 @@ describe('scripts/create_user.js', function () {
       }
     });
 
-    it('Should exit if user already exists');
+    it('Should exit if user already exists', function (done) {
+      this.timeout(10000);
+      var exec_command = create_user_path + ' ' + test_user;
+      test_utils.execute_command(exec_command, executed_creation);
+
+      function executed_creation (err, response) {
+        response.should.be.equal(test_user + ' user already exists!\n'),
+        done();
+      }
+    });
   });
 
-  describe('#grant_privileges()', function () {
-    it('Should find the sudoers.d file and that it has the right privileges');
-    it('Should, as <username>, impersonate the existing user');
+  describe('#grant_privileges()', function (done) {
+
+    it('Should find the sudoers.d file and that it has the right privileges', function (done) {
+      var sudoers_path = '/etc/sudoers.d/50_' + test_user +'_switcher';
+      fs.stat(sudoers_path, found_file);
+
+      function found_file (err) {
+        if (err) throw err;
+        fs.readFile(sudoers_path, 'utf8', read_file);
+      }
+
+      function read_file (err, data) {
+        if (err) throw err;
+        data.should.be.equal(test_user
+          + ' ALL = NOPASSWD: /usr/bin/su [A-z]*, !/usr/bin/su root*, !/usr/bin/su -*\n');
+        done();
+      }
+    });
+
+    it('Should, as <username>, impersonate the existing user', function (done) {
+      var existing_username;
+      test_utils.get_existing_user(test_user, got_user);
+
+      function got_user (err, obj) {
+        // We will invoke the test_user to impersonate an existing user
+        // which in turn, will issue a `whoami`.
+        // In a normal CLI, to test, you would do (as root)
+        // $ sudo su <test_user> -c "sudo su <existing_user> -c 'whoami'"
+        existing_username = obj.existing_username;
+        test_utils.spawn_command(
+          'sudo',
+          ['-n', 'su', existing_username, '-c', 'whoami'],
+          { uid : obj.test_user_id },
+          executed
+        );
+      }
+
+      function executed (err, response) {
+        if (err) throw err;
+        response.should.be.equal(existing_username + '\n');
+        done();
+      }
+    });
+
     it('Should, as <username>, be unable to impersonate if the sudoers file doesn\'t exist');
   });
 

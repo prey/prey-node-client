@@ -118,3 +118,32 @@ utils.get_test_user_id = function (username, callback) {
     return callback(null, parseInt(data.split(' ')[1].replace('\n', '')));
   }
 }
+
+/**
+ * @param   {String}    username
+ * @param   {Callback}  callback
+ *
+ * @summary Gets the username of a user different from the test user.
+ */
+utils.get_existing_user = function (username, callback) {
+  var test_user_id;
+
+  utils.get_test_user_id(username, got_id);
+
+  function got_id (err, id) {
+    if (err) return callback(err);
+    test_user_id = id;
+    var command = 'dscl . -list /Users | '
+                + 'grep -Ev "^_|daemon|nobody|root|Guest|' + username
+                + '" | tail -1';
+    utils.execute_command(command, executed);
+  }
+
+  function executed (err, data) {
+    if (err) return callback(err);
+    return callback(null, {
+      id                : test_user_id,
+      existing_username : data.replace('\n', '')
+    });
+  }
+}
