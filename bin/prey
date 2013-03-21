@@ -1,37 +1,18 @@
 #!/bin/sh
 
-# Boolean variables
-TRUE=1
-FALSE=0
-TEST=FALSE
+dir="$(dirname $0)"
+# [ -z "$script" ] && echo "Usage: prey.sh [script] <args>" && exit 1
 
-DIR="$(dirname $0)"
-
-# Parse the first argument for the right script
-if [ "$1" = "test" ]; then
-  if [ "$2" = "OSX" ]; then
-    TEST=$TRUE
-    SCRIPT="./node_modules/mocha/bin/mocha"
-    PARAMS=$2
-  else
-    echo "You should provide the platform to test (OSX, LINUX, WIN)"
-  fi
-elif [ "$1" = "config" ]; then
-  TEST=$FALSE
-  SCRIPT="lib/conf/cli.js"
+if [ "$1" = "config" ]; then
+  script="lib/conf/cli.js"
+elif [ "$1" = "test" ]; then
+  script="node_modules/mocha/bin/mocha"
 else
-  # If there isn't a first argument
-  TEST=$FALSE
-  SCRIPT="lib/agent/cli.js"
+  script="lib/agent/cli.js"
 fi
 
-# Execute the script
-if [ $TEST = $TRUE ]; then
-  "${SCRIPT}" "--grep" "${PARAMS}"
+if [ -x "$dir/node" ]; then
+  "$dir/node" "$dir/../${script}" "$@"
 else
-  if [ -x "$DIR/node" ]; then
-    "$DIR/node" "$DIR/../${SCRIPT}" "$@"
-  else
-    node "$DIR/../${SCRIPT}" "$@"
-  fi
+  node "$dir/../${script}" "$@"
 fi
