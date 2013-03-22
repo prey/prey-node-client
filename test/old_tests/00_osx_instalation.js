@@ -88,32 +88,6 @@ function suiteConfigActivate () {
       }
     });
 
-    it('Should not do anything if `process.env.BUNDLE_ONLY is on`', function (done) {
-      // Environment
-      var myStdOutMessages = new Array();
-      var log = function (msg) {
-        myStdOutMessages.push(msg);
-      }
-      // Key variable
-      process.env.BUNDLE_ONLY = true;
-      // Require the controller and call the function
-      var cli_controller = require('../lib/conf/cli_controller')(log, onActivateCalled);
-      cli_controller.activate();
-
-      function onActivateCalled (err, msg) {
-        if (err) myStdOutMessages.push('ERR: ' + err.message);
-        if (msg) myStdOutMessages.push('MSG: ' + msg);
-        if (arguments.length === 0) myStdOutMessages.push('OK');
-        // The test
-        myStdOutMessages.should.have.length(1);
-        myStdOutMessages[0].should.be.equal('OK');
-
-        // Are we done yet? Let's clean the variable
-        delete process.env.BUNDLE_ONLY;
-        done();
-      }
-    });
-
     it('Should setup version and interval on `controller#activate` call`', function (done) {
       var execCommand       = 'dscl . -read /Users/' + username + ' | grep UniqueID'
         , creationResponse  = '';

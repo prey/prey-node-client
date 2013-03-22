@@ -20,7 +20,7 @@ var assert      = require('assert'),
 // Skip all these tests if we are in a windows machine
 // NOTE: We deliberately avoided the indentation of the next block
 if (!os_name.match(/win/)) {
-describe('scripts/create_user.js', function () {
+describe.skip('scripts/create_user.js', function () {
   // Suite Variables
   var create_user_path  = path.resolve(__dirname, '..', 'scripts', 'create_user.sh');
       test_user         = 'test___prey';
