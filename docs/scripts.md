@@ -2,7 +2,7 @@
 
 ## create_user.sh
 
-### OSX
+### OSX and LINUX
 
 * What does this script?
 
@@ -30,18 +30,8 @@ The normal execution of the prey client requires that the user to be created sho
     ✓ Should, as <test_user>, impersonate the existing user
     ✓ Should, as <test_user>, be unable to impersonate if the sudoers file doesn't exist
 
-### LINUX
-
-* What does this script?
-
-* How you should run it?
-
-* Tests
-
 ### WINDOWS
 
 * What does this script?
 
-* How you should run it?
-
-* Tests
+Prey does not create a user in Windows.
