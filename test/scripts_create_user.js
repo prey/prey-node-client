@@ -11,6 +11,8 @@
 // Module Requirements
 var assert      = require('assert'),
     fs          = require('fs'),
+    os_name     = process.platform.replace('darwin', 'mac').replace('win32', 'windows'),
+    os_utils    = require('./lib/test_utils_' + os_name);
     path        = require('path'),
     should      = require('should'),
     test_utils  = require('./lib/test_utils');
@@ -49,7 +51,7 @@ describe('scripts/create_user.js', function () {
       function executed_creation (err, response) {
         if (err) throw err;
         // Let's test if the user was created
-        exec_command = 'dscl . -read /Users/' + test_user;
+        exec_command = os_utils.get_user_info_command(test_user);
         test_utils.execute_command(exec_command, executed_query);
       }
 
@@ -57,16 +59,28 @@ describe('scripts/create_user.js', function () {
         // If the user was not created, we will have an error
         if (err) throw err;
         // Let's check the rest of the values:
-        var user_data = response.split('\n');
-        assert( user_data.indexOf('UserShell: /bin/bash') !== -1,
-                'UserShell should be /bin/bash');
-        var index_real_name = user_data.indexOf('RealName:');
-        user_data[index_real_name + 1].should.be.equal(' Prey Anti-Theft');
-        assert( response.toString().indexOf('AuthenticationAuthority:') === -1,
-                'AuthenticationAuthority exists!');
-        assert( user_data.indexOf('PrimaryGroupID: 80') !== -1,
-                'PrimaryGroupID should be 80');
-        assert(user_data.indexOf('Password: *') !== -1, 'Password should be *');
+        switch (os_name) {
+          case 'mac':
+            var user_data = response.split('\n');
+            assert( user_data.indexOf('UserShell: /bin/bash') !== -1,
+                    'UserShell should be /bin/bash');
+            var index_real_name = user_data.indexOf('RealName:');
+            user_data[index_real_name + 1].should.be.equal(' Prey Anti-Theft');
+            assert( response.toString().indexOf('AuthenticationAuthority:') === -1,
+                    'AuthenticationAuthority exists!');
+            assert( user_data.indexOf('PrimaryGroupID: 80') !== -1,
+                    'PrimaryGroupID should be 80');
+            assert(user_data.indexOf('Password: *') !== -1, 'Password should be *');
+            break;
+          case 'linux':
+            response.should.match(/(adm)/);
+            response.should.match(/(video)/);
+            response.should.match(/(audio)/);
+            response.should.match(/(plugdev)/);
+            response.should.match(/(netdev)/);
+            break;
+        }
+
         done();
       }
     });
@@ -105,6 +119,7 @@ describe('scripts/create_user.js', function () {
   describe('#grant_privileges()', function (done) {
     // Variables of this suite
     var existing_username,
+        sudoers_data,
         sudoers_path       = '/etc/sudoers.d/50_' + test_user +'_switcher',
         test_user_id;
 
@@ -118,8 +133,13 @@ describe('scripts/create_user.js', function () {
 
       function read_file (err, data) {
         if (err) throw err;
-        data.should.be.equal(test_user
-          + ' ALL = NOPASSWD: /usr/bin/su [A-z]*, !/usr/bin/su root*, !/usr/bin/su -*\n');
+        sudoers_data = data;
+        test_utils.get_expected_sudo_line(test_user, got_line);
+      }
+
+      function got_line (err, line) {
+        if (err) throw err;
+        sudoers_data.should.be.equal(line);
         done();
       }
     });
@@ -168,6 +188,7 @@ describe('scripts/create_user.js', function () {
         done()
       }
     });
+
   });
 
   after(function (done) {
