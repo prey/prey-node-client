@@ -20,14 +20,14 @@ The normal execution of the prey client requires that the user to be created sho
 
 * Tests
   * create_user()
-    * Should exit when no username is given
-    * Should create a user, given the username
-    * Should exit if it is executed with a user different than root
-    * Should exit if user already exists
+    Should exit when no username is given
+    Should create a user, given the username
+    Should exit if it is executed with a user different than root
+    Should exit if user already exists
   * grant_privileges()
-    * Should find the sudoers.d file and that it has the right privileges
-    * Should, as <test_user>, impersonate the existing user
-    * Should, as <test_user>, be unable to impersonate if the sudoers file doesn't exist
+    Should find the sudoers.d file and that it has the right privileges
+    Should, as <test_user>, impersonate the existing user
+    Should, as <test_user>, be unable to impersonate if the sudoers file doesn't exist
 
 ### WINDOWS
 
