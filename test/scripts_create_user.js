@@ -17,6 +17,9 @@ var assert      = require('assert'),
     should      = require('should'),
     test_utils  = require('./lib/test_utils');
 
+// Skip all these tests if we are in a windows machine
+// NOTE: We deliberately avoided the indentation of the next block
+if (!os_name.match(/win/)) {
 describe('scripts/create_user.js', function () {
   // Suite Variables
   var create_user_path  = path.resolve(__dirname, '..', 'scripts', 'create_user.sh');
@@ -188,7 +191,6 @@ describe('scripts/create_user.js', function () {
         done()
       }
     });
-
   });
 
   after(function (done) {
@@ -207,3 +209,4 @@ describe('scripts/create_user.js', function () {
     }
   });
 });
+}
