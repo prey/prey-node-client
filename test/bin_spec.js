@@ -2,6 +2,7 @@ var sinon   = require('sinon'),
     should  = require('should'),
     path    = require('path'),
     fs      = require('fs'),
+    os      = require('os'),
     exec    = require('child_process').exec;
 
 var exec_env = process.env, // so we can override it later
@@ -9,7 +10,11 @@ var exec_env = process.env, // so we can override it later
     bin_path = path.join(__dirname, '..', 'bin'),
     bin_prey = path.join(bin_path, 'prey'),
     node_bin = path.join(bin_path, 'node'),
+    fake_node = path.join(os.tmpdir(), 'node'),
     local_present = fs.existsSync(node_bin);
+
+if (process.platform == 'win32')
+  fake_node += '.exe';
 
 function run_bin_prey(args, cb){
   exec(bin_prey + args, {env: exec_env}, cb);
@@ -54,10 +59,6 @@ describe('bin/prey', function(){
         })
       })
 
-      it('with unknown argument');
-      it('with test argument');
-      it('with config argument');
-
     })
 
   }
@@ -87,15 +88,12 @@ describe('bin/prey', function(){
         })
       })
 
-      it('uses system node binary', function(){
+      it('uses system node binary', function(done){
         run_bin_prey(' -N', function(err, out){
           out.should.include(node_versions.system);
+          done();
         })
       })
-
-      it('with unknown argument');
-      it('with test argument');
-      it('with config argument');
 
     })
 
@@ -126,5 +124,65 @@ describe('bin/prey', function(){
 
   })
 
+  describe('arguments', function(){
+
+    // we will create a fake node bin so we can capture
+    // the arguments with which it is called.
+    // we also set the PATH variable to that dir, to make sure it's called
+    before(function(done){
+      exec_env = { 'PATH': os.tmpdir() };
+      fs.writeFile(fake_node, 'echo $@', {mode: 0755}, done);
+    })
+
+    after(function(done){
+      exec_env = process.env;
+      fs.unlink(fake_node, done);
+    })
+
+    describe('when called with no arguments', function(){
+
+      it('calls lib/agent/cli.js', function(done){
+        run_bin_prey('', function(err, out){
+          out.should.include('lib/agent/cli.js');
+          done();
+        })
+      })
+
+    })
+
+    describe('when called with `config` argument', function(){
+
+      it('calls lib/conf/cli.js', function(done){
+        run_bin_prey(' config', function(err, out){
+          out.should.include('lib/conf/cli.js');
+          done();
+        })
+      })
+
+    })
+
+    describe('when called with `test` argument', function(){
+
+      it('calls mocha', function(done){
+        run_bin_prey(' test', function(err, out){
+          out.should.include('node_modules/mocha/bin/mocha');
+          done();
+        })
+      })
+
+    })
+
+    describe('when called with unknown argument', function(){
+
+      it('calls lib/agent/cli.js', function(done){
+        run_bin_prey(' hellomyfriend', function(err, out){
+          out.should.include('lib/agent/cli.js');
+          done();
+        })
+      })
+
+    })
+
+  })
 
 })
