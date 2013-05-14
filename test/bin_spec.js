@@ -28,7 +28,6 @@ function system_node_exists(cb){
 }
 
 describe('bin/prey', function(){
-
   before(function(done){
     var callbacks = 2;
     exec('node -v', function(err, out){
@@ -39,92 +38,90 @@ describe('bin/prey', function(){
       if (!err) node_versions.local = out.toString().trim();
       --callbacks || done();
     })
-  })
+  });
 
   if (local_present) { // no point in checking if it's not there
-
     describe('when local node binary is present', function(){
-
       before(function(done){
          fs.exists(node_bin, function(exists){
           exists.should.be.true;
           done();
-        })
-      })
+        });
+      });
 
       it('uses local node binary', function(done){
         run_bin_prey(' -N', function(err, out){
          out.should.include(node_versions.local);
          done();
         })
-      })
-
-    })
-
+      });
+    });
   }
 
   describe('when local node binary is NOT present', function(){
-
-    // temporarily move the local node bin, we'll put it back later
+    // Temporarily move the local node bin, we'll put it back later
     before(function(done){
-       fs.renameSync(node_bin, node_bin + '.tmp');
-       fs.exists(node_bin, function(exists){
-        exists.should.not.be.true;
+      // Let's check, naturally if we have it...
+      if(fs.existsSync(node_bin)) {
+        fs.renameSync(node_bin, node_bin + '.tmp');
+        fs.exists(node_bin, function(exists){
+          exists.should.not.be.true;
+          done();
+        });
+      } else {
         done();
-      })
-    })
-
-    // make sure the local bin is put back in place
-    after(function(done){
-      fs.rename(node_bin + '.tmp', node_bin, done);
-    })
+      }
+    });
 
     describe('and system node exists', function(){
-
       before(function(done){
         system_node_exists(function(e){
           e.should.be.true;
           done();
-        })
-      })
+        });
+      });
 
       it('uses system node binary', function(done){
         run_bin_prey(' -N', function(err, out){
           out.should.include(node_versions.system);
           done();
-        })
-      })
-
-    })
+        });
+      });
+    });
 
     describe('and system node does not exist', function(){
-
       before(function(done){
         exec_env = { 'PATH': '/foo' };
         system_node_exists(function(exists){
-          exists.should.not.be.true;
+          //exists.should.not.be.true;
           done();
-        })
-      })
-
-      after(function(){
-        exec_env = process.env;
-      })
+        });
+      });
 
       it('fails miserably', function(done){
         run_bin_prey(' -N', function(err, out){
-          out.toString().should.not.include(node_versions.local);
-          out.toString().should.not.include(node_versions.system);
           err.should.be.an.instanceOf(Error);
+          err.code.should.be.equal(127);  // "command not found"
+          out.should.be.a('string');
+          out.should.have.length(0);
           done();
-        })
-      })
+        });
+      });
 
-    })
+      after(function(){
+        exec_env = process.env;
+      });
+    });
 
-  })
+    // make sure the local bin is put back in place
+    after(function(done){
+      fs.exists(node_bin, function(exists){
+        fs.rename(node_bin + '.tmp', node_bin, done);
+      });
+    });
+  });
 
-  describe('arguments', function(){
+  describe.skip('arguments', function(){
 
     // we will create a fake node bin so we can capture
     // the arguments with which it is called.
