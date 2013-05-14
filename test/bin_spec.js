@@ -115,71 +115,76 @@ describe('bin/prey', function(){
 
     // make sure the local bin is put back in place
     after(function(done){
-      fs.exists(node_bin, function(exists){
+      if(fs.existsSync(node_bin)) {
         fs.rename(node_bin + '.tmp', node_bin, done);
-      });
+      } else {
+        done();
+      }
     });
   });
 
-  describe.skip('arguments', function(){
-
-    // we will create a fake node bin so we can capture
+  describe('params', function(){
+    // We will create a fake node bin so we can capture
     // the arguments with which it is called.
-    // we also set the PATH variable to that dir, to make sure it's called
+    // We also set the PATH variable to that dir, to make sure it's called
     before(function(done){
       exec_env = { 'PATH': os.tmpdir() };
       fs.writeFile(fake_node, 'echo $@', {mode: 0755}, done);
-    })
+    });
 
-    after(function(done){
-      exec_env = process.env;
-      fs.unlink(fake_node, done);
-    })
-
-    describe('when called with no arguments', function(){
-
+    describe('when called with no params', function(){
       it('calls lib/agent/cli.js', function(done){
         run_bin_prey('', function(err, out){
           out.should.include('lib/agent/cli.js');
           done();
-        })
-      })
+        });
+      });
+    });
 
-    })
-
-    describe('when called with `config` argument', function(){
-
+    describe('when called with `config` param', function(){
       it('calls lib/conf/cli.js', function(done){
         run_bin_prey(' config', function(err, out){
           out.should.include('lib/conf/cli.js');
           done();
-        })
-      })
+        });
+      });
 
-    })
+      it('it passes any other arguments too (eg. `config activate`)', function(done){
+        run_bin_prey(' config activate', function(err, out){
+          out.should.include('lib/conf/cli.js config activate');
+          done();
+        });
+      });
+    });
 
     describe('when called with `test` argument', function(){
-
       it('calls mocha', function(done){
         run_bin_prey(' test', function(err, out){
           out.should.include('node_modules/mocha/bin/mocha');
           done();
-        })
-      })
+        });
+      });
 
-    })
+      it('it passes any other arguments too (eg. `--reporter nyan`)', function(done){
+        run_bin_prey(' test --reporter nyan', function(err, out){
+          out.should.include('node_modules/mocha/bin/mocha test --reporter nyan');
+          done();
+        });
+      });
+    });
 
     describe('when called with unknown argument', function(){
-
       it('calls lib/agent/cli.js', function(done){
         run_bin_prey(' hellomyfriend', function(err, out){
           out.should.include('lib/agent/cli.js');
           done();
-        })
-      })
+        });
+      });
+    });
 
-    })
-
-  })
-
-})
+    after(function(done){
+      exec_env = process.env;
+      fs.unlink(fake_node, done);
+    });
+  });
+});

@@ -14,15 +14,15 @@
 
   + when called with no params
     - it runs the agent
-    - it passes any other arguments too (eg. 'config activate')
   + when called with config param
     - it runs lib/conf/cli.js
-    - it passes any other arguments too (eg. 'config activate')
+    - it passes any other arguments too (eg. `config activate`)
   + when called with test param
-    - it runs mocha tests (with mocha.opts?)
-    - it passes any other arguments too (eg. 'config activate')
+    - it runs mocha tests
+    - it passes any other arguments too (eg. `--reporter nyan`)
   + when called with unknown params
     - it runs the agent (maybe we should show a usage screen, though)
+                        (HJ: We need to specify if we want to restrict the params to be just `config` and `test`)
 
 = bin_network_trigger_spec (mac, linux)
 
