@@ -1,9 +1,10 @@
-var sinon   = require('sinon'),
-    should  = require('should'),
-    path    = require('path'),
-    fs      = require('fs'),
-    os      = require('os'),
-    exec    = require('child_process').exec;
+var sinon       = require('sinon'),
+    should      = require('should'),
+    path        = require('path'),
+    fs          = require('fs'),
+    os          = require('os'),
+    exec        = require('child_process').exec,
+    is_windows  = process.platform == 'win32';
 
 var exec_env = process.env, // so we can override it later
     node_versions = {},
@@ -13,8 +14,8 @@ var exec_env = process.env, // so we can override it later
     fake_node = path.join(os.tmpdir(), 'node'),
     local_present = fs.existsSync(node_bin);
 
-if (process.platform == 'win32')
-  fake_node += '.exe';
+if (is_windows)
+  fake_node += '.cmd';
 
 function run_bin_prey(args, cb){
   exec(bin_prey + args, {env: exec_env}, cb);
@@ -101,7 +102,8 @@ describe('bin/prey', function(){
       it('fails miserably', function(done){
         run_bin_prey(' -N', function(err, out){
           err.should.be.an.instanceOf(Error);
-          err.code.should.be.equal(127);  // "command not found"
+          var return_code = is_windows ? 1 : 127;
+          err.code.should.be.equal(return_code);
           out.should.be.a('string');
           out.should.have.length(0);
           done();
@@ -129,13 +131,16 @@ describe('bin/prey', function(){
     // We also set the PATH variable to that dir, to make sure it's called
     before(function(done){
       exec_env = { 'PATH': os.tmpdir() };
-      fs.writeFile(fake_node, 'echo $@', {mode: 0755}, done);
+      var fake_node_content = is_windows ? 'echo %*' : 'echo $@';
+      fs.writeFile(fake_node, fake_node_content, {mode: 0755}, done);
     });
 
     describe('when called with no params', function(){
       it('calls lib/agent/cli.js', function(done){
         run_bin_prey('', function(err, out){
-          out.should.include('lib/agent/cli.js');
+          var out_command =
+            is_windows ? 'lib\\agent\\cli.js' : 'lib/agent/cli.js';
+          out.should.include(out_command);
           done();
         });
       });
@@ -144,14 +149,19 @@ describe('bin/prey', function(){
     describe('when called with `config` param', function(){
       it('calls lib/conf/cli.js', function(done){
         run_bin_prey(' config', function(err, out){
-          out.should.include('lib/conf/cli.js');
+          var out_command =
+            is_windows ? 'lib\\conf\\cli.js' : 'lib/conf/cli.js';
+          out.should.include(out_command);
           done();
         });
       });
 
       it('it passes any other arguments too (eg. `config activate`)', function(done){
         run_bin_prey(' config activate', function(err, out){
-          out.should.include('lib/conf/cli.js config activate');
+          var out_command =
+            is_windows  ? 'lib\\conf\\cli.js" config activate'
+                        : 'lib/conf/cli.js config activate';
+          out.should.include(out_command);
           done();
         });
       });
@@ -160,14 +170,20 @@ describe('bin/prey', function(){
     describe('when called with `test` argument', function(){
       it('calls mocha', function(done){
         run_bin_prey(' test', function(err, out){
-          out.should.include('node_modules/mocha/bin/mocha');
+          var out_command =
+            is_windows  ? 'node_modules\\mocha\\bin\\mocha'
+                        : 'node_modules/mocha/bin/mocha';
+          out.should.include(out_command);
           done();
         });
       });
 
       it('it passes any other arguments too (eg. `--reporter nyan`)', function(done){
         run_bin_prey(' test --reporter nyan', function(err, out){
-          out.should.include('node_modules/mocha/bin/mocha test --reporter nyan');
+          var out_command =
+            is_windows  ? 'node_modules\\mocha\\bin\\mocha" test --reporter nyan'
+                        : 'node_modules/mocha/bin/mocha test --reporter nyan';
+          out.should.include(out_command);
           done();
         });
       });
@@ -176,7 +192,10 @@ describe('bin/prey', function(){
     describe('when called with unknown argument', function(){
       it('calls lib/agent/cli.js', function(done){
         run_bin_prey(' hellomyfriend', function(err, out){
-          out.should.include('lib/agent/cli.js');
+          var out_command =
+            is_windows  ? 'lib\\agent\\cli.js" hellomyfriend'
+                        : 'lib/agent/cli.js hellomyfriend';
+          out.should.include(out_command);
           done();
         });
       });
