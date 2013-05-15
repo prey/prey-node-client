@@ -11,11 +11,14 @@ var exec_env = process.env, // so we can override it later
     bin_path = path.join(__dirname, '..', 'bin'),
     bin_prey = path.join(bin_path, 'prey'),
     node_bin = path.join(bin_path, 'node'),
-    fake_node = path.join(os.tmpDir(), 'node'),
-    local_present = fs.existsSync(node_bin);
+    fake_node = path.join(os.tmpDir(), 'node');
 
-if (is_windows)
+if (is_windows) {
+  node_bin  += '.exe';
   fake_node += '.cmd';
+}
+
+var local_present = fs.existsSync(node_bin);
 
 function run_bin_prey(args, cb){
   exec(bin_prey + args, {env: exec_env}, cb);
@@ -29,6 +32,7 @@ function system_node_exists(cb){
 }
 
 describe('bin/prey', function(){
+
   before(function(done){
     var callbacks = 2;
     exec('node -v', function(err, out){
@@ -42,6 +46,7 @@ describe('bin/prey', function(){
   });
 
   if (local_present) { // no point in checking if it's not there
+
     describe('when local node binary is present', function(){
       before(function(done){
          fs.exists(node_bin, function(exists){
@@ -52,26 +57,27 @@ describe('bin/prey', function(){
 
       it('uses local node binary', function(done){
         run_bin_prey(' -N', function(err, out){
+         should.not.exist(err);
          out.should.include(node_versions.local);
          done();
         })
       });
     });
+
   }
 
   describe('when local node binary is NOT present', function(){
+
     // Temporarily move the local node bin, we'll put it back later
     before(function(done){
-      // Let's check, naturally if we have it...
-      if(fs.existsSync(node_bin)) {
-        fs.renameSync(node_bin, node_bin + '.tmp');
+      fs.rename(node_bin, node_bin + '.tmp', function(err){
+        if (err) return done();
+
         fs.exists(node_bin, function(exists){
           exists.should.not.be.true;
           done();
         });
-      } else {
-        done();
-      }
+      });
     });
 
     describe('and system node exists', function(){
@@ -117,11 +123,8 @@ describe('bin/prey', function(){
 
     // make sure the local bin is put back in place
     after(function(done){
-      if(fs.existsSync(node_bin)) {
+      if (fs.existsSync(node_bin + '.tmp'))
         fs.rename(node_bin + '.tmp', node_bin, done);
-      } else {
-        done();
-      }
     });
   });
 
@@ -130,7 +133,7 @@ describe('bin/prey', function(){
     // the arguments with which it is called.
     // We also set the PATH variable to that dir, to make sure it's called
     before(function(done){
-      exec_env = { 'PATH': os.tmpdir() };
+      exec_env = { 'PATH': os.tmpDir() };
       var fake_node_content = is_windows ? 'echo %*' : 'echo $@';
       fs.writeFile(fake_node, fake_node_content, {mode: 0755}, done);
     });
