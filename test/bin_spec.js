@@ -123,8 +123,9 @@ describe('bin/prey', function(){
 
     // make sure the local bin is put back in place
     after(function(done){
-      if (fs.existsSync(node_bin + '.tmp'))
-        fs.rename(node_bin + '.tmp', node_bin, done);
+      fs.rename(node_bin + '.tmp', node_bin, function(err){
+        done();
+      });
     });
   });
 
