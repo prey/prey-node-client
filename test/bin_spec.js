@@ -99,7 +99,7 @@ describe('bin/prey', function(){
       before(function(done){
         exec_env = { 'PATH': '/foo' };
         system_node_exists(function(exists){
-          //exists.should.not.be.true;
+          exists.should.not.be.true;
           done();
         });
       });
@@ -139,15 +139,18 @@ describe('bin/prey', function(){
     });
 
     describe('when called with no params', function(){
+
       it('calls lib/agent/cli.js', function(done){
         run_bin_prey('', function(err, out){
           out.should.include(path.join('lib', 'agent', 'cli.js'));
           done();
         });
       });
+
     });
 
     describe('when called with `config` param', function(){
+
       it('calls lib/conf/cli.js', function(done){
         run_bin_prey(' config', function(err, out){
           out.should.include(path.join('lib', 'conf', 'cli.js'));
@@ -155,7 +158,7 @@ describe('bin/prey', function(){
         });
       });
 
-      it('it passes any other arguments too (eg. `config activate`)', function(done){
+      it('passes any other arguments too (eg. `config activate`)', function(done){
         run_bin_prey(' config activate', function(err, out){
           var out_command =
             is_windows  ? 'lib\\conf\\cli.js" config activate'
@@ -174,7 +177,7 @@ describe('bin/prey', function(){
         });
       });
 
-      it('it passes any other arguments too (eg. `--reporter nyan`)', function(done){
+      it('passes any other arguments too (eg. `--reporter nyan`)', function(done){
         run_bin_prey(' test --reporter nyan', function(err, out){
           var out_command =
             is_windows  ? 'node_modules\\mocha\\bin\\mocha" test --reporter nyan'
