@@ -1,4 +1,7 @@
 
+// This test is only workable for ´nix´ os
+if (process.platform == 'win32') return;
+
 describe('when called with no arguments', function(){
   it('sets prey_bin_path to `/usr/lib/prey/current`');
 });
