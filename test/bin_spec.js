@@ -11,7 +11,7 @@ var exec_env = process.env, // so we can override it later
     bin_path = path.join(__dirname, '..', 'bin'),
     bin_prey = path.join(bin_path, 'prey'),
     node_bin = path.join(bin_path, 'node'),
-    fake_node = path.join(os.tmpdir(), 'node'),
+    fake_node = path.join(os.tmpDir(), 'node'),
     local_present = fs.existsSync(node_bin);
 
 if (is_windows)
@@ -138,9 +138,7 @@ describe('bin/prey', function(){
     describe('when called with no params', function(){
       it('calls lib/agent/cli.js', function(done){
         run_bin_prey('', function(err, out){
-          var out_command =
-            is_windows ? 'lib\\agent\\cli.js' : 'lib/agent/cli.js';
-          out.should.include(out_command);
+          out.should.include(path.join('lib', 'agent', 'cli.js'));
           done();
         });
       });
@@ -149,9 +147,7 @@ describe('bin/prey', function(){
     describe('when called with `config` param', function(){
       it('calls lib/conf/cli.js', function(done){
         run_bin_prey(' config', function(err, out){
-          var out_command =
-            is_windows ? 'lib\\conf\\cli.js' : 'lib/conf/cli.js';
-          out.should.include(out_command);
+          out.should.include(path.join('lib', 'conf', 'cli.js'));
           done();
         });
       });
@@ -170,10 +166,7 @@ describe('bin/prey', function(){
     describe('when called with `test` argument', function(){
       it('calls mocha', function(done){
         run_bin_prey(' test', function(err, out){
-          var out_command =
-            is_windows  ? 'node_modules\\mocha\\bin\\mocha'
-                        : 'node_modules/mocha/bin/mocha';
-          out.should.include(out_command);
+          out.should.include(path.join('node_modules', 'mocha', 'bin', 'mocha'));
           done();
         });
       });
