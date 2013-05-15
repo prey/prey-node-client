@@ -31,7 +31,7 @@
   + when called with argument
     + and that path does not exist
       - it exits with error code
-    + and thaht path exists
+    + and that path exists
       - sets prey_bin_path as that one.
   + when a network change is detected
     - it checks if there is internet connecction
