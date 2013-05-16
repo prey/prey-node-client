@@ -27,6 +27,7 @@
   },
   "devDependencies": {
     "mocha": "",
+    "node-fs": "0.1.5",
     "should": "",
     "sinon": "",
     "sandboxed-module": ""

@@ -2,9 +2,39 @@
 // This test is only workable for ´nix´ os
 if (process.platform == 'win32') return;
 
-describe('when called with no arguments', function(){
-  it('sets prey_bin_path to `/usr/lib/prey/current`');
+var default_prey_bin  = '/usr/lib/prey/current/bin/prey',
+    default_prey_dir  = '/usr/lib/prey/current/bin/'
+    fs                = require('fs'),
+    is_root           = process.getuid() === 0;
+
+if (is_root) { // this test will run only if we invoke `sudo bin/prey test`
+
+describe('when called with no arguments #wip', function(){
+    
+  // Temporarily move the default prey bin, we'll restore it later
+  before(function(done){
+    fs.exists(default_prey_bin, function(exists){
+      console.log(exists);
+       // PLACEHOLDER
+      done();
+      // PLACEHOLDER-END   
+    });
+  });
+
+  it('sets prey_bin_path to `/usr/lib/prey/current`', function(done){
+    // PLACEHOLDER
+    done();
+    // PLACEHOLDER-END
+  });
+
+  // make sure the default bin is put back in place
+  after(function(done){
+    // PLACEHOLDER
+    done();
+    // PLACEHOLDER-END
+  });
 });
+} // end `is_root` condition
 
 describe('when called with argument', function(){
   describe('and that path does not exist', function(){
