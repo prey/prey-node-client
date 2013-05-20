@@ -10,6 +10,7 @@ import sys
 import shlex
 from subprocess import Popen, call, PIPE, STDOUT
 from getpass import getuser
+from optparse import OptionParser
 
 import gobject
 import dbus
@@ -20,11 +21,19 @@ debug = True
 min_interval = 2 # minutes
 # log_file = "/var/log/prey.log"
 command_env = {'TERM': 'xterm', 'TRIGGER': 'true', 'USER': getuser()}
+run_at_startup = True
+prey_bin = '/usr/lib/prey/current/bin/prey'
 
-try:
-	prey_bin = sys.argv[1]
-except IndexError, e:
-	prey_bin = '/usr/lib/prey/current/bin/prey'
+parser = OptionParser()
+parser.add_option("-b", "--bin", help="Path to Prey bin")
+parser.add_option("-s", action="store_true", dest="skip_startup")
+(options, args) = parser.parse_args()
+
+if options.skip_startup:
+  run_at_startup = False
+
+if options.bin:
+  prey_bin = options.bin
 
 #######################
 # helpers
@@ -96,7 +105,7 @@ if __name__ == '__main__':
 		print "NetworkManager DBus interface not found! Please make sure NM is installed."
 		sys.exit(1)
 
-	if connected():
+	if run_at_startup and connected():
 		run_prey()
 
 	# upower = bus.get_object('org.freedesktop.UPower', '/org/freedesktop/UPower')
