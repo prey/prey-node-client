@@ -18,7 +18,7 @@
 
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 DAEMON="{{trigger_script}}"
-DAEMON_OPTS="{{prey_bin}}"
+DAEMON_OPTS="-b {{prey_bin}}"
 USER="{{user}}"
 NAME=prey-trigger
 DESC=prey-trigger

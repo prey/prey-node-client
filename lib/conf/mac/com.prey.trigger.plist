@@ -9,6 +9,7 @@
 	<key>ProgramArguments</key>
 	<array>
 		<string>{{trigger_script}}</string>
+		<string>-b</string>
 		<string>{{prey_bin}}</string>
 	</array>
 	<key>RunAtLoad</key>
