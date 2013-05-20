@@ -15,7 +15,7 @@ var join                  = require('path').join,
 
 if (is_root) { // this test will run only if we invoke `sudo bin/prey test`
 
-describe('when called with no arguments #wip', function(){
+describe('when called with no arguments', function(){
 
   is_faked_prey_dir_created = false;
 
@@ -63,11 +63,40 @@ describe('when called with no arguments #wip', function(){
 } // end `is_root` condition
 
 describe('when called with argument', function(){
+
   describe('and that path does not exist', function(){
-    it('exits with error code');
+
+    it('exits with error code', function(done){
+      var py_trigger = spawn(trigger_filename, ['/tmp/b4f9259646c478cccebcf52eccf30a3d_prey']);
+
+      py_trigger.on('close', function(code){
+        code.should.be.equal(1);
+        done();
+      });
+    });
   });
+
   describe('and that path exists', function(){
-    it('sets prey_bin_path as that one');
+
+    // We need to create our fake prey file
+    // Can't use a `before` though, because we need the pid of the spawned process :S
+    var fake_prey_filename = '/tmp/b4f9259646c478cccebcf52eccf30a3d_prey';
+
+    it('sets prey_bin_path as that one', function(done){
+      // Create prey process and `killer file`
+      var py_trigger = spawn(trigger_filename, [fake_prey_filename]);
+      fs.writeFileSync(fake_prey_filename, '#!/bin/bash\nkill -s SIGUSR2 ' + py_trigger.pid, {mode : 0755});
+
+      py_trigger.on('close', function(code, signal){
+        signal.should.be.equal('SIGUSR2');
+        done();
+      });
+    });
+
+    // Delete this fake prey file
+    after(function(done){
+      fs.unlink(fake_prey_filename, done);
+    });
   });
 });
 
