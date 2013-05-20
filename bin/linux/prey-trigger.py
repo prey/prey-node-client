@@ -16,6 +16,7 @@ import dbus
 from datetime import datetime, timedelta
 from dbus.mainloop.glib import DBusGMainLoop
 
+debug = True
 min_interval = 2 # minutes
 # log_file = "/var/log/prey.log"
 command_env = {'TERM': 'xterm', 'TRIGGER': 'true', 'USER': getuser()}
@@ -30,7 +31,7 @@ except IndexError, e:
 #######################
 
 def connected():
-	return nm_interface.state() == 3
+	return (nm_interface.state() == 3 or nm_interface.state() == 70)
 
 def log(message):
 	print(message)
@@ -57,7 +58,7 @@ def run_prey():
 			os.wait()
 			log("Elvis has left the building")
 		except OSError, e:
-			print "\nWait a second! Seems we couldn't find Prey at " + prey_command
+			print "\nWait a second! Seems we couldn't find Prey at " + prey_bin
 			print e
 			sys.exit(1)
 
