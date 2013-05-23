@@ -9,7 +9,8 @@
 
 // Module requirements
 var fs    = require('fs'),
-    path  = require('path');
+    path  = require('path'),
+    spawn = require('child_process').spawn;
 
 // Module variables
 var utils = module.exports = function () {};
@@ -43,4 +44,20 @@ utils.rmdir_sync_force = function (path) {
     }
   }
   fs.rmdirSync(path);
-};
+}
+
+/**
+ * @summary Makes en0 and en1 network interfaces down
+ */
+utils.make_network_down = function () {
+  var en0_down = spawn('ifconfig', ['en0', 'down']);
+  var en1_down = spawn('ifconfig', ['en1', 'down']);
+}
+
+/**
+ * @summary Makes en0 and en1 network interfaces up
+ */
+utils.make_network_up = function () {
+  var en0_down = spawn('ifconfig', ['en0', 'up']);
+  var en1_down = spawn('ifconfig', ['en1', 'up']);
+}
