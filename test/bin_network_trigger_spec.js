@@ -7,6 +7,7 @@ var join                  = require('path').join,
     default_prey_bin_dir  = join('/','usr','lib','prey','current','bin'),
     default_prey_dir      = join('/','usr','lib','prey'),
     fake_prey_filename    = join('/', 'tmp', 'b4f9259646c478cccebcf52eccf30a3d_prey'),
+    ni                    = require('os').networkInterfaces(),
     os_name               = process.platform === 'darwin' ? 'mac' : 'linux',
     trigger_filename      = join(__dirname, '..', 'bin', os_name, 'prey-trigger.py'),
     fs                    = require('fs'),
@@ -64,6 +65,8 @@ describe('when called with no arguments', function(){
     }
   });
 });
+
+if (ni['en0'] || ni['en1']) { // must have wireless in this machine to test
 
 describe('when a network change is detected', function(){
 
@@ -142,6 +145,8 @@ describe('when a network change is detected', function(){
     });
   });
 });
+
+} // end `wireless` condition
 } // end `is_root` condition
 
 // Tests which don't require root condition

@@ -58,6 +58,6 @@ utils.make_network_down = function () {
  * @summary Makes en0 and en1 network interfaces up
  */
 utils.make_network_up = function () {
-  var en0_down = spawn('ifconfig', ['en0', 'up']);
-  var en1_down = spawn('ifconfig', ['en1', 'up']);
+  var en0_up = spawn('ifconfig', ['en0', 'up']);
+  var en1_up = spawn('ifconfig', ['en1', 'up']);
 }
