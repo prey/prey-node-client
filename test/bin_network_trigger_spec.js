@@ -66,91 +66,78 @@ describe('when called with no arguments', function(){
   });
 });
 
-if (ni['en0'] || ni['en1']) { // must have wireless in this machine to test
-
 describe('when a network change is detected', function(){
 
-  is_faked_prey_dir_created = false;
+  var active_network_interface_name;
 
-  it('checks if there is internet connection', function(done){
-    this.timeout(10000);
-    var py_trigger = spawn(trigger_filename, ['-b', fake_prey_filename, '-s']);
-
-    fs.writeFileSync(fake_prey_filename, '#!/bin/bash\nkill -s SIGUSR2 ' + py_trigger.pid, {mode : 0755});
-    utils.make_network_down();
-    var t = setTimeout(function() { utils.make_network_up(); }, 1000);
-
-    py_trigger.on('close', function(code, signal){
-      signal.should.be.equal('SIGUSR2');
-      fs.unlink(fake_prey_filename, done);
+  before(function(done){
+    var network = require(join(__dirname, '..', 'lib', 'agent', 'providers', 'network', 'index'));
+    network.get_active_network_interface(function(err, nic){
+      active_network_interface_name = nic.name;
+      done();
     });
   });
 
-  describe('and there is no internet connection', function(){
+  describe('checks if there is internet connection', function(){
+    describe('and the network is down', function(){
 
-    it('does not call the prey script and keeps running', function(done){
-      // We will run the script for ten seconds.
-      // If it closes, it means that the prey script was called, so the test fails...
-      // Now, if it doesn't, we assume that the script will never be called, so it's a OK
-      this.timeout(12000);
-      var flag_end_test_called = false; // prevents the function from being called twice
-
-      var py_trigger = spawn(trigger_filename, ['-b', fake_prey_filename, '-s']);
-
-      fs.writeFileSync(fake_prey_filename, '#!/bin/bash\nkill -s SIGUSR2 ' + py_trigger.pid, {mode : 0755});
-      utils.make_network_down();
-      var t = setTimeout(function() {
-        // Timeout of ten seconds passed! Test OK
-        end_test();
-      }, 10000);
-
-      // Leave this babe here, in case someday you want to "test the test"
-      // This one will mimic the effect of the script being called
-      // var x = setTimeout(function() { py_trigger.kill('SIGUSR1');}, 3000)
-
-      py_trigger.on('close', function(code, signal){
-        // The test has failed, the script has been called :(
-        end_test(true); // we put the `fail` flag on
+      before(function(done){
+        utils.make_network_down(active_network_interface_name);
+        done();
       });
 
-      function end_test (fail) {
-        if (!flag_end_test_called) {
-          flag_end_test_called = true;
-          fs.unlinkSync(fake_prey_filename);
+      it('does not call the prey script and keeps running', function(done){
+        this.timeout(12000);
+
+        var py_trigger = spawn(trigger_filename, ['-b', fake_prey_filename, '-s']);
+        fs.writeFileSync(fake_prey_filename, '#!/bin/bash\nkill -s SIGUSR2 ' + py_trigger.pid, {mode : 0755});
+
+        var t = setTimeout(function(){ py_trigger.kill('SIGUSR1');}, 10000);
+
+        py_trigger.on('close', function(code, signal){
           clearTimeout(t);
-          utils.make_network_up();
-          if (fail)  {
-            throw('Prey script shouldn\'t be called!');
-          } else {
-            done();
-          }
-        }
-      }
-    });
-  });
-  describe('and there is internet connection', function(){
-    describe('and prey_bin hasn\'t been called', function(){
-      it('calls the script');
-      it('keeps running');
-    });
-    describe('and prey_bin has been called', function(){
-      describe('and last call time was less than two minutes ago', function(){
-        it('does not call the script');
-        it('keeps running');
+          signal.should.be.equal('SIGUSR1');
+          done();
+        });
       });
-      describe('and last call time was more than two minutes ago', function(){
-        it('calls the script');
-        it('keeps running');
+
+      after(function(done){
+        utils.make_network_up(active_network_interface_name);
+        fs.unlink(fake_prey_filename, done);
+      });
+    });
+
+    describe('and the network is up', function(){
+
+      before(function(done){
+        utils.make_network_down(active_network_interface_name);
+        done();
+      });
+
+      it('calls the prey script', function(done){
+        this.timeout(6000);
+
+        utils.make_network_up(active_network_interface_name);
+        var py_trigger = spawn(trigger_filename, ['-b', fake_prey_filename, '-s']);
+        fs.writeFileSync(fake_prey_filename, '#!/bin/bash\nkill -s SIGUSR2 ' + py_trigger.pid, {mode : 0755});
+
+        py_trigger.on('close', function(code, signal){
+          signal.should.be.equal('SIGUSR2');
+          done();
+        });
+      });
+
+      after(function(done){
+        fs.unlink(fake_prey_filename, done);
       });
     });
   });
 });
 
-} // end `wireless` condition
 } // end `is_root` condition
 
 // Tests which don't require root condition
-describe('when called with argument', function(){
+describe('when called with `-b` argument', function(){
 
   describe('and that path does not exist', function(){
 
@@ -181,6 +168,27 @@ describe('when called with argument', function(){
     after(function(done){
       fs.unlink(fake_prey_filename, done);
     });
+  });
+});
+
+describe('when called with `-s` argument', function(){
+
+  it('skips the calling of the script the first time is ran', function(done){
+    this.timeout(6000);
+    var py_trigger = spawn(trigger_filename, ['-b', fake_prey_filename, '-s']);
+    fs.writeFileSync(fake_prey_filename, '#!/bin/bash\nkill -s SIGUSR2 ' + py_trigger.pid, {mode : 0755});
+
+    var t = setTimeout(function(){ py_trigger.kill('SIGUSR1');}, 5000);
+
+    py_trigger.on('close', function(code, signal){
+      signal.should.be.equal('SIGUSR1');
+      done();
+    });
+  });
+
+  // Delete this fake prey file
+  after(function(done){
+    fs.unlink(fake_prey_filename, done);
   });
 });
 

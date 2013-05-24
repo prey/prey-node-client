@@ -47,17 +47,17 @@ utils.rmdir_sync_force = function (path) {
 }
 
 /**
- * @summary Makes en0 and en1 network interfaces down
+ * @param   {String}   iface
+ * @summary Makes active network interface down
  */
-utils.make_network_down = function () {
-  var en0_down = spawn('ifconfig', ['en0', 'down']);
-  var en1_down = spawn('ifconfig', ['en1', 'down']);
+utils.make_network_down = function (iface, callback) {
+  var iface_down = spawn('ifconfig', [iface, 'down']);
 }
 
 /**
- * @summary Makes en0 and en1 network interfaces up
+ * @param   {String}    iface
+ * @summary Makes active network interface up
  */
-utils.make_network_up = function () {
-  var en0_up = spawn('ifconfig', ['en0', 'up']);
-  var en1_up = spawn('ifconfig', ['en1', 'up']);
+utils.make_network_up = function (iface, callback) {
+  var iface_up = spawn('ifconfig', [iface, 'up']);
 }
