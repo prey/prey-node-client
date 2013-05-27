@@ -1,5 +1,10 @@
 #!/bin/bash
 
+if [ $EUID -ne 0 ]; then
+  echo "$0 must be run as root."
+  exit 1
+fi
+
 USER_NAME="$1"
 [ -z "$USER_NAME" ] && echo "User name required." && exit 1
 
@@ -30,11 +35,6 @@ fi
 ADMIN_GROUP_ID=80
 # linux
 ADMIN_GROUP=adm
-
-if [ $EUID -ne 0 ]; then
-  echo "$0 must be run as root."
-  exit 0
-fi
 
 id $USER_NAME &> /dev/null
 

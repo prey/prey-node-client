@@ -8,9 +8,11 @@
  */
 
 // Module requirements
-var fs    = require('fs'),
-    path  = require('path'),
-    spawn = require('child_process').spawn;
+var fs        = require('fs'),
+    path      = require('path'),
+    os_name   = process.platform === 'darwin' ? 'mac' : 'linux',
+    exec      = require('child_process').exec,
+    spawn     = require('child_process').spawn;
 
 // Module variables
 var utils = module.exports = function () {};
@@ -50,7 +52,7 @@ utils.rmdir_sync_force = function (path) {
  * @param   {String}   iface
  * @summary Makes active network interface down
  */
-utils.make_network_down = function (iface, callback) {
+utils.make_network_down = function (iface) {
   var iface_down = spawn('ifconfig', [iface, 'down']);
 }
 
@@ -58,6 +60,25 @@ utils.make_network_down = function (iface, callback) {
  * @param   {String}    iface
  * @summary Makes active network interface up
  */
-utils.make_network_up = function (iface, callback) {
+utils.make_network_up = function (iface) {
   var iface_up = spawn('ifconfig', [iface, 'up']);
+}
+
+/**
+ * @param   {Callback}    callback
+ * @summary Gets a username from the system different than root
+ */
+utils.get_non_root_user_id = function (callback) {
+  var command;
+  if (os_name === 'mac') {
+    command = 'dscl . -list /Users UniqueID| '
+            + 'grep -Ev "^_|daemon|nobody|root|Guest"'
+            + ' | tail -1'
+            + ' | awk \' { print ( $(NF) ) }\'';
+  } else { // linux
+    command = ''; // TODO
+  }
+  exec(command, function (error, stdout, stderr){
+    return callback(stdout);
+  });
 }
