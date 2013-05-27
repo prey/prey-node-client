@@ -41,7 +41,7 @@ id $USER_NAME &> /dev/null
 
 if [ $? -eq 0 ]; then
   echo "${USER_NAME} user already exists!"
-  exit 0
+  exit 1
 fi
 
 ask_confirmation() {

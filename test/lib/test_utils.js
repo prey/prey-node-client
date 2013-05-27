@@ -105,3 +105,64 @@ utils.count_users_in_system = function (callback) {
     return callback(parseInt(stdout));
   });
 }
+
+/**
+ * @param   {String}      username
+ * @param   {Callback}    callback
+ * @summary Creates a user in the system
+ */
+utils.create_user = function (username, callback) {
+  var command,
+      id;
+
+  if (os_name === 'mac') {
+    // Will be needing to issue four commands in sequence:
+    command = "dscl . -list /Users UniqueID | awk '{print $2}' | sort -ug | tail -1";
+    exec(command, executed_first);
+
+    function executed_first (error, stdout) {
+      id = parseInt(stdout) + 1;
+      command = "dscl . -create /Users/" + username;
+      exec(command, executed_second);
+    }
+
+    function executed_second () {
+      command = "dscl . -create /Users/" + username + " UniqueID " + id;
+      exec(command, executed_third);
+    }
+
+    function executed_third () {
+      command = "dscl . -create /Users/" + username + " PrimaryGroupID 80";
+      return exec(command, callback);
+    }
+  } else { // linux
+    // TODO!!!
+    exec('useradd -r -M -U -G adm -s /bin/bash ' + username, function () {
+      return callback();
+    });
+  }
+}
+
+/**
+ * @param   {String}      username
+ * @param   {Callback}    callback
+ * @summary Removes a user in the system
+ */
+utils.remove_user = function (username, callback) {
+  var command;
+
+  if (os_name === 'mac') {
+    command = 'dscl . -delete /Users/' + username;
+    var t = setTimeout(function(){ execute_command(); }, 2000);
+  } else { // linux
+    // TODO!!
+    command =  'userdel ' + username;
+    return execute_command();
+  }
+
+  function execute_command () {
+    exec(command, function (error, stdout, stderr) {
+      return callback();
+    });
+  }
+}

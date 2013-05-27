@@ -12,7 +12,7 @@ var fs                    = require('fs'),
     spawn                 = require('child_process').spawn,
     utils                 = require(join(__dirname, '..', 'lib','test_utils'));
 
-describe('create_user_spec', function(){
+describe('create_user_spec #wip', function(){
 
   describe('without sudo privileges', function(){
 
@@ -49,51 +49,69 @@ describe('create_user_spec', function(){
     });
   });
 
-  describe('with no arguments #wip', function(){
-
-    var number_of_users_before_test;
-
-    before(function(done){
-      utils.count_users_in_system(function(count){
-        number_of_users_before_test = count;
-        done();
-      });
-    });
-
-    it('exits with error code', function(done){
-      var create_user = spawn(script_filename, []);
-
-      create_user.on('close', function(code){
-        code.should.be.equal(1);
-        done();
-      });
-    });
-
-    it('does not create any `default` user (system user count should remain the same)', function(done){
-      utils.count_users_in_system(function(count){
-        count.should.be.equal(number_of_users_before_test);
-        done();
-      })
-    });
-  });
-
   describe('with sudo privileges', function(){
 
-    describe('and user exists', function(){
+    describe('with no arguments', function(){
 
-      it('exists with error code');
+      var number_of_users_before_test;
+
+      before(function(done){
+        utils.count_users_in_system(function(count){
+          number_of_users_before_test = count;
+          done();
+        });
+      });
+
+      it('exits with error code 1', function(done){
+        var create_user = spawn(script_filename, []);
+
+        create_user.on('close', function(code){
+          code.should.be.equal(1);
+          done();
+        });
+      });
+
+      it('does not create any `default` user (system user count should remain the same)', function(done){
+        utils.count_users_in_system(function(count){
+          count.should.be.equal(number_of_users_before_test);
+          done();
+        })
+      });
     });
 
-    describe('and user does not exists', function(){
+    describe('with `username` argument', function(){
 
-      it('creates the user');
-      it('adds the user to adm, netdev groups');
+      describe('and user exists', function(){
 
-      describe('with created user', function(){
+        before(function(done){
+          utils.create_user('test___prey', done);
+        });
 
-        it('should be able to impersonate another user');
-        it('should NOT be able to impersonate root');
-      })
+        it('exits with error code 1', function(done){
+          var create_user = spawn(script_filename, ['test___prey']);
+
+          create_user.on('close', function(code){
+            code.should.be.equal(1);
+            done();
+          });
+        });
+
+        after(function(done){
+          utils.remove_user('test___prey', done);
+        });
+      });
+
+      describe('and user does not exists', function(){
+
+        it('creates the user');
+        it('adds the user to adm, netdev groups');
+
+        describe('with created user', function(){
+
+          it('should be able to impersonate another user');
+          it('should NOT be able to impersonate root');
+        })
+      });
     });
   });
 });
