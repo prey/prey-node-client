@@ -61,11 +61,11 @@
 
 = scripts/create_user_spec
 
-  + when no sudo privileges
-    - it exist with error code
+  + without sudo privileges
+    - it exits with error code
   + with no arguments
-    - does not create any 'default' user (system user count should remain same)
-    - it exist with error code
+    - does not create any 'default' user (system user count should remain the same)
+    - it exits with error code
   + with sudo privileges
     + and user exists
       - it exits with error code
