@@ -98,7 +98,7 @@ utils.count_users_in_system = function (callback) {
             + ' | wc -l'
             + ' | awk \' { print ( $(NF) ) }\'';
   } else { // linux
-    command =  'cat /etc/passwd | grep -E "home.*bash" | wc -1 | awk \' { print ( $(NF) ) }\'';
+    command =  'cat /etc/passwd | grep -E "home.*bash" | wc -l | awk \' { print ( $(NF) ) }\'';
   }
 
   exec(command, function (error, stdout, stderr) {
