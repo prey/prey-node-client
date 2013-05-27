@@ -12,63 +12,88 @@ var fs                    = require('fs'),
     spawn                 = require('child_process').spawn,
     utils                 = require(join(__dirname, '..', 'lib','test_utils'));
 
-describe('without sudo privileges', function(){
+describe('create_user_spec', function(){
 
-  var non_root_user_id;
+  describe('without sudo privileges', function(){
 
-  before(function(done){
-    // 1. Get a non-root user-id
-    utils.get_non_root_user_id(got_id);
+    var non_root_user_id;
 
-    // 2. Copy the script contents into a `/tmp` file
-    function got_id(user_id) {
-      non_root_user_id = parseInt(user_id);
-      var create_user_contents = fs.readFileSync(script_filename, 'utf8');
-      fs.writeFile(script_tmp_filename, create_user_contents, wrote_file);
-    }
+    before(function(done){
+      // 1. Get a non-root user-id
+      utils.get_non_root_user_id(got_id);
 
-    // 3. And give this user we got ownership of the file
-    function wrote_file() {
-      fs.chown(script_tmp_filename, non_root_user_id, 0, done);
-    }
-  });
+      // 2. Copy the script contents into a `/tmp` file
+      function got_id(user_id) {
+        non_root_user_id = user_id;
+        var create_user_contents = fs.readFileSync(script_filename, 'utf8');
+        fs.writeFile(script_tmp_filename, create_user_contents, wrote_file);
+      }
 
-  it('exits with error code 1', function(done){
-    var create_user = spawn(script_filename, ['johndoe'], {uid : non_root_user_id});
+      // 3. And give this user we got ownership of the file
+      function wrote_file() {
+        fs.chown(script_tmp_filename, non_root_user_id, 0, done);
+      }
+    });
 
-    create_user.on('close', function(code){
-      code.should.be.equal(1);
-      done();
+    it('exits with error code 1', function(done){
+      var create_user = spawn(script_filename, ['johndoe'], {uid : non_root_user_id});
+
+      create_user.on('close', function(code){
+        code.should.be.equal(1);
+        done();
+      });
+    });
+
+    after(function(done){
+      fs.unlink(script_tmp_filename, done);
     });
   });
 
-  after(function(done){
-    fs.unlink(script_tmp_filename, done);
+  describe('with no arguments #wip', function(){
+
+    var number_of_users_before_test;
+
+    before(function(done){
+      utils.count_users_in_system(function(count){
+        number_of_users_before_test = count;
+        done();
+      });
+    });
+
+    it('exits with error code', function(done){
+      var create_user = spawn(script_filename, []);
+
+      create_user.on('close', function(code){
+        code.should.be.equal(1);
+        done();
+      });
+    });
+
+    it('does not create any `default` user (system user count should remain the same)', function(done){
+      utils.count_users_in_system(function(count){
+        count.should.be.equal(number_of_users_before_test);
+        done();
+      })
+    });
   });
-});
 
-describe('with no arguments #wip', function(){
+  describe('with sudo privileges', function(){
 
-  it('does not create any `default` user (system user count should remain the same)');
-  it('exits with error code');
-});
+    describe('and user exists', function(){
 
-describe('with sudo privileges', function(){
+      it('exists with error code');
+    });
 
-  describe('and user exists', function(){
+    describe('and user does not exists', function(){
 
-    it('exists with error code');
-  });
+      it('creates the user');
+      it('adds the user to adm, netdev groups');
 
-  describe('and user does not exists', function(){
+      describe('with created user', function(){
 
-    it('creates the user');
-    it('adds the user to adm, netdev groups');
-
-    describe('with created user', function(){
-
-      it('should be able to impersonate another user');
-      it('should NOT be able to impersonate root');
-    })
+        it('should be able to impersonate another user');
+        it('should NOT be able to impersonate root');
+      })
+    });
   });
 });

@@ -72,8 +72,8 @@ utils.get_non_root_user_id = function (callback) {
   var command;
 
   if (os_name === 'mac') {
-    command = 'dscl . -list /Users UniqueID| '
-            + 'grep -Ev "^_|daemon|nobody|root|Guest"'
+    command = 'dscl . -list /Users UniqueID'
+            + ' | grep -Ev "^_|daemon|nobody|root|Guest"'
             + ' | tail -1'
             + ' | awk \' { print ( $(NF) ) }\'';
   } else { // linux
@@ -81,6 +81,27 @@ utils.get_non_root_user_id = function (callback) {
   }
 
   exec(command, function (error, stdout, stderr) {
-    return callback(stdout);
+    return callback(parseInt(stdout));
+  });
+}
+
+/**
+ * @param   {Callback}    callback
+ * @summary Returns in the callback the number of users the system has
+ */
+utils.count_users_in_system = function (callback) {
+  var command;
+
+  if (os_name === 'mac') {
+    command = 'dscl . -list /Users'
+            + ' | grep -Ev "^_|daemon|nobody|root|Guest"'
+            + ' | wc -l'
+            + ' | awk \' { print ( $(NF) ) }\'';
+  } else { // linux
+    command =  'cat /etc/passwd | grep -E "home.*bash" | wc -1 | awk \' { print ( $(NF) ) }\'';
+  }
+
+  exec(command, function (error, stdout, stderr) {
+    return callback(parseInt(stdout));
   });
 }
