@@ -8,11 +8,14 @@ if (process.getuid() !== 0) return;
 var fs                    = require('fs'),
     join                  = require('path').join,
     script_filename       = join(__dirname, '..', '..', 'scripts', 'create_user.sh'),
-    script_tmp_filename   = join('/','tmp', '6a0e1b190570da9f0fe1ab50fbdab035_create_user.sh')
+    script_tmp_filename   = join('/','tmp', '6a0e1b190570da9f0fe1ab50fbdab035_create_user.sh'),
+    test_username         = 'test___prey',
+    sudoers_filename      = '/etc/sudoers.d/50_' + test_username +'_switcher',
+    os_name               = process.platform === 'darwin' ? 'mac' : 'linux',
     spawn                 = require('child_process').spawn,
     utils                 = require(join(__dirname, '..', 'lib','test_utils'));
 
-describe('create_user_spec #wip', function(){
+describe('create_user_spec #wip1', function(){
 
   describe('without sudo privileges', function(){
 
@@ -84,11 +87,11 @@ describe('create_user_spec #wip', function(){
       describe('and user exists', function(){
 
         before(function(done){
-          utils.create_user('test___prey', done);
+          utils.create_user(test_username, done);
         });
 
         it('exits with error code 1', function(done){
-          var create_user = spawn(script_filename, ['test___prey']);
+          var create_user = spawn(script_filename, [test_username]);
 
           create_user.on('close', function(code){
             code.should.be.equal(1);
@@ -97,20 +100,37 @@ describe('create_user_spec #wip', function(){
         });
 
         after(function(done){
-          utils.remove_user('test___prey', done);
+          utils.remove_user(test_username, done);
         });
       });
 
-      describe('and user does not exists', function(){
+      describe('and user does not exists #wip2', function(){
 
-        it('creates the user');
-        it('adds the user to adm, netdev groups');
+        it('creates the user', function(done){
+          this.timeout(10000);
+          var create_user = spawn(script_filename, [test_username]);
+
+          create_user.on('close', function(code){
+            code.should.be.equal(0);
+            done();
+          });
+        });
+
+        if (os_name === 'linux') {
+          it('adds the user to adm, netdev groups');
+        }
 
         describe('with created user', function(){
 
           it('should be able to impersonate another user');
           it('should NOT be able to impersonate root');
-        })
+        });
+
+        after(function(done){
+          utils.remove_user(test_username, function(){
+            fs.unlink(sudoers_filename, done);
+          });
+        });
       });
     });
   });
