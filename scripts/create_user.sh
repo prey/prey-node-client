@@ -26,7 +26,8 @@ fi
 SUDOERS_LINE="${USER_NAME} ALL = NOPASSWD: ${SUDOERS_ARGS}"
 
 if [ "$(uname)" == "Linux" ]; then
-  EXISTING_USER=$(find ${USERS_PATH} -maxdepth 1 -not -path "*/\.*" | grep -v ${USER_NAME} | tail -1 | cut -f3 -d "/")
+  # EXISTING_USER=$(find ${USERS_PATH} -maxdepth 1 -not -path "*/\.*" | grep -v ${USER_NAME} | tail -1 | cut -f3 -d "/")
+  EXISTING_USER=$(cat /etc/passwd | grep -E "home.*bash" | tail -1 | cut -d":" -f1)
 else
   EXISTING_USER=$(dscl . -list /Users | grep -Ev "^_|daemon|nobody|root|Guest|${USER_NAME}" | tail -1)
 fi

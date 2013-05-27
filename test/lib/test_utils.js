@@ -70,15 +70,17 @@ utils.make_network_up = function (iface) {
  */
 utils.get_non_root_user_id = function (callback) {
   var command;
+
   if (os_name === 'mac') {
     command = 'dscl . -list /Users UniqueID| '
             + 'grep -Ev "^_|daemon|nobody|root|Guest"'
             + ' | tail -1'
             + ' | awk \' { print ( $(NF) ) }\'';
   } else { // linux
-    command = ''; // TODO
+    command =  'id -u $(cat /etc/passwd | grep -E "home.*bash" | tail -1 | cut -d":" -f1)';
   }
-  exec(command, function (error, stdout, stderr){
+
+  exec(command, function (error, stdout, stderr) {
     return callback(stdout);
   });
 }
