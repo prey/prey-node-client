@@ -104,150 +104,6 @@
   - it exports config, system, program, user_agent
 
 ===============================================
- conf
-===============================================
-
-= lib/conf/cli_controller_spec
-
-  + commands
-    + activate (calls set_up_version('this'), set_interval and optinally loads gui)
-      + when env.BUNDLE_ONLY flag is set
-        - it stops running (set_up_version is not called)
-        - exists with an error
-      + when env.BUNDLE_ONLY flag is NOT set
-        - it calls set_up_version
-        + and set_up_version fails
-          - it stops at that point (set_interval is not called)
-          - exits with an error
-        + and set_up_version succeeds
-          - calls system.set_interval
-          + and -g flag is set
-            - calls show_gui_and_exit
-          + and -g flag is not set
-            - exits with error
-
-    + deactivate (calls unset_interval and unset_current)
-      - calls system.unset_interval
-      + if system.unset_interval fails
-        - stops at that point (unset_current) is not called
-        - returns with error
-      + if system.unset_interval succeeds
-        - calls unset_current
-
-    + install (installs zip file into path)
-      [...]
-    + upgrade -- important
-      [...]
-    + versions
-      + this, set, current
-      [...]
-    + settings
-      + read, update, toggle
-      [...]
-    + account
-      + verify, signup, setup
-      [...]
-    + hooks
-      + post_install, pre_uninstall
-      [...]
-    + check
-      [...]
-    + gui
-      + if sudo
-        - fires up gui
-      + if no sudo
-        - shows onscreen message
-        - prints error message in console
-        - returns exit code
-
-   -----------
-
-  + functions
-    + set_up_version
-      + if config dir does not exist
-        + and no write permissions
-          - it exists with error
-        + and with write permissions
-          - it creates dir
-      + with existing config path
-        - syncs config
-        - calls versions.set_current
-
-    + unset_current
-       - calls versions.unset_current
-       + if versions.unset_current fails with ENOENT
-         - does not return error
-
-    + activate_new_version
-      [...]
-
-    + check_installation
-      [...]
-
-    + run_agent
-      [...]
-
-    + show_gui_and_exit
-      [...]
-
-= lib/conf/versions_spec
-
-  + latest()
-    [...]
-
-  + this()
-    [...]
-
-  + current()
-    [...]
-
-  + list()
-    [...]
-
-  + set_current()
-    [...]
-
-  + unset_current()
-    + if current symlink exists
-      - removes symlink
-    + if current symlink does not exist
-      - does not throw error
-
-  + remove()
-    [...]
-
-= lib/conf/remote_spec
-
-  + authorize()
-    [...]
-
-  + verify()
-    [...]
-
-  + signup()
-    [...]
-
-= lib/conf/package_spec
-
-  + check_latest_version()
-    [...]
-
-  + get_latest()
-    [...]
-
-  + get_version()
-    [...]
-
-  + download_release()
-    [...]
-
-  + download()
-    [...]  
-
-  + install()
-    [...]
-
-===============================================
  agent
 ===============================================
 
@@ -463,6 +319,150 @@
 = lib/system/windows/registry_spec 
 
 = lib/system/windows/wmic_spec 
+
+===============================================
+ conf
+===============================================
+
+= lib/conf/cli_controller_spec
+
+  + commands
+    + activate (calls set_up_version('this'), set_interval and optinally loads gui)
+      + when env.BUNDLE_ONLY flag is set
+        - it stops running (set_up_version is not called)
+        - exists with an error
+      + when env.BUNDLE_ONLY flag is NOT set
+        - it calls set_up_version
+        + and set_up_version fails
+          - it stops at that point (set_interval is not called)
+          - exits with an error
+        + and set_up_version succeeds
+          - calls system.set_interval
+          + and -g flag is set
+            - calls show_gui_and_exit
+          + and -g flag is not set
+            - exits with error
+
+    + deactivate (calls unset_interval and unset_current)
+      - calls system.unset_interval
+      + if system.unset_interval fails
+        - stops at that point (unset_current) is not called
+        - returns with error
+      + if system.unset_interval succeeds
+        - calls unset_current
+
+    + install (installs zip file into path)
+      [...]
+    + upgrade -- important
+      [...]
+    + versions
+      + this, set, current
+      [...]
+    + settings
+      + read, update, toggle
+      [...]
+    + account
+      + verify, signup, setup
+      [...]
+    + hooks
+      + post_install, pre_uninstall
+      [...]
+    + check
+      [...]
+    + gui
+      + if sudo
+        - fires up gui
+      + if no sudo
+        - shows onscreen message
+        - prints error message in console
+        - returns exit code
+
+   -----------
+
+  + functions
+    + set_up_version
+      + if config dir does not exist
+        + and no write permissions
+          - it exists with error
+        + and with write permissions
+          - it creates dir
+      + with existing config path
+        - syncs config
+        - calls versions.set_current
+
+    + unset_current
+       - calls versions.unset_current
+       + if versions.unset_current fails with ENOENT
+         - does not return error
+
+    + activate_new_version
+      [...]
+
+    + check_installation
+      [...]
+
+    + run_agent
+      [...]
+
+    + show_gui_and_exit
+      [...]
+
+= lib/conf/versions_spec
+
+  + latest()
+    [...]
+
+  + this()
+    [...]
+
+  + current()
+    [...]
+
+  + list()
+    [...]
+
+  + set_current()
+    [...]
+
+  + unset_current()
+    + if current symlink exists
+      - removes symlink
+    + if current symlink does not exist
+      - does not throw error
+
+  + remove()
+    [...]
+
+= lib/conf/remote_spec
+
+  + authorize()
+    [...]
+
+  + verify()
+    [...]
+
+  + signup()
+    [...]
+
+= lib/conf/package_spec
+
+  + check_latest_version()
+    [...]
+
+  + get_latest()
+    [...]
+
+  + get_version()
+    [...]
+
+  + download_release()
+    [...]
+
+  + download()
+    [...]  
+
+  + install()
+    [...]
 
 ===============================================
  utils - quizas operetta sea lo mas important
