@@ -16,7 +16,7 @@ var fs                    = require('fs'),
     spawn                 = require('child_process').spawn,
     utils                 = require(join(__dirname, '..', 'lib','test_utils'));
 
-describe('create_user_spec #wips', function(){
+describe('create_user_spec', function(){
 
   describe('without sudo privileges', function(){
 
