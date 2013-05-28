@@ -12,6 +12,7 @@ var fs                    = require('fs'),
     test_username         = 'test___prey',
     sudoers_filename      = '/etc/sudoers.d/50_' + test_username +'_switcher',
     os_name               = process.platform === 'darwin' ? 'mac' : 'linux',
+    exec                  = require('child_process').exec,
     spawn                 = require('child_process').spawn,
     utils                 = require(join(__dirname, '..', 'lib','test_utils'));
 
@@ -117,7 +118,13 @@ describe('create_user_spec #wips', function(){
         });
 
         if (os_name === 'linux') {
-          it('adds the user to adm, netdev groups');
+          it('adds the user to adm, netdev groups', function(done){
+            exec('id ' + test_username, function (error, stdout){
+              stdout.should.match(/(adm)/);
+              stdout.should.match(/(netdev)/);
+              done();
+            })
+          });
         }
 
         describe('with created user', function(){

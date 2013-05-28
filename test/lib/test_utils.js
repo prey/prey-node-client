@@ -76,7 +76,7 @@ utils.get_user_id = function (username, callback) {
     command = 'dscl . -read /Users/' + username + ' UniqueID'
             + ' | awk \' { print ( $(NF) ) }\'';
   } else { // linux
-    command =  'id ' + username;
+    command =  'id -u ' + username;
   }
 
   exec(command, function (error, stdout, stderr) {
@@ -120,9 +120,9 @@ utils.get_another_username = function (username, callback) {
             + ' | tail -1'
             + ' | awk \' { print ( $(NF-1) ) }\'';
   } else { // linux
-    command =  'id -u $(cat /etc/passwd'
+    command =  'cat /etc/passwd'
             + ' | grep -v "^' + username + '"'
-            + ' | grep -E "home.*bash" | tail -1 | cut -d":" -f1)';
+            + ' | grep -E "home.*bash" | tail -1 | cut -d":" -f1';
   }
 
   exec(command, function (error, stdout, stderr) {
