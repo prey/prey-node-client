@@ -16,7 +16,7 @@ var fs                    = require('fs'),
     spawn                 = require('child_process').spawn,
     utils                 = require(join(__dirname, '..', 'lib','test_utils'));
 
-describe('create_user_spec', function(){
+describe('scripts/create_user_spec', function(){
 
   describe('without sudo privileges', function(){
 
@@ -39,7 +39,7 @@ describe('create_user_spec', function(){
       }
     });
 
-    it('exits with error code 1', function(done){
+    it('exits with error code (1)', function(done){
       var create_user = spawn(script_filename, ['johndoe'], {uid : non_root_user_id});
 
       create_user.on('close', function(code){
@@ -66,7 +66,7 @@ describe('create_user_spec', function(){
         });
       });
 
-      it('exits with error code 1', function(done){
+      it('exits with error code (1)', function(done){
         var create_user = spawn(script_filename, []);
 
         create_user.on('close', function(code){
@@ -91,7 +91,7 @@ describe('create_user_spec', function(){
           utils.create_user(test_username, done);
         });
 
-        it('exits with error code 1', function(done){
+        it('exits with error code (1)', function(done){
           var create_user = spawn(script_filename, [test_username]);
 
           create_user.on('close', function(code){
