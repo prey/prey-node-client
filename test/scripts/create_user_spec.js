@@ -15,7 +15,7 @@ var fs                    = require('fs'),
     spawn                 = require('child_process').spawn,
     utils                 = require(join(__dirname, '..', 'lib','test_utils'));
 
-describe('create_user_spec #wip1', function(){
+describe('create_user_spec #wips', function(){
 
   describe('without sudo privileges', function(){
 
@@ -104,7 +104,7 @@ describe('create_user_spec #wip1', function(){
         });
       });
 
-      describe('and user does not exists #wip2', function(){
+      describe('and user does not exists', function(){
 
         it('creates the user', function(done){
           this.timeout(10000);
@@ -122,8 +122,39 @@ describe('create_user_spec #wip1', function(){
 
         describe('with created user', function(){
 
-          it('should be able to impersonate another user');
-          it('should NOT be able to impersonate root');
+          var impersonator_id;
+
+          before(function(done){
+            utils.get_user_id(test_username, function (_id){
+              impersonator_id = _id;
+              done();
+            })
+          });
+
+          it('should be able to impersonate another user', function(done){
+            utils.get_another_username(test_username, function(impersonated_username){
+              var impersonate_test =
+                spawn('sudo',
+                      ['-n', 'su', impersonated_username, '-c', 'whoami'],
+                      { uid : impersonator_id });
+
+              impersonate_test.on('close', function(code){
+                code.should.be.equal(0);
+                done();
+              });
+            });
+          });
+
+          it('should NOT be able to impersonate root', function(done){
+            var impersonate_test =
+              spawn('sudo',
+                    ['-n', 'su', root, '-c', 'whoami'],
+                    { uid : impersonator_id });
+            impersonate_test.on('close', function(code){
+              code.should.be.equal(1);
+              done();
+            });
+          });
         });
 
         after(function(done){

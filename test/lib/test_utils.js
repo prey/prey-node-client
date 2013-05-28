@@ -65,8 +65,28 @@ utils.make_network_up = function (iface) {
 }
 
 /**
+ * @param   {String}      username
  * @param   {Callback}    callback
- * @summary Gets a username from the system different than root
+ * @summary Gets the system id from a user
+ */
+utils.get_user_id = function (username, callback) {
+  var command;
+
+  if (os_name === 'mac') {
+    command = 'dscl . -read /Users/' + username + ' UniqueID'
+            + ' | awk \' { print ( $(NF) ) }\'';
+  } else { // linux
+    command =  'id ' + username;
+  }
+
+  exec(command, function (error, stdout, stderr) {
+    return callback(parseInt(stdout));
+  });
+}
+
+/**
+ * @param   {Callback}    callback
+ * @summary Gets a user id from the system different than root
  */
 utils.get_non_root_user_id = function (callback) {
   var command;
@@ -84,6 +104,32 @@ utils.get_non_root_user_id = function (callback) {
     return callback(parseInt(stdout));
   });
 }
+
+/**
+ * @param   {String}      username
+ * @param   {Callback}    callback
+ * @summary Gets a username from the system different than root and the
+ *          parametered username
+ */
+utils.get_another_username = function (username, callback) {
+  var command;
+
+  if (os_name === 'mac') {
+    command = 'dscl . -list /Users'
+            + ' | grep -Ev "^_|daemon|nobody|root|Guest|' + username + '"'
+            + ' | tail -1'
+            + ' | awk \' { print ( $(NF-1) ) }\'';
+  } else { // linux
+    command =  'id -u $(cat /etc/passwd'
+            + ' | grep -v "^' + username + '"'
+            + ' | grep -E "home.*bash" | tail -1 | cut -d":" -f1)';
+  }
+
+  exec(command, function (error, stdout, stderr) {
+    return callback(stdout.replace('\n', ''));
+  });
+}
+
 
 /**
  * @param   {Callback}    callback
