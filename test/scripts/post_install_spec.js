@@ -7,10 +7,10 @@ var fs                    = require('fs'),
     should                = require('should'),
     exec                  = require('child_process').exec,
     spawn                 = require('child_process').spawn,
-    utils                 = require(join(__dirname, '..', 'lib', 'test_utils')),
+    utils                 = require(join(__dirname, '..', 'utils', 'test_utils')),
     is_windows            = process.platform === 'win32';
 
-describe('scripts/post_install_spec #wip', function(){
+describe('scripts/post_install_spec', function(){
 
   if (process.platform == 'win32') {
     describe('when platform is windows', function(){

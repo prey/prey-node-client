@@ -13,7 +13,7 @@ var join                  = require('path').join,
     fs                    = require('fs'),
     fsx                   = require('node-fs'),
     spawn                 = require('child_process').spawn,
-    utils                 = require(join(__dirname, 'lib','test_utils'));
+    utils                 = require(join(__dirname, 'utils','test_utils'));
     is_root               = process.getuid() === 0;
 
 describe('bin_network_trigger_spec', function(){

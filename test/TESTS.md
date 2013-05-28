@@ -121,10 +121,6 @@
       - should pass 'network' argument to engage()
     + when SIGINT signal is received
       - should not terminate process
-    + when SIGINT signal is received
-      - should not terminate process
-    + when SIGINT signal is received
-      - should not terminate process
   + events
     + on exit
       - calls agent.shutdown

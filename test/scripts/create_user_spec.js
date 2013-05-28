@@ -14,7 +14,7 @@ var fs                    = require('fs'),
     os_name               = process.platform === 'darwin' ? 'mac' : 'linux',
     exec                  = require('child_process').exec,
     spawn                 = require('child_process').spawn,
-    utils                 = require(join(__dirname, '..', 'lib','test_utils'));
+    utils                 = require(join(__dirname, '..', 'utils','test_utils'));
 
 describe('scripts/create_user_spec', function(){
 
