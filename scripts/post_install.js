@@ -3,16 +3,17 @@
 // this script is executed by npm after an 'npm install prey'
 // and calls the conf module to set up config and execution triggers
 
-var join = require('path').join,
-    execFile = require('child_process').execFile,
-    prey_bin = join(__dirname, '..', 'bin', 'prey'),
-    args = ['config', 'hooks', 'post_install'];
+var join        = require('path').join,
+    execFile    = require('child_process').execFile,
+    prey_bin    = join(__dirname, '..', 'bin', 'prey'),
+    args        = ['config', 'hooks', 'post_install'],
+    is_windows  = process.platform === 'win32';
 
 var line = '\n=====================================================\n';
 
 var post_install = function(){
 
-  if (process.platform !== 'win32') {
+  if (!is_windows) {
     if (process.getuid && process.getuid() != 0) {
       var msg =  'You are running this script as an unprivileged user';
          msg +=  '\nso we cannot continue with the system configuration.';
@@ -22,6 +23,8 @@ var post_install = function(){
       process.exit(1);
     }
   }
+
+  if (is_windows) prey_bin += '.cmd';
 
   execFile(prey_bin, args, function(err, stdout, stderr){
     if (stdout.length > 0) console.log(stdout.trim());

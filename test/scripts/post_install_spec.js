@@ -7,14 +7,30 @@ var fs                    = require('fs'),
     should                = require('should'),
     exec                  = require('child_process').exec,
     spawn                 = require('child_process').spawn,
-    utils                 = require(join(__dirname, '..', 'lib', 'test_utils'));
+    utils                 = require(join(__dirname, '..', 'lib', 'test_utils')),
+    is_windows            = process.platform === 'win32';
 
 describe('scripts/post_install_spec #wip', function(){
 
   if (process.platform == 'win32') {
     describe('when platform is windows', function(){
 
-      it('should call bin/prey config hooks post_install');
+      before(function(done){
+        fs.renameSync(local_prey_path + '.cmd', local_prey_path + '.tmp');
+        fs.writeFile(local_prey_path + '.cmd', 'echo %*', {mode: 0755}, done);
+      });
+
+      it('should call bin/prey config hooks post_install', function(done){
+        exec('node ' + post_install_path, function(error, stdout, stderr){
+          stdout.should.match(/echo config hooks post_install/)
+          done();
+        });
+      });
+
+      after(function(done){
+        fs.unlinkSync(local_prey_path + '.cmd');
+        fs.rename(local_prey_path + '.tmp', local_prey_path + '.cmd', done);
+      });
     });
   } else {
     describe('when platform is not windows', function(){
