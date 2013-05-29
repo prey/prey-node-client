@@ -1,30 +1,54 @@
 
 var 
+  fs                    = require('fs'),
   join                  = require('path').join,
+  os                    = require('os'),
   sandbox               = require('sandboxed-module'),
   exec                  = require('child_process').exec,
   spawn                 = require('child_process').spawn,
   cli_test_helper_path  = join(__dirname, '..', '..', 'utils', 'lib_agent_cli.js'),
   prey_config_path      = require('path').resolve(__dirname, '..', '..', '..'),
+  test_file_path        = join(os.tmpDir(), '5b957c999343408e127ee49663383289_test_prey_agent_run'),
   is_windows            = process.platform === 'win32';
 
 console.log(prey_config_path)
 
-describe('lib/agent/cli_controller_spec', function(){
+describe('lib/agent/cli_controller_spec #wip', function(){
   
   describe('when config file does not exist', function(){
 
-    it('returns an error');
-    it('does not run agent');
+    var cli,
+        code;
+
+    before(function(done){
+      if (fs.existsSync(test_file_path)) fs.unlinkSync(test_file_path);
+
+      cli = spawn('node', [cli_test_helper_path, 'write_tmp_file', test_file_path]);
+
+      cli.on('close', function (_code){
+        code = _code;
+        done();
+      });
+    });
+
+    it('returns an error', function(){
+      code.should.be.equal(1);
+    });
+
+    it('does not run agent', function(){
+      fs.exists(test_file_path, function(exists){
+        exists.should.be.equal(false);
+      })
+    });
   });
 
   if (!is_windows) {
-  describe('signals #wip', function(){
+  describe('signals', function(){
 
     describe('when SIGUSR1 signal is received', function(){
 
       it('should call agent.engage() with the argument `interval`', function(done){
-        var cli = spawn('node', [cli_test_helper_path]);
+        var cli = spawn('node', [cli_test_helper_path, 'config_present']);
 
         cli.on('close', function (code, signal){
           code.should.be.equal(41);
@@ -41,7 +65,7 @@ describe('lib/agent/cli_controller_spec', function(){
     describe('when SIGUSR2 signal is received', function(){
 
       it('should call agent.engage() with the argument `network`', function(done){
-        var cli = spawn('node', [cli_test_helper_path, '-p', prey_config_path]);
+        var cli = spawn('node', [cli_test_helper_path, 'config_present']);
 
         cli.on('close', function (code, signal){
           code.should.be.equal(42);
@@ -53,7 +77,18 @@ describe('lib/agent/cli_controller_spec', function(){
     });
 
     describe('when SIGINT signal is received', function(){
-      it('should not terminate process');
+
+      it('should not terminate process', function(done){
+        var cli = spawn('node', [cli_test_helper_path, 'config_present']);
+
+        cli.on('close', function (code, signal){
+          code.should.be.equal(42);
+          done();
+        });
+
+        var t = setTimeout(function(){ cli.kill('SIGINT'); }, 100);
+        var u = setTimeout(function(){ cli.kill('SIGUSR2'); }, 1000);
+      });
     });
   });
   } // end `is_windows` condition

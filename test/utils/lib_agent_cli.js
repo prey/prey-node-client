@@ -15,7 +15,8 @@ if (process.argv[0] === 'node' && process.argv[1].match(/lib_agent_cli/)) test()
 
 function test() {
   // Module requirements
-  var join          = require('path').join,
+  var fs            = require('fs'),
+      join          = require('path').join,
       sandbox       = require('sandboxed-module'),
       cli_path      = join(__dirname, '..', '..', 'lib', 'agent', 'cli_controller.js');
 
@@ -29,6 +30,8 @@ function test() {
       }      
     },
     run       : function() {
+      if (process.argv.length > 3 && process.argv[2] === 'write_tmp_file')
+        fs.writeFileSync(process.argv[3], 'RUN!');
       // Need this timeout to keep the script alive
       var t = setTimeout(function() { }, 3600000);
     },
@@ -47,7 +50,8 @@ function test() {
     },
     config  : {
       present : function() {
-        return true;
+        var config_exists = process.argv.length > 2 && process.argv[2] === 'config_present';
+        return config_exists;
       }
     }
   }

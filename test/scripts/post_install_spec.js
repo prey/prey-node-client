@@ -8,6 +8,7 @@ var fs                    = require('fs'),
     exec                  = require('child_process').exec,
     spawn                 = require('child_process').spawn,
     utils                 = require(join(__dirname, '..', 'utils', 'test_utils')),
+    is_root               = process.getuid() === 0;
     is_windows            = process.platform === 'win32';
 
 describe('scripts/post_install_spec', function(){
@@ -53,12 +54,14 @@ describe('scripts/post_install_spec', function(){
            package_json_contents.scripts.postinstall.should.be.equal('node ./scripts/post_install.js');
         });
 
+        if (is_root) {
         it('and `scripts/post_install.js` should call `bin/prey config hook post_install', function(done){
           exec(post_install_path, function(error, stdout, stderr){
             stdout.should.match(/^config hooks post_install\n/)
             done();
           });
         });
+        }
 
         after(function(done){
           fs.unlinkSync(local_prey_path);
@@ -66,6 +69,7 @@ describe('scripts/post_install_spec', function(){
         });
       });
 
+      if (is_root) {
       describe('when called as a non-privileged user', function(){
 
         var non_root_user_id,
@@ -99,6 +103,7 @@ describe('scripts/post_install_spec', function(){
           fs.rename(local_prey_path + '.tmp', local_prey_path, done);
         });
       });
+      }
     });
   }
 });
