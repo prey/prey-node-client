@@ -5,7 +5,8 @@ var
   exec                  = require('child_process').exec,
   spawn                 = require('child_process').spawn,
   cli_test_helper_path  = join(__dirname, '..', '..', 'utils', 'lib_agent_cli.js'),
-  prey_config_path      = require('path').resolve(__dirname, '..', '..', '..');
+  prey_config_path      = require('path').resolve(__dirname, '..', '..', '..'),
+  is_windows            = process.platform === 'win32';
 
 console.log(prey_config_path)
 
@@ -17,6 +18,7 @@ describe('lib/agent/cli_controller_spec', function(){
     it('does not run agent');
   });
 
+  if (!is_windows) {
   describe('signals #wip', function(){
 
     describe('when SIGUSR1 signal is received', function(){
@@ -54,7 +56,7 @@ describe('lib/agent/cli_controller_spec', function(){
       it('should not terminate process');
     });
   });
-
+  } // end `is_windows` condition
   describe('events', function(){
 
     describe('on exit', function(){
