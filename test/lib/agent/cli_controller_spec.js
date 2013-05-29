@@ -95,8 +95,27 @@ describe('lib/agent/cli_controller_spec #wip', function(){
   describe('events', function(){
 
     describe('on exit', function(){
+
+      before(function(done){
+        if (fs.existsSync(test_file_path)) fs.unlinkSync(test_file_path);
+        done();
+      });
       
-      it('calls agent.shutdown');
+      it('calls agent.shutdown', function(done){
+        var cli = spawn('node', [cli_test_helper_path, 'config_present', 'write_tmp_file', test_file_path]);
+
+        cli.stdout.on('data', function(data){ console.log(data.toString('utf8'))})
+        cli.stderr.on('data', function(data){ console.log(data.toString('utf8'))})
+
+        cli.on('close', function (){
+          fs.exists(test_file_path, function(exists){
+            exists.should.be.equal(true);
+            fs.unlink(test_file_path, done);
+          });
+        });
+
+        var t = setTimeout(function(){ cli.kill('SIGTERM'); }, 100);
+      });
 
       describe('if agent is running', function(){
 

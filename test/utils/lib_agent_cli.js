@@ -36,6 +36,8 @@ function test() {
       var t = setTimeout(function() { }, 3600000);
     },
     shutdown  : function() {
+      if (process.argv.length > 3 && process.argv[3] === 'write_tmp_file')
+        fs.writeFileSync(process.argv[4], 'SHUTDOWN!');
       return;
     }
   }
