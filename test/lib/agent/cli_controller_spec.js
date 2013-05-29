@@ -1,6 +1,12 @@
 
+var 
+  join                  = require('path').join,
+  sandbox               = require('sandboxed-module'),
+  exec                  = require('child_process').exec,
+  spawn                 = require('child_process').spawn,
+  cli_test_helper_path  = join(__dirname, '..', '..', 'utils', 'lib_agent_cli.js')
 
-describe('lib/agent/cli_controller_spec #wip', function(){
+describe('lib/agent/cli_controller_spec', function(){
   
   describe('when config file does not exist', function(){
 
@@ -8,18 +14,37 @@ describe('lib/agent/cli_controller_spec #wip', function(){
     it('does not run agent');
   });
 
-  describe('signals', function(){
+  describe('signals #wip', function(){
 
     describe('when SIGUSR1 signal is received', function(){
 
-      it('should call agent.engage()');
-      it('should pass `network` argument to engage()');
+      it('should call agent.engage() with the argument `interval`', function(done){
+        var cli = spawn('node', [cli_test_helper_path]);
+
+        cli.on('close', function (code, signal){
+          code.should.be.equal(41);
+          done();
+        });
+
+        // We need some time before issue the kill signal.
+        // If we shoot the 'kill' inmediately, the spawned program will not have
+        // a chance to _capture_ the signal.
+        var t = setTimeout(function(){ cli.kill('SIGUSR1'); }, 100);
+      });
     });
 
     describe('when SIGUSR2 signal is received', function(){
 
-      it('should call agent.engage()');
-      it('should pass `network` argument to engage()');    
+      it('should call agent.engage() with the argument `network`', function(done){
+        var cli = spawn('node', [cli_test_helper_path]);
+
+        cli.on('close', function (code, signal){
+          code.should.be.equal(42);
+          done();
+        });
+
+        var t = setTimeout(function(){ cli.kill('SIGUSR2'); }, 100);
+      });
     });
 
     describe('when SIGINT signal is received', function(){
