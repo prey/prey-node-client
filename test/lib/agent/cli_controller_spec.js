@@ -104,9 +104,6 @@ describe('lib/agent/cli_controller_spec #wip', function(){
       it('calls agent.shutdown', function(done){
         var cli = spawn('node', [cli_test_helper_path, 'config_present', 'write_tmp_file', test_file_path]);
 
-        cli.stdout.on('data', function(data){ console.log(data.toString('utf8'))})
-        cli.stderr.on('data', function(data){ console.log(data.toString('utf8'))})
-
         cli.on('close', function (){
           fs.exists(test_file_path, function(exists){
             exists.should.be.equal(true);
