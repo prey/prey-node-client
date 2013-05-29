@@ -15,9 +15,9 @@ if (process.argv[0] === 'node' && process.argv[1].match(/lib_agent_cli/)) test()
 
 function test() {
   // Module requirements
-  var join      = require('path').join, 
-      sandbox   = require('sandboxed-module'),
-      cli_path  = join(__dirname, '..', '..', 'lib', 'agent', 'cli_controller.js')
+  var join          = require('path').join,
+      sandbox       = require('sandboxed-module'),
+      cli_path      = join(__dirname, '..', '..', 'lib', 'agent', 'cli_controller.js');
 
   // Dependencies to be injected
   var agent = {
@@ -37,6 +37,21 @@ function test() {
     }
   }
 
+  var common = {
+    logger  : {
+      warn  : function(str) { var out = str; },
+      write : function(str) { var out = str; }
+    },
+    system  : {
+      tempfile_path : function(file) { return file; }
+    },
+    config  : {
+      present : function() {
+        return true;
+      }
+    }
+  }
+
   var pid = {
     store : function(file, callback) {
       return callback();
@@ -47,6 +62,7 @@ function test() {
   var cli = sandbox.require(cli_path, {
     requires              : {
       './'                : agent,
+      './common'          : common,
       '../utils/pidfile'  : pid
     }
   });

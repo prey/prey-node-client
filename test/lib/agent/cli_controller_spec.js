@@ -4,7 +4,10 @@ var
   sandbox               = require('sandboxed-module'),
   exec                  = require('child_process').exec,
   spawn                 = require('child_process').spawn,
-  cli_test_helper_path  = join(__dirname, '..', '..', 'utils', 'lib_agent_cli.js')
+  cli_test_helper_path  = join(__dirname, '..', '..', 'utils', 'lib_agent_cli.js'),
+  prey_config_path      = require('path').resolve(__dirname, '..', '..', '..');
+
+console.log(prey_config_path)
 
 describe('lib/agent/cli_controller_spec', function(){
   
@@ -36,7 +39,7 @@ describe('lib/agent/cli_controller_spec', function(){
     describe('when SIGUSR2 signal is received', function(){
 
       it('should call agent.engage() with the argument `network`', function(done){
-        var cli = spawn('node', [cli_test_helper_path]);
+        var cli = spawn('node', [cli_test_helper_path, '-p', prey_config_path]);
 
         cli.on('close', function (code, signal){
           code.should.be.equal(42);
