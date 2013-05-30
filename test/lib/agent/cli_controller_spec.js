@@ -10,8 +10,6 @@ var fs                    = require('fs'),
     test_file_path        = join(os.tmpDir(), '5b957c999343408e127ee49663383289_test_prey_agent_run'),
     is_windows            = process.platform === 'win32';
 
-console.log(prey_config_path)
-
 describe('lib/agent/cli_controller_spec #wip', function(){
   
   describe('when config file does not exist', function(){
@@ -183,26 +181,71 @@ describe('lib/agent/cli_controller_spec #wip', function(){
     });
   });
 
-  describe('when pid.store returns an existing pidfile', function(){
+  describe('when pid.store returns an existing pidfile #wip2', function(){
 
     describe('and pidfile creation time (process launch time) is later than two minutes ago', function(){
 
-      it('exits with status code (0)');
+      it('exits with status code (0)', function(done){
+        var cli = spawn('node', [cli_test_helper_path, 'config_present', 'pidfile', 'later']);
+
+        cli.on('close', function (code){
+          code.should.be.equal(0);
+          done();
+        });
+      });
     });
 
     describe('and pidfile creation time is earlier than two minutes ago', function(){
 
+      var other_cli_exit_code;
+
       describe('and this instance was launched by network trigger', function(){
 
-        it('sends SIGUSR2 signal to other process');
+        it('sends SIGUSR2 signal to other process', function(done){
+          var other_cli = spawn('node', [cli_test_helper_path, 'config_present']);
+
+          other_cli.on('close', function (code){
+            code.should.be.equal(42); // our custom exit code for `SIGUSR2`
+            done();
+          });
+
+          // Remember that we need some time before issuing a signal?
+          // We will apply this very concept here...
+          var cli,
+              t = setTimeout(function(){
+                cli = spawn('node', [cli_test_helper_path, 'config_present', 'pidfile',
+                            'earlier', 'network', other_cli.pid]);
+
+                cli.on('close', function(code){
+                  other_cli_exit_code = code;
+                });
+          }, 300);
+        });
       });
 
       describe('and this instance was launched by interval (cron, cronsvc', function(){
 
-        it('sends SIGUSR1 signal to other process');
+        it('sends SIGUSR1 signal to other process', function(done){
+          var other_cli = spawn('node', [cli_test_helper_path, 'config_present']);
+
+          other_cli.on('close', function (code){
+            code.should.be.equal(41); // our custom exit code for `SIGUSR1`
+            done();
+          });
+
+          var cli,
+              t = setTimeout(function(){
+                cli = spawn('node', [cli_test_helper_path, 'config_present', 'pidfile',
+                            'earlier', 'interval', other_cli.pid]);
+          }, 300);
+        });
       });
 
-      it('exits with status code (10)')
+      describe('in both instances, it exits with the same code', function(){
+        it('exits with status code (10)', function(){
+          other_cli_exit_code.should.be.equal(10);
+        });
+      });
     });
   });
 

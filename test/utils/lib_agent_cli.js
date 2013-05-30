@@ -80,7 +80,25 @@ function test() {
 
   var pid = {
     store : function(file, callback) {
-      return callback();
+      if (process.argv.length > 3 && process.argv[3] === 'pidfile') {
+        var running = {
+          stat : {}
+        }
+        switch(process.argv[4]) {
+          case 'later':
+            running.stat.ctime = Date.now();
+            return callback(null, running);
+          break;
+          case 'earlier':
+            if (process.argv[5] === 'network') process.env.TRIGGER = true;
+            running.pid = process.argv[6];
+            running.stat.ctime = Date.now() - (2 * 60 * 1000 + 1);
+            return callback(null, running);
+          break;
+        }
+      } else {
+        return callback();
+      }
     },
     remove : function() {
       if (process.argv.length > 3 && process.argv[3].match(/write_tmp_file|exit_agent_running/))
@@ -93,7 +111,7 @@ function test() {
     requires              : {
       './'                : agent,
       './common'          : common,
-      './exceptions'       : exceptions,
+      './exceptions'      : exceptions,
       '../utils/pidfile'  : pid
     }
   });
