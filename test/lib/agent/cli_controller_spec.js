@@ -88,7 +88,7 @@ describe('lib/agent/cli_controller_spec #wip', function(){
       });
     });
   });
-  } // end `is_windows` condition
+
   describe('events', function(){
 
     describe('on exit', function(){
@@ -180,6 +180,7 @@ describe('lib/agent/cli_controller_spec #wip', function(){
       });
     });
   });
+  } // end `is_windows` condition
 
   describe('when pid.store returns an existing pidfile #wip2', function(){
 
@@ -195,6 +196,7 @@ describe('lib/agent/cli_controller_spec #wip', function(){
       });
     });
 
+    if (!is_windows) {
     describe('and pidfile creation time is earlier than two minutes ago', function(){
 
       var other_cli_exit_code;
@@ -247,5 +249,6 @@ describe('lib/agent/cli_controller_spec #wip', function(){
         });
       });
     });
+    } // end `is_windows` condition
   });
 });

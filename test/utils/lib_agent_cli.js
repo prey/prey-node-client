@@ -107,12 +107,17 @@ function test() {
   }
 
   // The sandbox core of this file
-  var cli = sandbox.require(cli_path, {
+  var sandbox_options = {
     requires              : {
       './'                : agent,
       './common'          : common,
-      './exceptions'      : exceptions,
-      '../utils/pidfile'  : pid
+      './exceptions'      : exceptions
     }
-  });
+  }
+
+  // This one is tricky: changes based on the OS
+  sandbox_options['requires'][join('..', 'utils', 'pidfile')] = pid;
+
+  // Now, we call this cli!
+  var cli = sandbox.require(cli_path, sandbox_options);
 }
