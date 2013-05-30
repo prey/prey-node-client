@@ -10,7 +10,7 @@ var fs                    = require('fs'),
     test_file_path        = join(os.tmpDir(), '5b957c999343408e127ee49663383289_test_prey_agent_run'),
     is_windows            = process.platform === 'win32';
 
-describe('lib/agent/cli_controller_spec #wip', function(){
+describe('lib/agent/cli_controller_spec', function(){
   
   describe('when config file does not exist', function(){
 
@@ -182,7 +182,7 @@ describe('lib/agent/cli_controller_spec #wip', function(){
   });
   } // end `is_windows` condition
 
-  describe('when pid.store returns an existing pidfile #wip2', function(){
+  describe('when pid.store returns an existing pidfile', function(){
 
     describe('and pidfile creation time (process launch time) is later than two minutes ago', function(){
 
