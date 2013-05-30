@@ -251,6 +251,9 @@
 = lib/agent/triggers
   [...]
 
+
+This is pending => stores the pid of the process in file
+
 ===============================================
  system
 ===============================================

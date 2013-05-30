@@ -248,9 +248,4 @@ describe('lib/agent/cli_controller_spec #wip', function(){
       });
     });
   });
-
-  describe('when no existing pidfile is found', function(){
-    it('stores the pid of the process in file')
-    it('calls agent.run()')
-  });
 });
