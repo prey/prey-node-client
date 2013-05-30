@@ -2,7 +2,7 @@
  base
 ===============================================
 
-= bin_prey_spec
+[DONE] = bin_prey_spec
 
   + if local node exists
     - should use local node
@@ -24,7 +24,7 @@
     - it runs the agent (maybe we should show a usage screen, though)
                         (HJ: We need to specify if we want to restrict the params to be just `config` and `test`)
 
-= bin_network_trigger_spec (mac, linux)
+[DONE] = bin_network_trigger_spec (mac, linux)
 
   + when called with no arguments
     - it sets prey_bin_path to /usr/lib/prey/current
@@ -50,7 +50,7 @@
           - it calls the script
           - it keeps running
 
-= prey_conf_spec (default config values)
+[DONE] = prey_conf_spec (default config values)
 
   - it should be valid ini format (with # instead of ; though)
   - driver should be set to control-panel
@@ -59,7 +59,7 @@
   - api_key should be empty
   - device_key should be empty
 
-= scripts/create_user_spec
+[DONE] = scripts/create_user_spec
 
   + without sudo privileges
     - it exits with error code
@@ -76,7 +76,7 @@
         - it should be able to impersonate another user
         - it should NOT be able to impersonate root
 
-= scripts/post_install_spec
+[DONE] = scripts/post_install_spec
 
   + when platform is windows
     - it should call bin/prey config hooks post_install
@@ -87,27 +87,11 @@
       - it should not call bin/prey
       - it should exit with error code (1)
 
-= scripts/pre_uninstall_spec
-
-  - it calls bin/prey hooks config pre_uninstall
-  + when child command exits with error code
-    - it exits with error code
-
-= lib/common_spec
-
-  + when program.path is set
-    - it looks for config file in that path
-  + when program.path is not set
-    - it looks for config file to system default config path
-
-  - it calls getset.load with config file path
-  - it exports config, system, program, user_agent
-
 ===============================================
  agent
 ===============================================
 
-= lib/agent/cli_controller_spec
+[DONE] = lib/agent/cli_controller_spec
 
   + when config file does not exist
     - returns an error
@@ -146,6 +130,12 @@
   + when no existing pidfile is found
     - it stores the pid of the process in file
     - it calls agent.run()
+
+===============================================
+===============================================
+ WORK IN PROGRESS
+===============================================
+===============================================
 
 = lib/agent/index -- importante
 
@@ -253,6 +243,27 @@
 
 
 This is pending => stores the pid of the process in file
+
+===============================================
+ base (pending)
+===============================================
+
+= scripts/pre_uninstall_spec
+
+  - it calls bin/prey hooks config pre_uninstall
+  + when child command exits with error code
+    - it exits with error code
+
+= lib/common_spec
+
+  + when program.path is set
+    - it looks for config file in that path
+  + when program.path is not set
+    - it looks for config file to system default config path
+
+  - it calls getset.load with config file path
+  - it exports config, system, program, user_agent
+
 
 ===============================================
  system
