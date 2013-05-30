@@ -8,8 +8,8 @@ var fs                    = require('fs'),
     exec                  = require('child_process').exec,
     spawn                 = require('child_process').spawn,
     utils                 = require(join(__dirname, '..', 'utils', 'test_utils')),
-    is_root               = process.getuid() === 0;
-    is_windows            = process.platform === 'win32';
+    is_windows            = process.platform === 'win32',
+    is_root               = is_windows? false : process.getuid() === 0;
 
 describe('scripts/post_install_spec', function(){
 
