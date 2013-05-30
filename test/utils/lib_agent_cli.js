@@ -34,7 +34,12 @@ function test() {
         fs.writeFileSync(process.argv[3], 'RUN!');
       // Need this timeout to keep the script alive
       var t = setTimeout(function() { }, 3600000);
+      // This "time-bomb" will throw an exception
+      if (process.argv.length > 3 && process.argv[3] === 'time_bomb') {
+        var u = setTimeout(function() { throw 'TIME BOMB!'}, 800);
+      }
     },
+    running : (process.argv.length > 3 && process.argv[3] === 'exit_agent_running')? true : false,
     shutdown  : function() {
       if (process.argv.length > 3 && process.argv[3] === 'write_tmp_file')
         fs.writeFileSync(process.argv[4], 'SHUTDOWN!');
@@ -43,14 +48,23 @@ function test() {
   }
 
   var common = {
-    logger  : {
-      warn  : function(str) { var out = str; },
-      write : function(str) { var out = str; }
+    logger      : {
+      critical  : function(str) { var out = str; },
+      debug     : function(str) { var out = str; },
+      info      : function(str) { var out = str; },
+      warn      : function(str) { var out = str; },
+      write     : function(str) { var out = str; }
     },
     system  : {
       tempfile_path : function(file) { return file; }
     },
     config  : {
+      get     : function(param) {
+        if (process.argv.length > 4 && process.argv[4] === 'send_crash_reports') {
+          if(param === 'send_crash_reports') return true;
+        }
+        return false;
+      },
       present : function() {
         var config_exists = process.argv.length > 2 && process.argv[2] === 'config_present';
         return config_exists;
@@ -58,9 +72,19 @@ function test() {
     }
   }
 
+  var exceptions = {
+    send : function () {
+      return process.exit(51);
+    }
+  }
+
   var pid = {
     store : function(file, callback) {
       return callback();
+    },
+    remove : function() {
+      if (process.argv.length > 3 && process.argv[3].match(/write_tmp_file|exit_agent_running/))
+        fs.writeFileSync(process.argv[4], 'REMOVE PID!');
     }
   }
 
@@ -69,6 +93,7 @@ function test() {
     requires              : {
       './'                : agent,
       './common'          : common,
+      './exceptions'       : exceptions,
       '../utils/pidfile'  : pid
     }
   });
