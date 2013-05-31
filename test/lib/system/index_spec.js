@@ -20,8 +20,13 @@ describe('lib/system/index_spec.js #wip', function(){
   });
 
   describe('tempfile_path()', function(){
-    it('----');
+    it('should return the path of a file over a tmp directory', function(){
+      var path = index.tempfile_path('5db31f301a494fb2a79433434a92e1b2_myfile');
+      path.should.not.be.equal('');
+      path.should.match(/5db31f301a494fb2a79433434a92e1b2_myfile/);
+    });
   });
+
   describe('spawn_as_logged_user()', function(){
     it('----');
   });
