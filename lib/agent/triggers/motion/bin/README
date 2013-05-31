@@ -1,6 +1,0 @@
-This plugin requires the 'amstracker' binary to read information 
-from your Macbook's accelerometer.
-
-Please download the AMSTracker package from 
-http://osxbook.com/software/sms/amstracker/ and copy the binary 
-into this folder.

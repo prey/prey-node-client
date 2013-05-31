@@ -2,8 +2,14 @@
 # Prey configuration file
 #############################
 #
-# What driver should Prey use? (you probably don't want to change this)
-driver = control-panel
+# What drivers should Prey use? (you probably don't want to change this)
+drivers = interval, push
+
+# Endpoints where to send data and events.
+endpoints = control-panel
+
+# Triggers to start watching at startup.
+triggers = network, battery
 
 # Whether or not to try to reconnect to an open Wifi network when not online.
 auto_connect = false
@@ -26,7 +32,4 @@ api_key =
 device_key =
 
 # Includes status info (battery info, logged user) when checking in.
-send_status_info = false
-
-# Includes current location when checking in, if available.
-send_location = false
+send_status_info = true
