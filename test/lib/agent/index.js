@@ -10,7 +10,7 @@ var
 
 
 
-describe('lib/agent/index #wip', function(){
+describe('lib/agent/index', function(){
 
   var sandboxed_agent = {},
       requires        = {};
