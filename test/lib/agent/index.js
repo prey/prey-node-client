@@ -1,12 +1,49 @@
 
+var
+
+  join              = require('path').join,
+  sandbox           = require('sandboxed-module'),
+
+  agent_index_path  = join(__dirname, '..','..','..', 'lib', 'agent', 'index.js'),
+
+  is_windows        = process.platform === 'win32';
+
+
+
 describe('lib/agent/index #wip', function(){
 
+  var sandboxed_agent = {},
+      requires        = {};
+
+  before(function(done){
+    var common = {
+      logger      : {
+        critical  : function(str) { var out = str; },
+        debug     : function(str) { var out = str; },
+        info      : function(str) { var out = str; },
+        warn      : function(str) { var out = str; },
+        write     : function(str) { var out = str; }
+      }
+    }
+    requires = {
+      './common' : common
+    };
+    done();
+  });
+
   describe('run()', function(){
+
     describe('when run on interval', function(){
+
+      if(is_windows){
       describe('and os is windows', function(){
+
         it('should not wait');
       });
+      } // end `is_windows` condition
+
       describe('and os is NOT windows', function(){
+
         it('should wait a random number of seconds');
       });
     });

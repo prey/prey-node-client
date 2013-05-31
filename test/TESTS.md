@@ -87,6 +87,22 @@
       - it should not call bin/prey
       - it should exit with error code (1)
 
+= scripts/pre_uninstall_spec
+
+  - it calls bin/prey hooks config pre_uninstall
+  + when child command exits with error code
+    - it exits with error code
+
+= lib/common_spec
+
+  + when program.path is set
+    - it looks for config file in that path
+  + when program.path is not set
+    - it looks for config file to system default config path
+
+  - it calls getset.load with config file path
+  - it exports config, system, program, user_agent
+
 ===============================================
  agent
 ===============================================
@@ -130,12 +146,6 @@
   + when no existing pidfile is found
     - it stores the pid of the process in file
     - it calls agent.run()
-
-===============================================
-===============================================
- WORK IN PROGRESS
-===============================================
-===============================================
 
 = lib/agent/index -- importante
 
@@ -245,28 +255,13 @@
 This is pending => stores the pid of the process in file
 
 ===============================================
- base (pending)
-===============================================
-
-= scripts/pre_uninstall_spec
-
-  - it calls bin/prey hooks config pre_uninstall
-  + when child command exits with error code
-    - it exits with error code
-
-= lib/common_spec
-
-  + when program.path is set
-    - it looks for config file in that path
-  + when program.path is not set
-    - it looks for config file to system default config path
-
-  - it calls getset.load with config file path
-  - it exports config, system, program, user_agent
-
-
-===============================================
  system
+===============================================
+
+===============================================
+===============================================
+ WORK IN PROGRESS
+===============================================
 ===============================================
 
 = lib/system/index_spec
