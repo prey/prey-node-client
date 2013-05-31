@@ -1,0 +1,10 @@
+Imagesnap is the work of Robert Harder.
+http://www.iharder.net/current/macosx/imagesnap/
+=======================================
+
+ImageSnap is a Public Domain command-line tool that lets you capture 
+still images from an iSight or other video source. You might remember 
+Axel Bauer's original isightcapture tool (that is no longer supported 
+but still works on most systems). With ImageSnap I hope we'll be able 
+to move forward and add features, adapt to the ever-changing Apple
+architectures, etc.
