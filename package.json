@@ -12,6 +12,7 @@
   "dependencies": {
     "commander": "",
     "getset": "",
+    "qs"    : "",
     "needle": "",
     "xml2js": "",
     "dialog": "",
