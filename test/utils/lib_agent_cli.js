@@ -27,7 +27,7 @@ function test() {
         return process.exit(41);
       } else if (code === 'network') {
         return process.exit(42);
-      }      
+      }
     },
     run       : function() {
       if (process.argv.length > 3 && process.argv[2] === 'write_tmp_file')
@@ -39,9 +39,9 @@ function test() {
         var u = setTimeout(function() { throw 'TIME BOMB!'}, 800);
       }
     },
-    running : (process.argv.length > 3 && process.argv[3] === 'exit_agent_running')? true : false,
+    running   : function() { return true },
     shutdown  : function() {
-      if (process.argv.length > 3 && process.argv[3] === 'write_tmp_file')
+      if (process.argv[3] === 'write_tmp_file')
         fs.writeFileSync(process.argv[4], 'SHUTDOWN!');
       return;
     }

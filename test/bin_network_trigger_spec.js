@@ -4,8 +4,8 @@ if (process.platform == 'win32') return;
 
 var join                  = require('path').join,
     default_prey_bin      = join('/', 'usr','lib','prey','current','bin','prey'),
-    default_prey_bin_dir  = join('/','usr','lib','prey','current','bin'),
-    default_prey_dir      = join('/','usr','lib','prey'),
+    default_prey_bin_dir  = join('/', 'usr','lib','prey','current','bin'),
+    default_prey_dir      = join('/', 'usr','lib','prey'),
     fake_prey_filename    = join('/', 'tmp', 'b4f9259646c478cccebcf52eccf30a3d_prey'),
     ni                    = require('os').networkInterfaces(),
     os_name               = process.platform === 'darwin' ? 'mac' : 'linux',
@@ -13,10 +13,28 @@ var join                  = require('path').join,
     fs                    = require('fs'),
     fsx                   = require('node-fs'),
     spawn                 = require('child_process').spawn,
-    utils                 = require(join(__dirname, 'utils','test_utils'));
-    is_root               = process.getuid() === 0;
+    utils                 = require(join(__dirname, 'utils', 'test_utils'));
+    is_root               = process.getuid() === 0,
+    has_nm_installed      = fs.existsSync('/etc/init.d/network-manager');
 
 describe('bin_network_trigger_spec', function(){
+
+if (!has_nm_installed) {
+
+  return describe('when NetworkManager does not exist', function(){
+
+    it('exits with error code 1', function(done){
+      var py_trigger = spawn(trigger_filename, ['-b', fake_prey_filename]);
+
+      py_trigger.on('close', function(code){
+        code.should.be.equal(1);
+        done();
+      });
+    });
+
+  });
+
+}
 
 if (is_root) { // this test will run only if we invoke `sudo bin/prey test`
 
@@ -136,30 +154,54 @@ describe('when a network change is detected', function(){
 
 } // end `is_root` condition
 
-// Tests which don't require root condition
-describe('when called with `-b` argument', function(){
+describe('when NetworkManager exists', function(){
 
-  describe('and that path does not exist', function(){
+  // Tests which don't require root condition
+  describe('when called with `-b` argument', function(){
 
-    it('exits with error code', function(done){
-      var py_trigger = spawn(trigger_filename, ['-b', fake_prey_filename]);
+    describe('and that path does not exist', function(){
 
-      py_trigger.on('close', function(code){
-        code.should.be.equal(1);
-        done();
+      it('exits with error code', function(done){
+        var py_trigger = spawn(trigger_filename, ['-b', fake_prey_filename]);
+
+        py_trigger.on('close', function(code){
+          code.should.be.equal(1);
+          done();
+        });
+      });
+    });
+
+    describe('and that path exists', function(){
+
+      it('sets prey_bin_path as that one', function(done){
+        // Create prey process and `killer file`
+        var py_trigger = spawn(trigger_filename, ['-b', fake_prey_filename]);
+        fs.writeFileSync(fake_prey_filename, '#!/bin/bash\nkill -s SIGUSR2 ' + py_trigger.pid, {mode : 0755});
+
+        py_trigger.on('close', function(code, signal){
+          signal.should.be.equal('SIGUSR2');
+          done();
+        });
+      });
+
+      // Delete this fake prey file
+      after(function(done){
+        fs.unlink(fake_prey_filename, done);
       });
     });
   });
 
-  describe('and that path exists', function(){
+  describe('when called with `-s` argument', function(){
 
-    it('sets prey_bin_path as that one', function(done){
-      // Create prey process and `killer file`
-      var py_trigger = spawn(trigger_filename, ['-b', fake_prey_filename]);
+    it('skips the calling of the script the first time is ran', function(done){
+      this.timeout(6000);
+      var py_trigger = spawn(trigger_filename, ['-b', fake_prey_filename, '-s']);
       fs.writeFileSync(fake_prey_filename, '#!/bin/bash\nkill -s SIGUSR2 ' + py_trigger.pid, {mode : 0755});
 
+      var t = setTimeout(function(){ py_trigger.kill('SIGUSR1');}, 5000);
+
       py_trigger.on('close', function(code, signal){
-        signal.should.be.equal('SIGUSR2');
+        signal.should.be.equal('SIGUSR1');
         done();
       });
     });
@@ -168,28 +210,9 @@ describe('when called with `-b` argument', function(){
     after(function(done){
       fs.unlink(fake_prey_filename, done);
     });
-  });
-});
 
-describe('when called with `-s` argument', function(){
-
-  it('skips the calling of the script the first time is ran', function(done){
-    this.timeout(6000);
-    var py_trigger = spawn(trigger_filename, ['-b', fake_prey_filename, '-s']);
-    fs.writeFileSync(fake_prey_filename, '#!/bin/bash\nkill -s SIGUSR2 ' + py_trigger.pid, {mode : 0755});
-
-    var t = setTimeout(function(){ py_trigger.kill('SIGUSR1');}, 5000);
-
-    py_trigger.on('close', function(code, signal){
-      signal.should.be.equal('SIGUSR1');
-      done();
-    });
   });
 
-  // Delete this fake prey file
-  after(function(done){
-    fs.unlink(fake_prey_filename, done);
-  });
 });
 
 }); // Main test wrapper

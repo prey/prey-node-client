@@ -5,6 +5,14 @@ var fs                  = require('fs'),
     is_windows          = process.platform === 'win32',
     conf_file_contents  = fs.readFileSync(join(__dirname, '..', 'prey.conf.default'), 'utf8');
 
+var get_value = function(key) {
+  var regex = is_windows
+      ? new RegExp('\\r\\n' + key + '\\s=\\s(.*)\\r\\n')
+      : new RegExp('\\n' + key + '\\s=\\s(.*)\\n');
+
+  return conf_file_contents.match(regex)[1];
+};
+
 describe('prey_conf_spec', function(){
 
   it('it should be valid ini format (with # instead of ; though)', function(){
@@ -17,11 +25,24 @@ describe('prey_conf_spec', function(){
   });
 
   it('driver should be set to control-panel', function(){
-    var driver = is_windows?
-      conf_file_contents.match(/\r\ndriver\s=\s(.*)\r\n/)[1] :
-      conf_file_contents.match(/\ndriver\s=\s(.*)\n/)[1];
-    driver.should.be.equal('control-panel');
+    var drivers = get_value('drivers');
+    drivers.should.be.equal('interval, push');
   });
+
+  it('endpoints should be set to control-panel', function(){
+    var endpoints = is_windows?
+      conf_file_contents.match(/\r\nendpoints\s=\s(.*)\r\n/)[1] :
+      conf_file_contents.match(/\nendpoints\s=\s(.*)\n/)[1];
+    endpoints.should.be.equal('control-panel');
+  });
+
+  it('triggers should be set to control-panel', function(){
+    var triggers = is_windows?
+      conf_file_contents.match(/\r\ntriggers\s=\s(.*)\r\n/)[1] :
+      conf_file_contents.match(/\ntriggers\s=\s(.*)\n/)[1];
+    triggers.should.be.equal('network, battery');
+  });
+
 
   it('host should be set to control.preyproject.com', function(){
     var host = is_windows?

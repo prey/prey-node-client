@@ -23,7 +23,8 @@ describe('lib/system/index_spec.js #wip', function(){
     it('should return the path of a file over a tmp directory', function(){
       var path = index.tempfile_path('5db31f301a494fb2a79433434a92e1b2_myfile');
       path.should.not.be.equal('');
-      path.should.match(/5db31f301a494fb2a79433434a92e1b2_myfile/);
+      var temp_path = is_windows ? 'Temp' : 'tmp';
+      path.indexOf(temp_path + '/5db31f301a494fb2a79433434a92e1b2_myfile').should.not.equal(-1);
     });
   });
 
@@ -35,7 +36,11 @@ describe('lib/system/index_spec.js #wip', function(){
       it('should issue a `whoami` using the function', function(done){
         index.spawn_as_logged_user('whoami', [], function(err, spawned_item){
           var response;
-          spawned_item.stdout.on('data', function (data){ response = data.toString('utf8');});
+
+          spawned_item.stdout.on('data', function (data){
+            response = data.toString('utf8');
+          });
+
           spawned_item.on('close', function (code){
             response.length.should.be.above(0);
             code.should.be.equal(0);
