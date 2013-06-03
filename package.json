@@ -1,8 +1,8 @@
 {
   "name":        "prey",
-  "version":     "0.9.2",
+  "version":     "0.10.0",
   "author":      "Tomás Pollak <tomas@forkhq.com>",
-  "contributors": [],
+  "contributors": ["Herman Junge <herman@forkhq.com>"],
   "keywords":    ["prey", "anti", "theft", "tracking", "remote", "monitoring", "stolen", "laptop"],
   "description": "They can run but they can't hide.",
   "engine":      "node >= 0.6",
