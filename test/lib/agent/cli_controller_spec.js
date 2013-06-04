@@ -3,6 +3,7 @@ var fs                    = require('fs'),
     join                  = require('path').join,
     os                    = require('os'),
     spawn                 = require('child_process').spawn,
+    should                = require('should'),
     cli_sandbox           = require('./../../utils/cli_sandbox'),
     cli_test_helper_path  = join(__dirname, '..', '..', 'utils', 'lib_agent_cli.js'),
     test_file_path        = join(os.tmpDir(), '5b957c999343408e127ee49663383289_test_prey_agent_run'),
@@ -12,11 +13,16 @@ describe('lib/agent/cli_controller_spec', function(){
 
   describe('when config file does not exist', function(){
 
-    var result;
+    var result,
+        signals = [];
 
     before(function(){
-      var fake_config = { present: function() { return false } }
-      result = cli_sandbox.run({ common: { config: fake_config } })
+      var fake_config = { present: function() { return false } };
+      var fake_process_on = function(signal, cb){ signals.push(signal) }
+      result = cli_sandbox.run({ 
+        common:  { config: fake_config },
+        process: { on: fake_process_on } 
+      })
     })
 
     it('exits the process with status 1', function(){
@@ -24,7 +30,7 @@ describe('lib/agent/cli_controller_spec', function(){
     })
 
     it('does not set any signal handlers', function(){
-      result.signals.should.be.empty;
+      signals.should.be.empty;
     })
 
     it('logs error message', function(){
@@ -114,7 +120,7 @@ describe('lib/agent/cli_controller_spec', function(){
 
         cli.on('close', function (){
           fs.exists(test_file_path, function(exists){
-            exists.should.be.equal(true);
+            exists.should.be.true;
             fs.unlink(test_file_path, done);
           });
         });
@@ -156,111 +162,135 @@ describe('lib/agent/cli_controller_spec', function(){
     });
 
     describe('on uncaughtException', function(){
+      
+      var result, 
+          sent_exception = null;
 
-      it('exits with error code (1)', function(done){
-        var cli = spawn('node', [cli_test_helper_path, 'config_present', 'time_bomb']);
+      // pid.store is the first function we call after setting listeners, 
+      // so this test provokes the function to throw, and see what happens.
+      // this function accepts a boolean as an argument which defines if exceptions are notified
+      var run_cli = function(send_exceptions) {
+        var bad_pid  = { store: function() { throw(new Error('ola ke ase')) } }
+        var common   = { config: { get: function(key) { return send_exceptions } } } 
+        var requires = { './exceptions': { send: function(err) { sent_exception = err } } } 
+        result = cli_sandbox.run({ pid: bad_pid, common: common, requires: requires })
+      }
+      
+      describe('and send_crash_reports if config is false?', function(){
+        
+        before(function(){
+          run_cli(false)
+        })
 
-        cli.on('close', function (code){
-          code.should.be.equal(1);
-          done();
+        it('exits with error code (1)', function(){
+          result.code.should.equal(1);
         });
+
+        it('does not send exception to endpoint', function(){
+          should.not.exist(sent_exception);
+        });
+
       });
 
       describe('and send_crash_reports if config is true?', function(){
+        
+        before(function(){
+          run_cli(true)
+        })
 
-        it('sends exception to endpoint', function(done){
-          var cli = spawn('node', [cli_test_helper_path, 'config_present', 'time_bomb', 'send_crash_reports']);
+        it('exits with error code (1)', function(){
+          result.code.should.equal(1);
+        });
 
-          cli.on('close', function (code){
-            code.should.be.equal(51);
-            done();
-          });
+        it('sends exception to endpoint', function(){
+          sent_exception.should.be.an.instanceof(Error);
+          sent_exception.message.should.include('ola ke ase');
         });
       });
 
-      describe('and send_crash_reports if config is false?', function(){
-
-        it('does not send anything', function(done){
-          var cli = spawn('node', [cli_test_helper_path, 'config_present', 'time_bomb']);
-
-          cli.on('close', function (code){
-            code.should.be.equal(1);
-            done();
-          });
-        });
-      });
     });
+
   });
 
   } // end `is_windows` condition
 
   describe('when pid.store returns an existing pidfile', function(){
+    
+    var result, ctime, fake_pid = 12345;
+
+    var fake_pidfile = function(){
+      return {
+        pid: fake_pid,
+        stat: { ctime: ctime }
+      }
+    }
+    
+    var run_cli = function(trigger){
+      var fake_store = { store: function(file, cb){ cb(null, fake_pidfile()) } }
+      var fake_env   = { env: { TRIGGER: trigger }}
+      
+      result = cli_sandbox.run({ pid: fake_store, process: fake_env });
+    }
 
     describe('and pidfile creation time (process launch time) is later than two minutes ago', function(){
+      
+      before(function(){
+        ctime = new Date() - 100000; // one minute ago
+        run_cli();
+      })
 
-      it('exits with status code (0)', function(done){
-        var cli = spawn('node', [cli_test_helper_path, 'config_present', 'pidfile', 'later']);
-
-        cli.on('close', function (code){
-          code.should.be.equal(0);
-          done();
-        });
+      it('exits with status code (0)', function(){
+        result.code.should.equal(0);
       });
+
+      it('does not kill anyone', function(){
+        Object.keys(result.murders).should.be.empty;
+      });
+
     });
 
     if (!is_windows) {
     describe('and pidfile creation time is earlier than two minutes ago', function(){
-
-      var other_cli_exit_code;
+      
+      before(function(){
+        ctime = new Date() - 1000000; // about 16 minutes ago
+      })
 
       describe('and this instance was launched by network trigger', function(){
 
-        it('sends SIGUSR2 signal to other process', function(done){
-          var other_cli = spawn('node', [cli_test_helper_path, 'config_present']);
+        before(function(){
+          run_cli('network');
+        })
 
-          other_cli.on('close', function (code){
-            code.should.be.equal(42); // our custom exit code for `SIGUSR2`
-            done();
-          });
-
-          // Remember that we need some time before issuing a signal?
-          // We will apply this very concept here...
-          var cli,
-              t = setTimeout(function(){
-                cli = spawn('node', [cli_test_helper_path, 'config_present', 'pidfile',
-                            'earlier', 'network', other_cli.pid]);
-
-                cli.on('close', function(code){
-                  other_cli_exit_code = code;
-                });
-          }, 300);
+        it('exits with status code (10)', function(){
+          result.code.should.equal(10);
         });
+
+        it('sends SIGUSR2 signal to other process', function(){
+          result.murders[fake_pid].should.equal('SIGUSR2');
+        });
+
       });
 
       describe('and this instance was launched by interval (cron, cronsvc', function(){
 
-        it('sends SIGUSR1 signal to other process', function(done){
-          var other_cli = spawn('node', [cli_test_helper_path, 'config_present']);
+        before(function(){
+          run_cli(''); // interval does not set the env.TRIGGER variable
+        })
 
-          other_cli.on('close', function (code){
-            code.should.be.equal(41); // our custom exit code for `SIGUSR1`
-            done();
-          });
-
-          var cli,
-              t = setTimeout(function(){
-                cli = spawn('node', [cli_test_helper_path, 'config_present', 'pidfile',
-                            'earlier', 'interval', other_cli.pid]);
-          }, 300);
-        });
-      });
-
-      describe('in both instances, it exits with the same code', function(){
         it('exits with status code (10)', function(){
-          other_cli_exit_code.should.be.equal(10);
+          result.code.should.equal(10);
         });
+
+        it('sends SIGUSR1 signal to other process', function(){
+          result.murders[fake_pid].should.equal('SIGUSR1');
+        });
+
       });
+
     });
+
     } // end `is_windows` condition
+
   });
 });
