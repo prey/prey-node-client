@@ -18,13 +18,13 @@ describe('lib/agent/cli_controller_spec', function(){
         code;
 
     before(function(done){
-      if (fs.existsSync(test_file_path)) fs.unlinkSync(test_file_path);
+      fs.unlink(test_file_path, function(){
+        cli = spawn('node', [cli_test_helper_path, 'write_tmp_file', test_file_path]);
 
-      cli = spawn('node', [cli_test_helper_path, 'write_tmp_file', test_file_path]);
-
-      cli.on('close', function (_code){
-        code = _code;
-        done();
+        cli.on('close', function (_code){
+          code = _code;
+          done();
+        });
       });
     });
 
@@ -32,11 +32,13 @@ describe('lib/agent/cli_controller_spec', function(){
       code.should.be.equal(1);
     });
 
-    it('does not run agent', function(){
+    it('does not run agent', function(done){
       fs.exists(test_file_path, function(exists){
         exists.should.be.equal(false);
+        done();
       })
     });
+
   });
 
   if (!is_windows) {
@@ -83,7 +85,7 @@ describe('lib/agent/cli_controller_spec', function(){
           done();
         });
 
-        var t = setTimeout(function(){ cli.kill('SIGINT'); }, 300);
+        var t = setTimeout(function(){ cli.kill('SIGINT') }, 300);
         // var u = setTimeout(function(){ cli.kill('SIGUSR2'); }, 1000);
       });
       
@@ -99,8 +101,8 @@ describe('lib/agent/cli_controller_spec', function(){
           done();
         });
 
-        var t = setTimeout(function(){ cli.kill('SIGTERM'); }, 300);
-        var u = setTimeout(function(){ cli.kill('SIGUSR2'); }, 1000);
+        var t = setTimeout(function(){ cli.kill('SIGTERM') }, 300);
+        var u = setTimeout(function(){ cli.kill('SIGUSR2') }, 1000);
       });
     });
   });
@@ -110,8 +112,9 @@ describe('lib/agent/cli_controller_spec', function(){
     describe('on exit', function(){
 
       before(function(done){
-        if (fs.existsSync(test_file_path)) fs.unlinkSync(test_file_path);
-        done();
+        fs.unlink(test_file_path, function(){
+          done()
+        });
       });
       
       it('calls agent.shutdown', function(done){
@@ -124,7 +127,7 @@ describe('lib/agent/cli_controller_spec', function(){
           });
         });
 
-        var t = setTimeout(function(){ cli.kill('SIGTERM'); }, 300);
+        var t = setTimeout(function(){ cli.kill('SIGINT') }, 300);
       });
 
       describe('if agent is running', function(){
@@ -139,7 +142,7 @@ describe('lib/agent/cli_controller_spec', function(){
             });
           });
 
-          var t = setTimeout(function(){ cli.kill('SIGTERM'); }, 300);
+          var t = setTimeout(function(){ cli.kill('SIGINT') }, 300);
         });
       });
 
@@ -155,7 +158,7 @@ describe('lib/agent/cli_controller_spec', function(){
             });
           });
 
-          var t = setTimeout(function(){ cli.kill('SIGTERM'); }, 300);
+          var t = setTimeout(function(){ cli.kill('SIGINT') }, 300);
         });
       })
     });
@@ -196,6 +199,7 @@ describe('lib/agent/cli_controller_spec', function(){
       });
     });
   });
+
   } // end `is_windows` condition
 
   describe('when pid.store returns an existing pidfile', function(){

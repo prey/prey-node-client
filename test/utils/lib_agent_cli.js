@@ -60,14 +60,13 @@ function test() {
     },
     config  : {
       get     : function(param) {
-        if (process.argv.length > 4 && process.argv[4] === 'send_crash_reports') {
-          if(param === 'send_crash_reports') return true;
+        if (process.argv[4] === 'send_crash_reports') {
+          return param === 'send_crash_reports';
         }
         return false;
       },
       present : function() {
-        var config_exists = process.argv.length > 2 && process.argv[2] === 'config_present';
-        return config_exists;
+        return process.argv[2] === 'config_present';
       }
     }
   }
