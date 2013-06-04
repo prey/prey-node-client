@@ -75,7 +75,23 @@ describe('lib/agent/cli_controller_spec', function(){
 
     describe('when SIGINT signal is received', function(){
 
-      it('should not terminate process', function(done){
+      it('terminates the process', function(done){
+        var cli = spawn('node', [cli_test_helper_path, 'config_present']);
+
+        cli.on('close', function (code, signal){
+          code.should.be.equal(1);
+          done();
+        });
+
+        var t = setTimeout(function(){ cli.kill('SIGINT'); }, 300);
+        // var u = setTimeout(function(){ cli.kill('SIGUSR2'); }, 1000);
+      });
+      
+    });
+
+    describe('when SIGTERM signal is received', function(){
+
+      it('does not terminate the process', function(done){
         var cli = spawn('node', [cli_test_helper_path, 'config_present']);
 
         cli.on('close', function (code, signal){
@@ -83,7 +99,7 @@ describe('lib/agent/cli_controller_spec', function(){
           done();
         });
 
-        var t = setTimeout(function(){ cli.kill('SIGINT'); }, 300);
+        var t = setTimeout(function(){ cli.kill('SIGTERM'); }, 300);
         var u = setTimeout(function(){ cli.kill('SIGUSR2'); }, 1000);
       });
     });
