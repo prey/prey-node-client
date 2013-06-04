@@ -5,19 +5,28 @@ var sandbox      = require('sandboxed-module'),
 var result = {
   out      : '', 
   code     : null,
-  signals  : [], 
   triggers : [], 
-  murders  : []
+  murders  : {},
+  signals  : {}
+}
+
+var callbacks = {};
+
+var fake_logger = {
+  write: function(str) { result.out += str }, 
+  debug: function(str) { this.write('debug: ' + str) },
+  critical: function(str) { this.write('critical: ' + str) },
+  warn: function(str) { this.write('warn: ' + str) }
 }
 
 var defaults = { 
   common: {
-    logger: { write: function(str){ result.out += str } },
+    logger: fake_logger,
     config: { present: function(){ return true } },
     system: { tempfile_path: function(file){ return file } }
   },
   agent: {
-    run: function() { },
+    // run: function() { },
     running: function() { return true },
     engage: function(trigger) { result.triggers.push(trigger) },
     shutdown: function() { }
@@ -31,37 +40,72 @@ var defaults = {
     argv : [],
     stdout: { _type: '_tty' },
     exit: function(code){ result.code = code },
-    on: function(signal, cb){ result.signals.push(signal) },
-    kill: function(pid, signal) { result.murders.push(signal) }
+    on:   function(signal, cb) { callbacks[signal] = cb },
+    kill: function(pid, signal) { result.murders[pid] = signal }
   }
 }
 
-var merge = function(a, b) {
-  if (!b) return a;
-  
-  for (var key in b) {
-    // if (a[key])
-      a[key] = b[key];
+// merges values from one object into another, recursively
+var merge = function(destination, source) {
+  if (!source) return destination;
+
+  for (var property in source) {
+    if (source[property] && source[property].constructor &&
+     source[property].constructor === Object) {
+      destination[property] = destination[property] || {};
+      arguments.callee(destination[property], source[property]);
+    } else {
+      destination[property] = source[property];
+    }
   }
-  return a;
+  return destination;
+}
+
+var clone = function(obj){
+  if (obj == null || typeof(obj) != 'object' || !obj.constructor)
+      return obj;
+
+  var temp = obj.constructor(); // changed
+
+  for (var key in obj)
+      temp[key] = clone(obj[key]);
+
+  return temp;
 }
 
 exports.run = function(opts) {
+
+  // clone defaults object, so it retains 
+  // its original values for future calls
+  var def = clone(defaults); 
+  
   var sandbox_opts = {
     requires : { 
-      './common' : merge(defaults.common, opts.common),
-      './'       : merge(defaults.agent, opts.agent),
+      './common' : merge(def.common, opts.common),
+      './'       : merge(def.agent, opts.agent),
     },
     globals  : { 
-      process    : merge(defaults.process, opts.process) 
+      process    : merge(def.process, opts.process) 
     }
   }
 
-  // tris is a tricky one
-  sandbox_opts.requires[path.join('..', 'utils', 'pidfile')] = merge(defaults.pid, opts.pid);
+  // this is a tricky one
+  sandbox_opts.requires[path.join('..', 'utils', 'pidfile')] = merge(def.pid, opts.pid);
+
+  // load any additional requires passed
+  if (opts.requires) {
+    for (var key in opts.requires) 
+      sandbox_opts.requires[key] = opts.requires[key];
+  }
 
   // fire it up! 
-  sandbox.require(path.resolve(agent_path, 'cli_controller'), sandbox_opts);
+  try {
+    sandbox.require(path.resolve(agent_path, 'cli_controller'), sandbox_opts); 
+  } catch(e) { // oops, uncaughtException
+    result.exception = e;
+    // if there is any callback assigned, call it.
+    if (callbacks && callbacks['uncaughtException']) callbacks['uncaughtException'](e);
+  }
 
   // now let's see what happened.
   return result;
