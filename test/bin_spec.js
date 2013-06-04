@@ -105,7 +105,7 @@ describe('bin/prey', function(){
     describe('and system node does not exist', function(){
 
       before(function(done){
-        exec_env = { 'PATH': '/usr/bin' }; // we need /usr/bin, otherwise $(dirname $0) fails
+        exec_env = { 'PATH': '/foo' };
         system_node_exists(function(exists){
           exists.should.not.be.true;
           done();
@@ -139,7 +139,9 @@ describe('bin/prey', function(){
   describe('params', function(){
 
     before(function(done){
-      exec_env = { 'PATH': '/usr/bin:' + os.tmpDir() };
+
+      // we need /usr/bin, otherwise $(dirname $0) fails
+      exec_env = { 'PATH': os.tmpDir() + ':/usr/bin' };
       var fake_node_content = is_windows ? 'echo %*' : 'echo $@';
 
       fs.writeFile(fake_node, fake_node_content, { mode: 0755 }, function(){
@@ -204,7 +206,7 @@ describe('bin/prey', function(){
           var out_command =
             is_windows  ? 'lib\\agent\\cli.js" hellomyfriend'
                         : 'lib/agent/cli.js hellomyfriend';
-          
+
           out.should.include(out_command);
           done();
         });
