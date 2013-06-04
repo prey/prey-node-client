@@ -3,40 +3,35 @@ var fs                    = require('fs'),
     join                  = require('path').join,
     os                    = require('os'),
     spawn                 = require('child_process').spawn,
+    cli_sandbox           = require('./../../utils/cli_sandbox'),
     cli_test_helper_path  = join(__dirname, '..', '..', 'utils', 'lib_agent_cli.js'),
     test_file_path        = join(os.tmpDir(), '5b957c999343408e127ee49663383289_test_prey_agent_run'),
     is_windows            = process.platform === 'win32';
 
 describe('lib/agent/cli_controller_spec', function(){
-  
+
   describe('when config file does not exist', function(){
 
-    var cli,
-        code;
+    var result;
 
-    before(function(done){
-      fs.unlink(test_file_path, function(){
-        cli = spawn('node', [cli_test_helper_path, 'write_tmp_file', test_file_path]);
+    before(function(){
+      var fake_config = { present: function() { return false } }
+      result = cli_sandbox.run({ common: { config: fake_config } })
+    })
 
-        cli.on('close', function (_code){
-          code = _code;
-          done();
-        });
-      });
-    });
+    it('exits the process with status 1', function(){
+      result.code.should.equal(1);
+    })
 
-    it('returns an error', function(){
-      code.should.be.equal(1);
-    });
+    it('does not set any signal handlers', function(){
+      result.signals.should.be.empty;
+    })
 
-    it('does not run agent', function(done){
-      fs.exists(test_file_path, function(exists){
-        exists.should.be.equal(false);
-        done();
-      })
-    });
+    it('logs error message', function(){
+      result.out.toLowerCase().should.include('no config file found');
+    })
 
-  });
+  })
 
   if (!is_windows) {
   describe('signals', function(){
@@ -54,7 +49,7 @@ describe('lib/agent/cli_controller_spec', function(){
         // We need some time before issue the kill signal.
         // If we shoot the 'kill' inmediately, the spawned program will not have
         // a chance to _capture_ the signal.
-        var t = setTimeout(function(){ cli.kill('SIGUSR1'); }, 300);
+        var t = setTimeout(function(){ cli.kill('SIGUSR1') }, 300);
       });
     });
 
@@ -68,7 +63,7 @@ describe('lib/agent/cli_controller_spec', function(){
           done();
         });
 
-        var t = setTimeout(function(){ cli.kill('SIGUSR2'); }, 300);
+        var t = setTimeout(function(){ cli.kill('SIGUSR2') }, 300);
       });
     });
 
