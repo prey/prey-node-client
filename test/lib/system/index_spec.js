@@ -29,25 +29,21 @@ describe('lib/system/index_spec.js #wip', function(){
 
   describe('spawn_as_logged_user() #wip2', function(){
 
-    if (is_windows) {
-      it('should do windows stuff ---- I need a command here');
-    } else {
-      it('should issue a `whoami` using the function', function(done){
-        index.spawn_as_logged_user('whoami', [], function(err, spawned_item){
-          var response;
+    it('should issue a `whoami` using the function', function(done){
+      index.spawn_as_logged_user('whoami', [], function(err, spawned_item){
+        var response = '';
 
-          spawned_item.stdout.on('data', function (data){
-            response = data.toString('utf8');
-          });
+        spawned_item.stdout.on('data', function (data){
+          response += data.toString('utf8');
+        });
 
-          spawned_item.on('close', function (code){
-            response.length.should.be.above(0);
-            code.should.be.equal(0);
-            done();
-          });
+        spawned_item.on('close', function (code){
+          response.length.should.be.above(0);
+          code.should.be.equal(0);
+          done();
         });
       });
-    }
+    });
   });
   describe('run_as_logged_user()', function(){
 
