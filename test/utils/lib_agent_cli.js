@@ -30,18 +30,18 @@ function test() {
       }
     },
     run       : function() {
-      if (process.argv.length > 3 && process.argv[2] === 'write_tmp_file')
-        fs.writeFileSync(process.argv[3], 'RUN!');
       // Need this timeout to keep the script alive
       var t = setTimeout(function() { }, 3600000);
       // This "time-bomb" will throw an exception
-      if (process.argv.length > 3 && process.argv[3] === 'time_bomb') {
+      if (process.argv[3] === 'time_bomb') {
         var u = setTimeout(function() { throw 'TIME BOMB!'}, 800);
       }
     },
-    running   : function() { return true },
+    running   : function() {
+      return (process.argv[3] === 'agent_running_true');
+    },
     shutdown  : function() {
-      if (process.argv[3] === 'write_tmp_file')
+      if (process.argv[3] && process.argv[3].match(/^agent_running/))
         fs.writeFileSync(process.argv[4], 'SHUTDOWN!');
       return;
     }
@@ -79,7 +79,7 @@ function test() {
 
   var pid = {
     store : function(file, callback) {
-      if (process.argv.length > 3 && process.argv[3] === 'pidfile') {
+      if (process.argv[3] === 'pidfile') {
         var running = {
           stat : {}
         }
@@ -100,8 +100,8 @@ function test() {
       }
     },
     remove : function() {
-      if (process.argv.length > 3 && process.argv[3].match(/write_tmp_file|exit_agent_running/))
-        fs.writeFileSync(process.argv[4], 'REMOVE PID!');
+      if (process.argv[3] && process.argv[3].match(/^agent_running/))
+        fs.appendFileSync(process.argv[4], 'REMOVEDPID!');
     }
   }
 

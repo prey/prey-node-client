@@ -17,26 +17,25 @@ describe('lib/agent/cli_controller_spec', function(){
         signals = [];
 
     before(function(){
-      var fake_config = { present: function() { return false } };
-      var fake_process_on = function(signal, cb){ signals.push(signal) }
+      var fake_config = { present: function() { return false; } };
+      var fake_process_on = function(signal, cb){ signals.push(signal); }
       result = cli_sandbox.run({ 
         common:  { config: fake_config },
         process: { on: fake_process_on } 
-      })
-    })
+      });
+    });
 
     it('exits the process with status 1', function(){
       result.code.should.equal(1);
-    })
+    });
 
     it('does not set any signal handlers', function(){
       signals.should.be.empty;
-    })
+    });
 
     it('logs error message', function(){
       result.out.toLowerCase().should.include('no config file found');
-    })
-
+    });
   })
 
   if (!is_windows) {
@@ -114,45 +113,46 @@ describe('lib/agent/cli_controller_spec', function(){
           done()
         });
       });
-      
-      it('calls agent.shutdown', function(done){
-        var cli = spawn('node', [cli_test_helper_path, 'config_present', 'write_tmp_file', test_file_path]);
-
-        cli.on('close', function (){
-          fs.exists(test_file_path, function(exists){
-            exists.should.be.true;
-            fs.unlink(test_file_path, done);
-          });
-        });
-
-        var t = setTimeout(function(){ cli.kill('SIGINT') }, 300);
-      });
 
       describe('if agent is running', function(){
 
-        it ('removes pid', function(done){
-          var cli = spawn('node', [cli_test_helper_path, 'config_present', 'exit_agent_running', test_file_path]);
+        var cli,
+            test_file_contents;
 
-          cli.on('close', function (){
-            fs.readFile(test_file_path, 'utf8', function (err, data){
-              data.should.be.equal('REMOVE PID!');
-              fs.unlink(test_file_path, done)
+        before(function(done){
+          cli = spawn('node', [cli_test_helper_path, 'config_present', 'agent_running_true', test_file_path]);
+          cli.on('close', function(){
+            fs.readFile(test_file_path, 'utf8', function(err, data){
+              test_file_contents = data;
+              done();
             });
           });
 
-          var t = setTimeout(function(){ cli.kill('SIGINT') }, 300);
+          var t = setTimeout(function(){ cli.kill('SIGINT'); }, 300);
+        });
+
+        it('calls agent.shutdown', function(){
+          test_file_contents.should.match(/^SHUTDOWN/);
+        });
+
+        it ('removes pid', function(){
+          test_file_contents.should.match(/REMOVEDPID!$/);
+        });
+
+        after(function(done){
+          fs.unlink(test_file_path, done);
         });
       });
 
       describe('if agent is NOT running', function(){
 
         it ('does not try to remove pid', function(done){
-          var cli = spawn('node', [cli_test_helper_path, 'config_present', 'write_tmp_file', test_file_path]);
+          var cli = spawn('node', [cli_test_helper_path, 'config_present', 'agent_running_false', test_file_path]);
 
           cli.on('close', function (){
-            fs.readFile(test_file_path, 'utf8', function (err, data){
-              data.should.be.equal('SHUTDOWN!');
-              fs.unlink(test_file_path, done);
+            fs.exists(test_file_path, function(exists){
+              exists.should.be.false;
+              done();
             });
           });
 
@@ -269,7 +269,6 @@ describe('lib/agent/cli_controller_spec', function(){
         it('sends SIGUSR2 signal to other process', function(){
           result.murders[fake_pid].should.equal('SIGUSR2');
         });
-
       });
 
       describe('and this instance was launched by interval (cron, cronsvc', function(){
@@ -285,12 +284,8 @@ describe('lib/agent/cli_controller_spec', function(){
         it('sends SIGUSR1 signal to other process', function(){
           result.murders[fake_pid].should.equal('SIGUSR1');
         });
-
       });
-
     });
-
     } // end `is_windows` condition
-
   });
 });
