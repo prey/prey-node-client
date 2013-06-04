@@ -27,7 +27,7 @@ describe('lib/system/index_spec.js #wip', function(){
     });
   });
 
-  describe('spawn_as_logged_user() #wip2', function(){
+  describe('spawn_as_logged_user()', function(){
 
     it('should issue a `whoami` using the function', function(done){
       index.spawn_as_logged_user('whoami', [], function(err, spawned_item){
@@ -45,9 +45,15 @@ describe('lib/system/index_spec.js #wip', function(){
       });
     });
   });
-  describe('run_as_logged_user()', function(){
+  describe('run_as_logged_user() #wip2', function(){
 
-    it('----');
+    it('should issue a `whoami` using the function', function(done){
+      index.run_as_logged_user('whoami', [], function(err, response){
+        should.not.exists(err);
+        response.length.should.be.above(0);
+        done();
+      });
+    });
   });
 
   describe('get_running_user()', function(){
