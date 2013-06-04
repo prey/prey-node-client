@@ -16,6 +16,7 @@ var exec_env      = process.env, // so we can override it later
 if (is_windows) {
   node_bin  += '.exe';
   fake_node += '.cmd';
+  bin_prey  += '.cmd';
 }
 
 function run_bin_prey(args, cb){
@@ -139,9 +140,9 @@ describe('bin/prey', function(){
   describe('params', function(){
 
     before(function(done){
-
       // we need /usr/bin, otherwise $(dirname $0) fails
-      exec_env = { 'PATH': os.tmpDir() + ':/usr/bin' };
+      var tmp_path = is_windows? os.tmpDir(): os.tmpDir() + ':/usr/bin';
+      exec_env = { 'PATH': tmp_path };
       var fake_node_content = is_windows ? 'echo %*' : 'echo $@';
 
       fs.writeFile(fake_node, fake_node_content, { mode: 0755 }, function(){
