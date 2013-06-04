@@ -24,7 +24,7 @@ describe('prey_conf_spec', function(){
     });
   });
 
-  it('driver should be set to control-panel', function(){
+  it('driver should be set to interval & push', function(){
     var drivers = get_value('drivers');
     drivers.should.be.equal('interval, push');
   });
@@ -36,7 +36,7 @@ describe('prey_conf_spec', function(){
     endpoints.should.be.equal('control-panel');
   });
 
-  it('triggers should be set to control-panel', function(){
+  it('triggers should be set to network, battery', function(){
     var triggers = is_windows?
       conf_file_contents.match(/\r\ntriggers\s=\s(.*)\r\n/)[1] :
       conf_file_contents.match(/\ntriggers\s=\s(.*)\n/)[1];
