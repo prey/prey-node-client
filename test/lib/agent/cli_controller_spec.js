@@ -2,11 +2,8 @@
 var fs                    = require('fs'),
     join                  = require('path').join,
     os                    = require('os'),
-    sandbox               = require('sandboxed-module'),
-    exec                  = require('child_process').exec,
     spawn                 = require('child_process').spawn,
     cli_test_helper_path  = join(__dirname, '..', '..', 'utils', 'lib_agent_cli.js'),
-    prey_config_path      = require('path').resolve(__dirname, '..', '..', '..'),
     test_file_path        = join(os.tmpDir(), '5b957c999343408e127ee49663383289_test_prey_agent_run'),
     is_windows            = process.platform === 'win32';
 
