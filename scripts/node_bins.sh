@@ -77,6 +77,7 @@ set_version(){
   local version="$1"
   [ ! -d "node/${version}" ] && echo "Version not found: ${version}" && return 1
 
+  echo "Symlinking version ${version}."
   [ "$(uname -m)" == 'i686' ] && type='x86' || type='x64'
   [ "$(uname)" == 'Linux' ] && os='linux' || os='mac'
 
@@ -88,12 +89,21 @@ set_version(){
 
 }
 
+get_latest_installed() {
+  local latest=$(find node -maxdepth 1 | tail -1 | cut -d"/" -f2)
+  echo $latest
+}
+
 if [ "$1" == 'fetch' ]; then
   fetch "$2"
   exit $?
 elif [ "$1" == 'set' ]; then
-  if [ "$2" ]; then
-    set_version "$2"
+  if [ -n "$2" ]; then
+    if [ "$2" == "latest" ]; then
+      set_version $(get_latest_installed)
+    else
+      set_version "$2"
+    fi
   else
     echo $(readlink "bin/node")
   fi
