@@ -175,10 +175,34 @@ describe('lib/system/index_spec.js #wip', function(){
     });
   });
 
-  describe('process_running() -> proxy to os function', function(){
-    it('----');
+  describe('process_running()', function(){
+
+    it('should proxy to os function', function(done){
+      index.process_running('bin', function(response){
+        response.should.be.equal(true);
+        done();
+      })
+    });
   });
-  describe('auto_connect() -> proxy to os_function', function(){
-    it('----');
+
+  describe('auto_connect()', function(){
+
+    var reconnect;
+
+    before(function(){
+      reconnect = sinon.stub(index, 'reconnect', function(cb) { cb (); });
+    });
+
+    it('should proxy to os function', function(done){
+      this.timeout(7000);
+      index.auto_connect(function(out){
+        out.should.be.equal(true);
+        done();
+      });
+    });
+
+    after(function(){
+      reconnect.restore();
+    });
   });
 });
