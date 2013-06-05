@@ -3,7 +3,8 @@ var sinon   = require('sinon'),
     join    = require('path').join,
     os_name = process.platform.replace('win32', 'windows').replace('darwin', 'mac');
 
-describe('set_interval', function(){
+// We went over these ones later...
+describe.skip('set_interval #sinon', function(){
 
   var get,
       set,

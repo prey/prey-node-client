@@ -1,6 +1,7 @@
 
 var join        = require('path').join,
     should      = require('should'),
+    sinon       = require('sinon'),
     index_path  = join(__dirname, '..', '..', '..', 'lib', 'system', 'index.js'),
     is_windows  = process.platform === 'win32';
 
@@ -45,7 +46,7 @@ describe('lib/system/index_spec.js #wip', function(){
       });
     });
   });
-  describe('run_as_logged_user() #wip2', function(){
+  describe('run_as_logged_user()', function(){
 
     it('should issue a `whoami` using the function', function(done){
       index.run_as_logged_user('whoami', [], function(err, response){
@@ -57,15 +58,104 @@ describe('lib/system/index_spec.js #wip', function(){
   });
 
   describe('get_running_user()', function(){
-    it('----');
+
+    it('should get a value for the running user', function(){
+      var user = index.get_running_user();
+      user.length.should.be.above(0);
+    });
   });
 
   describe('get_os_info() -> get_os_version + get_os_name', function(){
-    it('----');
+
+    it('should return an object with properties [name, version, arch]', function(done){
+      index.get_os_info(function(err, response){
+        response.should.have.property('name');
+        response.should.have.property('version');
+        response.should.have.property('arch');
+        done();
+      })
+    });
   });
+
   describe('set_interval()', function(){
-    it('----');
+
+    describe('when there is NOT an interval set', function(){
+
+      var get, set;
+
+      before(function(){
+        get = sinon.stub(index.delay, 'get', function(cb){ cb(); });
+        set = sinon.stub(index.delay, 'set', function(delay, cb){ cb(null, delay); });
+      });
+
+      it('should set and interval', function(done){
+        index.set_interval(34, function(err, current){
+          current.should.be.equal(34);
+          done();
+        });
+      });
+
+      after(function(){
+        get.restore();
+        set.restore();
+      });
+    });
+
+    describe('when there is an interval already set', function(){
+
+      describe('and current delay is every 60 minutes', function(){
+
+        describe('and a lower one was requested', function(){
+
+          var get, set;
+
+          before(function(){
+            get = sinon.stub(index.delay, 'get', function(cb){
+              cb({ value : 0,  one_hour: 1 });
+            });
+            set = sinon.stub(index.delay, 'set', function(delay, cb){ cb(null, delay); });
+          });
+
+          it('should update the interval', function(done){
+            index.set_interval(37, function(err, current){
+              current.should.be.equal(37);
+              done();
+            });
+          });
+
+          after(function(){
+            get.restore();
+            set.restore();
+          });
+        });
+
+        describe('and a delay higher than 60 (one hour) was requested', function(){
+
+          var get, set;
+
+          before(function(){
+            get = sinon.stub(index.delay, 'get', function(cb){
+              cb({ value : 0,  one_hour: 1 });
+            });
+            set = sinon.stub(index.delay, 'set', function(delay, cb){ cb(null, delay); });
+          });
+
+          it('should do nothing', function(done){
+            index.set_interval(70, function(err, current){
+              should.not.exists(current);
+              done();
+            });
+          });
+
+          after(function(){
+            get.restore();
+            set.restore();
+          });
+        });
+      });
+    });
   });
+
   describe('unset_interval()', function(){
     it('----');
   });
