@@ -157,8 +157,24 @@ describe('lib/system/index_spec.js #wip', function(){
   });
 
   describe('unset_interval()', function(){
-    it('----');
+    var unset;
+
+    before(function(){
+      unset = sinon.stub(index.delay, 'unset', function(cb){ cb(null, 'OK'); });
+    });
+
+    it('should call the respective function `system.delay.unset()`', function(done){
+      index.unset_interval(function(err, stdout){
+        stdout.should.be.equal('OK');
+        done()
+      })
+    });
+
+    after(function(){
+      unset.restore();
+    });
   });
+
   describe('process_running() -> proxy to os function', function(){
     it('----');
   });
