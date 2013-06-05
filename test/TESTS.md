@@ -245,8 +245,19 @@
 = lib/agent/reports
   [...]
 
-= lib/agent/transports
-  [...]
+= lib/agent/endpoints
+  + control-panel
+    - sets Prey user agent
+    - if data contains files
+      - sends multipart data
+    - should not react to specific HTTP status codes
+    + if connect fails
+      ? what happens?
+  + email
+    - connects directly to target host
+    - tries different SMTP servers, in sequence
+    + if sending fails
+      ? what happens?
 
 = lib/agent/triggers
   [...]
@@ -472,36 +483,3 @@ This is pending => stores the pid of the process in file
 ===============================================
  utils - quizas operetta sea lo mas important
 ===============================================
-
-===============================================
- currently
-===============================================
-
-on config activate
-  should load lib/conf/cli.js
-
-  [./bin/prey] config activate
-    ✓ Should load `lib/conf/cli.js` on `config activate` command
-    ✓ Should not do anything if `process.env.BUNDLE_ONLY is on` (190ms)
-    1) Should setup version and interval on `controller#activate` call`
-    2) Should `install` a new version, and update the system
-
-  Execution of [./bin/prey]
-    ✓ Should execute the agent if no parameters are given to [./bin/prey]
-    ✓ Should exit when there is not a config file (279ms)
-    ✓ Should exit if there is not an API key in the config file (275ms)
-    3) Should exit if there is not internet connection
-    - E
-    - F
-    - G
-
-  scripts/create_user.js
-    #create_user()
-      ✓ Should exit when no username is given
-      4) Should create a user, given the username
-      5) Should exit if it is executed with a user different than root
-      6) Should exit if user already exists
-    #grant_privileges()
-      7) Should find the sudoers.d file and that it has the right privileges
-      8) Should, as <test_user>, impersonate the existing user
-      9) Should, as <test_user>, be unable to impersonate if the sudoers file doesn't exist
