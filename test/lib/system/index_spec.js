@@ -5,7 +5,7 @@ var join        = require('path').join,
     index_path  = join(__dirname, '..', '..', '..', 'lib', 'system', 'index.js'),
     is_windows  = process.platform === 'win32';
 
-describe('lib/system/index_spec.js #wip', function(){
+describe('lib/system/index_spec.js', function(){
   var index = require(index_path);
 
   describe('get_logged_user()', function(){
@@ -178,7 +178,8 @@ describe('lib/system/index_spec.js #wip', function(){
   describe('process_running()', function(){
 
     it('should proxy to os function', function(done){
-      index.process_running('bin', function(response){
+      var process_name = is_windows? 'svchost.exe' : 'bin';
+      index.process_running(process_name, function(response){
         response.should.be.equal(true);
         done();
       })
@@ -194,7 +195,7 @@ describe('lib/system/index_spec.js #wip', function(){
     });
 
     it('should proxy to os function', function(done){
-      this.timeout(7000);
+      this.timeout(10000);
       index.auto_connect(function(out){
         out.should.be.equal(true);
         done();
