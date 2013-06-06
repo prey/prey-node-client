@@ -11,7 +11,10 @@ make_pkg() {
  local file="${name}.zip"
  local zip="../${version}/${file}"
 
- [ ! -f "${zip}" ] && return 1
+ if [ ! -f "${zip}" ]; then
+   echo " -- File not found: ${zip}"
+   return 1
+ fi
 
  # remove old stuff
  rm -f *.pkg

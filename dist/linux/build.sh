@@ -9,13 +9,19 @@ make_deb() {
   [ -z $(which dpkg-deb) ] && return 1
   [ -z "$version" ] && return 1
 
+  local zip="../${version}/prey-linux-${version}-${arch}.zip"
   local debian_arch="i386"
   test "$arch" = "x64" && debian_arch="amd64"
+
+  if [ ! -f "$zip" ]; then
+    echo " -- ZIP file not found: ${zip}"
+    return 1
+  fi
 
   echo " -- Building Debian v${version} package (${debian_arch})..."
 
   if [ ! -d prey ]; then
-    unzip ../${version}/prey-linux-${version}-${arch}.zip -d .
+    unzip $zip -d .
     mv prey-${version} prey
   fi
 
@@ -81,4 +87,4 @@ make_deb() {
 rm -Rf build *.deb
 make_deb x86
 make_deb x64
-mv *.deb "../${version}"
+mv *.deb "../${version}" 2> /dev/null
