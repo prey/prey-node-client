@@ -89,8 +89,8 @@ describe('lib/system/index_spec.js #wip', function(){
       });
 
       it('should set and interval', function(done){
-        index.set_interval(34, function(err, current){
-          current.should.be.equal(34);
+        index.set_interval(34, function(err){
+          should.not.exist(err);
           done();
         });
       });
@@ -117,8 +117,8 @@ describe('lib/system/index_spec.js #wip', function(){
           });
 
           it('should update the interval', function(done){
-            index.set_interval(37, function(err, current){
-              current.should.be.equal(37);
+            index.set_interval(37, function(err){
+              should.not.exist(err);
               done();
             });
           });
