@@ -149,56 +149,8 @@
 
 = lib/agent/index -- importante
 
-  + run()
-    + when run on interval
-      + and os is windows
-        - should not wait
-      + and os is NOT windows
-        - should wait a random number of seconds
-    + when run not on interval
-      - should not wait
-    - it should call initialize() after timeout
+.....
 
-  + initialize()
-    - should write header
-    + when command was passed as argument
-      - it should run command 
-      - it should stop further execution (dont callback)
-    + when skip-connection flag was passed
-      - it should not check_connection()
-      - it should callback
-    
-    + when no skip-connection flag was passed
-      - it should check status of connection
-      + if no connection is available
-        - it should not check for updates
-        - it should callback(false)
-
-      + if connection is available
-        + and can_update() return false
-          - it should not check for updates
-          - it should callback(true)
-        + and can_update() returns true
-          - it should check for updates 
-
-    + when checking for updates
-      + if no version was found
-        - it should callback(true)
-      + if new version was installed
-        - it does not callback
-        - it triggers a 'new_version' event
-        - it calls agent.shutdown()
-
-
-  + engage()
-    [...]
-
-  + check_connection()
-    [...]
-
-
-  + shutdown()
-    [...]
 
 
 

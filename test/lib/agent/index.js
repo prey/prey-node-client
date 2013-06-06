@@ -1,94 +1,97 @@
 
-var
+var join              = require('path').join,
+    sandbox           = require('sandboxed-module'),
+    agent_index_path  = join(__dirname, '..', '..', '..', 'lib', 'agent', 'index.js'),
+    common_path       = join(__dirname, '..', '..', '..', 'lib', 'agent', 'common.js'),
+    is_windows        = process.platform === 'win32';
 
-  join              = require('path').join,
-  sandbox           = require('sandboxed-module'),
-
-  agent_index_path  = join(__dirname, '..','..','..', 'lib', 'agent', 'index.js'),
-
-  is_windows        = process.platform === 'win32';
-
-
-
-describe('lib/agent/index', function(){
-
-  var sandboxed_agent = {},
-      requires        = {};
-
-  before(function(done){
-    var common = {
-      logger      : {
-        critical  : function(str) { var out = str; },
-        debug     : function(str) { var out = str; },
-        info      : function(str) { var out = str; },
-        warn      : function(str) { var out = str; },
-        write     : function(str) { var out = str; }
-      }
-    }
-    requires = {
-      './common' : common
-    };
-    done();
-  });
+describe('lib/agent/index #wip', function(){
 
   describe('run()', function(){
 
-    describe('when run on interval', function(){
+    describe('when `-r` flag is set', function(){
 
-      if(is_windows){
-      describe('and os is windows', function(){
+      var index, hooks_called;
 
-        it('should not wait');
+      before(function(){
+        var common = require(common_path);
+        common.program.run = true;
+        common.logger = {
+          prefix : function() { return {
+              error : function() { return; },
+              off   : function() { return; },
+              write : function() { return; }
+            }
+          }
+        }
+        var command = {
+          parse : function(){ return [null, { command : null }]; }
+        }
+        hooks_called = [];
+        var hooks = {
+          on : function(hook) {
+            hooks_called.push(hook);
+          }
+        }
+        var requires = {
+          './command'   : command,
+          './common'    : common,
+          './hooks'     : hooks
+        };
+        index = sandbox.require(agent_index_path, { requires : requires });
       });
-      } // end `is_windows` condition
 
-      describe('and os is NOT windows', function(){
-
-        it('should wait a random number of seconds');
+      it('should perform the command given as argument', function(done){
+        index.run();
+        hooks_called.should.eql([ 'data', 'error', 'report' ]);
+        done();
       });
     });
-    describe('when run not on an interval', function(){
-      it('should not wait');
-    });
-    describe('after timeout', function(){
-      it('should not call initialize() after timeout');    
-    });
-  });
-  describe('initialize()', function(){
-    it('should write header');
-    describe('when command was passed as argument', function(){
-      it('should run command');
-      it('should stop further execution (don\'t callback)');
-    });
-    describe('when skip-connection flag was passed', function(){
-      it('should not check_connection()');    
-      it('should callback');  
-    });
-    describe('when no skip-connection flag was passed', function(){
-      it('should check status of connection');
-      describe('if no connection is available', function(){
-        it('should not check for updates');
-        it('should callback(false)')
-      });
-      describe('if connection is available', function(){
-        describe('and can_update() returns false', function(){
-          it('should not check for updates');
-          it('should callback(true)');
+
+    describe.skip('when checking for updates with `update.check()`', function(){
+
+      var index;
+
+      describe('and it finds a new version', function(){
+
+        // This variable will store whether we have called
+        // logger.warn()
+        var flag_logger_warn_called = false;
+
+        before(function(){
+          var common = require(common_path);
+          // Let's set this one explicitly!
+          common.program.run = false;
+          common.logger = {
+            prefix : function() { return {
+                error : function() { return; },
+                off   : function() { return; },
+                warn  : function() { flag_logger_warn_called = true; return; },
+                write : function() { return; }
+              }
+            }
+          }
+          var updater = {
+            check : function(cb){ return cb(null, true); }
+          }
+          var requires = {
+            './common'  : common,
+            './updater' : updater
+          };
+          index = sandbox.require(agent_index_path, { requires : requires });
         });
-        describe('and can_update() returns true', function(){
-          it('should check for updates');
+
+        it('should shutdown', function(done){
+          index.run();
+          flag_logger_warn_called.should.be.equal(true);
+          done();
         });
       });
-    });
-    describe('when checking for updates', function(){
-      describe('if no version was found', function(){
-        it('should callback true');
-      });
-      describe('if new version was installed', function(){
-        it('does not callback');
-        it('triggers a `new version` event');
-        it('calls agent.shutdown()');
-      });
+
+      describe('and does NOT find a new version', function(){
+
+        it('should call `boot()`')
+      })
     });
   });
 });
