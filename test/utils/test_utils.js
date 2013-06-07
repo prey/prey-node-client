@@ -201,7 +201,6 @@ utils.remove_user = function (username, callback) {
     command = 'dscl . -delete /Users/' + username;
     var t = setTimeout(function(){ execute_command(); }, 2000);
   } else { // linux
-    // TODO!!
     command =  'userdel ' + username;
     return execute_command();
   }
@@ -211,4 +210,23 @@ utils.remove_user = function (username, callback) {
       return callback();
     });
   }
+}
+
+/**
+ * @summary Returns a `common` object with a stubbed `logger`
+ */
+utils.create_common_object = function () {
+  var common = require(path.join(__dirname, '..', '..', 'lib', 'agent', 'common.js'));
+  common._spy = {}
+  common.logger = {
+    prefix : function() { return {
+        error : function() { return; },
+        off   : function() { return; },
+        warn  : function() { common._spy['logger.warn'] = true; return; },
+        write : function() { return; }
+      }
+    }
+  }
+
+  return common;
 }

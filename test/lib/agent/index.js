@@ -1,8 +1,8 @@
 
 var join              = require('path').join,
     sandbox           = require('sandboxed-module'),
+    utils             = require(join(__dirname,'..', '..', 'utils', 'test_utils.js')),
     agent_index_path  = join(__dirname, '..', '..', '..', 'lib', 'agent', 'index.js'),
-    common_path       = join(__dirname, '..', '..', '..', 'lib', 'agent', 'common.js'),
     is_windows        = process.platform === 'win32';
 
 describe('lib/agent/index #wip', function(){
@@ -14,16 +14,8 @@ describe('lib/agent/index #wip', function(){
       var index, hooks_called;
 
       before(function(){
-        var common = require(common_path);
+        var common = utils.create_common_object();
         common.program.run = true;
-        common.logger = {
-          prefix : function() { return {
-              error : function() { return; },
-              off   : function() { return; },
-              write : function() { return; }
-            }
-          }
-        }
         var command = {
           parse : function(){ return [null, { command : null }]; }
         }
@@ -48,29 +40,15 @@ describe('lib/agent/index #wip', function(){
       });
     });
 
-    describe.skip('when checking for updates with `update.check()`', function(){
+    describe('when checking for updates with `update.check()`', function(){
 
-      var index;
+      var index, common;
 
       describe('and it finds a new version', function(){
 
-        // This variable will store whether we have called
-        // logger.warn()
-        var flag_logger_warn_called = false;
-
         before(function(){
-          var common = require(common_path);
-          // Let's set this one explicitly!
+          common = utils.create_common_object();
           common.program.run = false;
-          common.logger = {
-            prefix : function() { return {
-                error : function() { return; },
-                off   : function() { return; },
-                warn  : function() { flag_logger_warn_called = true; return; },
-                write : function() { return; }
-              }
-            }
-          }
           var updater = {
             check : function(cb){ return cb(null, true); }
           }
@@ -83,14 +61,43 @@ describe('lib/agent/index #wip', function(){
 
         it('should shutdown', function(done){
           index.run();
-          flag_logger_warn_called.should.be.equal(true);
+          common._spy.should.have.property('logger.warn');
           done();
         });
       });
 
       describe('and does NOT find a new version', function(){
 
-        it('should call `boot()`')
+        var index, hooks_called;
+
+        before(function(){
+          var common = utils.create_common_object();
+          common.program.run = false;
+          var updater = {
+            check : function(cb){ return cb(null, false); }
+          }
+          hooks_called = [];
+          var hooks = {
+            on : function(hook) {
+              hooks_called.push(hook);
+            }
+          }
+          var requires = {
+            './common'    : common,
+            './updater'   : updater,
+            './hooks'     : hooks
+          };
+          index = sandbox.require(agent_index_path, { requires : requires });
+        });
+
+        it('should call `boot()`', function(done){
+          index.run();
+          // We will be satisfied that `boot` was called if we find the
+          // hooks called in `load_hooks()`. We will test the flow of `boot`
+          // afterwards.
+          hooks_called.should.eql([ 'action', 'event', 'data', 'report', 'response', 'error', 'file' ]);
+          done();
+        });
       })
     });
   });
