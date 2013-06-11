@@ -8,9 +8,6 @@ drivers = interval, push
 # Endpoints where to send data and events.
 endpoints = control-panel
 
-# Triggers to start watching at startup.
-triggers = network, battery
-
 # Whether or not to try to reconnect to an open Wifi network when not online.
 auto_connect = false
 

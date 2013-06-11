@@ -8,9 +8,6 @@ drivers = interval, push
 # Endpoints where to send data and events.
 endpoints = control-panel
 
-# Triggers to start watching at startup.
-triggers = network, battery
-
 # Whether or not to try to reconnect to an open Wifi network when not online.
 auto_connect = false
 
@@ -21,15 +18,15 @@ auto_update = false
 send_crash_reports = true
 
 # HTTP proxy server to try if a request fails (eg. http://my.proxy.com:3128)
-try_proxy = 
+try_proxy =
 
 # Prey Control Panel host, for fetching instructions and sending data.
 host = control.preyproject.com
 protocol = https
 
 # Prey API key and unique identifier for device.
-api_key = 
-device_key = 
+api_key =
+device_key =
 
 # Includes status info (battery info, logged user) when checking in.
 send_status_info = true
