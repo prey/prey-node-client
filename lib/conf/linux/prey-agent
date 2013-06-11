@@ -1,31 +1,31 @@
 #!/bin/sh
 #
-# prey-trigger init script
+# prey-agent init script
 #
 # chkconfig:   2345 20 80
-# description: starts prey network detection trigger
+# description: starts prey anti-theft agent
 #
 
 ### BEGIN INIT INFO
-# Provides:          prey-trigger
+# Provides:          prey-agent
 # Required-Start:    $local_fs $remote_fs $syslog
 # Required-Stop:     $local_fs $remote_fs $syslog
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 1 6
-# Short-Description: starts prey network detection trigger
-# Description:       starts prey network trigger using start-stop-daemon
+# Short-Description: starts prey anti-theft agent
+# Description:       starts prey anti-theft agent using start-stop-daemon
 ### END INIT INFO
 
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
-DAEMON="{{trigger_script}}"
-DAEMON_OPTS="-b {{prey_bin}}"
+DAEMON="{{prey_bin}}"
+DAEMON_OPTS=""
 USER="{{user}}"
-NAME=prey-trigger
-DESC=prey-trigger
+NAME=prey-agent
+DESC="Prey Anti-Theft Agent"
 
 # Include defaults if available
-if [ -f /etc/default/prey-trigger ]; then
-	. /etc/default/prey-trigger
+if [ -f /etc/default/prey-agent ]; then
+	. /etc/default/prey-agent
 fi
 
 test -x $DAEMON || exit 0
@@ -39,7 +39,7 @@ start(){
 }
 
 stop(){
-	start-stop-daemon --stop --quiet --pidfile /var/run/$NAME.pid || true
+	start-stop-daemon --stop --signal QUIT --quiet --pidfile /var/run/$NAME.pid || true
 }
 
 case "$1" in
