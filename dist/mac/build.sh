@@ -39,6 +39,8 @@ make_pkg() {
 
 }
 
+[ -z "$1" ] && echo "Version required." && exit 1
+
 rm -Rf out
 mkdir out
 make_pkg $1 x86
