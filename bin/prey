@@ -21,8 +21,7 @@ fi
 child="$!"
 
 # Kill the child process when start-stop-daemon sends us a QUIT signal
-trap "kill -QUIT $child" QUIT
-trap "" TERM
+trap "kill -QUIT $child" QUIT TERM
 
 # Wait for child process to exit
-wait
+wait $child
