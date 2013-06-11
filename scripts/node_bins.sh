@@ -90,7 +90,7 @@ set_version(){
 }
 
 get_latest_installed() {
-  local latest=$(find node -maxdepth 1 | tail -1 | cut -d"/" -f2)
+  local latest=$(find node/ -maxdepth 1 | sed "s/[^0-9\.]//g" | grep -v "^$" | sort -r | tail -1)
   echo $latest
 }
 
