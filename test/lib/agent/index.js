@@ -6,7 +6,7 @@ var fs                = require('fs'),
     agent_index_path  = join(__dirname, '..', '..', '..', 'lib', 'agent', 'index.js'),
     is_windows        = process.platform === 'win32';
 
-describe('lib/agent/index #wip', function(){
+describe('lib/agent/index', function(){
 
   describe('run()', function(){
 
@@ -139,7 +139,7 @@ describe('lib/agent/index #wip', function(){
     });
   });
 
-  describe('shutdown() #wip2', function(){
+  describe('shutdown()', function(){
 
     describe('when there are loaded drivers', function(){
 
@@ -195,12 +195,95 @@ describe('lib/agent/index #wip', function(){
     });
 
     describe('when there are loaded hooks', function(){
-      it('should unload hooks');
+
+      var index, spy_hooks_unload_called;
+
+      before(function(){
+        var common = utils.create_common_object();
+        common.program.run = false;
+        var hooks   = {
+          unload : function() {
+            spy_hooks_unload_called = true;
+            return;
+          }
+        }
+        var updater = {
+          check : function(cb){ return cb(null, false); }
+        }
+        var requires = {
+          './common'    : common,
+          './hooks'     : hooks,
+          './updater'   : updater,
+        };
+
+        index = sandbox.require(agent_index_path, { requires : requires });
+      });
+
+      it('should unload hooks', function(done){
+        index.shutdown();
+        spy_hooks_unload_called.should.be.equal(true);
+        done();
+      });
     });
-    
-    it('should cancel reports');
-    it('should unwatch triggers');
-    it('should clean up files');
-    it('should set `running` as false');
+
+    describe('other shutdown operations', function(){
+
+      var index, spy_calls = {};
+
+      before(function(){
+        var common = utils.create_common_object();
+        common.program.run = false;
+        common.helpers = {
+          remove_files : function() {
+            spy_calls['common.helpers.remove_files'] = true;
+            return;
+          }
+        }
+        var hooks   = {
+          unload : function() { return; }
+        }
+        var triggers = {
+          unwatch : function() {
+            spy_calls['triggers.unwatch'] = true;
+            return;
+          }
+        }
+        var reports = {
+          cancel_all : function() {
+            spy_calls['reports.cancel_all'] = true;
+          }
+        }
+        var updater = {
+          check : function(cb){ return cb(null, false); }
+        }
+        var requires = {
+          './common'    : common,
+          './hooks'     : hooks,
+          './reports'   : reports,
+          './triggers'  : triggers,
+          './updater'   : updater,
+        };
+
+        index = sandbox.require(agent_index_path, { requires : requires });
+
+        index.shutdown();
+      });
+
+      it('should cancel reports', function(){
+        spy_calls.should.have.property('reports.cancel_all');
+      });
+
+      it('should unwatch triggers', function(){
+        spy_calls.should.have.property('triggers.unwatch');
+      });
+
+      it('should clean up files', function(){
+        spy_calls.should.have.property('common.helpers.remove_files');
+      });
+
+      it('should set `running` as false', function(){
+        index.running().should.be.equal(false);
+      });
+    });
   });
 });
