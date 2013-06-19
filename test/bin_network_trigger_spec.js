@@ -19,7 +19,7 @@ var join                  = require('path').join,
 
 describe('bin_network_trigger_spec', function(){
 
-if (!has_nm_installed) {
+if (os_name === 'linux' && !has_nm_installed) {
 
   return describe('when NetworkManager does not exist', function(){
 

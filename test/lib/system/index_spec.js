@@ -194,7 +194,7 @@ describe('lib/system/index_spec.js', function(){
       reconnect = sinon.stub(index, 'reconnect', function(cb) { cb (); });
     });
 
-    it('should proxy to os function', function(done){
+    it.skip('should proxy to os function', function(done){
       this.timeout(10000);
       index.auto_connect(function(out){
         out.should.be.equal(true);
