@@ -1,0 +1,179 @@
+<?xml version="1.0"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+
+   <Product Id="*" 
+            UpgradeCode="3705236C-84E0-44DF-AA18-CEB47B436F1F"
+            Name="Prey Anti-theft"
+            Version="$(var.ProductVersion)"
+            Manufacturer="Prey, Inc."
+            Language="1033">
+      <Package  InstallerVersion="200"
+                Compressed="yes"
+                Comments="Windows Installer Package"/>
+      <Media Id="1" Cabinet="product.cab" EmbedCab="yes"/>
+
+      <!-- Conceal from Add/Remove Program (ARP) List -->
+      <Property Id="ARPSYSTEMCOMPONENT" Value="1" />
+
+      <!-- Conceal any warning of "files in use" that may be
+           generated on uninstall                           -->
+      <Property Id="MSIRESTARTMANAGERCONTROL" Value="Disable"/>
+
+      <!-- Disk Installation Data -->
+      <Directory Id="TARGETDIR" Name="SourceDir">
+
+       <!-- Directory where [prey]/versions/[version] will be -->
+         <Directory Id="ProgramFilesFolder">
+            <Directory Id="INSTALLDIR" Name="Prey">
+            </Directory>
+         </Directory>
+
+        <!--
+          HKLM\Software\Prey\Version
+          HKLM\Software\Prey\INSTALLDIR
+        -->
+        <Component Id="PreyVersionRegistryKey"
+                   Guid="13383C8C-DBDB-4305-B01C-61712047AFD5">
+          <RegistryValue Root="HKLM"
+                         Key="Software\Prey"
+                         Type="string"
+                         Name="Version"
+                         Value="$(var.ProductVersion)"
+                         KeyPath="yes" />
+        </Component>
+        <Component Id="PreyInstallDirRegistryKey"
+                   Guid="D93BAEDB-F626-45F5-A693-B065A9E0DBDC">
+          <RegistryValue Root="HKLM"
+                         Key="Software\Prey"
+                         Type="string"
+                         Name="INSTALLDIR"
+                         Value="[INSTALLDIR]"
+                         KeyPath="yes" />
+        </Component>
+
+      </Directory>
+
+      <!-- Features to install -->
+      <Feature Id="Complete"
+               Title="Prey Anti-theft"
+               Description="The complete package"
+               Display="expand"
+               Level="1"
+               ConfigurableDirectory="INSTALLDIR">
+         <ComponentGroupRef Id="prey_msi" />
+         <ComponentRef Id="PreyVersionRegistryKey" />
+         <ComponentRef Id="PreyInstallDirRegistryKey" />
+      </Feature>
+
+      <!-- UI Elements -->
+      
+      <!-- Enables custom install location -->
+      <Property Id="WIXUI_INSTALLDIR" Value="INSTALLDIR" />
+
+      <!-- Launch Prey Configuration Checkbox -->
+      <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOX" Value="1"/>
+      <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOXTEXT" Value="Launch Prey Configuration" />
+
+      <!-- Set prey-config.exe route -->
+      <Property Id="WixShellExecTarget" Value="[INSTALLDIR]versions\$(var.ProductVersion)\lib\conf\windows\prey-config.exe" />
+
+
+      <UI>
+        <UIRef Id="WixUI_Prey_Custom" />
+        <Publish Dialog="ExitDialog"
+                 Control="Finish"
+                 Event="DoAction"
+                 Value="ConfigGui">WIXUI_EXITDIALOGOPTIONALCHECKBOX = 1 and NOT Installed</Publish>
+      </UI>
+
+      <!-- CUSTOM ACTIONS
+        * bin\prey.cmd config activate            (ON INSTALLING)
+        * bin\prey.cmd config hooks post_install  (ON INSTALLING)
+        * lib/conf/windows/prey-config.exe        (ON INSTALLING)
+        * bin\prey.cmd config hooks pre_uninstall (ON UNINSTALLING)
+        * bin\prey.cmd config deactivate          (ON UNINSTALLING)
+      -->
+
+      <!-- bin\prey.cmd config activate -->
+      <SetProperty  Id="CommandConfigActivate"
+                    Before="AppSearch"
+                    Value="&quot;[INSTALLDIR]versions\$(var.ProductVersion)\bin\prey.cmd&quot; config activate"/>
+      <CustomAction Id="CommandConfigActivate"
+                   BinaryKey="WixCA"
+                   DllEntry="CAQuietExec"
+                   Execute="deferred"
+                   Impersonate="no"
+                   Return="ignore"/>
+
+      <!-- bin\prey.cmd config hooks post_install -->
+      <SetProperty  Id="CommandConfigHooksPostInstall"
+                    Before="AppSearch"
+                    Value="&quot;[INSTALLDIR]versions\$(var.ProductVersion)\bin\prey.cmd&quot; config hooks post_install"/>
+      <CustomAction Id="CommandConfigHooksPostInstall"
+                   BinaryKey="WixCA"
+                   DllEntry="CAQuietExec"
+                   Execute="deferred"
+                   Impersonate="no"
+                   Return="ignore"/>
+
+      <!-- Set the CustomAction for the Config GUI to happen -->
+      <CustomAction  Id="ConfigGui"
+                     BinaryKey="WixCA"
+                     DllEntry="WixShellExec"
+                     Impersonate="yes" />
+      
+      <Property Id="EXISTINGINSTALLDIR" Secure="yes">
+        <RegistrySearch Id="Locate_EXISTINGINSTALLDIR"
+                        Root="HKLM"
+                        Key="Software\Prey"
+                        Name="INSTALLDIR"
+                        Type="directory" />
+      </Property>
+
+      <!-- bin\prey.cmd config hooks pre_uninstall -->
+      <CustomAction Id="Set_CommandConfigHooksPreUninstall"
+                    Execute="firstSequence"
+                    Property="CommandConfigHooksPreUninstall"
+                    Value="&quot;[EXISTINGINSTALLDIR]versions\$(var.ProductVersion)\bin\prey.cmd&quot; config hooks pre_uninstall" />
+      <CustomAction Id="CommandConfigHooksPreUninstall"
+                   BinaryKey="WixCA"
+                   DllEntry="CAQuietExec"
+                   Execute="deferred"
+                   Impersonate="no"
+                   Return="ignore"/>
+
+      <!-- bin\prey.cmd config deactivate -->
+      <CustomAction Id="Set_CommandConfigDeactivate"
+                    Execute="firstSequence"
+                    Property="CommandConfigDeactivate"
+                    Value="&quot;[EXISTINGINSTALLDIR]versions\$(var.ProductVersion)\bin\prey.cmd&quot; config deactivate" />
+      <CustomAction Id="CommandConfigDeactivate"
+                   BinaryKey="WixCA"
+                   DllEntry="CAQuietExec"
+                   Execute="deferred"
+                   Impersonate="no"
+                   Return="ignore"/>
+
+      <!-- The actions to be executed -->
+      <InstallExecuteSequence>
+
+        <!-- ON INSTALLING -->
+        <Custom Action="CommandConfigActivate"
+                After="PublishProduct">NOT Installed</Custom>
+        <Custom Action="CommandConfigHooksPostInstall"
+                After="CommandConfigActivate">NOT Installed</Custom>
+
+         <!-- ON UNINSTALLING -->
+        <Custom Action="Set_CommandConfigHooksPreUninstall"
+                After="InstallInitialize">Installed</Custom>
+        <Custom Action="CommandConfigHooksPreUninstall"
+                After="Set_CommandConfigHooksPreUninstall">Installed</Custom>
+        <Custom Action="Set_CommandConfigDeactivate"
+                After="CommandConfigHooksPreUninstall">Installed</Custom>
+        <Custom Action="CommandConfigDeactivate"
+                After="Set_CommandConfigDeactivate">Installed</Custom>
+
+      </InstallExecuteSequence>
+
+   </Product>
+</Wix>
