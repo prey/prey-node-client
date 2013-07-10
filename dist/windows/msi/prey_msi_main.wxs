@@ -23,7 +23,7 @@
       <Directory Id="TARGETDIR" Name="SourceDir">
 
        <!-- Directory where [prey]/versions/[version] will be -->
-         <Directory Id="ProgramFilesFolder">
+         <Directory Id="WindowsFolder">
             <Directory Id="INSTALLDIR" Name="Prey">
             </Directory>
          </Directory>

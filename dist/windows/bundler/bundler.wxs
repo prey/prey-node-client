@@ -7,7 +7,7 @@
     <BootstrapperApplicationRef Id="WixStandardBootstrapperApplication.RtfLicense" />
     <WixVariable Id="WixStdbaLicenseRtf" Value="..\assets\license.rtf" />
 
-    <Variable Name="InstallFolder" Value="[ProgramFilesFolder]Prey" />
+    <Variable Name="InstallFolder" Value="[WindowsFolder]Prey" />
     <Variable Name="LaunchTarget"
               Value="[InstallFolder]\versions\$(var.ProductVersion)\lib\conf\windows\prey-config.exe"/>
 
