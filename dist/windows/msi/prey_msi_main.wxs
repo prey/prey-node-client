@@ -74,6 +74,7 @@
          <ComponentGroupRef Id="prey_msi" />
          <ComponentRef Id="PreyVersionRegistryKey" />
          <ComponentRef Id="PreyInstallDirRegistryKey" />
+         <ComponentRef Id="PreyProductCodeRegistryKey" />
       </Feature>
 
       <!-- UI Elements -->
