@@ -6,7 +6,14 @@
 
 ## Prepare source to be packaged
 
-(TODO)
+(WIP)
+
+
+
+
+````bash
+$ ./scripts/build.sh
+```
 
 ## Creating a "standalone" Prey _MSI_ package
 
