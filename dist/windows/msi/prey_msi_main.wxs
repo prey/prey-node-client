@@ -48,7 +48,7 @@
                          Key="Software\Prey"
                          Type="string"
                          Name="INSTALLDIR"
-                         Value="[INSTALLLOCATION]"
+                         Value="[INSTALLDIR]"
                          KeyPath="yes" />
         </Component>
         <Component Id="PreyProductCodeRegistryKey"
