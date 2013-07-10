@@ -5,7 +5,7 @@
   <Bundle Version="$(var.ProductVersion)"
           UpgradeCode="3705236C-84E0-44DF-AA18-CEB47B436F1F">
     <BootstrapperApplicationRef Id="WixStandardBootstrapperApplication.RtfLicense" />
-    <WixVariable Id="WixStdbaLicenseRtf" Value="assets\license.rtf" />
+    <WixVariable Id="WixStdbaLicenseRtf" Value="..\assets\license.rtf" />
 
     <Variable Name="InstallFolder" Value="[ProgramFilesFolder]Prey" />
     <Variable Name="LaunchTarget"
@@ -18,9 +18,6 @@
 
       <!-- Will install the prey msi package itself -->
       <PackageGroupRef Id="PreySetupPkg" />
-
-      <!-- Will stop the `cron service` (if there is it) -->
-      <PackageGroupRef Id="ServiceStopperPkg" />
 
     </Chain>
   </Bundle>
@@ -50,17 +47,6 @@
       </ExePackage>
     </PackageGroup>
 
-    <PackageGroup Id="ServiceStopperPkg">
-      <MsiPackage
-        Id="ServiceStopper"
-        Compressed="yes"
-        SourceFile="service_stopper.msi"
-        Vital="yes"
-        DisplayInternalUI="yes"
-        Visible="yes">
-      </MsiPackage>
-    </PackageGroup>
-
     <PackageGroup Id="PreySetupPkg">
       <MsiPackage
         Id="PreySetup"
@@ -68,7 +54,7 @@
         SourceFile="prey-$(var.ProductVersion)-win.msi"
         Vital="yes"
         DisplayInternalUI="yes"
-        Visible="yes">
+        Visible="no">
         <MsiProperty Name="INSTALLLOCATION" Value="[InstallFolder]" />
       </MsiPackage>
     </PackageGroup>

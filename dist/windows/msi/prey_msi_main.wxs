@@ -31,9 +31,10 @@
         <!--
           HKLM\Software\Prey\Version
           HKLM\Software\Prey\INSTALLDIR
+          HKLM\Software\Prey\ProductCode
         -->
         <Component Id="PreyVersionRegistryKey"
-                   Guid="13383C8C-DBDB-4305-B01C-61712047AFD5">
+                   Guid="*">
           <RegistryValue Root="HKLM"
                          Key="Software\Prey"
                          Type="string"
@@ -42,14 +43,24 @@
                          KeyPath="yes" />
         </Component>
         <Component Id="PreyInstallDirRegistryKey"
-                   Guid="D93BAEDB-F626-45F5-A693-B065A9E0DBDC">
+                   Guid="*">
           <RegistryValue Root="HKLM"
                          Key="Software\Prey"
                          Type="string"
                          Name="INSTALLDIR"
-                         Value="[INSTALLDIR]"
+                         Value="[INSTALLLOCATION]"
                          KeyPath="yes" />
         </Component>
+        <Component Id="PreyProductCodeRegistryKey"
+                   Guid="*">
+          <RegistryValue Root="HKLM"
+                         Key="Software\Prey"
+                         Type="string"
+                         Name="ProductCode"
+                         Value="[ProductCode]"
+                         KeyPath="yes" />
+        </Component>
+
 
       </Directory>
 
@@ -122,6 +133,7 @@
                      DllEntry="WixShellExec"
                      Impersonate="yes" />
       
+      <!-- This property is needed during uninstall process -->
       <Property Id="EXISTINGINSTALLDIR" Secure="yes">
         <RegistrySearch Id="Locate_EXISTINGINSTALLDIR"
                         Root="HKLM"

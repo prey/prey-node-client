@@ -165,37 +165,3 @@ Inside the tag `InstallExecuteSequence`, we set the first action after `PublishP
 
 The _bundle_ file will give us the possibility to include .NET as a requirement in our application. Given the user the chance to install it if they do not have it.
 
-### Execute the command
-
-(TODO)
-
-### The `make_bundle.cmd` file
-
-(TODO)
-
-### The `bundler.wxs` file
-
-(TODO)
-
-## Resources
-
-* [ORCA](http://msdn.microsoft.com/en-us/library/aa370557.aspx): Opens up your _MSI_ file to show you what's in it.
-
-* A good resource that helped me (@hermanjunge) to understand a little bit more on Strings and localization is [this link](https://github.com/puppetlabs/puppet_for_the_win/blob/master/wix/localization/puppet_en-us.wxl).
-
-* To get the <RemotePayload> Data (For the bundle information of the .NET file):
-
-````bash
-$ head payload dotnetfx.exe -out myFile.wxs
-````
-
-* The reason I found for the `Compressed = no` parameter in [this link](http://stackoverflow.com/questions/15205646/remotepayload-the-system-cannot-find-the-file-with-type).
-
-* On "Why the property `NETFRAMEWORK20` won't work in my bundle file?". You can't use an MSI property in a burn expression.
-
-````xml
-<PropertyRef Id="NETFRAMEWORK20"/>
-````
-The above won't work. And you'll have to develop your custom way to get the value of .NET.
-
-My source is [this link](http://stackoverflow.com/questions/14863905/wix-bundle-exepackage-detectcondition-is-always-false#comment20898210_14868068), and my workaround is based in [this link](http://neilsleightholm.blogspot.com/2012/05/wix-burn-tipstricks.html).
