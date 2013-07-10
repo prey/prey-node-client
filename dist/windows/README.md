@@ -4,6 +4,10 @@
 
 (TODO)
 
+## Prepare source to be packaged
+
+(TODO)
+
 ## Creating a "standalone" Prey _MSI_ package
 
 ### Make the source directory
