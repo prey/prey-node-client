@@ -18,13 +18,6 @@ A built source will be at the directory `source-msi` inside `[prey]/dist/windows
 
 You need to have installed the following software:
 
-* [Paraffin](http://www.wintellect.com/Media/Default/Blogs/Files/paraffin/Paraffin-3.6.zip)
-
-Paraffin is inside a .zip file. Uncompress it, and put the Paraffin.exe file found in the uncompressed `debug` folder inside a directory which you have `PATH` relationship. (Of course, you have to know which directory suits you, and how to configure `PATH` in windows, but that knowledge is outside the scopes of this tutorial).
-
-* [Wix Tools](http://wix.codeplex.com/releases/view/99514)
-
-This is a installer. So, once downloaded, double click on it, and follow the instructions. Remember to add the bin directory of Wix to the PATH variable.
 
 Then, Just run the command (inside directory `[prey]/dist/windows`):
 

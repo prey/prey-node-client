@@ -2,20 +2,41 @@
 
 ## System Requirements
 
-(TODO)
+You need the following software in your windows machine to create the installer:
+
+* [Paraffin](http://www.wintellect.com/Media/Default/Blogs/Files/paraffin/Paraffin-3.6.zip)
+
+Paraffin is inside a .zip file. Uncompress it, and put the Paraffin.exe file found in the uncompressed `debug` folder inside a directory which you have `PATH` relationship. (Of course, you have to know which directory suits you, and how to configure `PATH` in windows, but that knowledge is outside the scopes of this tutorial).
+
+* [Wix Tools](http://wix.codeplex.com/releases/view/99514)
+
+This is a installer. So, once downloaded, double click on it, and follow the instructions. Remember to add the bin directory of Wix to the PATH variable.
 
 ## Prepare source to be packaged
 
-(WIP)
+The first procedure must be done in a _*nix_ machine.
 
-
-
+To start, we need to get the node binaries needed to build the platform specific packages:
 
 ````bash
-$ ./scripts/build.sh
+   $ scripts/node_bins.sh fetch # downloads latest node binaries from nodejs.org
+   $ scripts/node_bins.sh set latest # sets latest node binaries for use in ./bin/node
+````
+
+Once the node binaries are in place, we build the ZIP packages:
+
+````bash
+   $ scripts/build.sh
 ```
 
+Now, these ZIP packages are in the directory `dist/<version>`:
+
+* prey-windows-0.10.0-x64.zip
+* prey-windows-0.10.0-x86.zip
+
 ## Creating a "standalone" Prey _MSI_ package
+
+The following procedures are to be made inside a windows machine.
 
 ### Make the source directory
 
