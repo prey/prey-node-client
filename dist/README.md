@@ -13,7 +13,8 @@ Once the node binaries are in place, we build the ZIP packages:
 This will place the ZIP packages in ./dist/[version]. Once the ZIP packages are in place, 
 we can build the native packages for each OS:
 
-   $ dist/build_all.sh [version]
+   $ cd dist # Being in the root directory
+   $ build_all.sh [version]
 
 Or, if you just want to build for a specific OS:
 
