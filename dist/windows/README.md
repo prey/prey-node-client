@@ -12,6 +12,10 @@ Paraffin is inside a .zip file. Uncompress it, and put the Paraffin.exe file fou
 
 This is a installer. So, once downloaded, double click on it, and follow the instructions. Remember to add the bin directory of Wix to the PATH variable.
 
+* [](http://stahlworks.com/dev/unzip.exe)
+
+Needed to unzip the packages prepared in the *nix machine. Put it in `C:\Windows`.
+
 ## Prepare source to be packaged
 
 The first procedure must be done in a _*nix_ machine.
@@ -40,45 +44,41 @@ The following procedures are to be made inside a windows machine.
 
 ### Make the source directory
 
-(TODO)
+Go to `[Your Repo]\dist\windows\msi` and issue the command:
+
+````bash
+> make_source_msi <version>
+````
+
+Where `<version>` is the same version used at building the packages above.
+
+This will put the contents of prey inside the directory `[Your Repo]\dist\windows\source-msi-x86` and `[Your Repo]\dist\windows\source-msi-x64`.
 
 ### make_prey_msi.cmd
 
-(TODO)
+Execute the command:
 
-### prey_msi_main.wxs
+````bash
+> make_prey_msi.cmd <version>
+````
 
-(TODO)
+Where `<version>` is the same version used at building the packages above.
 
-### Uninstalling Prey
+The resulting packages will be:
 
-(TODO)
+* prey-windows-<version>-<arch>.msi
 
-## Creating a "bundled" Prey _MSI_ package
+With `version`, an x.y.z number and `arch`, the architecture (x86 or x64).
 
-### The differences with the _standalone_ package
+### Manually uninstalling Prey
 
-(TODO)
+Find the registry key `HKLM\Software\Prey\ProductCode`. You will find a _GUI_ inside curly braces. For example, `{EC9331C6-47F5-430A-98B5-0E2182573E9F}`. Call `msiexec.exe` this way:
 
-### Make the source Directory
+````bash
+> msiexec.exe /x{EC9331C6-47F5-430A-98B5-0E2182573E9F}
+````
 
-(TODO)
-
-### make_bundler.cmd
-
-(TODO)
-
-### prey_msi_main.wxs
-
-(TODO)
-
-### bundler.wxs
-
-(TODO)
-
-### Uninstalling Prey
-
-(TODO)
+This will initiate the uninstalling process.
 
 ## Knowledge Resources
 

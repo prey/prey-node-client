@@ -15,8 +15,12 @@ cd linux
 ./build.sh $version
 cd ..
 
-echo "Building Windows packages..."
-cd windows
-./build.sh $version
-cd ..
+#
+# Commenting Windows package making. We need to run
+# a portion of the process in a windows machine.
+#
+# echo "Building Windows packages..."
+# cd windows
+# ./build.sh $version
+# cd ..
 
