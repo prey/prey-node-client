@@ -7,7 +7,7 @@
 ########################################################
 
 run_specs(){
-  npm test
+  bin/prey test --recursive --bail
 }
 
 build(){
