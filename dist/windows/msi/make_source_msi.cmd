@@ -12,7 +12,7 @@ set productVersion=%1
 rmdir /s /q ..\source-msi-x86
 set directory=..\source-msi-x86\versions
 mkdir %directory%
-unzip ..\..\%productVersion%\prey-windows-0.10.0-x86.zip -d %directory%
+unzip ..\..\%productVersion%\prey-windows-%productVersion%-x86.zip -d %directory%
 ren %directory%\prey-%productVersion% %productVersion%
 
 ::
@@ -21,7 +21,7 @@ ren %directory%\prey-%productVersion% %productVersion%
 rmdir /s /q ..\source-msi-x64
 set directory=..\source-msi-x64\versions
 mkdir %directory%
-unzip ..\..\%productVersion%\prey-windows-0.10.0-x64.zip -d %directory%
+unzip ..\..\%productVersion%\prey-windows-%productVersion%-x64.zip -d %directory%
 ren %directory%\prey-%productVersion% %productVersion%
 
 goto end
