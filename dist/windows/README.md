@@ -12,7 +12,7 @@ Paraffin is inside a .zip file. Uncompress it, and put the Paraffin.exe file fou
 
 This is a installer. So, once downloaded, double click on it, and follow the instructions. Remember to add the bin directory of Wix to the PATH variable.
 
-* [](http://stahlworks.com/dev/unzip.exe)
+* [unzip](http://stahlworks.com/dev/unzip.exe)
 
 Needed to unzip the packages prepared in the *nix machine. Put it in `C:\Windows`.
 
