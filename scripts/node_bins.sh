@@ -1,5 +1,10 @@
 #!/bin/bash
 
+if [ -z "$(which wget)" ]; then
+  echo "You need to have wget in your system."
+  exit 1
+fi
+
 cwd=$(pwd)
 base_url="http://nodejs.org/dist"
 

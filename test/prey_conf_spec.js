@@ -31,11 +31,6 @@ describe('prey_conf_spec', function(){
     endpoints.should.be.equal('control-panel');
   });
 
-  it('triggers should be set to network, battery', function(){
-    var triggers = get_value('triggers');
-    triggers.should.be.equal('network, battery');
-  });
-
   it('host should be set to control.preyproject.com', function(){
     var host = get_value('host');
     host.should.be.equal('control.preyproject.com');
@@ -48,6 +43,7 @@ describe('prey_conf_spec', function(){
 
   it('api_key should be empty', function(){
     var api_key = get_value('api_key');
+    if(!is_windows) api_key = api_key.replace('device_key =', '');
     api_key.should.be.empty;
   });
 
