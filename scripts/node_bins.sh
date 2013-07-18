@@ -6,6 +6,7 @@ if [ -z "$(which wget)" ]; then
 fi
 
 cwd=$(pwd)
+node_path="$cwd/node"
 base_url="http://nodejs.org/dist"
 
 get_latest_version(){
@@ -51,15 +52,15 @@ fetch_exe(){
 
 fetch(){
 
-  if [ -n "$1" ]; then
-    local version="$1"
-  else
+  if [[ -z "$1" || "$1" == "latest" ]]; then
     local version=$(get_latest_version)
     [ -z "$version" ] && echo "Couldn't fetch version" && return 1
+  else
+    local version="$1"
   fi
 
-  local path86="${cwd}/node/${version}/x86"
-  local path64="${cwd}/node/${version}/x64"
+  local path86="${node_path}/${version}/x86"
+  local path64="${node_path}/${version}/x64"
 
   [ -d "$path86" ] && echo "Version exists: ${version}" && return 1
 
@@ -86,22 +87,31 @@ set_version(){
   [ "$(uname -m)" == 'i686' ] && type='x86' || type='x64'
   [ "$(uname)" == 'Linux' ] && os='linux' || os='mac'
 
-  rm -f "${cwd}/node/current"
+  rm -f "${node_path}/current"
   rm -f "${cwd}/bin/node"
-  # ln -s ${cwd}/node/${version}/${type}/node.${os} bin/node
-  ln -s "${cwd}/node/${version}/${type}" "${cwd}/node/current"
-  ln -s "${cwd}/node/current/node.${os}" "bin/node"
-
+  # ln -s ${node_path}/${version}/${type}/node.${os} bin/node
+  ln -s "${node_path}/${version}/${type}" "${node_path}/current"
+  ln -s "${node_path}/current/node.${os}" "bin/node"
+  ln -s "${node_path}/current/node.exe" "bin/node.exe"
 }
 
 get_latest_installed() {
-  local latest=$(find node/ -maxdepth 1 | sed "s/[^0-9\.]//g" | grep -v "^$" | sort -r | tail -1)
+  local latest=$(get_installed | tail -1)
   echo $latest
+}
+
+get_installed() {
+  find ${node_path} -maxdepth 1 \
+  | grep "[[:digit:]]$" \
+  | sed "s/.*\/\([^\/]*\)/\1/"  \
+  | sort -V
 }
 
 if [ "$1" == 'fetch' ]; then
   fetch "$2"
   exit $?
+elif [ "$1" == 'list' ]; then
+  [ "$2" == 'latest' ] && get_latest_installed || get_installed
 elif [ "$1" == 'set' ]; then
   if [ -n "$2" ]; then
     if [ "$2" == "latest" ]; then
@@ -113,5 +123,5 @@ elif [ "$1" == 'set' ]; then
     echo $(readlink "bin/node")
   fi
 else
-  echo "Usage: [fetch|set] [version]"
+  echo "Usage: [list|set|fetch] [version|latest]"
 fi
