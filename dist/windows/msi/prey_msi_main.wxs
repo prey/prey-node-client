@@ -82,26 +82,13 @@
       <!-- Enables custom install location -->
       <Property Id="WIXUI_INSTALLDIR" Value="INSTALLDIR" />
 
-      <!-- Launch Prey Configuration Checkbox -->
-      <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOX" Value="1"/>
-      <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOXTEXT" Value="Launch Prey Configuration" />
-
-      <!-- Set prey-config.exe route -->
-      <Property Id="WixShellExecTarget" Value="[INSTALLDIR]versions\$(var.ProductVersion)\lib\conf\windows\prey-config.exe" />
-
-
       <UI>
         <UIRef Id="WixUI_Prey_Custom" />
-        <Publish Dialog="ExitDialog"
-                 Control="Finish"
-                 Event="DoAction"
-                 Value="ConfigGui">WIXUI_EXITDIALOGOPTIONALCHECKBOX = 1 and NOT Installed</Publish>
       </UI>
 
       <!-- CUSTOM ACTIONS
         * bin\prey.cmd config activate            (ON INSTALLING)
         * bin\prey.cmd config hooks post_install  (ON INSTALLING)
-        * lib/conf/windows/prey-config.exe        (ON INSTALLING)
         * bin\prey.cmd config hooks pre_uninstall (ON UNINSTALLING)
         * bin\prey.cmd config deactivate          (ON UNINSTALLING)
       -->
@@ -127,12 +114,6 @@
                    Execute="deferred"
                    Impersonate="no"
                    Return="ignore"/>
-
-      <!-- Set the CustomAction for the Config GUI to happen -->
-      <CustomAction  Id="ConfigGui"
-                     BinaryKey="WixCA"
-                     DllEntry="WixShellExec"
-                     Impersonate="yes" />
       
       <!-- This property is needed during uninstall process -->
       <Property Id="EXISTINGINSTALLDIR" Secure="yes">
