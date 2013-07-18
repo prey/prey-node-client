@@ -12,7 +12,16 @@ else
 fi
 
 if [ -x "$dir/node" ]; then
-  "$dir/node" "$dir/../${script}" "$@"
+  "$dir/node" "$dir/../${script}" "$@" &
 else
-  node "$dir/../${script}" "$@"
+  node "$dir/../${script}" "$@" &
 fi
+
+# Capture the child process PID
+child="$!"
+
+# Kill the child process when start-stop-daemon sends us a QUIT signal
+trap "kill -QUIT $child" QUIT TERM
+
+# Wait for child process to exit
+wait $child
