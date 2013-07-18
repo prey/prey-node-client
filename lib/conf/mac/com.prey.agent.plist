@@ -3,13 +3,14 @@
 <plist version="1.0">
 <dict>
 	<key>KeepAlive</key>
-	<true/>
+	<dict>
+		<key>SuccessfulExit</key>
+		<false/>
+	</dict>
 	<key>Label</key>
-	<string>com.prey.trigger</string>
+	<string>com.prey.agent</string>
 	<key>ProgramArguments</key>
 	<array>
-		<string>{{trigger_script}}</string>
-		<string>-b</string>
 		<string>{{prey_bin}}</string>
 	</array>
 	<key>RunAtLoad</key>
