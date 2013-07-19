@@ -13,6 +13,8 @@
 	<array>
 		<string>{{prey_bin}}</string>
 	</array>
+	<key>WorkingDirectory</key>
+	<string>{{root_path}}</string>
 	<key>RunAtLoad</key>
 	<true/>
 	<key>UserName</key>

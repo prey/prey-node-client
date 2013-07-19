@@ -19,6 +19,7 @@
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 DAEMON="{{prey_bin}}"
 DAEMON_OPTS=""
+WORKING_DIR="{{root_path}}"
 USER="{{user}}"
 NAME=prey-agent
 DESC="Prey Anti-Theft Agent"
@@ -34,7 +35,7 @@ set -e
 . /lib/lsb/init-functions
 
 start(){
-	start-stop-daemon --start --quiet -c $USER --pidfile /var/run/$NAME.pid \
+	start-stop-daemon --start --quiet -d $WORKING_DIR -c $USER --pidfile /var/run/$NAME.pid \
 		--exec $DAEMON --background --make-pidfile -- $DAEMON_OPTS || true
 }
 
