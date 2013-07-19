@@ -1,27 +1,10 @@
-#!/bin/sh
+#! bin/node
 
-dir="$(dirname $0)"
-# [ -z "$script" ] && echo "Usage: prey.sh [script] <args>" && exit 1
+var script = process.argv[2];
 
-if [ "$1" = "config" ]; then
-  script="lib/conf/cli.js"
-elif [ "$1" = "test" ]; then
-  script="node_modules/mocha/bin/mocha"
+if (script == 'config')
+  require('../lib/conf/cli');
+else if (script == 'test')
+  require('../node_modules/.bin/_mocha');
 else
-  script="lib/agent/cli.js"
-fi
-
-if [ -x "$dir/node" ]; then
-  "$dir/node" "$dir/../${script}" "$@" &
-else
-  node "$dir/../${script}" "$@" &
-fi
-
-# Capture the child process PID
-child="$!"
-
-# Kill the child process when start-stop-daemon sends us a QUIT signal
-trap "kill -QUIT $child" QUIT TERM
-
-# Wait for child process to exit
-wait $child
+  require('../lib/agent/cli');
