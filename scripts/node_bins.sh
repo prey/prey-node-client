@@ -101,10 +101,12 @@ get_latest_installed() {
 }
 
 get_installed() {
+  local sort_flag="n"
+  [ "$(uname)" == 'Linux' ] && sort_flag="V"
   find ${node_path} -maxdepth 1 \
   | grep "[[:digit:]]$" \
   | sed "s/.*\/\([^\/]*\)/\1/"  \
-  | sort -V
+  | sort -${sort_flag}
 }
 
 if [ "$1" == 'fetch' ]; then
