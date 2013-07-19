@@ -9,17 +9,17 @@ set -e
 
 PREY_USER='prey'
 INSTALL_PATH="/usr/lib/prey"
+PREY_BIN="bin/prey"
 
 if [ -d "${INSTALL_PATH}/current" ]; then
   INSTALL_PATH="${INSTALL_PATH}/current"
 fi
 
-BIN_PATH="${INSTALL_PATH}/bin/prey"
-
 case "$1" in
   remove|remove-in-favour|deconfigure|deconfigure-in-favour)
-    [ -f "$BIN_PATH" ] && $BIN_PATH config hooks pre_uninstall > /dev/null
-    [ -f "$BIN_PATH" ] && su $PREY_USER -c "$BIN_PATH config deactivate" > /dev/null
+    cd "$INSTALL_PATH"
+    [ -f "$PREY_BIN" ] && $PREY_BIN config hooks pre_uninstall > /dev/null
+    [ -f "$PREY_BIN" ] && su $PREY_USER -c "$PREY_BIN config deactivate" > /dev/null
     ;;
 
   upgrade|failed-upgrade)
