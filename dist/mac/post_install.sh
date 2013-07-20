@@ -1,6 +1,6 @@
 #!/bin/sh
 
-VERSION='0.10.0'
+VERSION='1.0.0'
 PREY_USER="prey"
 BASE_PATH="/usr/lib/prey"
 CONFIG_DIR="/etc/prey"
