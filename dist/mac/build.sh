@@ -45,3 +45,4 @@ rm -Rf out
 mkdir out
 make_pkg $1 x86
 make_pkg $1 x64
+rmdir out
