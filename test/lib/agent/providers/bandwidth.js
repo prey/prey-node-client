@@ -1,4 +1,5 @@
-var helpers    = require('./../../helpers'),
+/*
+var helpers    = require('./../../../helpers'),
     should     = helpers.must,
     provider   = helpers.load('providers').load('bandwidth');
 
@@ -22,3 +23,4 @@ describe('Bandwidth', function() {
   });
 
 });
+*/

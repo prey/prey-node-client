@@ -1,3 +1,5 @@
+
+/*
 var helpers    = require('./../../helpers'),
     should     = helpers.must,
     provider   = helpers.load('providers').load('lan');
@@ -33,3 +35,5 @@ describe('Lan', function(){
   });
 
 });
+
+*/

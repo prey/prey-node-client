@@ -1,3 +1,5 @@
+
+/*
 var helpers = require('./../../../helpers'),
     should  = helpers.must,
     fs      = require('fs');
@@ -97,3 +99,5 @@ describe('get_access_points_list', function(){
   });
 
 });
+*/
+

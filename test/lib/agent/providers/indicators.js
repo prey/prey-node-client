@@ -1,3 +1,4 @@
+/*
 "use strict";
 
 var helpers    = require('./../../helpers'),
@@ -97,3 +98,4 @@ describe('indicators', function(){
   });
 
 });
+*/

@@ -1,3 +1,4 @@
+/*
 var helpers    = require('./../../helpers'),
     should     = helpers.must,
     provider   = helpers.load('providers').load('connections');
@@ -21,3 +22,4 @@ describe('get_outbound_connections_list', function(){
   });
 
 });
+*/

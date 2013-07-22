@@ -1,3 +1,5 @@
+
+/*
 var helpers    = require('./../../helpers'),
     should     = helpers.must,
     provider   = helpers.load('providers').load('processes');
@@ -35,3 +37,5 @@ describe('Processes', function(){
     });
   });
 });
+
+*/

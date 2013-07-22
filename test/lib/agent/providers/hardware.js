@@ -1,3 +1,4 @@
+/*
 var helpers    = require('./../../helpers'),
     should     = helpers.must,
     provider   = helpers.load('providers').load('hardware');
@@ -69,7 +70,7 @@ describe('Hardware', function(){
 
   });
 
-*/
+
 
   describe('get_processor_info', function(){
 
@@ -88,3 +89,4 @@ describe('Hardware', function(){
   });
 
 });
+*/

@@ -1,3 +1,4 @@
+/*
 var helpers  = require('./../../../helpers'),
     should   = helpers.must,
     fs       = require('fs'),
@@ -92,3 +93,5 @@ describe('location', function(){
   });
 
 });
+
+*/

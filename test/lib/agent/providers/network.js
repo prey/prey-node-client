@@ -1,5 +1,7 @@
 /*global describe:true it:true */
 
+/*
+
 "use strict";
 
 var helpers    = require('./../../helpers'),
@@ -222,6 +224,7 @@ describe('Network', function(){
 
 */
 
+/*
        describe('and one or more are open', function(){
 
          before(function(){
@@ -250,3 +253,5 @@ describe('Network', function(){
   });
 
 });
+
+*/
