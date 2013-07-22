@@ -11,6 +11,7 @@ var exec_env      = process.env, // so we can override it later
     bin_prey      = path.join(bin_path, 'prey'),
     node_bin      = path.join(bin_path, 'node'),
     fake_node     = path.join(os.tmpDir(), 'node'),
+    fake_log_file = path.join(os.tmpDir(), 'fake_test_log_file.log'),
     local_present = fs.existsSync(node_bin);
 
 if (is_windows) {
@@ -47,6 +48,10 @@ function unhide_local_node(done){
   });
 }
 
+/**
+ *  START TESTS
+ *
+ */
 describe('bin/prey', function(){
 
   before(function(done){
@@ -72,11 +77,16 @@ describe('bin/prey', function(){
       });
 
       it('uses local node binary', function(done){
-        run_bin_prey(' -N', function(err, out){
-         should.not.exist(err);
-         out.should.include(node_versions.local);
-         done();
+        run_bin_prey(' -l ' + fake_log_file +' -N', function(err){
+          should.not.exist(err);
+          var read_version = fs.readFileSync(fake_log_file, 'utf8');
+          read_version.should.include(node_versions.local);
+          done();
         })
+      });
+
+      after(function(done){
+        fs.unlink(fake_log_file, done);
       });
     });
 
