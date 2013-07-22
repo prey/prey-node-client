@@ -19,5 +19,7 @@
 	<true/>
 	<key>UserName</key>
 	<string>{{user}}</string>
+	<key>ExitTimeOut</key>
+	<integer>5</integer>
 </dict>
 </plist>
