@@ -31,18 +31,15 @@ function system_node_exists(cb){
   })
 }
 
-function hide_local_node(done){
-  fs.rename(node_bin, node_bin + '.tmp', function(err){
-    if (err) return done();
+function mask_local_node(done){
+  fs.renameSync(node_bin, node_bin + '.tmp');
+  var fake_node_content = is_windows ? 'echo %*' : 'echo $@';
 
-    fs.exists(node_bin, function(exists){
-      exists.should.not.be.true;
-      done();
-    });
-  });
+  fs.writeFileSync(fake_node, fake_node_content, {mode: 0755});
+  return done();
 }
 
-function unhide_local_node(done){
+function unmask_local_node(done){
   fs.rename(node_bin + '.tmp', node_bin, function(err){
     done();
   });
@@ -92,57 +89,6 @@ describe('bin/prey', function(){
 
   }
 
-  describe('when local node binary is NOT present', function(){
-
-    // Temporarily move the local node bin, we'll put it back later
-    before(hide_local_node);
-
-    describe('and system node exists', function(){
-      before(function(done){
-        system_node_exists(function(e){
-          e.should.be.true;
-          done();
-        });
-      });
-
-      it('uses system node binary', function(done){
-        run_bin_prey(' -N', function(err, out){
-          out.should.include(node_versions.system);
-          done();
-        });
-      });
-    });
-
-    describe('and system node does not exist', function(){
-
-      before(function(done){
-        exec_env = { 'PATH': '/foo' };
-        system_node_exists(function(exists){
-          exists.should.not.be.true;
-          done();
-        });
-      });
-
-      it('fails miserably', function(done){
-        run_bin_prey(' -N', function(err, out){
-          err.should.be.an.instanceOf(Error);
-          var return_code = is_windows ? 1 : 127;
-          err.code.should.be.equal(return_code);
-          out.should.be.a('string');
-          out.should.have.length(0);
-          done();
-        });
-      });
-
-      after(function(){
-        exec_env = process.env;
-      });
-    });
-
-    // make sure the local bin is put back in place
-    after(unhide_local_node);
-  });
-
   // To test params, we create a fake node bin so we can capture
   // the arguments with which it is called.
   // We also set the PATH variable to that dir, to make sure it's called
@@ -150,21 +96,19 @@ describe('bin/prey', function(){
   describe('params', function(){
 
     before(function(done){
-      // we need /usr/bin, otherwise $(dirname $0) fails
-      var tmp_path = is_windows? os.tmpDir(): os.tmpDir() + ':/usr/bin';
-      exec_env = { 'PATH': tmp_path };
-      var fake_node_content = is_windows ? 'echo %*' : 'echo $@';
+      mask_local_node(done);
 
-      fs.writeFile(fake_node, fake_node_content, { mode: 0755 }, function(){
-        fs.chmodSync(fake_node, 0755);
-        hide_local_node(done);
-      });
+
+
     });
 
     describe('when called with no params', function(){
 
       it('calls lib/agent/cli.js', function(done){
         run_bin_prey('', function(err, out){
+
+          console.log(err)
+
           out.should.include(path.join('lib', 'agent', 'cli.js'));
           done();
         });
@@ -227,7 +171,7 @@ describe('bin/prey', function(){
     after(function(done){
       exec_env = process.env;
       fs.unlink(fake_node, function(){
-        unhide_local_node(done)
+        unmask_local_node(done)
       });
     });
 
