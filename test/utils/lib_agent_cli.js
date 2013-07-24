@@ -18,7 +18,7 @@ function test() {
   var fs            = require('fs'),
       join          = require('path').join,
       sandbox       = require('sandboxed-module'),
-      cli_path      = join(__dirname, '..', '..', 'lib', 'agent', 'cli_controller.js');
+      cli_path      = join(__dirname, '..', '..', 'lib', 'agent', 'cli.js');
 
   // Dependencies to be injected
   var agent = {
