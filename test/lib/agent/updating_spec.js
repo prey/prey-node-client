@@ -8,7 +8,30 @@ var join            = require('path').join,
 describe('updating', function(){
 
   describe('when there is versions support', function(){
-    it('checks the latest version on amazon');
+    // Suite Variables
+    var updater,
+        flag_package_check_latest_version_called = false;
+
+    before(function(){
+      var common            = require(common_path);
+      system                = common.system;
+      system.paths.versions = true; // So we can modify `can_upgrade`
+      var package           = {
+        check_latest_version : function () {
+          flag_package_check_latest_version_called = true;
+          return;
+        }
+      }
+      var sandbox_options   = { requires : {} };
+      sandbox_options.requires['./common']    = common;
+      sandbox_options.requires[package_path]  = package;
+      updater = sandbox.require(updater_path, sandbox_options);
+    });
+
+    it('checks the latest version on amazon', function (){
+      updater.check();
+      flag_package_check_latest_version_called.should.be.equal(true);
+    });
 
     describe('when current version is older', function(){
 
@@ -45,8 +68,7 @@ describe('updating', function(){
 
   describe('when there is NOT versions support', function(){
     // Suite Variables
-    var updater,
-        flag_package_check_latest_version_called = false;
+    var updater;
 
     before(function(){
       var common            = require(common_path);
