@@ -1,10 +1,11 @@
-var fs      = require('fs'),
-    should  = require('should');
+var fs            = require('fs'),
+    path          = require('path'),
+    should        = require('should'),
+
+    actions_path  = path.join(__dirname, '..', '..', '..', '..', 'lib', 'agent', 'actions'),
+    actions       = fs.readdirSync(actions_path);
 
 describe('all actions', function(){
-
-  var actions_path = __dirname + '/../../../lib/agent/actions/';
-  var actions = fs.readdirSync(actions_path);
 
   describe('exports', function(){
 
@@ -12,7 +13,7 @@ describe('all actions', function(){
 
       actions.forEach(function(action_name){
 
-        var mod = require(actions_path + action_name);
+        var mod = require(path.join(actions_path, action_name));
         (typeof mod.start).should.equal('function');
 
       });
