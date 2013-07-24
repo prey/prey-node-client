@@ -2,9 +2,9 @@ var fs                  = require('fs'),
     join                = require('path').join,
     should              = require('should'),
     Emitter             = require('events').EventEmitter,
-    valid_opts          = require('./fixtures/valid_opts'),
-    default_config_path = join(__dirname, '..', '..', '..', '..', 'prey.conf.default'),
+    valid_opts          = require('./fixtures/valid_opts');
 
+var default_config_path = join(__dirname, '..', '..', '..', '..', 'prey.conf.default'),
     drivers_path = join(__dirname, '..', '..', '..', '..', 'lib', 'agent', 'drivers'),
     drivers = fs.readdirSync(drivers_path);
     // console driver works differently, so lets remove it from the list

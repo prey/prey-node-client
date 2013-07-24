@@ -77,6 +77,30 @@ describe('lib/system/index_spec.js', function(){
     });
   });
 
+  describe('get_os_name', function(){
+
+    it('should get os name', function(done) {
+      index.get_os_name(function(err, name) {
+        should.not.exist(err);
+        name.should.be.a('string');
+        done();
+      });
+    });
+
+  });
+
+  describe('get_os_version', function(){
+
+    it('should get os version', function(done) {
+      index.get_os_name(function(err, version) {
+        should.not.exist(err);
+        version.should.be.a('string');
+        done();
+      });
+    });
+
+  });
+
   describe('set_interval()', function(){
 
     describe('when there is NOT an interval set', function(){
