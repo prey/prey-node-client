@@ -1,13 +1,14 @@
 
 var join            = require('path').join,
     sandbox         = require('sandboxed-module'),
+    common_path     = join(__dirname, '..', '..', '..', 'lib', 'agent', 'common'),
+    package_path    = join(__dirname, '..', '..', '..', 'lib', 'conf', 'package'),
     updater_path    = join(__dirname, '..', '..', '..', 'lib', 'agent', 'updater');
 
 describe('updating', function(){
 
-  describe('when auto-update is enabled', function(){
-
-    it('checks the latest version on npm');
+  describe('when there is versions support', function(){
+    it('checks the latest version on amazon');
 
     describe('when current version is older', function(){
 
@@ -42,34 +43,23 @@ describe('updating', function(){
     });
   });
 
-  describe('when auto-update is not enabled', function(){
-
+  describe('when there is NOT versions support', function(){
     // Suite Variables
     var updater,
         flag_package_check_latest_version_called = false;
 
     before(function(){
-      var common = require(join(__dirname, '..', '..', '..', 'lib', 'agent', 'common'));
-      common.config.get = function(){ return false; };
-      var package = {
-        check_latest_version : function () {
-          flag_package_check_latest_version_called = true;
-        }
-      }
-      var sandbox_options = {};
-      sandbox_options.requires = {};
+      var common            = require(common_path);
+      system                = common.system;
+      system.paths.versions = false; // So we can modify `can_upgrade`
+      var sandbox_options   = { requires : {} };
       sandbox_options.requires['./common'] = common;
-      sandbox_options.requires[join(__dirname, '..', '..', '..', 'lib', 'conf', 'package')] = package;
-
       updater = sandbox.require(updater_path, sandbox_options);
     });
 
-    it('does not check the latest version', function (done){
-      updater.check(function(){
-        // cb() should be called
-        Object.keys(arguments).length.should.be.equal(0);
-        // package.check_latest_version shouldn't be called
-        flag_package_check_latest_version_called.should.be.equal(false)
+    it('exit with error', function (done){
+      updater.check(function(err){
+        err.message.should.be.equal("No versions support.");
         done();
       });
     });
