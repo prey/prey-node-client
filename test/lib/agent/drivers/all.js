@@ -1,32 +1,30 @@
-var fs      = require('fs'),
-    should  = require('should'),
-    Emitter = require('events').EventEmitter,
-    valid_opts = require('./fixtures/valid_opts'),
-    default_config_path = __dirname + '/../../../prey.conf.default';
+var fs                  = require('fs'),
+    join                = require('path').join,
+    should              = require('should'),
+    Emitter             = require('events').EventEmitter,
+    valid_opts          = require('./fixtures/valid_opts'),
+    default_config_path = join(__dirname, '..', '..', '..', '..', 'prey.conf.default'),
+
+    drivers_path = join(__dirname, '..', '..', '..', '..', 'lib', 'agent', 'drivers'),
+    drivers = fs.readdirSync(drivers_path);
+    // console driver works differently, so lets remove it from the list
+    drivers.splice(drivers.indexOf('console'), 1);
 
 describe('all drivers', function(){
-
-  var drivers_path = __dirname + '/../../../lib/agent/drivers/';
-  var drivers = fs.readdirSync(drivers_path);
-
-  // console driver works differently, so lets remove it from the list
-  drivers.splice(drivers.indexOf('console'), 1);
 
   describe('exports', function(){
 
     it('only load/unload functions', function(){
 
       drivers.forEach(function(driver_name){
-
-        var mod = require(drivers_path + driver_name);
+        var mod = require(join(drivers_path, driver_name));
         Object.keys(mod).length.should.equal(2);
         Object.keys(mod).should == ['load', 'unload'];
+      });
 
-      })
+    });
 
-    })
-
-  })
+  });
 
   describe('on load', function(){
 
@@ -36,20 +34,20 @@ describe('all drivers', function(){
 
         drivers.forEach(function(driver_name){
 
-          var mod = require(drivers_path + driver_name);
+          var mod = require(join(drivers_path, driver_name));
 
           (function(){
             mod.load(null, function(){
             })
           }).should.not.throw();
 
-        })
+        });
 
         done();
 
-      })
+      });
 
-    })
+    });
 
 /*
     describe('when default config options are passed', function(){
