@@ -10,12 +10,11 @@ var exec_env      = process.env, // so we can override it later
     bin_path      = path.join(__dirname, '..', 'bin'),
     bin_prey      = path.join(bin_path, 'prey'),
     node_bin      = path.join(bin_path, 'node'),
-    fake_node     = path.join(os.tmpDir(), 'node'),
+    fake_log_file = path.join(os.tmpDir(), 'fake_test_log_file.log'),
     local_present = fs.existsSync(node_bin);
 
 if (is_windows) {
   node_bin  += '.exe';
-  fake_node += '.cmd';
   bin_prey  += '.cmd';
 }
 
@@ -23,41 +22,30 @@ function run_bin_prey(args, cb){
   exec(bin_prey + args, {env: exec_env}, cb);
 }
 
-function system_node_exists(cb){
-  exec('node -v', {env: exec_env}, function(err, out){
-    var not_found = err; // && out.toString().match('not found');
-    cb(!not_found);
-  })
+function mask_bin_prey(done){
+  var bin_prey_content = fs.readFileSync(bin_prey,'utf8');
+  fs.renameSync(bin_prey, bin_prey + '.tmp');
+  var fake_prey_content = bin_prey_content.replace('if (scr',
+    'var require=function(str){console.log(str);console.log(process.argv);return 0;}\nif (scr');
+  fs.writeFileSync(bin_prey, fake_prey_content, {mode: 0755});
+  return done();
 }
 
-function hide_local_node(done){
-  fs.rename(node_bin, node_bin + '.tmp', function(err){
-    if (err) return done();
-
-    fs.exists(node_bin, function(exists){
-      exists.should.not.be.true;
-      done();
-    });
-  });
+function unmask_bin_prey(done){
+  fs.renameSync(bin_prey + '.tmp', bin_prey);
+  return done();
 }
 
-function unhide_local_node(done){
-  fs.rename(node_bin + '.tmp', node_bin, function(err){
-    done();
-  });
-}
-
+/**
+ *  START TESTS
+ *
+ */
 describe('bin/prey', function(){
 
   before(function(done){
-    var callbacks = 2;
-    exec('node -v', function(err, out){
-      if (!err) node_versions.system = out.toString().trim();
-      --callbacks || done();
-    })
     exec(node_bin + ' -v', function(err, out){
       if (!err) node_versions.local = out.toString().trim();
-      --callbacks || done();
+      done();
     })
   });
 
@@ -72,66 +60,20 @@ describe('bin/prey', function(){
       });
 
       it('uses local node binary', function(done){
-        run_bin_prey(' -N', function(err, out){
-         should.not.exist(err);
-         out.should.include(node_versions.local);
-         done();
+        run_bin_prey(' -l ' + fake_log_file +' -N', function(err){
+          should.not.exist(err);
+          var read_version = fs.readFileSync(fake_log_file, 'utf8');
+          read_version.should.include(node_versions.local);
+          done();
         })
+      });
+
+      after(function(done){
+        fs.unlink(fake_log_file, done);
       });
     });
 
   }
-
-  describe('when local node binary is NOT present', function(){
-
-    // Temporarily move the local node bin, we'll put it back later
-    before(hide_local_node);
-
-    describe('and system node exists', function(){
-      before(function(done){
-        system_node_exists(function(e){
-          e.should.be.true;
-          done();
-        });
-      });
-
-      it('uses system node binary', function(done){
-        run_bin_prey(' -N', function(err, out){
-          out.should.include(node_versions.system);
-          done();
-        });
-      });
-    });
-
-    describe('and system node does not exist', function(){
-
-      before(function(done){
-        exec_env = { 'PATH': '/foo' };
-        system_node_exists(function(exists){
-          exists.should.not.be.true;
-          done();
-        });
-      });
-
-      it('fails miserably', function(done){
-        run_bin_prey(' -N', function(err, out){
-          err.should.be.an.instanceOf(Error);
-          var return_code = is_windows ? 1 : 127;
-          err.code.should.be.equal(return_code);
-          out.should.be.a('string');
-          out.should.have.length(0);
-          done();
-        });
-      });
-
-      after(function(){
-        exec_env = process.env;
-      });
-    });
-
-    // make sure the local bin is put back in place
-    after(unhide_local_node);
-  });
 
   // To test params, we create a fake node bin so we can capture
   // the arguments with which it is called.
@@ -140,22 +82,17 @@ describe('bin/prey', function(){
   describe('params', function(){
 
     before(function(done){
-      // we need /usr/bin, otherwise $(dirname $0) fails
-      var tmp_path = is_windows? os.tmpDir(): os.tmpDir() + ':/usr/bin';
-      exec_env = { 'PATH': tmp_path };
-      var fake_node_content = is_windows ? 'echo %*' : 'echo $@';
-
-      fs.writeFile(fake_node, fake_node_content, { mode: 0755 }, function(){
-        fs.chmodSync(fake_node, 0755);
-        hide_local_node(done);
-      });
+      mask_bin_prey(done);
     });
 
     describe('when called with no params', function(){
 
       it('calls lib/agent/cli.js', function(done){
         run_bin_prey('', function(err, out){
-          out.should.include(path.join('lib', 'agent', 'cli.js'));
+          var out_command =
+            is_windows? 'lib\\agent\\cli'
+              : '../lib/agent/cli\n';
+          out.should.include(out_command);
           done();
         });
       });
@@ -166,7 +103,10 @@ describe('bin/prey', function(){
 
       it('calls lib/conf/cli.js', function(done){
         run_bin_prey(' config', function(err, out){
-          out.should.include(path.join('lib', 'conf', 'cli.js'));
+          var out_command =
+            is_windows? 'lib\\conf\\cli'
+              : '../lib/conf/cli\n'
+          out.should.include(out_command);
           done();
         });
       });
@@ -174,9 +114,11 @@ describe('bin/prey', function(){
       it('passes any other arguments too (eg. `config activate`)', function(done){
         run_bin_prey(' config activate', function(err, out){
           var out_command =
-            is_windows  ? 'lib\\conf\\cli.js" config activate'
-                        : 'lib/conf/cli.js config activate';
+            is_windows  ? 'lib\\conf\\cli'
+                        : '../lib/conf/cli\n';
           out.should.include(out_command);
+          out.should.include('config');
+          out.should.include('activate');
           done();
         });
       });
@@ -185,7 +127,10 @@ describe('bin/prey', function(){
     describe('when called with `test` argument', function(){
       it('calls mocha', function(done){
         run_bin_prey(' test', function(err, out){
-          out.should.include(path.join('node_modules', 'mocha', 'bin', 'mocha'));
+          var out_command =
+            is_windows ? 'node_modules\\.bin\\_mocha'
+                       : 'node_modules/.bin/_mocha'
+          out.should.include(out_command);
           done();
         });
       });
@@ -193,9 +138,11 @@ describe('bin/prey', function(){
       it('passes any other arguments too (eg. `--reporter nyan`)', function(done){
         run_bin_prey(' test --reporter nyan', function(err, out){
           var out_command =
-            is_windows  ? 'node_modules\\mocha\\bin\\mocha" test --reporter nyan'
-                        : 'node_modules/mocha/bin/mocha test --reporter nyan';
+            is_windows  ? 'node_modules\\.bin\\_mocha'
+                        : 'node_modules/.bin/_mocha';
           out.should.include(out_command);
+          out.should.include('--reporter');
+          out.should.include('nyan');
           done();
         });
       });
@@ -205,10 +152,10 @@ describe('bin/prey', function(){
       it('calls lib/agent/cli.js', function(done){
         run_bin_prey(' hellomyfriend', function(err, out, err){
           var out_command =
-            is_windows  ? 'lib\\agent\\cli.js" hellomyfriend'
-                        : 'lib/agent/cli.js hellomyfriend';
-
+            is_windows  ? 'lib\\agent\\cli'
+                        : '../lib/agent/cli\n';
           out.should.include(out_command);
+          out.should.include('hellomyfriend');
           done();
         });
       });
@@ -216,8 +163,8 @@ describe('bin/prey', function(){
 
     after(function(done){
       exec_env = process.env;
-      fs.unlink(fake_node, function(){
-        unhide_local_node(done)
+      fs.unlink(bin_prey, function(){
+        unmask_bin_prey(done)
       });
     });
 

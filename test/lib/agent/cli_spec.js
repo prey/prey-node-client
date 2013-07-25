@@ -9,7 +9,7 @@ var fs                    = require('fs'),
     test_file_path        = join(os.tmpDir(), '5b957c999343408e127ee49663383289_test_prey_agent_run'),
     is_windows            = process.platform === 'win32';
 
-describe('lib/agent/cli_controller_spec', function(){
+describe('lib/agent/cli_spec', function(){
 
   describe('when config file does not exist', function(){
 
@@ -39,70 +39,7 @@ describe('lib/agent/cli_controller_spec', function(){
   })
 
   if (!is_windows) {
-  describe('signals', function(){
 
-    describe('when SIGUSR1 signal is received', function(){
-
-      it('should call agent.engage() with the argument `interval`', function(done){
-        var cli = spawn('node', [cli_test_helper_path, 'config_present']);
-
-        cli.on('close', function (code, signal){
-          code.should.be.equal(41);
-          done();
-        });
-
-        // We need some time before issue the kill signal.
-        // If we shoot the 'kill' inmediately, the spawned program will not have
-        // a chance to _capture_ the signal.
-        var t = setTimeout(function(){ cli.kill('SIGUSR1') }, 300);
-      });
-    });
-
-    describe('when SIGUSR2 signal is received', function(){
-
-      it('should call agent.engage() with the argument `network`', function(done){
-        var cli = spawn('node', [cli_test_helper_path, 'config_present']);
-
-        cli.on('close', function (code, signal){
-          code.should.be.equal(42);
-          done();
-        });
-
-        var t = setTimeout(function(){ cli.kill('SIGUSR2') }, 300);
-      });
-    });
-
-    describe('when SIGINT signal is received', function(){
-
-      it('terminates the process', function(done){
-        var cli = spawn('node', [cli_test_helper_path, 'config_present']);
-
-        cli.on('close', function (code, signal){
-          code.should.be.equal(1);
-          done();
-        });
-
-        var t = setTimeout(function(){ cli.kill('SIGINT') }, 300);
-        // var u = setTimeout(function(){ cli.kill('SIGUSR2'); }, 1000);
-      });
-      
-    });
-
-    describe('when SIGTERM signal is received', function(){
-
-      it('does not terminate the process', function(done){
-        var cli = spawn('node', [cli_test_helper_path, 'config_present']);
-
-        cli.on('close', function (code, signal){
-          code.should.be.equal(42);
-          done();
-        });
-
-        var t = setTimeout(function(){ cli.kill('SIGTERM') }, 300);
-        var u = setTimeout(function(){ cli.kill('SIGUSR2') }, 1000);
-      });
-    });
-  });
 
   describe('events', function(){
 
@@ -232,23 +169,6 @@ describe('lib/agent/cli_controller_spec', function(){
       result = cli_sandbox.run({ pid: fake_store, process: fake_env });
     }
 
-    describe('and pidfile creation time (process launch time) is later than two minutes ago', function(){
-      
-      before(function(){
-        ctime = new Date() - 100000; // one minute ago
-        run_cli();
-      })
-
-      it('exits with status code (0)', function(){
-        result.code.should.equal(0);
-      });
-
-      it('does not kill anyone', function(){
-        Object.keys(result.murders).should.be.empty;
-      });
-
-    });
-
     if (!is_windows) {
     describe('and pidfile creation time is earlier than two minutes ago', function(){
       
@@ -265,10 +185,6 @@ describe('lib/agent/cli_controller_spec', function(){
         it('exits with status code (10)', function(){
           result.code.should.equal(10);
         });
-
-        it('sends SIGUSR2 signal to other process', function(){
-          result.murders[fake_pid].should.equal('SIGUSR2');
-        });
       });
 
       describe('and this instance was launched by interval (cron, cronsvc', function(){
@@ -279,10 +195,6 @@ describe('lib/agent/cli_controller_spec', function(){
 
         it('exits with status code (10)', function(){
           result.code.should.equal(10);
-        });
-
-        it('sends SIGUSR1 signal to other process', function(){
-          result.murders[fake_pid].should.equal('SIGUSR1');
         });
       });
     });

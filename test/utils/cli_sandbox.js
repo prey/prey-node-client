@@ -100,7 +100,7 @@ exports.run = function(opts) {
 
   // fire it up! 
   try {
-    sandbox.require(path.resolve(agent_path, 'cli_controller'), sandbox_opts); 
+    sandbox.require(path.resolve(agent_path, 'cli'), sandbox_opts);
   } catch(e) { // oops, uncaughtException
     result.exception = e;
     // if there is any callback assigned, call it.
