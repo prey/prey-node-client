@@ -1,10 +1,12 @@
 
 var join                = require('path').join,
+    fs                  = require('fs'),
     sandbox             = require('sandboxed-module'),
     common_path         = join(__dirname, '..', '..', '..', 'lib', 'agent', 'common'),
     package_path        = join(__dirname, '..', '..', '..', 'lib', 'conf', 'package'),
     package_json_path   = join(__dirname, '..', '..', '..', 'package.json')
-    updater_path        = join(__dirname, '..', '..', '..', 'lib', 'agent', 'updater');
+    updater_path        = join(__dirname, '..', '..', '..', 'lib', 'agent', 'updater'),
+    tmp_file_path       = join('/', 'tmp', '818184685129d5a05c96dc5725a61f56.txt');
 
 describe('updating', function(){
 
@@ -55,18 +57,20 @@ describe('updating', function(){
         updater = sandbox.require(updater_path, sandbox_options);
       });
 
-      it('calls `bin/prey config upgrade` ', function (){
-        updater.check();
+      it('calls `bin/prey config upgrade` ', function (done){
+        updater.check(function (updater_err){
+          fs.readFile(tmp_file_path, 'utf8', function (err, data){
+            updater_err.message.should.match(/Update failed/);
+            data.should.match(/config upgrade/);
+            done();
+          });
+        });
+      });
 
-        // Check the output somehow
-
+      after(function(done){
+        fs.unlink(tmp_file_path, done);
       });
     });
-
-
-
-
-
   });
 
   describe('when there is NOT versions support', function(){
