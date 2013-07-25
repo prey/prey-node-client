@@ -1,4 +1,8 @@
 #!/bin/bash
 
+# Stores the arguments
 rm /tmp/818184685129d5a05c96dc5725a61f56.txt
 echo $@ >> /tmp/818184685129d5a05c96dc5725a61f56.txt
+
+# stdout message
+echo "YOUARENOTMYFATHER"

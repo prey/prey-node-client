@@ -39,8 +39,12 @@ describe('updating', function(){
     });
 
     describe('when current version is older', function(){
+      // Suite variables
+      var tmp_process_exit = process.exit,
+          process_exit_code;
 
       before(function(){
+        // Sandbox `updater`
         common.helpers.is_greater_than = function () {
           return true;
         }
@@ -55,9 +59,11 @@ describe('updating', function(){
         sandbox_options.requires['./common']    = common;
         sandbox_options.requires[package_path]  = package;
         updater = sandbox.require(updater_path, sandbox_options);
+        // Temporally override `process.exit`
+        process.exit = function (code) { process_exit_code = code; };
       });
 
-      it('calls `bin/prey config upgrade` ', function (done){
+      it('calls `bin/prey config upgrade`', function (done){
         updater.check(function (updater_err){
           fs.readFile(tmp_file_path, 'utf8', function (err, data){
             updater_err.message.should.match(/Update failed/);
@@ -67,7 +73,15 @@ describe('updating', function(){
         });
       });
 
+      it('should exit (33) on `YOUARENOTMYFATHER` message from child', function (done){
+        updater.check(function (){
+          process_exit_code.should.be.equal(33);
+          done();
+        });
+      });
+
       after(function(done){
+        process_exit = tmp_process_exit;
         fs.unlink(tmp_file_path, done);
       });
     });
