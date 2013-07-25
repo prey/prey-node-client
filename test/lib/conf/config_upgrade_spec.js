@@ -1,23 +1,56 @@
-      describe('and has write permissions', function(){
+describe('config upgrade', function() {
 
-        it('updates the package');
+  it('checks if a new version is available', function(){
 
-        describe('and the config file was modified', function(){
+  })
 
-          describe('and has no write permissions', function(){
+  describe('when no new version is available', function(){
 
-            it('leaves the file untouched');
-          })
+    it('does not download shit')
+    it('exits with status code 1')
 
-          describe('and has write permissions', function(){
+  });
 
-            it('adds new keys if any');
+  describe('when a new version is available', function(){
 
-            it('does not replace any existing values');
+    it('downloads the package')
 
-            it('updates for existing keys');
-          });
-        });
+    describe('with no write permissions', function(){
 
-        it('exits the program');
-      });
+      it('removes downloaded package')
+      // it('notifies of error')
+      it('exits with status code 1')
+
+    });
+
+    describe('with write permissions', function(){
+
+      it('unzips the package to versions path')
+      it('runs config activate on new package')
+
+    });
+
+  });
+
+/*
+
+  describe('on successful update', function() {
+
+    describe('when default config has no modified keys', function(){
+
+      it('leaves the file untouched');
+
+    });
+
+    describe('when default config file was modified', function(){
+
+      it('adds new keys');
+      it('does not replace any existing values');
+
+    });
+
+  });
+
+*/
+
+})
