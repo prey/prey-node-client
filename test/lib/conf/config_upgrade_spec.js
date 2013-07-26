@@ -1,8 +1,11 @@
 
-var join      = require('path').join,
-    needle    = require('needle'),
-    sinon     = require('sinon'),
-    package   = require(join(__dirname, '..', '..', '..', 'lib', 'conf', 'package'));
+var fs            = require('fs'),
+    join          = require('path').join,
+    needle        = require('needle'),
+    os            = require('os'),
+    sinon         = require('sinon'),
+    package       = require(join(__dirname, '..', '..', '..', 'lib', 'conf', 'package')),
+    unzip_path    = join(__dirname, '..', '..', '..', 'lib', 'utils', 'unzip');
 
 describe('config upgrade', function() {
   var get,
@@ -78,14 +81,33 @@ describe('config upgrade', function() {
 
     after(function (){
       checker.restore();
-      installer.restore();
     });
 
     describe('with no write permissions', function(){
+      var fake_zip_path;
 
-      it('removes downloaded package');
-      // it('notifies of error')
-      it('exits with status code 1');
+      before(function(){
+        installer.restore();
+        var unzip = require(unzip_path);
+        require.cache[require.resolve(unzip_path)].exports =
+          function (from, to, cb) {
+            cb(new Error('EACCES'));
+          }
+        fake_zip_path = join(os.tmpDir(), '90b7461e0616233c34573c7e0b963151.zip');
+        fs.writeFileSync(fake_zip_path, '123');
+      })
+
+      it('removes downloaded package', function (done){
+        package.install(fake_zip_path, null, function (err){
+          err.message.should.match(/EACCES/);
+          fs.existsSync(fake_zip_path).should.be.equal(false);
+          done();
+        });
+      });
+
+      after(function(){
+        delete require.cache[require.resolve(unzip_path)];
+      });
     });
 
     describe('with write permissions', function(){

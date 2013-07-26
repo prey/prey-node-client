@@ -81,7 +81,7 @@ describe('updating', function(){
       });
 
       after(function(done){
-        process_exit = tmp_process_exit;
+        process.exit = tmp_process_exit;
         fs.unlink(tmp_file_path, done);
       });
     });
