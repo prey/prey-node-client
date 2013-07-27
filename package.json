@@ -11,7 +11,7 @@
   "repository": { "type": "git", "url": "https://github.com/prey/prey-node-client.git" },
   "dependencies": {
     "commander": "",
-    "getset": "",
+    "getset": ">=0.4.0",
     "qs"    : "",
     "needle": "",
     "xml2js": "",
