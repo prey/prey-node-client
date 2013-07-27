@@ -1,119 +1,189 @@
+// TODO: check what happens when downloaded package is invalid (unzip should throw)
 
 var fs            = require('fs'),
     join          = require('path').join,
     needle        = require('needle'),
     os            = require('os'),
     sinon         = require('sinon'),
+    should        = require('should'),
     package       = require(join(__dirname, '..', '..', '..', 'lib', 'conf', 'package')),
+    rmdir         = require(join(__dirname, '..', '..', '..', 'lib', 'utils', 'rmdir')),
     unzip_path    = join(__dirname, '..', '..', '..', 'lib', 'utils', 'unzip');
 
-describe('config upgrade', function() {
-  var get,
-      needle_get_call_url = '';
+var tmpdir        = process.platform == 'win32' ? os.tmpDir() : '/tmp';
 
-  before(function (){
-    get = sinon.stub(needle, 'get',
-            function (url, options, cb){
-              needle_get_call_url = url;
-              if (!cb) {
-                var cb = options;
-                return cb(null, '', '0.0.0');
-              } else {
-                var resp = { statusCode : 200 };
-                return cb(null, resp, 'OLA KE ASE');
-              }
-            });
-    process.stdout.writable = false;
-  });
+var dummy_version = '1.5.0';
+var dummy_zip     = join(__dirname, 'fixtures', 'prey-' + dummy_version + '.zip');
+
+//////////////////////////////////////////////////////
+// helpers
+
+var get_file_name = function(ver) {
+  var os_name   = process.platform.replace('win32', 'windows').replace('darwin', 'mac'),
+      arch      = process.arch == 'x64' ? 'x64' : 'x86';
+  return ['prey', os_name, ver, arch].join('-') + '.zip';
+}
+
+var upstream_version = function(ver) {
+  var fn = function(cb) { cb(null, ver) }
+  return sinon.stub(package, 'check_latest_version', fn);
+}
+
+var stub_get_file = function(file) {
+  var fn = function(url, opts, cb) {
+    fs.readFile(file, function(err, data){
+      fs.writeFile(opts.output, data);
+      cb(null, { statusCode: 200 });
+    })
+  }
+  return sinon.stub(needle, 'get', fn)
+}
+
+//////////////////////////////////////////////////////
+// go
+
+describe('config upgrade', function() {
+
+  before(function(){
+    process.stdout.writable = false; // turns logging off for this module
+  })
+  
+  after(function(){
+    process.stdout.writable = true; // logging back on
+  })
 
   it('checks if a new version is available', function (done){
+    var spy = sinon.spy(needle, 'get');
+
     package.check_latest_version(function(err, ver){
-      ver.should.be.equal('0.0.0');
+      should.not.exist(err);
+      ver.should.match(/\d\.\d\.\d/);
+      spy.calledOnce.should.be.true;
+      spy.restore();
       done();
     });
   });
 
-  after(function (){
-    process.stdout.writable = true;
-    get.restore();
-  });
-
   describe('when no new version is available', function(){
 
-    before(function (){
-      checker = sinon.stub(package, 'check_latest_version',
-                  function (cb) {
-                    cb(null, '1.2.3');
-                  });
-    });
-
     it('does not download anything', function (done){
+      var stub = upstream_version('1.2.3');
       package.get_latest('1.2.3', null, function (err){
-        err.message.should.be.equal('Already running latest version: 1.2.3')
+        err.message.should.equal('Already running latest version: 1.2.3');
+        stub.restore();
         done();
       });
     });
 
-    after(function (){
-      checker.restore();
-    });
   });
 
   describe('when a new version is available', function(){
 
+    var stub, new_version = '1.5.0';
+
     before(function (){
-      checker   = sinon.stub(package, 'check_latest_version',
-                    function (cb) {
-                      cb(null, '0.0.0');
-                    });
-      installer = sinon.stub(package, 'install',
-                    function (zip, dest, cb) {
-                      cb(null, '0.0.0');
-                    });
+      stub = upstream_version(new_version);
     });
+    
+    after(function(){
+      stub.restore();
+    })
 
-    it('downloads the package', function (done){
-      package.get_latest('1.2.3', '/', function (){
-        needle_get_call_url.match(/http:\/\/s3.amazonaws.com\/prey-releases\/node-client\/0.0.0\/prey-(mac|win|linux)-0.0.0-(x64|x86).zip/);
-        done();
+    it('requests the package', function (done){
+      var file_name = get_file_name(new_version),
+          url       = 'http://s3.amazonaws.com/prey-releases/node-client/' + new_version + '/' + file_name,
+          outfile   = join(tmpdir, file_name);
+    
+      var getter    = sinon.stub(needle, 'get', function(requested_url, opts, cb){
+        requested_url.should.equal(url);
+        opts.output.should.equal(outfile)
+        getter.restore()
+        done()
       });
+
+      package.get_latest('1.2.3', '/');
     });
 
-    after(function (){
-      checker.restore();
-    });
+    it('downloads the package', function(done){
+      var getter = stub_get_file(dummy_zip);
+    
+      // install is called after download, so when called, the package should have been downloaded
+      var inst = sinon.stub(package, 'install', function(zip, dest, cb){
+        fs.exists(zip, function(exists){
+          exists.should.be.true;
+          inst.restore();
+          getter.restore();
+          done();
+        })
+      })
+      package.get_latest('1.2.3', '/wherever');
+    })
 
     describe('with no write permissions', function(){
-      var fake_zip_path;
+      var getter, dest;
 
       before(function(){
-        installer.restore();
-        var unzip = require(unzip_path);
-        require.cache[require.resolve(unzip_path)].exports =
-          function (from, to, cb) {
-            cb(new Error('EACCES'));
-          }
-        fake_zip_path = join(os.tmpDir(), '90b7461e0616233c34573c7e0b963151.zip');
-        fs.writeFileSync(fake_zip_path, '123');
+        getter = stub_get_file(dummy_zip);
+        dest = '/';
+      })
+      
+      after(function(){
+        getter.restore();
+      })
+      
+      it('does not create folder', function(done) {
+        package.get_latest('1.2.3', dest, function(err){
+          err.code.should.equal('EACCES');
+          fs.existsSync(join(dest, new_version)).should.be.false;
+          done()
+        })
       })
 
       it('removes downloaded package', function (done){
-        package.install(fake_zip_path, null, function (err){
-          err.message.should.match(/EACCES/);
-          fs.existsSync(fake_zip_path).should.be.equal(false);
+        var file_name = get_file_name(new_version);
+        var out       = join(tmpdir, file_name);
+
+        package.get_latest('1.2.3', dest, function (err){
+          err.code.should.equal('EACCES');
+          fs.existsSync(out).should.be.false;
           done();
         });
       });
 
-      after(function(){
-        delete require.cache[require.resolve(unzip_path)];
-      });
     });
 
     describe('with write permissions', function(){
+  
+      var getter, dest;
 
-      it('unzips the package to versions path');
-      it('runs config activate on new package');
+      before(function(done){
+        getter = stub_get_file(dummy_zip);
+        dest = join(tmpdir, 'versions');
+        fs.mkdir(dest, done);
+      })
+      
+      after(function(done){
+        getter.restore();
+        rmdir(dest, done);
+      })
+
+      it('unzips the package to requested path', function(done){
+        package.get_latest('1.2.3', dest, function(err){
+          should.not.exist(err);
+          fs.existsSync(join(dest, new_version)).should.be.true;
+          done()
+        })
+      });
+
+      // this test probably passes only in *nixes
+      it('makes sure bin/node and bin/prey are executable', function(done){
+        package.get_latest('1.2.3', dest, function(err){
+          fs.statSync(join(dest, new_version, 'bin', 'prey')).mode.should.equal(33261);
+          fs.statSync(join(dest, new_version, 'bin', 'node')).mode.should.equal(33261);
+          done()
+        });
+      });
+
     });
   });
 
