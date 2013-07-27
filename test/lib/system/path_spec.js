@@ -1,5 +1,4 @@
-
-describe('lib/system/path_spec', function(){
+describe('system paths', function(){
 
   describe('when installed under a versions folder', function(){
     describe('and current folder is a symlink', function(){
