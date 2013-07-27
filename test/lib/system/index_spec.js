@@ -23,7 +23,7 @@ describe('lib/system/index_spec.js', function(){
   describe('tempfile_path()', function(){
     it('should return the path of a file over a tmp directory', function(){
       var path = index.tempfile_path('5db31f301a494fb2a79433434a92e1b2_myfile');
-      path.should.not.be.equal('');
+      path.should.not.equal('');
       path.should.match(/5db31f301a494fb2a79433434a92e1b2_myfile/);
     });
   });
@@ -50,7 +50,7 @@ describe('lib/system/index_spec.js', function(){
 
     it('should issue a `whoami` using the function', function(done){
       index.run_as_logged_user('whoami', [], function(err, response){
-        should.not.exists(err);
+        should.not.exist(err);
         response.length.should.be.above(0);
         done();
       });
@@ -166,7 +166,7 @@ describe('lib/system/index_spec.js', function(){
 
           it('should do nothing', function(done){
             index.set_interval(70, function(err, current){
-              should.not.exists(current);
+              should.not.exist(current);
               done();
             });
           });
