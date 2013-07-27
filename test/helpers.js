@@ -3,18 +3,25 @@ var needle  = require('needle'),
 
 console.log(' == NODE VERSION: ' + process.version);
 
-/*
-helpers.base   = require('./../lib');
-
-helpers.base.providers.map(function(){
-  console.log('Providers loaded.')
-}); // attaches providers
-helpers.providers = helpers.base.providers;
-*/
-
 helpers.load = function(module_name){
   return require('./../lib/agent/' + module_name);
 }
+
+helpers.load_util = function(module_name){
+  return require('./../lib/utils/' + module_name);
+}
+
+/* 
+  this helpers lets you fake requests using needle:
+  
+  helpers.stub_request('get', null, { statusCode: 200 }, 'OK' );
+  helpers.stub_request('post', null, { statusCode: 401 }, 'Unauthorized' );
+  helpers.stub_request('put', new Error('ENOENT'))
+  
+  then, when needle.(get|post|put) is called, it will return those (err, resp, body)
+  and restore the original method.
+
+*/
 
 helpers.stub_request = function(type, err, response, body){
 
