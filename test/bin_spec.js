@@ -22,18 +22,16 @@ function run_bin_prey(args, cb){
   exec(bin_prey + args, {env: exec_env}, cb);
 }
 
-function mask_bin_prey(done){
+function mask_bin_prey(){
   var bin_prey_content = fs.readFileSync(bin_prey,'utf8');
   fs.renameSync(bin_prey, bin_prey + '.tmp');
   var fake_prey_content = bin_prey_content.replace('if (scr',
     'var require=function(str){console.log(str);console.log(process.argv);return 0;}\nif (scr');
   fs.writeFileSync(bin_prey, fake_prey_content, {mode: 0755});
-  return done();
 }
 
-function unmask_bin_prey(done){
+function unmask_bin_prey(){
   fs.renameSync(bin_prey + '.tmp', bin_prey);
-  return done();
 }
 
 /**
@@ -81,8 +79,8 @@ describe('bin/prey', function(){
 
   describe('params', function(){
 
-    before(function(done){
-      mask_bin_prey(done);
+    before(function(){
+      mask_bin_prey();
     });
 
     describe('when called with no params', function(){
@@ -164,7 +162,8 @@ describe('bin/prey', function(){
     after(function(done){
       exec_env = process.env;
       fs.unlink(bin_prey, function(){
-        unmask_bin_prey(done)
+        unmask_bin_prey()
+        done();
       });
     });
 
