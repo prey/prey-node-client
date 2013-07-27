@@ -2,13 +2,9 @@ describe('config cli', function(){
   
   describe('when no arguments are passed', function(){
     
-    it('shows help and exits', function(){
-      
-    })
+    it('shows help and exits')
     
-    it('returns status code 1', function(){
-      
-    })
+    it('returns status code 1')
     
   })
   
@@ -31,26 +27,10 @@ describe('config cli', function(){
   describe('hooks', function(){
     
     describe('post_install', function(){
-
-      it('sets execution interval', function(){
-        
-      })
-      
-      it('sets trigger/system service', function(){
-        
-      })
-
+  
     })
     
     describe('pre_uninstall', function(){
-      
-      it('removes execution interval', function(){
-        
-      })
-      
-      it('removes trigger/system service', function(){
-        
-      })
       
     })
     
