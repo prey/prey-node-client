@@ -5,26 +5,36 @@ var join        = require('path').join,
     index_path  = join(__dirname, '..', '..', '..', 'lib', 'system', 'index.js'),
     is_windows  = process.platform === 'win32';
 
-describe('lib/system/index_spec.js', function(){
+describe('main system functions', function(){
   var index = require(index_path);
 
   describe('get_logged_user()', function(){
+    
+    describe('when there is no logged user', function(){
+      
+      it('returns an error');
+      
+    })
+    
+    describe('when there IS a logged user', function(){
 
-    it('should return the logged user', function(done){
-      index.get_logged_user(function(err, user){
-        should.not.exist(err);
-        should.exist(user);
-        user.should.not.be.equal('');
-        done();
+      it('returns the logged user', function(done){
+        index.get_logged_user(function(err, user){
+          should.not.exist(err);
+          should.exist(user);
+          user.should.not.be.equal('');
+          done();
+        });
       });
-    });
+
+    })
+
   });
 
   describe('tempfile_path()', function(){
     it('should return the path of a file over a tmp directory', function(){
-      var path = index.tempfile_path('5db31f301a494fb2a79433434a92e1b2_myfile');
-      path.should.not.equal('');
-      path.should.match(/5db31f301a494fb2a79433434a92e1b2_myfile/);
+      var filepath = index.tempfile_path('foobar.txt');
+      filepath.should.equal('/tmp/foobar.txt');
     });
   });
 
@@ -69,9 +79,8 @@ describe('lib/system/index_spec.js', function(){
 
     it('should return an object with properties [name, version, arch]', function(done){
       index.get_os_info(function(err, response){
-        response.should.have.property('name');
-        response.should.have.property('version');
-        response.should.have.property('arch');
+        response.should.have.keys('name', 'version', 'arch');
+        response.name.should.exist;
         done();
       })
     });
