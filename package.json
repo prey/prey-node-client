@@ -13,7 +13,7 @@
     "commander": "",
     "getset": ">=0.4.0",
     "qs"    : "",
-    "needle": "",
+    "needle": ">=0.5.5",
     "xml2js": "",
     "dialog": "",
     "mime": "1.2.5",
