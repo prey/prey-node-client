@@ -1,4 +1,3 @@
-// TODO: check what happens when downloaded package is invalid (unzip should throw)
 
 var fs            = require('fs'),
     join          = require('path').join,
