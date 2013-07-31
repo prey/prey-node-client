@@ -38,6 +38,12 @@ make_pkg() {
  rm -Rf versions/
 
 }
+sign_pkg() {
+ local version="$1"
+ local arch="$2"
+ local name="prey-mac-${version}-${arch}"
+ productsign --sign "Developer ID Installer: Fork Ltd." ../${version}/${name}.pkg ../${version}/${name}-signed.pkg
+}
 
 [ -z "$1" ] && echo "Version required." && exit 1
 
