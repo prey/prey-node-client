@@ -10,7 +10,7 @@ PREY_BIN="bin/prey"
 
 if [ -d /usr/share/prey ]; then
   rm -Rf /usr/share/prey
-  (sudo crontab -l | grep -v prey) sudo crontab -
+  (sudo crontab -l | grep -v prey) | sudo crontab -
 fi
 
 bash "$INSTALL_PATH/scripts/create_user.sh" ${PREY_USER} || true
