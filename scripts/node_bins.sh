@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if [ -z "$(which wget)" ]; then
+if [ -z "$(which curl)" ]; then
   echo "You need to have wget in your system."
   exit 1
 fi
@@ -26,11 +26,13 @@ fetch_tar(){
   local target_dir="${dest}/${dir}"
   local target_file="${dest}/${file}"
 
-  echo "Fetching ${url}..."
-  wget "$url" # -o "$target"
-  [ $? -ne 0 ] && return 1
+  if [ -f ${dest}/node.${os} ]; then
+    echo "${dest}/node.${os} already there. Skipping..."
+  fi
 
-  mv ${file} ${target_file}
+  echo "Fetching ${url}..."
+  curl "$url" -o "$target_file"
+  [ $? -ne 0 ] && return 1
 
   tar -zvxf ${target_file} -C ${dest}
   mv ${target_dir}/bin/node ${dest}/node.${os}
@@ -46,7 +48,7 @@ fetch_exe(){
 
   local url="${base_url}/v${version}/${file}"
 
-  wget "$url"
+  curl "$url" -o node.exe
   mv node.exe "${dest}"
 }
 
@@ -84,8 +86,10 @@ set_version(){
   [ ! -d "node/${version}" ] && echo "Version not found: ${version}" && return 1
 
   echo "Symlinking version ${version}."
-  [ "$(uname -m)" == 'i686' ] && type='x86' || type='x64'
+  [[ "$(uname -m)" =~ '86' ]] && type='x86' || type='x64'
   [ "$(uname)" == 'Linux' ] && os='linux' || os='mac'
+
+  echo "Arch: $type"
 
   rm -f "${node_path}/current"
   rm -f "${cwd}/bin/node"
