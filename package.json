@@ -25,7 +25,8 @@
     "nodemailer": "",
     "connect": "",
     "entry": "",
-    "triggers": ""
+    "triggers": "",
+    "winssh": ""
   },
   "devDependencies": {
     "mocha": "",
