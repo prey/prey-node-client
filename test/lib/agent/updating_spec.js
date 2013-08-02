@@ -1,110 +1,132 @@
-
 var join                = require('path').join,
-    fs                  = require('fs'),
-    sandbox             = require('sandboxed-module'),
-    common_path         = join(__dirname, '..', '..', '..', 'lib', 'agent', 'common'),
-    package_path        = join(__dirname, '..', '..', '..', 'lib', 'conf', 'package'),
-    package_json_path   = join(__dirname, '..', '..', '..', 'package.json')
-    updater_path        = join(__dirname, '..', '..', '..', 'lib', 'agent', 'updater'),
-    tmp_file_path       = join('/', 'tmp', '818184685129d5a05c96dc5725a61f56.txt');
+    sinon               = require('sinon'),
+    should              = require('should'),
+    child_process       = require('child_process'),
+    helpers             = require(join('..', '..', 'helpers')),
+    common              = require(helpers.lib_path('common')),
+    system              = require(helpers.lib_path('system')),
+    package             = require(helpers.lib_path('conf', 'package')),
+    updater             = require(helpers.lib_path('agent', 'updater')),
+    fake_spawn_child    = require(join('..', '..', 'utils', 'fake_spawn_child'));
+
+var versions_path = system.paths.versions;
 
 describe('updating', function(){
 
-  describe('when there is versions support', function(){
-    // Suite Variables
-    var common,
-        package,
-        updater,
-        flag_package_check_latest_version_called = false;
+  describe('when there is NO versions support', function(){
 
     before(function(){
-      common                = require(common_path);
-      system                = common.system;
-      system.paths.versions = 'true'; // So we can modify `can_upgrade`
-      package               = {
-        check_latest_version : function () {
-          flag_package_check_latest_version_called = true;
-          return;
-        }
-      }
-      var sandbox_options   = { requires : {} };
-      sandbox_options.requires['./common']    = common;
-      sandbox_options.requires[package_path]  = package;
-      updater = sandbox.require(updater_path, sandbox_options);
+      system.paths.versions = undefined;
     });
 
-    it('checks the latest version on amazon', function (){
-      updater.check();
-      flag_package_check_latest_version_called.should.be.equal(true);
-    });
+    after(function() {
+      system.paths.versions = versions_path;
+    })
 
-    describe('when current version is older', function(){
-      // Suite variables
-      var tmp_process_exit = process.exit,
-          process_exit_code;
-
-      before(function(){
-        // Sandbox `updater`
-        common.helpers.is_greater_than = function () {
-          return true;
-        }
-        package           = {
-          check_latest_version : function (callback) {
-            callback(null, 'x.y.z');
-          }
-        }
-        system                    = common.system;
-        system.paths.package_bin  = join(__dirname, '..', '..', '..', 'test', 'utils', 'fake_bin_prey_empty');
-        var sandbox_options       = { requires : {} };
-        sandbox_options.requires['./common']    = common;
-        sandbox_options.requires[package_path]  = package;
-        updater = sandbox.require(updater_path, sandbox_options);
-        // Temporally override `process.exit`
-        process.exit = function (code) { process_exit_code = code; };
+    it('callback with error', function(done) {
+      updater.check(function(err){
+        should.exist(err);
+        err.message.should.equal("No versions support.");
+        done();
       });
+    });
 
-      it('calls `bin/prey config upgrade`', function (done){
-        updater.check(function (updater_err){
-          fs.readFile(tmp_file_path, 'utf8', function (err, data){
-            updater_err.message.should.match(/Update failed/);
-            data.should.match(/config upgrade/);
-            done();
-          });
+  });
+
+  describe('when there is versions support', function(){
+
+    before(function(){
+      system.paths.versions = '/somewhere/over/the/rainbow';
+    });
+
+    after(function() {
+      system.paths.versions = versions_path;
+    })
+
+    describe('when a new version is available', function(){
+
+      var stub, upstream_version;
+
+
+      before(function() {
+        common.version = '1.2.3';
+        upstream_version = '1.2.5';
+
+        stub = sinon.stub(package, 'check_latest_version', function(cb) {
+          cb(null, upstream_version);
         });
+
       });
 
+      after(function() {
+        stub.restore();
+      });
+
+      // for this test, we fake the 'spawn' call and return a fake child,
+      // for whom we will trigger a fake 'exit' event, as if the child process had exited
+      // so updater.check's callback gets triggered
+      it('calls `bin/prey config upgrade`', function (done){
+
+        var fake_spawn = sinon.stub(child_process, 'spawn', function(cmd, args, opts){
+          var child = fake_spawn_child();
+
+          setTimeout(function(){
+            child.emit('exit');
+          }, 10);
+
+          return child;
+        });
+
+        child_process.spawn.foo = 'asdas';
+
+        updater.check(function(err){
+          should.exist(err);
+          err.message.should.equal('Update failed.');
+          fake_spawn.restore();
+          done();
+        });
+
+      });
+
+      // for this test, we fake the 'spawn' call and return a fake child,
+      // for whom we will emit the 'YOUARENOTMYFATHER' string in its stdout
+      // as if the updater is succesfully going through.
       it('should exit (33) on `YOUARENOTMYFATHER` message from child', function (done){
-        updater.check(function (){
-          process_exit_code.should.be.equal(33);
+
+        var exit_code,
+            unreffed = false;
+
+        var fake_spawn = sinon.stub(child_process, 'spawn', function(cmd, args, opts){
+          var child = fake_spawn_child();
+
+          child.unref = function() {
+            unreffed = true;
+            child.emit('exit');
+          }
+
+          setTimeout(function(){
+            child.stdout.emit('data', new Buffer('YOUARENOTMYFATHER'));
+          }, 100);
+
+          return child;
+        });
+
+        var fake_exit = sinon.stub(process, 'exit', function(code) {
+          exit_code = code;
+        });
+
+        updater.check(function(err){
+          exit_code.should.equal(33);
+          unreffed.should.be.true;
+          fake_spawn.restore();
+          fake_exit.restore();
           done();
         });
       });
 
-      after(function(done){
-        process.exit = tmp_process_exit;
-        fs.unlink(tmp_file_path, done);
-      });
     });
+
   });
 
-  describe('when there is NOT versions support', function(){
-    // Suite Variables
-    var updater;
 
-    before(function(){
-      var common            = require(common_path);
-      system                = common.system;
-      system.paths.versions = false; // So we can modify `can_upgrade`
-      var sandbox_options   = { requires : {} };
-      sandbox_options.requires['./common'] = common;
-      updater = sandbox.require(updater_path, sandbox_options);
-    });
-
-    it('exit with error', function (done){
-      updater.check(function(err){
-        err.message.should.be.equal("No versions support.");
-        done();
-      });
-    });
-  });
 });
