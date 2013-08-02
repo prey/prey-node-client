@@ -2,7 +2,9 @@ var fs                = require('fs'),
     join              = require('path').join,
     should            = require('should'),
     exec              = require('child_process').exec,
-    unzip             = require(join(__dirname, '..', '..', '..', 'lib', 'utils', 'unzip'));
+    helpers           = require(join('..', '..', 'helpers')),
+    unzip             = require(helpers.lib_path('utils', 'unzip')),
+    rmdir             = require(helpers.lib_path('utils', 'rmdir'));
 
 var is_windows        = process.platform === 'win32';
     tmpdir            = is_windows ? os.tmpDir() : '/tmp',
@@ -45,7 +47,7 @@ describe('lib/utils/unzip', function (){
 
       after(function (done){
         // Delete the files, if they exist
-        rmdir(join(tmpdir, 'aaa'));
+        rmdir(join(tmpdir, 'aaa'), done);
       });
     });
 
