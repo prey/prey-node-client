@@ -2,20 +2,20 @@
 var join        = require('path').join,
     should      = require('should'),
     sinon       = require('sinon'),
-    index_path  = join(__dirname, '..', '..', '..', 'lib', 'system', 'index.js'),
+    helpers     = require('../../helpers'),
+    index_path  = join(helpers.lib_path('system', 'index.js')),
     is_windows  = process.platform === 'win32';
 
 describe('main system functions', function(){
+
   var index = require(index_path);
 
   describe('get_logged_user()', function(){
-    
+
     describe('when there is no logged user', function(){
-      
       it('returns an error');
-      
     })
-    
+
     describe('when there IS a logged user', function(){
 
       it('returns the logged user', function(done){
@@ -32,15 +32,16 @@ describe('main system functions', function(){
   });
 
   describe('tempfile_path()', function(){
-    it('should return the path of a file over a tmp directory', function(){
+    it('returns the path of a file over a tmp directory', function(){
       var filepath = index.tempfile_path('foobar.txt');
-      filepath.should.equal('/tmp/foobar.txt');
+      var tmp_path = is_windows ? process.env.HOME : '/tmp';
+      filepath.should.equal(join(tmp_path, 'foobar.txt'));
     });
   });
 
   describe('spawn_as_logged_user()', function(){
 
-    it('should issue a `whoami` using the function', function(done){
+    it('issues a `whoami` using the function', function(done){
       index.spawn_as_logged_user('whoami', [], function(err, spawned_item){
         var response = '';
 
@@ -58,7 +59,7 @@ describe('main system functions', function(){
   });
   describe('run_as_logged_user()', function(){
 
-    it('should issue a `whoami` using the function', function(done){
+    it('issues a `whoami` using the function', function(done){
       index.run_as_logged_user('whoami', [], function(err, response){
         should.not.exist(err);
         response.length.should.be.above(0);
@@ -69,7 +70,7 @@ describe('main system functions', function(){
 
   describe('get_running_user()', function(){
 
-    it('should get a value for the running user', function(){
+    it('gets a value for the running user', function(){
       var user = index.get_running_user();
       user.length.should.be.above(0);
     });
@@ -77,7 +78,7 @@ describe('main system functions', function(){
 
   describe('get_os_info() -> get_os_version + get_os_name', function(){
 
-    it('should return an object with properties [name, version, arch]', function(done){
+    it('returns properties [name, version, arch]', function(done){
       index.get_os_info(function(err, response){
         response.should.have.keys('name', 'version', 'arch');
         response.name.should.exist;
@@ -88,7 +89,7 @@ describe('main system functions', function(){
 
   describe('get_os_name', function(){
 
-    it('should get os name', function(done) {
+    it('gets os name', function(done) {
       index.get_os_name(function(err, name) {
         should.not.exist(err);
         name.should.be.a('string');
@@ -100,7 +101,7 @@ describe('main system functions', function(){
 
   describe('get_os_version', function(){
 
-    it('should get os version', function(done) {
+    it('gets os version', function(done) {
       index.get_os_name(function(err, version) {
         should.not.exist(err);
         version.should.be.a('string');
@@ -117,8 +118,17 @@ describe('main system functions', function(){
       var get, set;
 
       before(function(){
-        get = sinon.stub(index.delay, 'get', function(cb){ cb(); });
-        set = sinon.stub(index.delay, 'set', function(delay, cb){ cb(null, delay); });
+        get = sinon.stub(index.delay, 'get', function(cb){
+          cb()
+        });
+        set = sinon.stub(index.delay, 'set', function(delay, cb){
+          cb(null, delay);
+        });
+      });
+
+      after(function(){
+        get.restore();
+        set.restore();
       });
 
       it('should set and interval', function(done){
@@ -128,10 +138,6 @@ describe('main system functions', function(){
         });
       });
 
-      after(function(){
-        get.restore();
-        set.restore();
-      });
     });
 
     describe('when there is an interval already set', function(){
@@ -146,7 +152,14 @@ describe('main system functions', function(){
             get = sinon.stub(index.delay, 'get', function(cb){
               cb({ value : 0,  one_hour: 1 });
             });
-            set = sinon.stub(index.delay, 'set', function(delay, cb){ cb(null, delay); });
+            set = sinon.stub(index.delay, 'set', function(delay, cb){
+              cb(null, delay);
+            });
+          });
+
+          after(function(){
+            get.restore();
+            set.restore();
           });
 
           it('should update the interval', function(done){
@@ -156,10 +169,6 @@ describe('main system functions', function(){
             });
           });
 
-          after(function(){
-            get.restore();
-            set.restore();
-          });
         });
 
         describe('and a delay higher than 60 (one hour) was requested', function(){
@@ -170,7 +179,14 @@ describe('main system functions', function(){
             get = sinon.stub(index.delay, 'get', function(cb){
               cb({ value : 0,  one_hour: 1 });
             });
-            set = sinon.stub(index.delay, 'set', function(delay, cb){ cb(null, delay); });
+            set = sinon.stub(index.delay, 'set', function(delay, cb){
+              cb(null, delay);
+            });
+          });
+
+          after(function(){
+            get.restore();
+            set.restore();
           });
 
           it('should do nothing', function(done){
@@ -180,20 +196,25 @@ describe('main system functions', function(){
             });
           });
 
-          after(function(){
-            get.restore();
-            set.restore();
-          });
         });
+
       });
+
     });
+
   });
 
   describe('unset_interval()', function(){
     var unset;
 
     before(function(){
-      unset = sinon.stub(index.delay, 'unset', function(cb){ cb(null, 'OK'); });
+      unset = sinon.stub(index.delay, 'unset', function(cb){
+        cb(null, 'OK');
+      });
+    });
+
+    after(function(){
+      unset.restore();
     });
 
     it('should call the respective function `system.delay.unset()`', function(done){
@@ -203,9 +224,6 @@ describe('main system functions', function(){
       })
     });
 
-    after(function(){
-      unset.restore();
-    });
   });
 
   describe('process_running()', function(){
@@ -224,19 +242,24 @@ describe('main system functions', function(){
     var reconnect;
 
     before(function(){
-      reconnect = sinon.stub(index, 'reconnect', function(cb) { cb (); });
-    });
-
-    it.skip('should proxy to os function', function(done){
-      this.timeout(10000);
-      index.auto_connect(function(out){
-        out.should.be.equal(true);
-        done();
+      reconnect = sinon.stub(index, 'reconnect', function(cb) {
+        cb();
       });
     });
 
     after(function(){
       reconnect.restore();
     });
+
+    it.skip('should proxy to os function', function(done){
+      this.timeout(10000);
+      index.auto_connect(function(out){
+        reconnect.calledOnce.should.be.true;
+        out.should.be.equal(true);
+        done();
+      });
+    });
+
   });
+
 });

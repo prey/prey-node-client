@@ -1,43 +1,29 @@
-describe('reporting', function(){
+describe('when a report is requested', function(){
 
-  describe('when a report is requested', function(){
+  describe('and it does not contain interval', function(){
 
-    describe('and it does not contain interval', function(){
+    it('does not set a timer');
 
-      it('does not set a timer', function(){
+  });
 
-      });
+  describe('and it contains interval', function(){
 
-    });
-
-    describe('and it contains interval', function(){
-
-      it('sets a timer', function(){
-
-      });
-
-    });
+    it('sets a timer');
 
     describe('and is cancelled', function(){
 
-      it('cancels report', function(){
+      it('clears timeout');
 
-      });
-
-      it('does not emit further events', function(){
-
-      });
+      it('does not emit further events');
 
       describe('and a new one is requested', function(){
 
-        it('sets the new one up', function(){
-
-        });
+        it('sets the new one up');
 
       })
 
     });
 
-  })
+  });
 
 })

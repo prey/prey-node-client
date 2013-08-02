@@ -23,7 +23,7 @@ describe('updating', function(){
       system.paths.versions = versions_path;
     })
 
-    it('callback with error', function(done) {
+    it('callbacks with error', function(done) {
       updater.check(function(err){
         should.exist(err);
         err.message.should.equal("No versions support.");
@@ -45,45 +45,57 @@ describe('updating', function(){
 
     describe('when a new version is available', function(){
 
-      var stub, upstream_version;
-
+      var stub,
+          real_version,
+          upstream_version;
 
       before(function() {
+        real_version = common.version;
         common.version = '1.2.3';
         upstream_version = '1.2.5';
 
         stub = sinon.stub(package, 'check_latest_version', function(cb) {
           cb(null, upstream_version);
         });
-
       });
 
       after(function() {
+        common.version = real_version;
         stub.restore();
       });
 
+
       // for this test, we fake the 'spawn' call and return a fake child,
-      // for whom we will trigger a fake 'exit' event, as if the child process had exited
-      // so updater.check's callback gets triggered
-      it('calls `bin/prey config upgrade`', function (done){
+      // for whom we will trigger a fake 'exit' event, as if the child process
+      // had exited, so updater.check's callback gets triggered
+      describe('when upgrading fails', function() {
 
-        var fake_spawn = sinon.stub(child_process, 'spawn', function(cmd, args, opts){
-          var child = fake_spawn_child();
+        var fake_spawn;
 
-          setTimeout(function(){
-            child.emit('exit');
-          }, 10);
+        before(function() {
+          fake_spawn = sinon.stub(child_process, 'spawn', function(cmd, args, opts){
+            var child = fake_spawn_child();
 
-          return child;
+            setTimeout(function(){
+              child.emit('exit');
+            }, 10);
+
+            return child;
+          });
+        })
+
+        after(function() {
+          fake_spawn.restore();
         });
 
-        child_process.spawn.foo = 'asdas';
+        it('callbacks an error', function (done){
 
-        updater.check(function(err){
-          should.exist(err);
-          err.message.should.equal('Update failed.');
-          fake_spawn.restore();
-          done();
+          updater.check(function(err){
+            should.exist(err);
+            err.message.should.equal('Update failed.');
+            done();
+          });
+
         });
 
       });
@@ -91,42 +103,54 @@ describe('updating', function(){
       // for this test, we fake the 'spawn' call and return a fake child,
       // for whom we will emit the 'YOUARENOTMYFATHER' string in its stdout
       // as if the updater is succesfully going through.
-      it('should exit (33) on `YOUARENOTMYFATHER` message from child', function (done){
+      describe('when upgrading succeedes', function() {
 
-        var exit_code,
+        var fake_spawn,
+            fake_exit,
+            exit_code,
             unreffed = false;
 
-        var fake_spawn = sinon.stub(child_process, 'spawn', function(cmd, args, opts){
-          var child = fake_spawn_child();
+        before(function() {
+          fake_spawn = sinon.stub(child_process, 'spawn', function(cmd, args, opts){
+            var child = fake_spawn_child();
 
-          child.unref = function() {
-            unreffed = true;
-            child.emit('exit');
-          }
+            child.unref = function() {
+              unreffed = true;
+              child.emit('exit');
+            }
 
-          setTimeout(function(){
-            child.stdout.emit('data', new Buffer('YOUARENOTMYFATHER'));
-          }, 100);
+            setTimeout(function(){
+              child.stdout.emit('data', new Buffer('YOUARENOTMYFATHER'));
+            }, 100);
 
-          return child;
+            return child;
+          });
+
+          fake_exit = sinon.stub(process, 'exit', function(code) {
+            exit_code = code;
+          });
+
         });
 
-        var fake_exit = sinon.stub(process, 'exit', function(code) {
-          exit_code = code;
-        });
-
-        updater.check(function(err){
-          exit_code.should.equal(33);
-          unreffed.should.be.true;
+        after(function() {
           fake_spawn.restore();
           fake_exit.restore();
-          done();
         });
+
+        it('process exits with status code(33)', function (done){
+
+          updater.check(function(err){
+            exit_code.should.equal(33);
+            unreffed.should.be.true;
+            done();
+          });
+
+        });
+
       });
 
     });
 
   });
-
 
 });
