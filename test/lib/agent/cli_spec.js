@@ -6,7 +6,7 @@ var fs                    = require('fs'),
     should                = require('should'),
     cli_sandbox           = require('./../../utils/cli_sandbox'),
     cli_test_helper_path  = join(__dirname, '..', '..', 'utils', 'lib_agent_cli.js'),
-    test_file_path        = join(os.tmpDir(), '5b957c999343408e127ee49663383289_test_prey_agent_run'),
+    test_file_path        = join(os.tmpDir(), 'test_prey_agent_run'),
     is_windows            = process.platform === 'win32';
 
 describe('lib/agent/cli_spec', function(){
@@ -65,7 +65,7 @@ describe('lib/agent/cli_spec', function(){
             });
           });
 
-          var t = setTimeout(function(){ cli.kill('SIGINT'); }, 300);
+          var t = setTimeout(function(){ cli.kill('SIGINT'); }, 500);
         });
 
         it('calls agent.shutdown', function(){

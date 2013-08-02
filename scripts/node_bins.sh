@@ -89,7 +89,7 @@ set_version(){
   [[ "$(uname -m)" =~ '86' ]] && type='x86' || type='x64'
   [ "$(uname)" == 'Linux' ] && os='linux' || os='mac'
 
-  echo "Arch: $type"
+  echo "Arch: $type"  
 
   rm -f "${node_path}/current"
   rm -f "${cwd}/bin/node"
