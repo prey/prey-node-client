@@ -104,6 +104,6 @@ pack(){
 if [ -z "$SKIP_TESTS" ]; then
   run_specs && build
 else
-  echo "Skipping tests!"
+  echo "Skipping tests. You cheatin'?"
   build
 fi
