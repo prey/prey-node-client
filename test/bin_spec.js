@@ -21,16 +21,21 @@ if (is_windows) {
 
 function run_bin_prey(args, cb){
   var child = spawn(bin_prey, args, { env: exec_env });
-  
-  var out = '';
+
+  var out = '', err = '';
+
   child.stdout.on('data', function(data){
     out += data;
   })
-  
-  child.on('exit', function(code){
-    cb(code, out)
+
+  child.stderr.on('data', function(data){
+    err += data;
   })
-  
+
+  child.on('exit', function(code){
+    cb(code, out, err)
+  })
+
   setTimeout(function(){
     child.kill()
   }, 500);
@@ -99,12 +104,12 @@ describe('bin/prey', function(){
 
   describe('params', function(){
 
-    describe('when called with no params', function(){
+    describe('when called -h param', function(){
 
       it('calls lib/agent/cli.js', function(done){
-        run_bin_prey([], function(code, out, err){
+        run_bin_prey(['-h'], function(code, out, err){
           // out.should.include('spreads its wings');
-          out.should.include('Sending request');
+          out.should.include('--logfile');
           done();
         });
       });
@@ -130,7 +135,7 @@ describe('bin/prey', function(){
         });
       });
     });
-    
+
 /*
 
     describe('when called with `test` argument', function(){
@@ -160,13 +165,14 @@ describe('bin/prey', function(){
 */
 
     describe('when called with unknown argument', function(){
-      it('calls lib/agent/cli.js', function(done){
-        run_bin_prey(['hellomyfriend'], function(err, out, err){
-          out.should.include('Sending request');
+      it('returns unknown option', function(done){
+        run_bin_prey(['--hellomyfriend'], function(err, out, stderr){
+          stderr.should.include('unknown option');
           done();
         });
       });
     });
 
   });
+
 });
