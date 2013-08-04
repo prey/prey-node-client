@@ -16,7 +16,7 @@ build(){
   SCRIPT_PATH="$(dirname $0)"
   VERSION=$(node -e 'console.log(JSON.parse(require("fs").readFileSync("package.json","utf8")).version)')
 
-  DIST="$(pwd)/dist"
+  DIST="$(pwd)/builds"
   ROOT="/tmp/prey-build.$$"
 
   FOLDER="prey-${VERSION}"
