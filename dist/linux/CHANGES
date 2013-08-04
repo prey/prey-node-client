@@ -1,4 +1,0 @@
-prey (0.8.8) stable; urgency=low
-
-  [Tomas Pollak]
-  * Initial build for Node.js based client.
