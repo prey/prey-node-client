@@ -1,4 +1,5 @@
 dist
+builds
 node
 node_modules
 *~
