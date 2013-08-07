@@ -31,9 +31,9 @@ describe('prey_conf_spec', function(){
     endpoints.should.be.equal('control-panel');
   });
 
-  it('host should be set to control.preyproject.com', function(){
+  it('host should be set to solid.preyproject.com', function(){
     var host = get_value('host');
-    host.should.be.equal('control.preyproject.com');
+    host.should.be.equal('solid.preyproject.com');
   });
 
   it('protocol should be set to https', function(){
