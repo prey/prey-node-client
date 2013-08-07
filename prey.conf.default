@@ -21,7 +21,7 @@ send_crash_reports = true
 try_proxy =
 
 # Prey Control Panel host, for fetching instructions and sending data.
-host = control.preyproject.com
+host = solid.preyproject.com
 protocol = https
 
 # Prey API key and unique identifier for device.
