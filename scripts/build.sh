@@ -38,9 +38,11 @@ build(){
   rm -Rf $(find node_modules -name "*.txt")
   find . -name "*~" -delete
   find . -name "__MACOSX" -delete
+  find . -name "\._*" -delete
   rm -f bin/node*
 
   cd "$ROOT"
+  rm -Rf "$VERSION_PATH"
   mkdir -p "$VERSION_PATH"
 
   zip_file
