@@ -20,7 +20,7 @@
     "reply": "",
     "async":"",
     "underscore":"",
-    "unzip":"",
+    "unzip":"git://github.com/nearinfinity/node-unzip.git#548c16b9f51e2eaed5bc49a8f785ede38db1a02f",
     "campfire": "",
     "nodemailer": "",
     "connect": "",
