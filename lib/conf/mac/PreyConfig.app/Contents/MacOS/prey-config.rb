@@ -27,7 +27,7 @@ TITLES = {
 	:welcome => 'Greetings, good friend. Please choose your destiny.',
 	:new_user => "Please type in your info and we'll sign you up for a new Prey account.",
 	:existing_user => 'Please type in your Prey account credentials.',
-	:success => 'All good! Your computer is now protected by Prey. To try it out or to start tracking it, please visit preyproject.com.'
+	:success => 'Sweet! Your computer is now protected by Prey. To try it out or to start tracking it, please visit preyproject.com.'
 }
 
 OPTIONS = {
