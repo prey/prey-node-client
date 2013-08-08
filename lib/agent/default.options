@@ -1,7 +1,7 @@
 #############################
 # Prey configuration file
 #############################
-#
+
 # What drivers should Prey use? (you probably don't want to change this)
 drivers = interval, push
 
