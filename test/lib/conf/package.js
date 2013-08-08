@@ -46,7 +46,7 @@ describe('config upgrade', function() {
   before(function(){
     process.stdout.writable = false; // turns logging off for this module
   })
-  
+
   after(function(){
     process.stdout.writable = true; // logging back on
   })
@@ -83,7 +83,7 @@ describe('config upgrade', function() {
     before(function (){
       stub = upstream_version(new_version);
     });
-    
+
     after(function(){
       stub.restore();
     })
@@ -92,7 +92,7 @@ describe('config upgrade', function() {
       var file_name = get_file_name(new_version),
           url       = 'http://s3.amazonaws.com/prey-releases/node-client/' + new_version + '/' + file_name,
           outfile   = join(tmpdir, file_name);
-    
+
       var getter    = sinon.stub(needle, 'get', function(requested_url, opts, cb){
         requested_url.should.equal(url);
         opts.output.should.equal(outfile)
@@ -100,14 +100,17 @@ describe('config upgrade', function() {
         done()
       });
 
-      package.get_latest('1.2.3', '/');
+      package.get_latest('1.2.3', '/', function(err) {
+        // noop
+      });
     });
 
     it('downloads the package', function(done){
       var getter = stub_get_file(dummy_zip);
-    
+
       // install is called after download, so when called, the package should have been downloaded
       var inst = sinon.stub(package, 'install', function(zip, dest, cb){
+        console.log('Install package called.');
         fs.exists(zip, function(exists){
           exists.should.be.true;
           inst.restore();
@@ -115,7 +118,9 @@ describe('config upgrade', function() {
           done();
         })
       })
-      package.get_latest('1.2.3', '/wherever');
+      package.get_latest('1.2.3', '/wherever', function() {
+        // noop
+      });
     })
 
     describe('with no write permissions', function(){
@@ -125,11 +130,11 @@ describe('config upgrade', function() {
         getter = stub_get_file(dummy_zip);
         dest = '/';
       })
-      
+
       after(function(){
         getter.restore();
       })
-      
+
       it('does not create folder', function(done) {
         package.get_latest('1.2.3', dest, function(err){
           err.code.should.equal('EACCES');
@@ -152,7 +157,7 @@ describe('config upgrade', function() {
     });
 
     describe('with write permissions', function(){
-  
+
       var getter, dest;
 
       before(function(done){
@@ -160,7 +165,7 @@ describe('config upgrade', function() {
         dest = join(tmpdir, 'versions');
         fs.mkdir(dest, done);
       })
-      
+
       after(function(done){
         getter.restore();
         rmdir(dest, done);
