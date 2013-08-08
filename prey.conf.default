@@ -12,7 +12,7 @@ endpoints = control-panel
 auto_connect = false
 
 # Should Prey auto-update itself if a new version is found?
-auto_update = false
+auto_update = true
 
 # Whether to inform about runtime errors to the development team.
 send_crash_reports = true
