@@ -54,7 +54,7 @@ describe('updating', function(){
         common.version = '1.2.3';
         upstream_version = '1.2.5';
 
-        stub = sinon.stub(package, 'check_latest_version', function(cb) {
+        stub = sinon.stub(package, 'get_upstream_version', function(cb) {
           cb(null, upstream_version);
         });
       });

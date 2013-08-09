@@ -25,7 +25,7 @@ var get_file_name = function(ver) {
 
 var upstream_version = function(ver) {
   var fn = function(cb) { cb(null, ver) }
-  return sinon.stub(package, 'check_latest_version', fn);
+  return sinon.stub(package, 'get_upstream_version', fn);
 }
 
 var stub_get_file = function(file) {
@@ -54,7 +54,7 @@ describe('config upgrade', function() {
   it('checks if a new version is available', function (done){
     var spy = sinon.spy(needle, 'get');
 
-    package.check_latest_version(function(err, ver){
+    package.get_upstream_version(function(err, ver){
       should.not.exist(err);
       ver.should.match(/\d\.\d\.\d/);
       spy.calledOnce.should.be.true;
@@ -68,7 +68,7 @@ describe('config upgrade', function() {
     it('does not download anything', function (done){
       var stub = upstream_version('1.2.3');
       package.get_latest('1.2.3', null, function (err){
-        err.message.should.equal('Already running latest version: 1.2.3');
+        err.message.should.equal('Already running latest version.');
         stub.restore();
         done();
       });
