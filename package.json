@@ -27,6 +27,7 @@
     "entry": "",
     "triggers": "",
     "winssh": "",
+    "rimraf": "",
     "jpegtran-bin": ""
   },
   "devDependencies": {
