@@ -31,8 +31,9 @@ var upstream_version = function(ver) {
 var stub_get_file = function(file) {
   var fn = function(url, opts, cb) {
     fs.readFile(file, function(err, data){
-      fs.writeFile(opts.output, data);
-      cb(null, { statusCode: 200 });
+      fs.writeFile(opts.output, data, function(err) {
+        cb(null, { statusCode: 200 });
+      });
     })
   }
   return sinon.stub(needle, 'get', fn)
@@ -110,7 +111,6 @@ describe('config upgrade', function() {
 
       // install is called after download, so when called, the package should have been downloaded
       var inst = sinon.stub(package, 'install', function(zip, dest, cb){
-        console.log('Install package called.');
         fs.exists(zip, function(exists){
           exists.should.be.true;
           inst.restore();
@@ -137,9 +137,12 @@ describe('config upgrade', function() {
 
       it('does not create folder', function(done) {
         package.get_latest('1.2.3', dest, function(err){
+          should.exist(err);
           err.code.should.equal('EACCES');
-          fs.existsSync(join(dest, new_version)).should.be.false;
-          done()
+          fs.exists(join(dest, new_version), function(exists){
+            exists.should.be.false;
+            done();
+          })
         })
       })
 
@@ -148,9 +151,12 @@ describe('config upgrade', function() {
         var out       = join(tmpdir, file_name);
 
         package.get_latest('1.2.3', dest, function (err){
+          should.exist(err);
           err.code.should.equal('EACCES');
-          fs.existsSync(out).should.be.false;
-          done();
+          fs.exists(out, function(exists){
+            exists.should.be.false;
+            done();
+          })
         });
       });
 
@@ -160,14 +166,20 @@ describe('config upgrade', function() {
 
       var getter, dest;
 
-      before(function(done){
+      before(function(){
         getter = stub_get_file(dummy_zip);
         dest = join(tmpdir, 'versions');
+      })
+
+      after(function(){
+        getter.restore();
+      })
+
+      beforeEach(function(done){
         fs.mkdir(dest, done);
       })
 
-      after(function(done){
-        getter.restore();
+      afterEach(function(done){
         rmdir(dest, done);
       })
 
@@ -185,6 +197,17 @@ describe('config upgrade', function() {
           fs.statSync(join(dest, new_version, 'bin', 'prey')).mode.should.equal(33261);
           fs.statSync(join(dest, new_version, 'bin', 'node')).mode.should.equal(33261);
           done()
+        });
+      });
+
+      it('removes downloaded package', function (done){
+        var file_name = get_file_name(new_version);
+        var out       = join(tmpdir, file_name);
+
+        package.get_latest('1.2.3', dest, function (err){
+          should.not.exist(err);
+          fs.existsSync(out).should.be.false;
+          done();
         });
       });
 
