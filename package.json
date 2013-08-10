@@ -26,7 +26,8 @@
     "connect": "",
     "entry": "",
     "triggers": "",
-    "winssh": ""
+    "winssh": "",
+    "jpegtran-bin": ""
   },
   "devDependencies": {
     "mocha": "",
