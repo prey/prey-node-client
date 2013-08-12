@@ -19,9 +19,9 @@ describe('lib/agent/cli_spec', function(){
     before(function(){
       var fake_config = { present: function() { return false; } };
       var fake_process_on = function(signal, cb){ signals.push(signal); }
-      result = cli_sandbox.run({ 
+      result = cli_sandbox.run({
         common:  { config: fake_config },
-        process: { on: fake_process_on } 
+        process: { on: fake_process_on }
       });
     });
 
@@ -37,9 +37,6 @@ describe('lib/agent/cli_spec', function(){
       result.out.toLowerCase().should.include('no config file found');
     });
   })
-
-  if (!is_windows) {
-
 
   describe('events', function(){
 
@@ -99,22 +96,22 @@ describe('lib/agent/cli_spec', function(){
     });
 
     describe('on uncaughtException', function(){
-      
-      var result, 
+
+      var result,
           sent_exception = null;
 
-      // pid.store is the first function we call after setting listeners, 
+      // pid.store is the first function we call after setting listeners,
       // so this test provokes the function to throw, and see what happens.
       // this function accepts a boolean as an argument which defines if exceptions are notified
       var run_cli = function(send_exceptions) {
         var bad_pid  = { store: function() { throw(new Error('ola ke ase')) } }
-        var common   = { config: { get: function(key) { return send_exceptions } } } 
-        var requires = { './exceptions': { send: function(err) { sent_exception = err } } } 
+        var common   = { config: { get: function(key) { return send_exceptions } } }
+        var requires = { './exceptions': { send: function(err) { sent_exception = err } } }
         result = cli_sandbox.run({ pid: bad_pid, common: common, requires: requires })
       }
-      
+
       describe('and send_crash_reports if config is false?', function(){
-        
+
         before(function(){
           run_cli(false)
         })
@@ -130,7 +127,7 @@ describe('lib/agent/cli_spec', function(){
       });
 
       describe('and send_crash_reports if config is true?', function(){
-        
+
         before(function(){
           run_cli(true)
         })
@@ -149,55 +146,50 @@ describe('lib/agent/cli_spec', function(){
 
   });
 
-  } // end `is_windows` condition
+  describe('pid.store', function() {
 
-  describe('when pid.store returns an existing pidfile', function(){
-    
-    var result, ctime, fake_pid = 12345;
+    var result, ctime;
 
-    var fake_pidfile = function(){
+    var fake_running = function(){
       return {
-        pid: fake_pid,
-        stat: { ctime: ctime }
+        pid: 12345,
+        stat: { ctime: 123456789 }
       }
     }
-    
-    var run_cli = function(trigger){
-      var fake_store = { store: function(file, cb){ cb(null, fake_pidfile()) } }
-      var fake_env   = { env: { TRIGGER: trigger }}
-      
-      result = cli_sandbox.run({ pid: fake_store, process: fake_env });
+
+    var run_cli = function(store_func){
+      var fake_pid = { store: store_func }
+      var fake_common = { config: { get: function(key){ return key } } }
+      result = cli_sandbox.run({ pid: fake_pid, common: fake_common });
     }
 
-    if (!is_windows) {
-    describe('and pidfile creation time is earlier than two minutes ago', function(){
-      
+
+    describe('when it returns an error', function() {
+
       before(function(){
-        ctime = new Date() - 1000000; // about 16 minutes ago
+        var store_func = function(file, cb){ cb(new Error('ERR')) }
+        run_cli(store_func);
       })
 
-      describe('and this instance was launched by network trigger', function(){
-
-        before(function(){
-          run_cli('network');
-        })
-
-        it('exits with status code (10)', function(){
-          result.code.should.equal(10);
-        });
+      it('exits with status code 1', function(){
+        result.code.should.equal(1);
       });
 
-      describe('and this instance was launched by interval (cron, cronsvc', function(){
+    })
 
-        before(function(){
-          run_cli(''); // interval does not set the env.TRIGGER variable
-        })
+    describe('when it returns a running pid', function() {
 
-        it('exits with status code (10)', function(){
-          result.code.should.equal(10);
-        });
+      before(function(){
+        var store_func = function(file, cb){ cb(null, fake_running) }
+        run_cli(store_func);
+      })
+
+      it('exits with status code (10)', function(){
+        result.code.should.equal(10);
       });
-    });
-    } // end `is_windows` condition
-  });
+
+    })
+
+  })
+
 });
