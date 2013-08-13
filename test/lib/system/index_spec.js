@@ -34,7 +34,7 @@ describe('main system functions', function(){
   describe('tempfile_path()', function(){
     it('returns the path of a file over a tmp directory', function(){
       var filepath = index.tempfile_path('foobar.txt');
-      var tmp_path = is_windows ? process.env.HOME : '/tmp';
+      var tmp_path   = is_windows ? process.env.WINDIR + '\\Temp' : '/tmp';
       filepath.should.equal(join(tmp_path, 'foobar.txt'));
     });
   });

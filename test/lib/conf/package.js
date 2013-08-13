@@ -9,7 +9,8 @@ var fs            = require('fs'),
     rmdir         = require(join(__dirname, '..', '..', '..', 'lib', 'utils', 'rmdir')),
     unzip_path    = join(__dirname, '..', '..', '..', 'lib', 'utils', 'unzip');
 
-var tmpdir        = process.platform == 'win32' ? os.tmpDir() : '/tmp';
+var is_windows    = process.platform === 'win32';
+var tmpdir        = is_windows ? process.env.WINDIR + '\\Temp' : '/tmp';
 
 var dummy_version = '1.5.0';
 var dummy_zip     = join(__dirname, 'fixtures', 'prey-' + dummy_version + '.zip');
@@ -101,7 +102,7 @@ describe('config upgrade', function() {
         done()
       });
 
-      package.get_latest('1.2.3', '/', function(err) {
+      package.get_latest('1.2.3', tmpdir, function(err) {
         // noop
       });
     });
@@ -128,7 +129,7 @@ describe('config upgrade', function() {
 
       before(function(){
         getter = stub_get_file(dummy_zip);
-        dest = '/';
+        dest = is_windows ? 'C:\\Windows\\System32\\' : '/';
       })
 
       after(function(){
@@ -138,7 +139,7 @@ describe('config upgrade', function() {
       it('does not create folder', function(done) {
         package.get_latest('1.2.3', dest, function(err){
           should.exist(err);
-          err.code.should.equal('EACCES');
+          err.code.should.match(/(EACCES|EPERM)/);
           fs.exists(join(dest, new_version), function(exists){
             exists.should.be.false;
             done();
@@ -152,7 +153,7 @@ describe('config upgrade', function() {
 
         package.get_latest('1.2.3', dest, function (err){
           should.exist(err);
-          err.code.should.equal('EACCES');
+          err.code.should.match(/(EACCES|EPERM)/);
           fs.exists(out, function(exists){
             exists.should.be.false;
             done();
@@ -192,6 +193,7 @@ describe('config upgrade', function() {
       });
 
       // this test probably passes only in *nixes
+      if (!is_windows) {
       it('makes sure bin/node and bin/prey are executable', function(done){
         package.get_latest('1.2.3', dest, function(err){
           fs.statSync(join(dest, new_version, 'bin', 'prey')).mode.should.equal(33261);
@@ -199,6 +201,7 @@ describe('config upgrade', function() {
           done()
         });
       });
+      }
 
       it('removes downloaded package', function (done){
         var file_name = get_file_name(new_version);
