@@ -43,6 +43,40 @@ describe('updating', function(){
       system.paths.versions = versions_path;
     })
 
+    describe('and no new versions are found', function(){
+
+      var stub,
+          real_version,
+          upstream_version;
+
+      before(function() {
+        real_version = common.version;
+        common.version = '1.2.3';
+        upstream_version = '1.2.3';
+
+        stub = sinon.stub(package, 'get_upstream_version', function(cb) {
+          cb(null, upstream_version);
+        });
+      });
+
+      after(function() {
+        common.version = real_version;
+        stub.restore();
+      });
+
+      it('callsback with no errors', function(done){
+
+        updater.check(function(err, ver){
+          should.not.exist(err);
+          should.not.exist(ver);
+          done();
+        });
+
+      })
+
+
+    })
+
     describe('when a new version is available', function(){
 
       var stub,
@@ -103,7 +137,7 @@ describe('updating', function(){
       // for this test, we fake the 'spawn' call and return a fake child,
       // for whom we will emit the 'YOUARENOTMYFATHER' string in its stdout
       // as if the updater is succesfully going through.
-      describe('when upgrading succeedes', function() {
+      describe('when upgrading succeeds', function() {
 
         var fake_spawn,
             fake_exit,
