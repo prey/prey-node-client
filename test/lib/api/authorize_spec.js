@@ -3,6 +3,7 @@ var sinon   = require('sinon'),
     api     = require('./../../../lib/api'),
     api_req = require('./../../../lib/api/request');
 
+
 describe('authorize', function() {
 
   describe('with no params', function(){
@@ -16,6 +17,18 @@ describe('authorize', function() {
   })
 
   describe('with invalid params', function(){
+
+    var stub;
+
+    before(function(){
+      stub = sinon.stub(api_req, 'get', function(path, opts, cb) {
+        cb(null, { statusCode: 401 });
+      })
+    })
+
+    after(function(){
+      stub.restore();
+    })
 
     it('callsback an error', function(done){
 
