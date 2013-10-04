@@ -63,8 +63,8 @@ function unmask_bin_prey(){
  */
 describe('bin/prey', function(){
 
-  before(function(done){
-    exec(node_bin + ' -v', function(err, out){
+  before(function(done) {
+    exec('"' + node_bin + '" -v', function(err, out) {
       if (!err) node_versions.local = out.toString().trim();
       done();
     })
@@ -87,7 +87,7 @@ describe('bin/prey', function(){
       });
 
       it('uses local node binary', function(done){
-        run_bin_prey(['-l', fake_log_file, '-N'], function(code){
+        run_bin_prey(['-l', fake_log_file, '-N'], function(code) {
           code.should.equal(0);
           var read_version = fs.readFileSync(fake_log_file, 'utf8');
           read_version.should.include(node_versions.local);
