@@ -128,10 +128,10 @@ describe('signup', function() {
         })
 
         it('returns key', function(done){
-          signup(params, function(err, keys) {
+          signup(params, function(err, res) {
             should.not.exist(err);
-            keys.should.have.keys('api');
-            keys.api.should.equal(key);
+            // keys.should.have.keys('api');
+            res.should.equal(key);
             done();
           })
         })
