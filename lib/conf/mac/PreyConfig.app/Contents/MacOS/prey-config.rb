@@ -15,9 +15,10 @@ HEIGHT = 400
 WIDTH  = 500
 CENTER = WIDTH/2
 
+DEBUGGING   = !!ENV['DEBUG']
 EMAIL_REGEX = /[A-Z0-9\._%-]+@([A-Z0-9-]+\.)+[A-Z]{2,4}\z/i
 
-PREY_CONFIG = File.expand_path(File.dirname(__FILE__) + '/../../../../../../bin/prey config')
+PREY_CONFIG = '"' + File.expand_path(File.dirname(__FILE__) + '/../../../../../../bin/prey" config')
 PIXMAPS     = File.expand_path(File.dirname(__FILE__) + '/../../../../pixmaps')
 LOGO        = PIXMAPS + '/prey-text-shadow.png'
 
@@ -327,7 +328,9 @@ class ConfigDelegate < NSObject
 
 	def run_config(args)
 		cmd = "#{PREY_CONFIG} account #{args}"
+		debug "Running: #{cmd}"
 		out = `#{cmd}`
+		debug out
 		code = $?.exitstatus
 		return code, out
 	end
@@ -355,6 +358,10 @@ class ConfigDelegate < NSObject
 
 	def copy(sender)
 	end
+
+  def debug(str)
+    puts str if DEBUGGING
+  end
 
   def speak(str)
     script = NSAppleScript.alloc.initWithSource("say \"#{str}\"")

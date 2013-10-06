@@ -3,11 +3,11 @@
 # This script generates a tarball containing all files,
 # dependencies and the installed node binary.
 ########################################################
-# Output is: dist/prey-$VERSION.tar.gz
+# Output is: ./builds/$VERSION/prey-$VERSION.tar.gz
 ########################################################
 
 run_specs(){
-  bin/prey test --recursive --bail
+  bin/prey test --recursive --bail --reporter dot
 }
 
 build(){
@@ -23,10 +23,8 @@ build(){
   VERSION_PATH="${DIST}/${VERSION}"
   ZIP="prey-${VERSION}.zip"
 
-  rm -Rf "${VERSION_PATH}" 2> /dev/null
-
   mkdir -p "$ROOT/$FOLDER"
-  cp -R README.md license.txt index.js prey.conf.default package.json bin lib scripts "$ROOT/$FOLDER"
+  cp -R README.md license.txt prey.conf.default package.json bin lib scripts "$ROOT/$FOLDER"
 
   cd "$ROOT/$FOLDER"
 
@@ -42,6 +40,7 @@ build(){
   rm -f bin/node*
 
   cd "$ROOT"
+  echo "Generating output dir: ${VERSION_PATH}"
   rm -Rf "$VERSION_PATH"
   mkdir -p "$VERSION_PATH"
 

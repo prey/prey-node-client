@@ -5,7 +5,7 @@ var fs            = require('fs'),
     os            = require('os'),
     sinon         = require('sinon'),
     should        = require('should'),
-    package       = require(join(__dirname, '..', '..', '..', 'lib', 'conf', 'package')),
+    package       = require(join(__dirname, '..', '..', '..', 'lib', 'package')),
     rmdir         = require(join(__dirname, '..', '..', '..', 'lib', 'utils', 'rmdir')),
     unzip_path    = join(__dirname, '..', '..', '..', 'lib', 'utils', 'unzip');
 

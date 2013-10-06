@@ -5,7 +5,7 @@ var join                = require('path').join,
     helpers             = require(join('..', '..', 'helpers')),
     common              = require(helpers.lib_path('common')),
     system              = require(helpers.lib_path('system')),
-    package             = require(helpers.lib_path('conf', 'package')),
+    package             = require(helpers.lib_path('package')),
     updater             = require(helpers.lib_path('agent', 'updater')),
     fake_spawn_child    = require(join('..', '..', 'utils', 'fake_spawn_child'));
 

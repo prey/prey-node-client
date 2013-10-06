@@ -23,26 +23,27 @@ describe('prey_conf_spec', function(){
 
   it('driver should be set to interval & push', function(){
     var drivers = get_value('drivers');
-    drivers.should.be.equal('interval, push');
+    drivers.should.equal('interval, push');
   });
 
   it('endpoints should be set to control-panel', function(){
     var endpoints = get_value('endpoints');
-    endpoints.should.be.equal('control-panel');
+    endpoints.should.equal('control-panel');
   });
 
   it('host should be set to solid.preyproject.com', function(){
     var host = get_value('host');
-    host.should.be.equal('solid.preyproject.com');
+    host.should.equal('solid.preyproject.com');
   });
 
   it('protocol should be set to https', function(){
     var protocol = get_value('protocol');
-    protocol.should.be.equal('https');
+    protocol.should.equal('https');
   });
 
   it('api_key should be empty', function(){
     var api_key = get_value('api_key');
+    // TODO: find a way to avoid this
     if(!is_windows) api_key = api_key.replace('device_key =', '');
     api_key.should.be.empty;
   });
