@@ -27,6 +27,7 @@
     "entry": "",
     "triggers": "",
     "winssh": "",
+    "rimraf": "",
     "jpegtran-bin": ""
   },
   "devDependencies": {
@@ -36,7 +37,7 @@
     "sinon": "",
     "sandboxed-module": ""
   },
-  "main": "./lib/prey",
+  "main": "./lib/common",
   "bin": {
     "prey": "./bin/prey"
   },
