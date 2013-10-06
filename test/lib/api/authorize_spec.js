@@ -65,10 +65,10 @@ describe('authorize', function() {
       })
 
       it('returns key', function(done){
-        api.accounts.authorize(params, function(err, keys) {
+        api.accounts.authorize(params, function(err, res) {
           should.not.exist(err);
-          keys.should.have.keys('api');
-          keys.api.should.equal(key);
+          // keys.should.have.keys('api');
+          res.should.equal(key);
           done();
         })
       })
@@ -76,7 +76,7 @@ describe('authorize', function() {
       it('sets key internally', function(done){
         var spy = sinon.spy(api.keys, 'set');
 
-        api.accounts.authorize(params, function(err, keys) {
+        api.accounts.authorize(params, function(err, res) {
           should.not.exist(err);
           spy.calledWith({ api: key }).should.be.true;
           spy.restore();
