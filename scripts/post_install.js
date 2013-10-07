@@ -20,7 +20,7 @@ var post_install = function(){
          msg +=  '\nTo finalize the install process please run: \n\n';
          msg +=  '  $ sudo scripts/post_install.js';
       console.log(line + msg + line);
-      process.exit(1);
+      process.exit();
     }
   }
 
