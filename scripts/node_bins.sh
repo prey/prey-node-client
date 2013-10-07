@@ -86,13 +86,15 @@ set_version(){
   [ ! -d "node/${version}" ] && echo "Version not found: ${version}" && return 1
 
   echo "Symlinking version ${version}."
-  [[ "$(uname -m)" =~ '86' ]] && type='x86' || type='x64'
+  [[ "$(uname -m)" =~ '64' ]] && type='x64' || type='x86'
   [ "$(uname)" == 'Linux' ] && os='linux' || os='mac'
 
   echo "Arch: $type"  
 
   rm -f "${node_path}/current"
   rm -f "${cwd}/bin/node"
+  rm -f "${cwd}/bin/node.exe"
+
   # ln -s ${node_path}/${version}/${type}/node.${os} bin/node
   ln -s "${node_path}/${version}/${type}" "${node_path}/current"
   ln -s "${node_path}/current/node.${os}" "bin/node"
