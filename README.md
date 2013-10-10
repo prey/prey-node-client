@@ -6,22 +6,8 @@ Asynchronous, ruthless event-driven client for the [Prey anti-theft software](ht
 
 Good question.
 
-In plain klingon, Prey is a command-line application that runs in the background at specific times to check whether it
-should send data, perform any actions or just go back to sleep. These actions can be triggered using different methods,
-the most common being by using the Prey Control Panel.
-
-## How it works
-
-In principle, this client works in a very similar way to the [Bash client](https://github.com/prey/prey-bash-client). The
-script is called at regular intervals via Cron (Mac, Linux) or CronSVC (a Windows System Service), and in addition
-whenever a network change is detected in the system.
-
-Network events are triggered whenever an interface goes down or up, e.g. when the system boots up, when the laptop's lid
-is opened, or when the computer connects to a different Wifi network.
-
-In addition, this client includes a number of new features such as the ability to use different drivers for fetching data
-or triggering actions. One example is the Campfire driver, which disguises Prey as a chat bot and lets you control it by 
-chatting with it, very much like Github's [Hubot](http://hubot.github.com).
+In plain klingon, Prey is a command-line application that runs in the background and regularly checks whether it should perform an action or send any data to a specified endpoint. These commands can be triggered using different methods,
+the most common being through the Prey Control Panel.
 
 ## Requirements
 
@@ -53,19 +39,18 @@ local one.
 If you want `npm` to automatically run Prey's post install script, you must issue the flag `unsafe-perm` ( [see for reference: https://npmjs.org/doc/config.html#unsafe-perm](https://npmjs.org/doc/config.html#unsafe-perm)) into your `npm` command, like this:
 
     $ [sudo] npm install -g --unsafe-perm prey
+    
+This script will do three things:
 
-This will do three things:
-
-  - install dependencies for plugins that require them,
-  - install system scripts (i.e. the network trigger daemon), and
+  - install dependencies,
+  - install system scripts, 
   - achieve nirvana.
 
-Once done, you can call Prey through a terminal and it will take of setting the driver up by asking you a couple of
-questions:
+Once that's done, you can finish the installation by calling up the GUI:
 
-    $ prey
+    $ prey config gui
 
-And that's it. If everything went well, you can now begin controlling your device remotely through your chosen driver.
+And that's it. 
 
 ## Playing around
 
@@ -77,8 +62,7 @@ For instance:
 
     $ prey -d console
 
-If you wish to change the default driver to use at runtime, use the `-s` argument in addition to `-d` and you'll be 
-prompted to set it up. For additional command line options, type:
+For additional command line options, type:
 
     $ prey -h
 
@@ -87,29 +71,7 @@ prompted to set it up. For additional command line options, type:
 Prey keeps a set of config files plus the generated SSL keys in its configuration path, which defaults to /etc/prey 
 (Mac, Linux) or C:\Windows\Prey (Windows). You can call Prey with a -p (path) argument in case you wish to run Prey using
 a different path for the config files. (Note: this only affects at run time, so if you wished to change it permanently
-you should modify the cron line plus the network trigger script).
-
-When Prey is run and it doesn't find a config.js file in that path, it will attempt to copy a default config.js file and
-run the setup process for the driver that's being used. The driver defaults to 'control-panel'.
-
-## Plugins
-
-Except for the agent itself --who acts as a controller -- everything on this client works as a plugin. There are
-four kinds of them: drivers, providers, actions and transports. For more information about creating your plugins or 
-extending the existing ones, take a look at [HACKING.md](http://github.com/prey/prey-node-client/master/HACKING.md).
-
-## TODO
-
-Spec the crap out of this thing. I began writing some of them but since the API is still in the works the plan is to
-retake the challenge once it stabilizes a bit. Feel free to give your opinion on how it could be improved. Good ideas 
-get a free cookie!
-
-Also:
-
- - Finalize Windows support. There are still a couple of things missing.
- - Fix some of the actions which haven't been upgraded to used the current plugin API.
- - Add support for missing OS's to specific actions and providers (i.e. motion/sound detectors only work on OSX now).
- - Add auto-complete support for the Console driver. Would make testing much easier.
+you should modify the daemon init script).
 
 ## Authors
 
