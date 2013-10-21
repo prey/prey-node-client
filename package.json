@@ -25,6 +25,7 @@
     "nodemailer": "",
     "connect": "",
     "entry": "",
+    "nat-pmp": "0.0.1",
     "triggers": "",
     "winssh": "",
     "rimraf": "",
