@@ -107,12 +107,14 @@ get_latest_installed() {
 }
 
 get_installed() {
-  local sort_flag="n"
-  [ "$(uname)" == 'Linux' ] && sort_flag="V"
+  # osx's sort does not have version sorting
+  local sort_flags="-bt. -k1,1 -k2,2n -k3,3n -k4,4n -k5,5n"
+  [ "$(uname)" == 'Linux' ] && sort_flags="-V"
+
   find ${node_path} -maxdepth 1 \
   | grep "[[:digit:]]$" \
   | sed "s/.*\/\([^\/]*\)/\1/"  \
-  | sort -${sort_flag}
+  | sort ${sort_flags}
 }
 
 if [ "$1" == 'fetch' ]; then
