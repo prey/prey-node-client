@@ -59,7 +59,11 @@ class ConfigDelegate < NSObject
 		drawImage(LOGO, [292, 67, CENTER-(292/2), 310], window.contentView)
 		drawButtons
 		drawTabs
-		setTab(0)
+    if clientConfigured
+      showSuccess
+    else
+		  setTab(0)
+    end
   end
 
 	def getFrame(width, height, x = 0, y = 0)
@@ -285,6 +289,11 @@ class ConfigDelegate < NSObject
 			userVerify
 		end
 	end
+  
+  def clientConfigured
+    code, out = run_config('account verify --current')
+    return code == 0
+  end
 
 	def get_value(input_id)
 		inputs[input_id].objectValue

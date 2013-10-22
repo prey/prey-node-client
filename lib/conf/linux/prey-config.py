@@ -252,17 +252,21 @@ class PreyConfigurator(object):
 
     self.get('button_apply').set_label('gtk-apply')
 
+  def client_configured(self):
+    self.call_prey_config('account verify', '--current')
+    return self.result == 0
+
   def create_user(self):
     name      = self.text('user_name')
     email     = self.text('email')
     password  = self.text('password')
-    self.call_prey_config('account signup', '-n ' + name + ' -e ' + email + ' -p ' + password)
+    self.call_prey_config('account signup', '-n "' + name + '" -e "' + email + '" -p "' + password + '"')
     self.error_or_exit()
 
   def get_existing_user(self, show_devices):
     email    = self.text('existing_email')
     password = self.text('existing_password')
-    self.call_prey_config('account authorize', '-e ' + email + ' -p ' + password)
+    self.call_prey_config('account authorize', '-e "' + email + '" -p "' + password + '"')
     self.error_or_exit()
 
   def call_prey_config(self, action, opts):
@@ -307,6 +311,8 @@ class PreyConfigurator(object):
     self.show_alert(_('Success'), _('Bingo! Your computer is now protected by Prey. To try it out or to start tracking it, please visit preyproject.com.'), True)
 
   def __init__(self):
+    if self.client_configured():
+      return self.exit_ok()
 
     builder = gtk.Builder()
     builder.set_translation_domain(APP_NAME)
