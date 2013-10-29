@@ -78,7 +78,7 @@ describe('signup', function() {
       var stub,
           key    = 'abcdef123456',
           params = {
-            username: 'peter',
+            name: 'peter',
             email: 'hey@gmail.com',
             password: 'johnnycash'
           };

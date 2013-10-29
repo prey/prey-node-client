@@ -92,7 +92,7 @@ describe('main system functions', function(){
     it('gets os name', function(done) {
       index.get_os_name(function(err, name) {
         should.not.exist(err);
-        name.should.be.a('string');
+        name.should.be.a.String;
         done();
       });
     });
@@ -104,7 +104,7 @@ describe('main system functions', function(){
     it('gets os version', function(done) {
       index.get_os_name(function(err, version) {
         should.not.exist(err);
-        version.should.be.a('string');
+        version.should.be.a.String;
         done();
       });
     });
