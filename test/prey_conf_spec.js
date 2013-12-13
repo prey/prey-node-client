@@ -6,8 +6,8 @@ var fs                  = require('fs'),
     conf_file_contents  = fs.readFileSync(join(__dirname, '..', 'prey.conf.default'), 'utf8');
 
 var get_value = function(key) {
-  var regex = new RegExp(key + '\\s=\\s(.*)');
-  return conf_file_contents.match(regex)[1];
+  var regex = new RegExp(key + '\\s=(.*)');
+  return conf_file_contents.match(regex)[1].trim();
 };
 
 describe('prey_conf_spec', function(){
@@ -43,8 +43,6 @@ describe('prey_conf_spec', function(){
 
   it('api_key should be empty', function(){
     var api_key = get_value('api_key');
-    // TODO: find a way to avoid this
-    if(!is_windows) api_key = api_key.replace('device_key =', '');
     api_key.should.be.empty;
   });
 
