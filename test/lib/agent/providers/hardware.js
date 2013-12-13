@@ -1,76 +1,54 @@
-/*
-var helpers    = require('./../../helpers'),
-    should     = helpers.must,
-    provider   = helpers.load('providers').load('hardware');
+var helpers    = require('./../../../helpers'),
+    should     = require('should'),
+    provider   = helpers.load('providers/hardware');
 
-var nic_names = {
-  win32:  'Local Area Connection',
-  linux:  'eth0',
-  darwin: 'en0'
-}
+describe('hardware', function(){
 
-var nic_name = nic_names[process.platform];
+  describe('first_mac_address', function() {
 
-describe('Hardware', function(){
-
-  describe('get_mac_address', function(){
     it('should cb a valid mac address', function(done) {
-      provider.mac_address_for(nic_name, function(err,mac) {
+      provider.get_first_mac_address(function(err, mac) {
         should.exist(mac);
         mac.should.have.lengthOf(17);
         done();
       });
     });
+
   });
 
-  describe('get_network_interfaces_list', function(){
-    it('should return at least 1 network interface',function(done) {
-      provider.get_network_interfaces_list(function(err,nics) {
+  describe('network_interfaces_list', function() {
 
-        nics.should.be.an.instanceOf(Array);
+    it('should return at least 1 network interface',function(done) {
+      provider.get_network_interfaces_list(function(err, nics) {
+
+        should.not.exist(err);
+
+        nics.should.be.an.Array;
         nics.length.should.be.above(0);
 
         var nic = nics[0];
-        nic.should.have.property('name');
-        nic.should.have.property('ip_address');
-        nic.should.have.property('mac_address');
+        nic.should.have.keys(['name', 'type', 'ip_address', 'mac_address']);
         done();
       });
     });
   });
-
-  describe('get_first_mac_address', function(){
-    it('there exists a mac address',function(done) {
-      provider.get_first_mac_address(function(err, mac) {
-        should.exist(mac);
-        done();
-      });
-    });
-  });
-
-/*
 
   describe('get_firmware_info', function(){
 
-    it('should callback firmware_info',function(done) {
+    // in linux there's a scenario when we don't have access to dmidecode
+    describe('with no access to system info', function() {
 
-      provider.get_firmware_info(function(err, firmware) {
-        should.exist(firmware);
+      it('returns error');
 
-        var keys = 'mb_vendor mb_model mb_version mb_serial bios_vendor bios_version';
-
-        if (platform !== "windows") {
-          keys += 'model_name vendor_name serial_number uuid';
-        }
-
-        firmware.should.have.keys(keys.split(' '));
-        done();
-      });
     });
 
+    describe('with access to sys info', function() {
+
+      it('works')
+
+    })
+
   });
-
-
 
   describe('get_processor_info', function(){
 
@@ -78,8 +56,6 @@ describe('Hardware', function(){
 
       provider.get_processor_info(function(err, obj) {
         should.not.exist(err);
-        obj.should.be.an.instanceof(Object);
-        Object.keys(obj).should.have.lengthOf(3);
         obj.should.have.keys(['speed', 'model', 'cores']);
         done();
       });
@@ -89,4 +65,3 @@ describe('Hardware', function(){
   });
 
 });
-*/
