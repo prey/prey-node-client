@@ -38,7 +38,7 @@ function run_bin_prey(args, cb){
 
   setTimeout(function(){
     child.kill()
-  }, 500);
+  }, 1500);
 }
 
 /*
@@ -57,10 +57,6 @@ function unmask_bin_prey(){
 
 */
 
-/**
- *  START TESTS
- *
- */
 describe('bin/prey', function(){
 
   before(function(done) {
@@ -76,7 +72,7 @@ describe('bin/prey', function(){
 
       // check, just in case
       before(function(done){
-         fs.exists(node_bin, function(exists){
+         fs.exists(node_bin, function(exists) {
           exists.should.be.true;
           done();
         });
@@ -86,6 +82,10 @@ describe('bin/prey', function(){
         fs.unlink(fake_log_file, done);
       });
 
+      // we use a fake log file since when running via mocha
+      // the spawned process does not have a tty attached, so
+      // it assumes that it is running on background and prints
+      // any output to the default log file (/var/log/prey.log)
       it('uses local node binary', function(done){
         run_bin_prey(['-l', fake_log_file, '-N'], function(code) {
           code.should.equal(0);
