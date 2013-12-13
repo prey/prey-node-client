@@ -1,7 +1,6 @@
-/*
-var helpers    = require('./../../helpers'),
-    should     = helpers.must,
-    provider   = helpers.load('providers').load('connections');
+var helpers    = require('./../../../helpers'),
+    should     = require('should'),
+    provider   = helpers.load('providers/connections');
 
 describe('get_outbound_connections_list', function(){
 
@@ -22,4 +21,3 @@ describe('get_outbound_connections_list', function(){
   });
 
 });
-*/

@@ -1,8 +1,7 @@
-/*
-var helpers  = require('./../../../helpers'),
-    should   = helpers.must,
+var helpers  = require('./../../../../helpers'),
+    should   = require('should'),
     fs       = require('fs'),
-    provider = helpers.load('providers').load('geo');
+    provider = helpers.load('providers/geo');
 
 describe('location', function(){
 
@@ -38,7 +37,7 @@ describe('location', function(){
 
           provider.send_data(list, function(err, data){
             err.should.be.an.instanceof(Error);
-            (typeof data).should.equal('undefined');
+            should.not.exist(data);
             done();
           })
 
@@ -50,7 +49,7 @@ describe('location', function(){
 
         before(function(done){
           fs.readFile(__dirname + '/../fixtures/location_response.json', function(err, data){
-            helpers.stub_request('get', null, {statusCode: 200}, data.toString().trim());
+            helpers.stub_request('get', null, { statusCode: 200 }, data.toString().trim());
             done()
           })
         })
@@ -93,5 +92,3 @@ describe('location', function(){
   });
 
 });
-
-*/

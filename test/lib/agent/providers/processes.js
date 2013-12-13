@@ -1,8 +1,6 @@
-
-/*
-var helpers    = require('./../../helpers'),
-    should     = helpers.must,
-    provider   = helpers.load('providers').load('processes');
+var helpers    = require('./../../../helpers'),
+    should     = require('should'),
+    provider   = helpers.load('providers/processes');
 
 var check_process = function(val) {
   val.should.be.an.instanceOf(Array);
@@ -37,5 +35,3 @@ describe('Processes', function(){
     });
   });
 });
-
-*/
