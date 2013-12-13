@@ -83,8 +83,7 @@ describe('Push Driver', function(){
 
           process.nextTick(function() {
             unloaded.should.be.false;
-            unload_it();
-            done()
+            unload_it(done);
           })
           
           hooks.trigger('connected');
@@ -129,12 +128,12 @@ describe('Push Driver', function(){
 
         load_it(function(){ /* noop */ });
 
-        setTimeout(function() {
+        process.nextTick(function() {
           stub3.calledOnce.should.be.true;
           stub3.args[0][0].should.have.keys('notification_id');
           unload_it();
           done()
-        }, 100)
+        })
 
       })
       

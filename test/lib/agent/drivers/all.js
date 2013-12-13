@@ -37,9 +37,10 @@ describe('all drivers', function(){
           var mod = require(join(drivers_path, driver_name));
 
           (function(){
-            mod.load(null, function(){
-            })
+            mod.load({}, function(){ /* noop */ })
           }).should.not.throw();
+
+          mod.unload();
 
         });
 
