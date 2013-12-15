@@ -1,6 +1,7 @@
 var fs                = require('fs'),
     join              = require('path').join,
     should            = require('should'),
+    os                = require('os'),
     helpers           = require(join('..', '..', 'helpers')),
     unzip             = require(helpers.lib_path('utils', 'unzip')),
     rmdir             = require(helpers.lib_path('utils', 'rmdir'));
@@ -33,7 +34,7 @@ describe('lib/utils/unzip', function (){
 
   describe('when a valid zip file is given', function (){
 
-    describe('and it haves write permissions', function (){
+    describe('with write permissions', function (){
 
       it('expands it in the destination directory', function (done){
         unzip(valid_zip_path, tmpdir, function(err) {
@@ -51,7 +52,10 @@ describe('lib/utils/unzip', function (){
 
     });
 
-    describe('and it doesn\'t have write permissions', function (){
+    // no write perms only testable in *Nix and Windows > XP
+    if (!is_windows || parseFloat(os.release()) > 5.1) {
+
+    describe('with no write permissions', function (){
 
       var test_no_perms_path = tmpdir + '/test_no_perms';
 
@@ -62,12 +66,14 @@ describe('lib/utils/unzip', function (){
       });
 
       after(function(done){
+        fs.chmodSync(test_no_perms_path, 0700);
         fs.rmdir(test_no_perms_path, done);
       });
 
       it('unzip will callback with an EACCES error', function(done) {
 
         unzip(valid_zip_path, test_no_perms_path, function(err) {
+          should.exist(err);
           err.code.should.equal('EACCES');
           done();
         });
@@ -75,6 +81,8 @@ describe('lib/utils/unzip', function (){
       });
 
     });
+    
+    }
 
   });
 

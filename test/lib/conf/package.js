@@ -123,6 +123,9 @@ describe('config upgrade', function() {
         // noop
       });
     })
+    
+    // no write perms only testable in *Nix and Windows > XP
+    if (!is_windows || parseFloat(os.release()) > 5.1) {
 
     describe('with no write permissions', function(){
       var getter, dest;
@@ -162,6 +165,8 @@ describe('config upgrade', function() {
       });
 
     });
+    
+    }
 
     describe('with write permissions', function(){
 
@@ -194,13 +199,13 @@ describe('config upgrade', function() {
 
       // this test probably passes only in *nixes
       if (!is_windows) {
-      it('makes sure bin/node and bin/prey are executable', function(done){
-        package.get_latest('1.2.3', dest, function(err){
-          fs.statSync(join(dest, new_version, 'bin', 'prey')).mode.should.equal(33261);
-          fs.statSync(join(dest, new_version, 'bin', 'node')).mode.should.equal(33261);
-          done()
+        it('makes sure bin/node and bin/prey are executable', function(done){
+          package.get_latest('1.2.3', dest, function(err){
+            fs.statSync(join(dest, new_version, 'bin', 'prey')).mode.should.equal(33261);
+            fs.statSync(join(dest, new_version, 'bin', 'node')).mode.should.equal(33261);
+            done()
+          });
         });
-      });
       }
 
       it('removes downloaded package', function (done){
