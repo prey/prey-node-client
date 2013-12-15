@@ -19,9 +19,8 @@ if (is_windows) {
   bin_prey  += '.cmd';
 }
 
-function run_bin_prey(args, cb){
+function run_bin_prey(args, cb) {
   var child = spawn(bin_prey, args, { env: exec_env });
-
   var out = '', err = '';
 
   child.stdout.on('data', function(data){
@@ -120,7 +119,7 @@ describe('bin/prey', function(){
 
       it('calls lib/conf/cli.js', function(done){
         run_bin_prey(['config'], function(code, out){
-          out.should.include('prey config');
+          out.should.include('config [<args>]');
           out.should.include('activate');
           out.should.include('deactivate');
           done();

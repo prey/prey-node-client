@@ -26,8 +26,12 @@ describe('hardware', function(){
         nics.should.be.an.Array;
         nics.length.should.be.above(0);
 
+        var keys = ['name', 'type', 'ip_address', 'mac_address'];
+        if (process.platform == 'win32')
+          keys = keys.concat(['vendor', 'model']);
+
         var nic = nics[0];
-        nic.should.have.keys(['name', 'type', 'ip_address', 'mac_address']);
+        nic.should.have.keys(keys);
         done();
       });
     });
