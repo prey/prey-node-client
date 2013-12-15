@@ -109,6 +109,8 @@ describe('Push Driver', function(){
         })
 
         stub2 = sinon.stub(entry, 'public_ip', function(cb) {
+          // set api key so scrambler works
+          common.config.set('api_key', 'foobar');
           return cb(null, '123.123.123.123');
         })
 
