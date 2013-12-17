@@ -57,10 +57,10 @@ describe('config upgrade', function() {
     var spy = sinon.spy(needle, 'get');
 
     package.get_upstream_version(function(err, ver){
+      spy.restore();
       should.not.exist(err);
       ver.should.match(/\d\.\d\.\d/);
       spy.calledOnce.should.be.true;
-      spy.restore();
       done();
     });
   });
