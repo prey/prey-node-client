@@ -1,7 +1,9 @@
 var fs                  = require('fs'),
     join                = require('path').join,
     should              = require('should'),
+    sinon               = require('sinon'),
     Emitter             = require('events').EventEmitter,
+    entry               = require('entry'),
     valid_opts          = require('./fixtures/valid_opts');
 
 var default_config_path = join(__dirname, '..', '..', '..', '..', 'prey.conf.default'),
@@ -32,13 +34,21 @@ describe('all drivers', function(){
 
       it('does not throw', function(done){
 
-        drivers.forEach(function(driver_name){
+        drivers.forEach(function(driver_name) {
 
           var mod = require(join(drivers_path, driver_name));
+          
+          if (driver_name == 'push') {
+            var stub = sinon.stub(entry, 'mine', function(cb) { cb(new Error('Foobar')) })
+          }
 
           (function(){
             mod.load({}, function(){ /* noop */ })
           }).should.not.throw();
+
+          if (driver_name == 'push') {
+            stub.restore();
+          }
 
           mod.unload();
 

@@ -1,5 +1,5 @@
 var helpers    = require('./../../../helpers'),
-    should     = require('should')
+    should     = require('should'),
     provider   = helpers.load('providers/bandwidth');
 
 describe('Bandwidth', function() {

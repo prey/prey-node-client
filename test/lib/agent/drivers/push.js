@@ -8,16 +8,41 @@ var fs       = require('fs'),
     entry    = require('entry'),
     needle   = require('needle');
 
-var common   = helpers.load('common'),
+var api      = require(helpers.root_path + '/lib/api'),
+    common   = helpers.load('common'),
     hooks    = helpers.load('hooks');
 
-common.logger.off(); // THANK YOU.
 
 describe('Push Driver', function(){
   
   var driver,
       stub, 
-      spy;
+      spy,
+      api_stub,
+      entry_stub;
+      
+  var stub_entry = function(obj) {
+    return sinon.stub(entry, 'mine', function(cb) {
+      cb(obj);
+    });
+  }
+      
+  before(function() {
+    common.logger.off();
+
+    api_stub = sinon.stub(api.push, 'data', function(data, opts, cb) { 
+      var resp = { statusCode: 200 }
+      cb && cb(null, resp) 
+    });
+    
+    entry_stub = stub_entry(new Error('No workie.'))
+  })
+  
+  after(function() {
+    // common.logger.on();
+    api_stub.restore();
+    entry_stub.restore();
+  })
   
   var load_it = function(cb) {
     driver = push.load({}, cb);
@@ -39,10 +64,10 @@ describe('Push Driver', function(){
     
     it('checks port mapping', function() {
 
-      spy = sinon.spy(entry, 'mine');
+      entry_stub.reset();
       load_it(unload_it); // yes. this is inception all the way.
-      spy.calledOnce.should.be.true;
-      spy.restore();
+      entry_stub.calledOnce.should.be.true;
+      entry_stub.reset();
 
     })
     
@@ -51,13 +76,11 @@ describe('Push Driver', function(){
       before(function() {
         push.unload(); // make sure is_mapping is false, so the stub is called
 
-        stub = sinon.stub(entry, 'mine', function(cb) {
-          return cb(new Error('Unable to map.'))
-        })
+        // entry.mine is already stubbed above
       })
       
       after(function() {
-        stub.restore();
+        // stub.restore();
       })
 
       it('triggers unreachable hook', function(done) {
@@ -94,11 +117,12 @@ describe('Push Driver', function(){
     
     describe('and port mapping succeeds', function() {
 
-      var stub2, stub3;
-      var api = require(helpers.root_path + '/lib/api');
+      var stub2;
 
       before(function() {
         // push.unload(); // make sure is_mapping is false, so the stub is called
+
+        entry_stub.restore();
 
         stub = sinon.stub(entry, 'mine', function(cb) {
           var mapping = [ { 
@@ -113,26 +137,22 @@ describe('Push Driver', function(){
           common.config.set('api_key', 'foobar');
           return cb(null, '123.123.123.123');
         })
-
-        stub3 = sinon.stub(api.push, 'data', function(data, opts, cb) { 
-          var resp = { statusCode: 200 }
-          cb && cb(null, resp) 
-        });
       })
       
       after(function() {
+        entry_stub.reset();
         stub.restore();
         stub2.restore();
-        stub3.restore();
       })
       
       it('notifies availability for push', function(done) {
 
+        api_stub.reset()
         load_it(function(){ /* noop */ });
 
         process.nextTick(function() {
-          stub3.calledOnce.should.be.true;
-          stub3.args[0][0].should.have.keys('notification_id');
+          api_stub.calledOnce.should.be.true;
+          api_stub.args[0][0].should.have.keys('notification_id');
           unload_it();
           done()
         })
