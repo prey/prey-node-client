@@ -291,7 +291,7 @@ class ConfigDelegate < NSObject
 	end
   
   def clientConfigured
-    code, out = run_config('account verify --current')
+    code, out = run_config('verify --current')
     return code == 0
   end
 
