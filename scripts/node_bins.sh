@@ -78,6 +78,7 @@ fetch(){
   fetch_exe $version "node.exe" "$path86"
   fetch_exe $version "x64/node.exe" "$path64"
 
+  set_version $version
 }
 
 set_version(){
