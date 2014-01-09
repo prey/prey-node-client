@@ -76,8 +76,8 @@ describe('signup', function() {
     describe('with valid params', function() {
 
       var stub,
-          key    = 'abcdef123456',
-          params = {
+          key     = 'abcdef123456',
+          params  = {
             name: 'peter',
             email: 'hey@gmail.com',
             password: 'johnnycash'
@@ -96,7 +96,7 @@ describe('signup', function() {
 
         it('callbacks error', function(done){
 
-          signup(params, function(err, keys) {
+          signup(params, function(err, key) {
             should.exist(err);
             err.code.should.equal('UNKNOWN_RESPONSE');
             done();
@@ -106,8 +106,9 @@ describe('signup', function() {
         it('sets nothing', function(done){
           var spy = sinon.spy(api.keys, 'set');
 
-          signup(params, function(err, keys) {
+          signup(params, function(err, res) {
             should.exist(err);
+            should.not.exist(res);
             spy.called.should.be.false;
             spy.restore();
             done();
@@ -130,7 +131,6 @@ describe('signup', function() {
         it('returns key', function(done){
           signup(params, function(err, res) {
             should.not.exist(err);
-            // keys.should.have.keys('api');
             res.should.equal(key);
             done();
           })
@@ -139,7 +139,7 @@ describe('signup', function() {
         it('sets key internally', function(done){
           var spy = sinon.spy(api.keys, 'set');
 
-          signup(params, function(err, keys) {
+          signup(params, function(err, res) {
             should.not.exist(err);
             spy.calledWith({ api: key }).should.be.true;
             spy.restore();
