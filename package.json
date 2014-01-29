@@ -1,30 +1,48 @@
 {
-  "name":        "prey",
-  "version":     "1.0.7",
-  "author":      "Tomás Pollak <tomas@forkhq.com>",
-  "contributors": ["Herman Junge <herman@forkhq.com>"],
-  "keywords":    ["prey", "anti", "theft", "tracking", "remote", "monitoring", "stolen", "laptop"],
+  "name": "prey",
+  "version": "1.0.7",
+  "author": "Tomás Pollak <tomas@forkhq.com>",
+  "contributors": [
+    "Herman Junge <herman@forkhq.com>"
+  ],
+  "keywords": [
+    "prey",
+    "anti",
+    "theft",
+    "tracking",
+    "remote",
+    "monitoring",
+    "stolen",
+    "laptop"
+  ],
   "description": "They can run but they can't hide.",
-  "engine":      "node >= 0.6",
-  "os":          ["linux", "darwin", "win32"],
+  "engine": "node >= 0.6",
+  "os": [
+    "linux",
+    "darwin",
+    "win32"
+  ],
   "preferGlobal": true,
-  "repository": { "type": "git", "url": "https://github.com/prey/prey-node-client.git" },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/prey/prey-node-client.git"
+  },
   "dependencies": {
     "commander": "",
     "getset": ">=0.4.0",
-    "qs"    : "",
+    "qs": "",
     "needle": ">=0.5.5",
     "xml2js": "",
     "dialog": "",
     "mime": "1.2.5",
     "reply": "",
-    "async":"",
-    "underscore":"",
-    "unzip":"git://github.com/nearinfinity/node-unzip.git#548c16b9f51e2eaed5bc49a8f785ede38db1a02f",
+    "async": "",
+    "underscore": "",
+    "unzip": "git://github.com/nearinfinity/node-unzip.git#548c16b9f51e2eaed5bc49a8f785ede38db1a02f",
     "campfire": "",
     "nodemailer": "",
     "connect": "",
-    "entry": "",
+    "entry": "~0.2.1",
     "triggers": "",
     "winssh": "",
     "rimraf": "",
@@ -42,22 +60,24 @@
     "prey": "./bin/prey"
   },
   "directories": {
-    "bin" : "./bin",
-    "lib" : "./lib",
-    "scripts" : "./scripts",
+    "bin": "./bin",
+    "lib": "./lib",
+    "scripts": "./scripts",
     "spec": "./spec"
   },
   "scripts": {
     "start": "./bin/prey",
-    "test" : "./bin/prey test --recursive --reporter dot",
+    "test": "./bin/prey test --recursive --reporter dot",
     "postinstall": "node ./scripts/post_install.js",
     "preuninstall": "node ./scripts/pre_uninstall.js"
   },
-  "bugs"   :  {
-    "url" : "http://github.com/prey/prey-node-client/issues"
+  "bugs": {
+    "url": "http://github.com/prey/prey-node-client/issues"
   },
-  "licenses" : [{
-    "type" : "GPLv3",
-    "url"  : "https://github.com/prey/prey-node-client/raw/master/LICENSE"
-  }]
+  "licenses": [
+    {
+      "type": "GPLv3",
+      "url": "https://github.com/prey/prey-node-client/raw/master/LICENSE"
+    }
+  ]
 }
