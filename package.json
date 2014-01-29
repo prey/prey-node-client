@@ -42,7 +42,7 @@
     "campfire": "",
     "nodemailer": "",
     "connect": "",
-    "entry": "~0.2.1",
+    "entry": "",
     "triggers": "",
     "winssh": "",
     "rimraf": "",
