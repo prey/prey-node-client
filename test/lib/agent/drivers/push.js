@@ -117,7 +117,7 @@ describe('Push Driver', function(){
     
     describe('and port mapping succeeds', function() {
 
-      var stub2;
+      var stub2, stub3;
 
       before(function() {
         // push.unload(); // make sure is_mapping is false, so the stub is called
@@ -137,12 +137,18 @@ describe('Push Driver', function(){
           common.config.set('api_key', 'foobar');
           return cb(null, '123.123.123.123');
         })
+        
+        stub3 = sinon.stub(common.config, 'get', function() {
+          return 'foobar'; // make sure we get a key for scrambler
+        })
+        
       })
       
       after(function() {
         entry_stub.reset();
         stub.restore();
         stub2.restore();
+        stub3.restore();
       })
       
       it('notifies availability for push', function(done) {
