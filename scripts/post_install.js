@@ -11,7 +11,7 @@ var join        = require('path').join,
 
 var line = '\n=====================================================\n';
 
-var post_install = function(){
+var post_install = function() {
 
   if (!is_windows) {
     if (process.getuid && process.getuid() != 0) {
@@ -26,11 +26,11 @@ var post_install = function(){
 
   if (is_windows) prey_bin += '.cmd';
 
-  execFile(prey_bin, args, function(err, stdout, stderr){
+  execFile(prey_bin, args, function(err, stdout, stderr) {
     if (stdout.length > 0) console.log(stdout.trim());
     if (stderr.length > 0) console.log(stderr.trim());
     if (err) return console.log(err);
-    console.log("System setup successful! Please run 'prey config activate -g' to start tracking.");
+    console.log("System setup successful! Please run 'bin/prey config activate --gui' to finish the installation.");
   });
 
 }
