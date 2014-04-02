@@ -6,6 +6,5 @@ node_modules
 install
 bin/node.*
 npm-debug.log
-
-# Mac Devs
+sandbox
 .DS_Store
