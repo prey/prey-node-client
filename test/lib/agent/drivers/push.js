@@ -5,6 +5,7 @@ var fs       = require('fs'),
     helpers  = require('./../../../helpers'),
     Emitter  = require('events').EventEmitter,
     push     = helpers.load('drivers/push'),
+    mapper   = helpers.load('drivers/push/mapper'),
     entry    = require('entry'),
     needle   = require('needle');
 
@@ -12,56 +13,55 @@ var api      = require(helpers.root_path + '/lib/api'),
     common   = helpers.load('common'),
     hooks    = helpers.load('hooks');
 
-
 describe('Push Driver', function(){
-  
+
   var driver,
-      stub, 
+      stub,
       spy,
       api_stub,
       entry_stub;
-      
+
   var stub_entry = function(obj) {
     return sinon.stub(entry, 'mine', function(cb) {
       cb(obj);
     });
   }
-      
+
   before(function() {
     common.logger.off();
 
-    api_stub = sinon.stub(api.push, 'data', function(data, opts, cb) { 
+    api_stub = sinon.stub(api.push, 'data', function(data, opts, cb) {
       var resp = { statusCode: 200 }
-      cb && cb(null, resp) 
+      cb && cb(null, resp)
     });
-    
+
     entry_stub = stub_entry(new Error('No workie.'))
   })
-  
+
   after(function() {
     // common.logger.on();
     api_stub.restore();
     entry_stub.restore();
   })
-  
+
   var load_it = function(cb) {
     driver = push.load({}, cb);
   }
-  
+
   var unload_it = function(cb) {
     push.unload(cb);
   }
-  
+
   describe('when loading', function() {
-    
+
     it('it callsback an emitter', function(done) {
       load_it(function(err, emitter) {
-        should.not.exist(err); 
+        should.not.exist(err);
         emitter.should.be.an.instanceOf(Emitter);
         unload_it(done);
       })
     })
-    
+
     it('checks port mapping', function() {
 
       entry_stub.reset();
@@ -70,15 +70,15 @@ describe('Push Driver', function(){
       entry_stub.reset();
 
     })
-    
+
     describe('and port mapping fails', function() {
-      
+
       before(function() {
         push.unload(); // make sure is_mapping is false, so the stub is called
 
         // entry.mine is already stubbed above
       })
-      
+
       after(function() {
         // stub.restore();
       })
@@ -94,7 +94,7 @@ describe('Push Driver', function(){
         });
 
       })
-      
+
       it('does not unload', function(done) {
 
         var unloaded = false;
@@ -108,49 +108,52 @@ describe('Push Driver', function(){
             unloaded.should.be.false;
             unload_it(done);
           })
-          
+
           hooks.trigger('connected');
         })
       })
 
     })
-    
+
     describe('and port mapping succeeds', function() {
 
-      var stub2, stub3;
+      var stubs = []
 
       before(function() {
         // push.unload(); // make sure is_mapping is false, so the stub is called
 
         entry_stub.restore();
 
-        stub = sinon.stub(entry, 'mine', function(cb) {
-          var mapping = [ { 
-            NewPortMappingDescription: 'Prey Anti-Theft', 
-            NewExternalPort: 54321 
-          } ];
-          return cb(null, mapping);
-        })
+        stubs.push(sinon.stub(entry, 'mine', function(cb) {
+          var mapping = [{
+            NewPortMappingDescription: 'Prey Anti-Theft',
+            NewExternalPort: 54321
+          }];
 
-        stub2 = sinon.stub(entry, 'public_ip', function(cb) {
+          return cb(null, mapping);
+        }))
+
+        stubs.push(sinon.stub(entry, 'public_ip', function(cb) {
           // set api key so scrambler works
           common.config.set('api_key', 'foobar');
           return cb(null, '123.123.123.123');
-        })
-        
-        stub3 = sinon.stub(common.config, 'get', function() {
+        }))
+
+        stubs.push(sinon.stub(common.config, 'get', function() {
           return 'foobar'; // make sure we get a key for scrambler
-        })
-        
+        }))
+
+        stubs.push(sinon.stub(mapper, 'public_ip', function(cb) {
+          cb(null, '12.23.34.45');
+        }))
+
       })
-      
+
       after(function() {
         entry_stub.reset();
-        stub.restore();
-        stub2.restore();
-        stub3.restore();
+        stubs.forEach(function(s) { s.restore() });
       })
-      
+
       it('notifies availability for push', function(done) {
 
         api_stub.reset()
@@ -164,7 +167,7 @@ describe('Push Driver', function(){
         })
 
       })
-      
+
       describe('and notify succeeds', function() {
 
         it('sets an IP check timer', function(done) {
@@ -182,34 +185,34 @@ describe('Push Driver', function(){
         })
 
         describe('and IP eventually changes', function() {
-        
+
           it('should update notification ID')
-        
+
         })
-        
+
       })
 
       describe('and notify fails', function() {
-        
+
         it('does not unload')
-        
+
       })
-      
-    })
-    
-  })
-  
-  describe('after loaded', function() {
-    
-    // before(load_it)
-    // after(unload_it)
-    
-    describe('and network status changes', function() {
-      
-      it('checks the mapping status')
-      
+
     })
 
   })
-  
+
+  describe('after loaded', function() {
+
+    // before(load_it)
+    // after(unload_it)
+
+    describe('and network status changes', function() {
+
+      it('checks the mapping status')
+
+    })
+
+  })
+
 })
