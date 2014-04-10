@@ -1,6 +1,6 @@
 {
   "name": "prey",
-  "version": "1.0.8",
+  "version": "1.1.0",
   "dependencies": {
     "async": {
       "version": "0.2.9",
@@ -111,7 +111,23 @@
     "entry": {
       "version": "0.2.4",
       "from": "entry@0.2.4",
-      "resolved": "https://registry.npmjs.org/entry/-/entry-0.2.4.tgz"
+      "resolved": "https://registry.npmjs.org/entry/-/entry-0.2.4.tgz",
+      "dependencies": {
+        "needle": {
+          "version": "0.7.0",
+          "from": "needle@0.7.0",
+          "dependencies": {
+            "qs": {
+              "version": "0.6.6",
+              "from": "qs@"
+            },
+            "iconv-lite": {
+              "version": "0.2.11",
+              "from": "iconv-lite@"
+            }
+          }
+        }
+      }
     },
     "getset": {
       "version": "0.5.5",
@@ -381,13 +397,12 @@
       }
     },
     "needle": {
-      "version": "0.6.3",
-      "from": "https://registry.npmjs.org/needle/-/needle-0.6.3.tgz",
-      "resolved": "https://registry.npmjs.org/needle/-/needle-0.6.3.tgz",
+      "version": "0.7.0",
+      "from": "needle@0.7.0",
       "dependencies": {
         "iconv-lite": {
           "version": "0.2.11",
-          "from": "iconv-lite@0.2.11"
+          "from": "iconv-lite@"
         }
       }
     },
@@ -506,9 +521,8 @@
       }
     },
     "triggers": {
-      "version": "0.0.8",
-      "from": "https://registry.npmjs.org/triggers/-/triggers-0.0.8.tgz",
-      "resolved": "https://registry.npmjs.org/triggers/-/triggers-0.0.8.tgz"
+      "version": "0.1.0",
+      "from": "triggers@0.1.0"
     },
     "underscore": {
       "version": "1.5.2",
