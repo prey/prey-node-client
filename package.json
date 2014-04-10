@@ -49,6 +49,7 @@
     "winssh": "",
     "rimraf": "",
     "which": "",
+    "nat-pmp": "",
     "jpegtran-bin": ""
   },
   "devDependencies": {
