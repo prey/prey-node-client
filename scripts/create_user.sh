@@ -37,13 +37,6 @@ ADMIN_GROUP_ID=80
 # linux
 ADMIN_GROUP=adm
 
-id $USER_NAME &> /dev/null
-
-if [ $? -eq 0 ]; then
-  echo "${USER_NAME} user already exists!"
-  exit 1
-fi
-
 ask_confirmation() {
   echo -e "\nWe will now create a user '${USER_NAME}' with (limited) impersonation privileges."
   echo -e "This means he will be able to run commands on behalf of other users, in order to give Prey"
@@ -98,7 +91,7 @@ grant_privileges() {
 
   if [ -f "$SUDOERS_FILE" ]; then
     echo "${USER_NAME} already seems to have impersonation privileges. Skipping..."
-    return 1
+    return 0
   fi
 
   echo "Giving ${USER_NAME} user passwordless sudo priviledges..."
@@ -126,6 +119,14 @@ test_impersonation() {
     return 1
   fi
 }
+
+id $USER_NAME &> /dev/null
+
+if [ $? -eq 0 ]; then
+  echo "${USER_NAME} user already exists!"
+  grant_privileges # in case it was an older installation without sudoer rights set
+  exit 1
+fi
 
 # ask_confirmation
 create_user
