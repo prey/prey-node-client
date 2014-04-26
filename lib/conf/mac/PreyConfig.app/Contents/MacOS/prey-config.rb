@@ -10,6 +10,8 @@
 require 'osx/cocoa'
 include OSX
 
+FORCE_CONFIG = ARGV[0] == '-f' or ARGV[0] == '--force'
+
 APP_NAME  = 'Prey Configurator'
 HEIGHT = 400
 WIDTH  = 500
@@ -25,15 +27,15 @@ LOGO        = PIXMAPS + '/prey-text-shadow.png'
 TABS = ['welcome', 'new_user', 'existing_user', 'success']
 
 TITLES = {
-  :welcome => 'Greetings, good friend. Please choose your destiny.',
-  :new_user => "Please type in your info and we'll sign you up for a new Prey account.",
+  :welcome       => 'Greetings, good friend. Please choose your destiny.',
+  :new_user      => "Please type in your info and we'll sign you up for a new Prey account.",
   :existing_user => 'Please type in your Prey account credentials.',
-  :success => 'Sweet! Your computer is now protected by Prey. To try it out or to start tracking it, please visit preyproject.com.'
+  :success       => 'Sweet! Your computer is now protected by Prey. To try it out or to start tracking it, please visit preyproject.com.'
 }
 
 OPTIONS = {
-  :new => "Choose this option if this is the first time you've installed Prey.",
-  :existing => "If you've already set up Prey on this or another device."
+  :new           => "Choose this option if this is the first time you've installed Prey.",
+  :existing      => "If you've already set up Prey on this or another device."
 }
 
 class ConfigWindow < NSWindow
@@ -59,7 +61,7 @@ class ConfigDelegate < NSObject
     drawImage(LOGO, [292, 67, CENTER-(292/2), 310], window.contentView)
     drawButtons
     drawTabs
-    if clientConfigured
+    if !FORCE_CONFIG and clientConfigured
       showSuccess
     else
       setTab(0)

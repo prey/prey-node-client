@@ -2,7 +2,7 @@
 ################################################
 # Prey Configurator for Linux
 # By Tomas Pollak
-# (c) 2012 - Fork Ltd. (usefork.com)
+# (c) 2012-2014 - Fork Ltd. (usefork.com)
 ################################################
 
 # if having trouble with the GTK theme as root, do this:
@@ -15,6 +15,7 @@
 APP_NAME = 'prey-config'
 LANG_PATH = 'lang'
 
+import sys
 import pygtk
 import gtk
 import os
@@ -36,6 +37,8 @@ _ = gettext.gettext
 ################################################
 # vars and such
 ################################################
+
+FORCE_CONFIG = len(sys.argv) > 1 and (sys.argv[1] == '-f' or sys.argv[1] == '--force')
 
 OUT = STDOUT # None
 
@@ -311,23 +314,23 @@ class PreyConfigurator(object):
     self.show_alert(_('Success'), _('Bingo! Your computer is now protected by Prey. To try it out or to start tracking it, please visit preyproject.com.'), True)
 
   def __init__(self):
-    if self.client_configured():
+    if not FORCE_CONFIG and self.client_configured():
       return self.exit_ok()
 
     builder = gtk.Builder()
     builder.set_translation_domain(APP_NAME)
     builder.add_from_file(SCRIPT_PATH + "/prey-config.glade")
     builder.connect_signals({
-      "on_window_destroy" : gtk.main_quit,
-      "prev_page" : self.prev_page,
-      "next_page" : self.next_page,
-      "toggle_buttons" : self.toggle_buttons,
-      "apply_settings" : self.apply_settings,
+      "on_window_destroy"     : gtk.main_quit,
+      "prev_page"             : self.prev_page,
+      "next_page"             : self.next_page,
+      "toggle_buttons"        : self.toggle_buttons,
+      "apply_settings"        : self.apply_settings,
       "toggle_pg3_next_apply" : self.toggle_pg3_next_apply,
-      "set_default_action" : self.set_default_action,
-      "ensure_visible" : self.ensure_visible,
-      "key_pressed" : self.key_pressed,
-      "close_about" : self.close_about
+      "set_default_action"    : self.set_default_action,
+      "ensure_visible"        : self.ensure_visible,
+      "key_pressed"           : self.key_pressed,
+      "close_about"           : self.close_about
     })
 
     self.window = builder.get_object("window")
