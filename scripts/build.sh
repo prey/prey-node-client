@@ -33,7 +33,7 @@ build(){
   VERSION=$(bin/node -e 'console.log(JSON.parse(require("fs").readFileSync("package.json","utf8")).version)')
 
   [ -z "$VERSION" ] && abort "No version found!"
-  # [ -z "$(does_tag_exist v${VERSION})" ] && abort "Tag not found: v${VERSION}"
+  [ -z "$(does_tag_exist v${VERSION})" ] && abort "Tag not found: v${VERSION}"
   [ "$(git_modified_files)" -gt 0 ] && abort "Tree contains changes. Please commit or stash to avoid losing data."
 
   local current_branch=$(get_current_branch)
