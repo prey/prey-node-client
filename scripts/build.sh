@@ -10,11 +10,34 @@ run_specs(){
   bin/prey test --recursive --bail --reporter dot
 }
 
+abort() {
+  echo "$1" && exit 1
+}
+
+get_current_branch() {
+  git branch --no-color 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/\1/'
+}
+
+does_tag_exist(){
+  git tag | grep "$1" > /dev/null && echo 1
+}
+
+git_modified_files() {
+  git status | grep modified | wc -l
+}
+
 build(){
 
   CURRENT_PATH="$(pwd)"
   SCRIPT_PATH="$(dirname $0)"
-  VERSION=$(node -e 'console.log(JSON.parse(require("fs").readFileSync("package.json","utf8")).version)')
+  VERSION=$(bin/node -e 'console.log(JSON.parse(require("fs").readFileSync("package.json","utf8")).version)')
+
+  [ -z "$VERSION" ] && abort "No version found!"
+  # [ -z "$(does_tag_exist v${VERSION})" ] && abort "Tag not found: v${VERSION}"
+  [ "$(git_modified_files)" -gt 0 ] && abort "Tree contains changes. Please commit or stash to avoid losing data."
+
+  local current_branch=$(get_current_branch)
+  git checkout v${VERSION}
 
   DIST="$(pwd)/builds"
   ROOT="/tmp/prey-build.$$"
@@ -57,6 +80,7 @@ build(){
   cd $DIST
   # ./checksum.sh $VERSION
   cd $CURRENT_PATH
+  git checkout $current_branch
 
 }
 
