@@ -31,7 +31,10 @@ var upstream_version = function(ver) {
 
 var stub_get_file = function(file) {
   var fn = function(url, opts, cb) {
-    fs.readFile(file, function(err, data){
+    if (!opts.output)
+      return cb(null, { body: { 'filename': 'checksum' } });
+    
+    fs.readFile(file, function(err, data) {
       fs.writeFile(opts.output, data, function(err) {
         cb(null, { statusCode: 200 });
       });
@@ -92,7 +95,7 @@ describe('config upgrade', function() {
 
     it('requests the package', function (done){
       var file_name = get_file_name(new_version),
-          url       = 'http://s3.amazonaws.com/prey-releases/node-client/' + new_version + '/' + file_name,
+          url       = 'https://s3.amazonaws.com/prey-releases/node-client/' + new_version + '/' + file_name,
           outfile   = join(tmpdir, file_name);
 
       var getter    = sinon.stub(needle, 'get', function(requested_url, opts, cb){
