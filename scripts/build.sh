@@ -47,11 +47,12 @@ build(){
   ZIP="prey-${VERSION}.zip"
 
   mkdir -p "$ROOT/$FOLDER"
-  cp -R README.md license.txt prey.conf.default package.json bin lib scripts "$ROOT/$FOLDER"
+  cp -R npm-shrinkwrap.json README.md license.txt prey.conf.default package.json bin lib scripts "$ROOT/$FOLDER"
 
   cd "$ROOT/$FOLDER"
 
   BUNDLE_ONLY=1 npm install --production # > /dev/null
+  rm -f npm-shrinkwrap.json
 
   # remove stuff from main tarball
   rm -Rf $(find node_modules -name "example*")
