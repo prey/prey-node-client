@@ -16,17 +16,70 @@ describe('API Request Wrapper', function() {
 
   describe('get', function() {
 
-    describe('on connection error', function() {
+    var stub;
 
-      var stub = sinon.stub(needle, 'request', function(method, url, data, opts, cb) {
-        cb(new Error('socket hang up'));
+    describe('on a 200 response', function() {
+
+      before(function() {
+        stub = sinon.stub(needle, 'request', function(method, url, data, opts, cb) {
+          cb(null, { statusCode: 200 });
+        })
+      })
+
+      after(function() {
+        stub.restore();
+      })
+
+      it('does not retry the request', function(done) {
+
+        api_req.get('/devices/something', {}, function(err, resp, body) {
+          stub.callCount.should.equal(1);
+          done();
+        })
+
+      })
+
+    })
+
+    describe('on a 503 response', function() {
+
+      before(function() {
+        stub = sinon.stub(needle, 'request', function(method, url, data, opts, cb) {
+          cb(new Error('socket hang up'));
+        })
+      })
+
+      after(function() {
+        stub.restore();
       })
 
       it('retries the request', function(done) {
 
         api_req.get('/devices/something', {}, function(err, resp, body) {
           stub.callCount.should.equal(3);
-          stub.restore();
+          done();
+        })
+
+      })
+
+    })
+
+    describe('on connection error', function() {
+
+      before(function() {
+        stub = sinon.stub(needle, 'request', function(method, url, data, opts, cb) {
+          cb(new Error('socket hang up'));
+        })
+      })
+
+      after(function() {
+        stub.restore();
+      })
+
+      it('retries the request', function(done) {
+
+        api_req.get('/devices/something', {}, function(err, resp, body) {
+          stub.callCount.should.equal(3);
           done();
         })
 
