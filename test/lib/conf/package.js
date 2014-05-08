@@ -83,14 +83,14 @@ describe('config upgrade', function() {
     })
 
     it('does not download anything', function (done) {
-      package.get_latest('1.2.3', null, function (err, new_ver) {
+      package.get_latest('1.2.3', tmpdir, function (err, new_ver) {
         down.called.should.be.false;
         done();
       });
     });
     
     it('returns an error', function(done) {
-      package.get_latest('1.2.3', null, function (err, new_ver) {
+      package.get_latest('1.2.3', tmpdir, function (err, new_ver) {
         err.message.should.equal('Already running latest version.');
         should.not.exist(new_ver);
         done();
@@ -156,7 +156,6 @@ describe('config upgrade', function() {
 
         package.get_latest('1.2.3', tmpdir, function(err) {
           spy.called.should.be.false;
-          console.log('restoring');
           spy.restore();
           done()
         });
