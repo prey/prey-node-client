@@ -38,7 +38,6 @@
     "reply": "",
     "async": "",
     "underscore": "",
-    "unzip": "git://github.com/nearinfinity/node-unzip.git#548c16b9f51e2eaed5bc49a8f785ede38db1a02f",
     "campfire": "",
     "nodemailer": "",
     "network": "",
@@ -49,7 +48,8 @@
     "winssh": "",
     "rimraf": "",
     "which": "",
-    "nat-pmp": ""
+    "nat-pmp": "",
+    "decompress-zip": "git://github.com/tomas/decompress-zip"
   },
   "devDependencies": {
     "mocha": "",
