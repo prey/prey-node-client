@@ -4,17 +4,19 @@ var fs                  = require('fs'),
     sinon               = require('sinon'),
     Emitter             = require('events').EventEmitter,
     entry               = require('entry'),
-    valid_opts          = require('./fixtures/valid_opts');
+    valid_opts          = require('./fixtures/valid_opts'),
+    helpers             = require('../../../helpers'),
+    logger              = helpers.load('common').logger;
 
-var default_config_path = join(__dirname, '..', '..', '..', '..', 'prey.conf.default'),
-    drivers_path = join(__dirname, '..', '..', '..', '..', 'lib', 'agent', 'drivers'),
+var default_config_path = join(helpers.root_path, 'prey.conf.default'),
+    drivers_path = helpers.lib_path('agent', 'drivers'),
     drivers = fs.readdirSync(drivers_path);
     // console driver works differently, so lets remove it from the list
     drivers.splice(drivers.indexOf('console'), 1);
 
-describe('all drivers', function(){
-
-  describe('exports', function(){
+describe('all drivers', function() {
+  
+  describe('exports', function() {
 
     it('only load/unload functions', function(){
 
@@ -28,7 +30,15 @@ describe('all drivers', function(){
 
   });
 
-  describe('on load', function(){
+  describe('on load', function() {
+    
+    before(function() {
+      logger.off();
+    })
+    
+    after(function() {
+      logger.on(true);
+    })
 
     describe('when no options are passed', function(){
 
