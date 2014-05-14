@@ -71,102 +71,6 @@
       "from": "https://registry.npmjs.org/underscore/-/underscore-1.6.0.tgz",
       "resolved": "https://registry.npmjs.org/underscore/-/underscore-1.6.0.tgz"
     },
-    "unzip": {
-      "version": "0.1.7",
-      "from": "git://github.com/nearinfinity/node-unzip.git#548c16b9f51e2eaed5bc49a8f785ede38db1a02f",
-      "resolved": "git://github.com/nearinfinity/node-unzip.git#548c16b9f51e2eaed5bc49a8f785ede38db1a02f",
-      "dependencies": {
-        "fstream": {
-          "version": "0.1.25",
-          "from": "fstream@~0.1.21",
-          "dependencies": {
-            "mkdirp": {
-              "version": "0.3.5",
-              "from": "mkdirp@0.3"
-            },
-            "graceful-fs": {
-              "version": "2.0.3",
-              "from": "graceful-fs@~2.0.0"
-            },
-            "inherits": {
-              "version": "2.0.1",
-              "from": "inherits@~2.0.0"
-            }
-          }
-        },
-        "pullstream": {
-          "version": "0.4.0",
-          "from": "pullstream@~0.4.0",
-          "dependencies": {
-            "over": {
-              "version": "0.0.5",
-              "from": "over@~0.0.5"
-            },
-            "slice-stream": {
-              "version": "0.0.0",
-              "from": "slice-stream@0.0.0"
-            }
-          }
-        },
-        "binary": {
-          "version": "0.3.0",
-          "from": "binary@~0.3.0",
-          "dependencies": {
-            "chainsaw": {
-              "version": "0.1.0",
-              "from": "chainsaw@~0.1.0",
-              "dependencies": {
-                "traverse": {
-                  "version": "0.3.9",
-                  "from": "traverse@>=0.3.0 <0.4"
-                }
-              }
-            },
-            "buffers": {
-              "version": "0.1.1",
-              "from": "buffers@~0.1.1"
-            }
-          }
-        },
-        "readable-stream": {
-          "version": "1.0.27-1",
-          "from": "readable-stream@~1.0.17",
-          "dependencies": {
-            "core-util-is": {
-              "version": "1.0.1",
-              "from": "core-util-is@~1.0.0"
-            },
-            "isarray": {
-              "version": "0.0.1",
-              "from": "isarray@0.0.1"
-            },
-            "string_decoder": {
-              "version": "0.10.25-1",
-              "from": "string_decoder@~0.10.x"
-            },
-            "inherits": {
-              "version": "2.0.1",
-              "from": "inherits@~2.0.1"
-            }
-          }
-        },
-        "setimmediate": {
-          "version": "1.0.2",
-          "from": "setimmediate@~1.0.1"
-        },
-        "match-stream": {
-          "version": "0.0.2",
-          "from": "match-stream@git://github.com/EvanOxfeld/match-stream.git#callback-on-finish-wip",
-          "resolved": "git://github.com/EvanOxfeld/match-stream.git#070b5202a3a9250551ecab83c24f95f3bcf6a938",
-          "dependencies": {
-            "buffers": {
-              "version": "0.1.1",
-              "from": "buffers@~0.1.1"
-            }
-          }
-        }
-      }
-    },
     "campfire": {
       "version": "0.2.0",
       "from": "https://registry.npmjs.org/campfire/-/campfire-0.2.0.tgz",
@@ -566,6 +470,71 @@
           "from": "debug@0.7.4"
         }
       }
+    },
+    "decompress-zip": {
+      "version": "0.0.6",
+      "from": "git://github.com/tomas/decompress-zip",
+      "resolved": "git://github.com/tomas/decompress-zip#333c2e9bdb1c64aba70acbb336cf027516b528d9",
+      "dependencies": {
+        "q": {
+          "version": "1.0.1",
+          "from": "q@~1.0.0"
+        },
+        "mkpath": {
+          "version": "0.1.0",
+          "from": "mkpath@~0.1.0"
+        },
+        "binary": {
+          "version": "0.3.0",
+          "from": "binary@~0.3.0",
+          "dependencies": {
+            "chainsaw": {
+              "version": "0.1.0",
+              "from": "chainsaw@~0.1.0",
+              "dependencies": {
+                "traverse": {
+                  "version": "0.3.9",
+                  "from": "traverse@>=0.3.0 <0.4"
+                }
+              }
+            },
+            "buffers": {
+              "version": "0.1.1",
+              "from": "buffers@~0.1.1"
+            }
+          }
+        },
+        "touch": {
+          "version": "0.0.2",
+          "from": "touch@0.0.2",
+          "dependencies": {
+            "nopt": {
+              "version": "1.0.10",
+              "from": "nopt@~1.0.10",
+              "dependencies": {
+                "abbrev": {
+                  "version": "1.0.5",
+                  "from": "abbrev@1"
+                }
+              }
+            }
+          }
+        },
+        "nopt": {
+          "version": "2.2.1",
+          "from": "nopt@~2.2.0",
+          "dependencies": {
+            "abbrev": {
+              "version": "1.0.5",
+              "from": "abbrev@1"
+            }
+          }
+        }
+      }
+    },
+    "graceful-fs": {
+      "version": "2.0.3",
+      "from": "graceful-fs@"
     }
   }
 }
