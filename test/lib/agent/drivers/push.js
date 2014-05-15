@@ -71,28 +71,15 @@ describe('Push Driver', function(){
 
     })
 
-    describe('and port mapping fails', function() {
+    describe('and find_mapping fails', function() {
 
       before(function() {
         push.unload(); // make sure is_mapping is false, so the stub is called
-
         // entry.mine is already stubbed above
       })
 
       after(function() {
         // stub.restore();
-      })
-
-      it('triggers unreachable hook', function(done) {
-
-        spy = sinon.spy(hooks, 'trigger');
-        load_it(function(){ /* noop */ });
-
-        process.nextTick(function() {
-          spy.calledWith('unreachable').should.be.true;
-          unload_it(done)
-        });
-
       })
 
       it('does not unload', function(done) {
@@ -111,11 +98,51 @@ describe('Push Driver', function(){
 
           hooks.trigger('connected');
         })
+
+      })
+
+      it('attempts port mapping', function(done) {
+
+        spy = sinon.spy(mapper, 'map');
+        load_it(function(){ /* noop */ });
+
+        process.nextTick(function() {
+          spy.calledOnce.should.be.true;
+          spy.restore();
+          unload_it(done)
+        });
+
+      })
+
+      describe('and port mapping fails', function() {
+
+        var mapper_stub;
+
+        before(function() {
+          mapper_stub = sinon.stub(mapper, 'map', function(opts, cb) { return cb(new Error('Nope')) });
+        })
+
+        after(function() {
+          mapper_stub.restore();
+        })
+
+        it('triggers an unreachable event', function(done) {
+
+          spy = sinon.spy(hooks, 'trigger');
+          load_it(function(){ /* noop */ });
+
+          process.nextTick(function() {
+            spy.calledWith('unreachable').should.be.true;
+            unload_it(done)
+          });
+
+        })
+
       })
 
     })
 
-    describe('and port mapping succeeds', function() {
+    describe('and port finding succeeds', function() {
 
       var stubs = []
 
