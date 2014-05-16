@@ -19,10 +19,17 @@ describe('Push Driver', function(){
       stub,
       spy,
       api_stub,
-      entry_stub;
+      entry_stub,
+      mapper_stub;
 
   var stub_entry = function(obj) {
     return sinon.stub(entry, 'mine', function(cb) {
+      cb(obj);
+    });
+  }
+
+  var stub_mapper = function(obj) {
+    return sinon.stub(mapper, 'map', function(opts, cb) {
       cb(obj);
     });
   }
@@ -36,12 +43,14 @@ describe('Push Driver', function(){
     });
 
     entry_stub = stub_entry(new Error('No workie.'))
+    mapper_stub = stub_mapper(new Error('No workie.'))
   })
 
   after(function() {
     // common.logger.on();
     api_stub.restore();
     entry_stub.restore();
+    mapper_stub.restore();
   })
 
   var load_it = function(cb) {
@@ -103,12 +112,15 @@ describe('Push Driver', function(){
 
       it('attempts port mapping', function(done) {
 
-        spy = sinon.spy(mapper, 'map');
+        // already stubbed, so reset
+        mapper_stub.restore();
+        spy = sinon.stub(mapper, 'map', function(opts, cb) { cb(new Error('Ok mate')) });
         load_it(function(){ /* noop */ });
 
         process.nextTick(function() {
           spy.calledOnce.should.be.true;
           spy.restore();
+          mapper_stub.reset();
           unload_it(done)
         });
 
@@ -150,6 +162,7 @@ describe('Push Driver', function(){
         // push.unload(); // make sure is_mapping is false, so the stub is called
 
         entry_stub.restore();
+        mapper_stub.restore();
 
         stubs.push(sinon.stub(entry, 'mine', function(cb) {
           var mapping = [{
@@ -178,6 +191,7 @@ describe('Push Driver', function(){
 
       after(function() {
         entry_stub.reset();
+        mapper_stub.reset();
         stubs.forEach(function(s) { s.restore() });
       })
 

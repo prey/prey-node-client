@@ -9,13 +9,14 @@ var fs                  = require('fs'),
     logger              = helpers.load('common').logger;
 
 var default_config_path = join(helpers.root_path, 'prey.conf.default'),
-    drivers_path = helpers.lib_path('agent', 'drivers'),
-    drivers = fs.readdirSync(drivers_path);
-    // console driver works differently, so lets remove it from the list
-    drivers.splice(drivers.indexOf('console'), 1);
+    drivers_path        = helpers.lib_path('agent', 'drivers'),
+    drivers             = fs.readdirSync(drivers_path);
+
+// console driver works differently, so lets remove it from the list
+drivers.splice(drivers.indexOf('console'), 1);
 
 describe('all drivers', function() {
-  
+
   describe('exports', function() {
 
     it('only load/unload functions', function(){
@@ -31,11 +32,11 @@ describe('all drivers', function() {
   });
 
   describe('on load', function() {
-    
+
     before(function() {
       logger.off();
     })
-    
+
     after(function() {
       logger.on(true);
     })
@@ -47,9 +48,11 @@ describe('all drivers', function() {
         drivers.forEach(function(driver_name) {
 
           var mod = require(join(drivers_path, driver_name));
-          
+
           if (driver_name == 'push') {
-            var stub = sinon.stub(entry, 'mine', function(cb) { cb(new Error('Foobar')) })
+            var stub   = sinon.stub(entry, 'mine', function(cb) { cb(new Error('Foobar')) })
+            var mapper = helpers.load('drivers/push/mapper');
+            var stub2  = sinon.stub(mapper, 'map', function(opts, cb) { cb(new Error('Foobar')) })
           }
 
           (function(){
@@ -58,6 +61,7 @@ describe('all drivers', function() {
 
           if (driver_name == 'push') {
             stub.restore();
+            stub2.restore();
           }
 
           mod.unload();
