@@ -2,10 +2,14 @@ var helpers    = require('./../../../helpers'),
     should     = require('should'),
     provider   = helpers.load('providers/processes');
 
+if (process.platform == 'win32')
+  var process_keys = 'name ppid pid time'.split(' ');
+else
+  var process_keys = 'status user ppid pid cpu mem time name'.split(' ');
+
 var check_process = function(val) {
   var obj = val[0];
-  var keys = 'status user ppid pid cpu mem time name'.split(' ');
-  obj.should.have.keys(keys);
+  obj.should.have.keys(process_keys);
 };
 
 describe('processes', function(){

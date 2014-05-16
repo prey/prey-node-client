@@ -7,6 +7,9 @@ var fs      = require('fs'),
 
 var prey_bin = join(__dirname, '..', '..', '..', 'bin', 'prey');
 
+if (process.platform == 'win32')
+  prey_bin = prey_bin + '.cmd';
+
 // utility mirror function that returns whatever you pass to it
 var mirror   = function(obj) { return obj };
 
