@@ -367,7 +367,21 @@
     "network": {
       "version": "0.0.7",
       "from": "https://registry.npmjs.org/network/-/network-0.0.7.tgz",
-      "resolved": "https://registry.npmjs.org/network/-/network-0.0.7.tgz"
+      "resolved": "https://registry.npmjs.org/network/-/network-0.0.7.tgz",
+      "dependencies": {
+        "wmic": {
+          "version": "0.0.2",
+          "from": "wmic@0.0.2",
+          "resolved": "https://registry.npmjs.org/wmic/-/wmic-0.0.2.tgz",
+          "dependencies": {
+            "async": {
+              "version": "0.9.0",
+              "from": "async@",
+              "resolved": "https://registry.npmjs.org/async/-/async-0.9.0.tgz"
+            }
+          }
+        }
+      }
     },
     "nodemailer": {
       "version": "0.6.3",
@@ -498,8 +512,8 @@
       "resolved": "https://registry.npmjs.org/rimraf/-/rimraf-2.2.6.tgz"
     },
     "triggers": {
-      "version": "0.1.2",
-      "from": "triggers@0.1.2"
+      "version": "0.1.3",
+      "from": "triggers@0.1.3"
     },
     "underscore": {
       "version": "1.6.0",
@@ -516,15 +530,9 @@
       "resolved": "https://registry.npmjs.org/winssh/-/winssh-0.0.1.tgz"
     },
     "wmic": {
-      "version": "0.0.1",
-      "from": "wmic@",
-      "dependencies": {
-        "async": {
-          "version": "0.7.0",
-          "from": "async@0.7.0",
-          "resolved": "https://registry.npmjs.org/async/-/async-0.7.0.tgz"
-        }
-      }
+      "version": "0.0.2",
+      "from": "wmic@0.0.2",
+      "resolved": "https://registry.npmjs.org/wmic/-/wmic-0.0.2.tgz"
     },
     "xml2js": {
       "version": "0.4.2",
