@@ -111,6 +111,9 @@ describe('updating', function(){
             var child = fake_spawn_child();
 
             setTimeout(function(){
+              child.stdout.emit('data', new Buffer('Downloading file...'));
+              child.stdout.emit('data', new Buffer('Launching rockets'));
+              child.stdout.emit('data', new Buffer('SHOOT!!'));
               child.emit('exit');
             }, 10);
 
@@ -126,7 +129,8 @@ describe('updating', function(){
 
           updater.check(function(err){
             should.exist(err);
-            err.message.should.equal('Update failed.');
+            err.message.should.equal('Update to 1.2.5 failed.');
+            err.stack.should.include('Launching rockets\nSHOOT!!');
             done();
           });
 
