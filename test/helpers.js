@@ -6,6 +6,7 @@ var needle    = require('needle'),
     helpers   = {};
 
 console.log(' == NODE VERSION: ' + process.version);
+process.env.TESTING = 'true';
 
 helpers.root_path = root_path;
 
@@ -28,7 +29,7 @@ helpers.lib_path = function() {
   this helpers lets you fake requests using needle:
   helpers.stub_request(method, err, resp, body);
 
-  examples: 
+  examples:
   helpers.stub_request('get', null, { statusCode: 200 }, 'OK' );
   helpers.stub_request('post', null, { statusCode: 401 }, 'Unauthorized' );
   helpers.stub_request('put', new Error('ENOENT'))
@@ -51,7 +52,7 @@ helpers.stub_request = function(type, err, resp, body){
     cb(err, resp, body);
     needle[type].restore();
   });
-  
+
   return stub;
 
 }
