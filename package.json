@@ -49,6 +49,7 @@
     "rimraf": "",
     "which": "",
     "nat-pmp": "",
+    "scrambler": "",
     "decompress-zip": "git://github.com/tomas/decompress-zip"
   },
   "devDependencies": {
