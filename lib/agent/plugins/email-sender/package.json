@@ -1,0 +1,20 @@
+{
+  "name": "prey-plugin-email-sender",
+  "version": "0.0.1",
+  "options": {
+    "recipient": {
+      "message": "Enter target recipient."
+      "regex": "^\\S+@\\S+\\.\\S+$",
+    },
+    "subject": {
+      "message": "Enter email subject line.",
+      "default": "Prey Status Report",
+      "allow_empty": false
+    },
+    "from": {
+      "message": "Enter from address.",
+      "default": "Prey <prey-anti-theft@somewhere.com>",
+      "allow_empty": false  
+    }
+  }
+}
