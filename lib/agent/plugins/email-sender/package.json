@@ -3,8 +3,8 @@
   "version": "0.0.1",
   "options": {
     "recipient": {
-      "message": "Enter target recipient."
-      "regex": "^\\S+@\\S+\\.\\S+$",
+      "message": "Enter target recipient.",
+      "regex": "^\\S+@\\S+\\.\\S+$"
     },
     "subject": {
       "message": "Enter email subject line.",
