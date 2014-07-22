@@ -31,6 +31,7 @@
     "async": "",
     "buckle": "0.0.2",
     "campfire": "",
+    "clean-exit": "0.0.2",
     "commander": "",
     "connect": "",
     "decompress-zip": "git://github.com/tomas/decompress-zip",
