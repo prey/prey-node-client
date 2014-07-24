@@ -1,13 +1,14 @@
 {
-  "name": "prey-plugin-email-sender",
+  "name": "prey-plugin-reports-to-inbox",
+  "description": "Delivers a copy of each generated report to a specified inbox, directly via SMTP (no password needed).",
   "version": "0.0.1",
   "options": {
     "recipient": {
-      "message": "Enter target recipient.",
+      "message": "Enter email address for delivery. This is where the reports will be sent.",
       "regex": "^\\S+@\\S+\\.\\S+$"
     },
     "subject": {
-      "message": "Enter email subject line.",
+      "message": "Enter email subject line. You can leave this as it is.",
       "default": "Prey Status Report",
       "allow_empty": false
     },
