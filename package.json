@@ -45,7 +45,7 @@
     "network": "",
     "nodemailer": "",
     "qs": "",
-    "reply": "",
+    "reply": "^0.3.1",
     "rimraf": "",
     "scrambler": "0.0.1",
     "triggers": "0.1.3",
