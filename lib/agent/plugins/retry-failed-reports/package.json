@@ -1,4 +1,5 @@
 {
   "name": "prey-plugin-retry-failed-reports",
+  "description": "If a report fails to be sent because of a network error, this plugin will resend it later when reconnected.",
   "version": "0.0.1"
 }

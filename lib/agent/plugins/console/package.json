@@ -1,0 +1,5 @@
+{
+  "name": "prey-plugin-console",
+  "description": "A fun plugin that lets you control Prey from your terminal command line.",
+  "version": "0.0.1"
+}
