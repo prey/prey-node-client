@@ -3,7 +3,7 @@
 #############################
 
 # List of plugins to load at startup. For options, run 'bin/prey config plugins'.
-plugins_list = control-panel
+plugin_list = control-panel
 
 # Whether to try to connect to an open Wifi network if not online, when needing to send data.
 auto_connect = true
