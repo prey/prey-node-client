@@ -31,5 +31,5 @@ protocol = https
 api_key =
 device_key =
 
-# Includes status info (battery info, logged user) when checking in.
+# Includes status info (battery info, logged user, etc) when checking in.
 send_status_info = true
