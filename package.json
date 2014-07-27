@@ -37,7 +37,7 @@
     "decompress-zip": "git://github.com/tomas/decompress-zip",
     "dialog": "",
     "entry": "0.2.6",
-    "getset": ">=0.4.0",
+    "getset": "^0.6.0",
     "memorize": "",
     "mime": "1.2.5",
     "nat-pmp": "",
