@@ -44,6 +44,7 @@
     "needle": ">=0.5.5",
     "network": "",
     "nodemailer": "",
+    "petit": "0.0.3",
     "qs": "",
     "reply": "^0.3.1",
     "rimraf": "",
