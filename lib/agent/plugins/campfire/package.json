@@ -1,0 +1,29 @@
+{
+  "name": "prey-plugin-campfire",
+  "description": "Lets you control Prey through a Campfire chat session.",
+  "version": "0.0.1",
+  "options": {
+    "token": {
+      "message": "The Prey user's Campfire user/API token. You need to use a separate user for this, not your own.",
+      "allow_empty": false
+    },
+    "subdomain": {
+      "message": "Your Campfire's account subdomain.",
+      "allow_empty": false
+    },
+    "room_id": {
+      "message": "The Room ID to connect to. It's the last part of the URL when the chat window is open.",
+      "allow_empty": false
+    },
+    "nickname": {
+      "message": "The nickname under which Prey will appear on the chat room.",
+      "default": "prey",
+      "allow_empty": false
+    },
+    "magic_word": {
+      "message": "The magic word you'll use on the chat room to identify yourself.",
+      "default": "prettyplease",
+      "allow_empty": false
+    }
+  }
+}
