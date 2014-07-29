@@ -34,7 +34,6 @@
     "clean-exit": "0.0.2",
     "commander": "",
     "connect": "",
-    "decompress-zip": "git://github.com/tomas/decompress-zip",
     "dialog": "",
     "entry": "0.2.6",
     "getset": "^0.6.0",
@@ -71,7 +70,7 @@
     "bin": "./bin",
     "lib": "./lib",
     "scripts": "./scripts",
-    "spec": "./spec"
+    "test": "./test"
   },
   "scripts": {
     "start": "./bin/prey",
@@ -85,7 +84,7 @@
   "licenses": [
     {
       "type": "GPLv3",
-      "url": "https://github.com/prey/prey-node-client/raw/master/LICENSE"
+      "url": "https://github.com/prey/prey-node-client/raw/master/license.txt"
     }
   ]
 }
