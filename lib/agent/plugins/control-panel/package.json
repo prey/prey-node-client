@@ -1,5 +1,5 @@
 {
   "name": "prey-plugin-control-panel",
-  "description": "Lets you remotely track and control your device using the official Prey Control Panel.",
+  "description": "The default. Lets you remotely track and control your device using the official Prey Control Panel.",
   "version": "0.0.1"
 }
