@@ -3,8 +3,8 @@ var fs                = require('fs'),
     should            = require('should'),
     os                = require('os'),
     helpers           = require(join('..', '..', 'helpers')),
-    unzip             = require(helpers.lib_path('utils', 'unzip')),
-    rmdir             = require(helpers.lib_path('utils', 'rmdir'));
+    unzip             = require('buckle').open,
+    rmdir             = require('rimraf');
 
 var is_windows        = process.platform === 'win32',
     tmpdir            = require('os').tmpDir(),

@@ -121,7 +121,7 @@ describe('bin/prey', function(){
         run_bin_prey(['config'], function(code, out){
           out.should.include('config [<args>]');
           out.should.include('activate');
-          out.should.include('deactivate');
+          out.should.include('plugins');
           done();
         });
       });
