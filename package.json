@@ -30,7 +30,7 @@
   "dependencies": {
     "async": "",
     "buckle": "0.0.2",
-    "campfire": "https://github.com/tomas/node-campfire",
+    "campfire": "git://github.com/tomas/node-campfire",
     "clean-exit": "0.0.2",
     "commander": "",
     "connect": "",
@@ -48,7 +48,7 @@
     "reply": "^0.3.1",
     "rimraf": "",
     "scrambler": "0.0.1",
-    "triggers": "0.1.3",
+    "triggers": "^0.1.4",
     "underscore": "",
     "which": "",
     "winssh": "",
