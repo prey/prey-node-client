@@ -37,7 +37,7 @@
     "dialog": "",
     "entry": "0.2.6",
     "getset": "^0.6.0",
-    "memorize": "",
+    "memorize": "0.0.1",
     "mime": "1.2.5",
     "nat-pmp": "",
     "needle": ">=0.5.5",
