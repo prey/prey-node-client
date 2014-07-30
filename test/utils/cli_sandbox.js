@@ -90,7 +90,7 @@ exports.run = function(opts) {
   }
 
   // this is a tricky one
-  sandbox_opts.requires[path.join('..', 'utils', 'pidfile')] = merge(def.pid, opts.pid);
+  sandbox_opts.requires['./utils/pidfile'] = merge(def.pid, opts.pid);
 
   // load any additional requires passed
   if (opts.requires) {

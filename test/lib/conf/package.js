@@ -4,9 +4,9 @@ var fs            = require('fs'),
     os            = require('os'),
     sinon         = require('sinon'),
     should        = require('should'),
-    package       = require(join(__dirname, '..', '..', '..', 'lib', 'package')),
-    rmdir         = require(join(__dirname, '..', '..', '..', 'lib', 'utils', 'rmdir')),
-    unzip_path    = join(__dirname, '..', '..', '..', 'lib', 'utils', 'unzip');
+    rmdir         = require('rimraf');
+
+var package       = require(join(__dirname, '..', '..', '..', 'lib', 'package'));
 
 var is_windows    = process.platform === 'win32';
 var tmpdir        = is_windows ? process.env.WINDIR + '\\Temp' : '/tmp';

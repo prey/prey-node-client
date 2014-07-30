@@ -128,7 +128,7 @@ describe('config cli', function() {
       before(function(done) {
         var deps = {
           './../common' : common_base,
-          './../api': { keys: { verify: function(keys, cb) { return cb(new Error('Called!')) } } }
+          './panel' : { verify_keys: function(keys, cb) { return cb(new Error('Called!')) } }
         }
 
         sandbox.put(conf_cli_file, deps, done);

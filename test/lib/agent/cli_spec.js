@@ -42,7 +42,7 @@ describe('lib/agent/cli_spec', function(){
 
     describe('if agent is running', function(){
       it('calls agent.shutdown')
-      it ('removes pid')
+      it('removes pid')
     });
 
     describe('if agent is NOT running', function(){
@@ -61,9 +61,11 @@ describe('lib/agent/cli_spec', function(){
     // this function accepts a boolean as an argument which defines if exceptions are notified
     var run_cli = function(send_exceptions) {
       var bad_pid  = { store: function() { throw(new Error('ola ke ase')) } }
-      var common   = { config: { get: function(key) { return send_exceptions } } }
-      var requires = { './exceptions': { send: function(err) { sent_exception = err } } }
-      result = cli_sandbox.run({ pid: bad_pid, common: common, requires: requires })
+      var common   = { 
+        config: { get: function(key) { return send_exceptions } },
+        exceptions: { send: function(err) { sent_exception = err } }
+      }
+      result = cli_sandbox.run({ pid: bad_pid, common: common })
     }
 
     describe('and send_crash_reports if config is false?', function(){
@@ -112,9 +114,12 @@ describe('lib/agent/cli_spec', function(){
       }
     }
 
-    var run_cli = function(store_func){
+    var run_cli = function(store_func) {
       var fake_pid = { store: store_func }
-      var fake_common = { config: { get: function(key){ return key } } }
+      var fake_common = { 
+        config: { get: function(key){ return key } },
+        exceptions: { send: function() { /* noop */ } } 
+      }
       result = cli_sandbox.run({ pid: fake_pid, common: fake_common });
     }
 
