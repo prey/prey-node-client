@@ -40,7 +40,7 @@
     "memorize": "0.0.1",
     "mime": "1.2.5",
     "nat-pmp": "",
-    "needle": ">=0.5.5",
+    "needle": "^0.7.7",
     "network": "",
     "nodemailer": "",
     "petit": "0.0.3",
