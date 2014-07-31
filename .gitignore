@@ -8,3 +8,4 @@ bin/node.*
 npm-debug.log
 sandbox
 .DS_Store
+coverage
