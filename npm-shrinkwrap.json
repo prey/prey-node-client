@@ -507,7 +507,7 @@
     },
     "scrambler": {
       "version": "0.0.1",
-      "from": "scrambler@"
+      "from": "scrambler@0.0.1"
     },
     "triggers": {
       "version": "0.1.4",
