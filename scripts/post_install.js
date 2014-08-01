@@ -8,10 +8,23 @@ var fs          = require('fs'),
     execFile    = require('child_process').execFile,
     bin_path    = join(__dirname, '..', 'bin'),
     prey_bin    = join(bin_path, 'prey'),
-    args        = ['config', 'hooks', 'post_install'],
     is_windows  = process.platform === 'win32';
 
+var args = {
+  post_install  : ['config', 'hooks', 'post_install'],
+  activate      : ['config', 'activate']
+}
+
 if (is_windows) prey_bin += '.cmd';
+
+var run = function(args, cb) {
+  execFile(prey_bin, args, function(err, stdout, stderr) {
+    if (stdout.length > 0) console.log(stdout.trim());
+    if (stderr.length > 0) console.log(stderr.trim());
+
+    cb(err);
+  });
+}
 
 var line = '\n=====================================================\n';
 
@@ -36,7 +49,8 @@ var check_shebang = function(cb) {
   })
 }
 
-var post_install = function() {
+// installation hooks need to be set as the root user
+var run_hooks = function(cb) {
 
   if (!is_windows) {
     if (process.getuid && process.getuid() != 0) {
@@ -49,18 +63,28 @@ var post_install = function() {
     }
   }
 
-  execFile(prey_bin, args, function(err, stdout, stderr) {
-    if (stdout.length > 0) console.log(stdout.trim());
-    if (stderr.length > 0) console.log(stderr.trim());
-    if (err) return console.log(err);
-    console.log("System setup successful! Please run 'bin/prey config activate --gui' to finish the installation.");
-  });
+  run(args.post_install, cb);
+}
 
+var activate = function(cb) {
+  run(args.activate, cb);
+}
+
+var post_install = function() {
+  check_shebang(function(err) {
+    if (err) throw err;
+
+    run_hooks(function(err) {
+      if (err) throw err;
+
+      activate(function(err) {
+        if (!err)
+          console.log("All good! Please run 'prey config' to finish installation.");
+      });
+    });
+  });
 }
 
 if (!process.env.BUNDLE_ONLY) {
-  check_shebang(function(err) {
-    if (err) throw err;
-    post_install();
-  });
+  post_install()
 }

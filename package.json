@@ -36,7 +36,7 @@
     "connect": "",
     "dialog": "",
     "entry": "0.2.6",
-    "getset": "^0.6.0",
+    "getset": "^0.6.2",
     "memorize": "0.0.1",
     "mime": "1.2.5",
     "nat-pmp": "",
@@ -77,6 +77,7 @@
     "test": "./bin/prey test lib/agent/plugins test --recursive --reporter dot",
     "coverage": "istanbul cover _mocha -- lib/agent/plugins test --recursive",
     "postinstall": "node ./scripts/post_install.js",
+    "postupdate": "node ./scripts/post_install.js",
     "preuninstall": "node ./scripts/pre_uninstall.js"
   },
   "bugs": {
