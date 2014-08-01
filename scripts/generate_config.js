@@ -1,58 +1,67 @@
 #!/usr/bin/env node
 ////////////////////////////////////////////////////////////
 // Generates new config file based on each driver settings.
-// Dumps new confil file in root_path/prey.conf.default
+// Dumps new config file in root_path/prey.conf.default
 ////////////////////////////////////////////////////////////
 
-var path = require('path'),
-    config = require('getset'),
-    version = require(__dirname + '/../package').version,
-    finder = require('./../lib/utils/finder');
+var path    = require('path'),
+    getset  = require('getset'),
+    plugins = require('./../lib/ennio').init('./lib/agent/plugins'),
+    version = require(__dirname + '/../package').version;
 
-var config_file = __dirname + '/../prey.conf.default';
-// var config_header = ";;;;;\n;Prey " + version + " configuration file\n;;;;;\n";
-var files = {};
+var base_opts   = __dirname + '/../lib/agent/default.options',
+    config_file = __dirname + '/../prey.conf.default';
 
-var merge_data = function(type, plugin_name, results){
-  var data = {};
-  data[plugin_name] = results;
-  config.merge_data(type, data, true);
+var temp_config = getset.load(base_opts);
+
+function plugin_list() {
+  var sort_method = function(a,b) { return a != 'control-panel' && a > b };
+  var list = temp_config.get('plugin_list').sort(sort_method);
+  return list;
 }
 
-finder.eachFileMatching(/default.options$/, './lib/', function(err, file, stat){
+function merge_options(options, plugin_name) {
+  var values   = {};
+  var comments = {};
 
-  if (err || !file || file.match(/\/dist|\/node_modules/))
-    return;
+  for (var key in options) {
+    values[key] = options[key].default || '';
+    if (options[key].message) {
+      comments[key] = options[key].message; 
+    }
+  }
 
-  var plugin_name = path.basename(path.dirname(file));
+  // merge values
+  var obj = {};
+  obj[plugin_name] = values;
 
-  if (plugin_name == 'agent') // root path
-    config.load(file);
-  else
-    files[plugin_name] = file;
+  temp_config.merge_data('values', obj, true);
 
-}, function(){
+  // now merge comments
+  var obj = {};
+  obj[plugin_name] = comments;
 
-  // sort plugin names alphabetically before appending
-  var sort_method = function(a,b) { return a != 'control-panel' && a > b };
+  temp_config.merge_data('meta', { comments: obj }, true);
+}
 
-  Object.keys(files).sort(sort_method).forEach(function(plugin_name){
+function generate(destination) {
 
-    var result = config.read(files[plugin_name]);
-    merge_data('values', plugin_name, result.values);
-    merge_data('comments', plugin_name, result.comments);
+  plugin_list().forEach(function(plugin_name) {
+    console.log('Getting options for ' + plugin_name)
 
-    // console.log(plugin_name + " -> " + JSON.stringify(opts));
-    // config.set(plugin_name, opts, true);
+    var options = plugins.get(plugin_name).options;
+    if (options) {
+      merge_options(options, plugin_name);
+    }
+  })
 
-  });
+  temp_config.path = destination;
 
-  config._file = config_file;
-  console.log(config._values);
-
-  config.save(function(err){
-    if (err) console.log(err);
+  temp_config.save(function(err){
+    if (err) return console.log(err);
     else console.log("Config file saved in " + config_file);
   });
 
-});
+}
+
+generate(config_file);
