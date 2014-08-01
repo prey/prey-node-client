@@ -329,11 +329,28 @@
     "entry": {
       "version": "0.2.6",
       "from": "https://registry.npmjs.org/entry/-/entry-0.2.6.tgz",
-      "resolved": "https://registry.npmjs.org/entry/-/entry-0.2.6.tgz"
+      "resolved": "https://registry.npmjs.org/entry/-/entry-0.2.6.tgz",
+      "dependencies": {
+        "needle": {
+          "version": "0.7.7",
+          "from": "needle@0.7.7",
+          "dependencies": {
+            "qs": {
+              "version": "0.6.6",
+              "from": "qs@"
+            },
+            "iconv-lite": {
+              "version": "0.4.4",
+              "from": "iconv-lite@",
+              "resolved": "https://registry.npmjs.org/iconv-lite/-/iconv-lite-0.4.4.tgz"
+            }
+          }
+        }
+      }
     },
     "getset": {
-      "version": "0.6.1",
-      "from": "getset@0.6.1"
+      "version": "0.6.2",
+      "from": "getset@0.6.2"
     },
     "graceful-fs": {
       "version": "2.0.3",
@@ -359,20 +376,37 @@
       }
     },
     "needle": {
-      "version": "0.7.1",
-      "from": "https://registry.npmjs.org/needle/-/needle-0.7.1.tgz",
-      "resolved": "https://registry.npmjs.org/needle/-/needle-0.7.1.tgz",
+      "version": "0.7.7",
+      "from": "needle@0.7.7",
       "dependencies": {
         "iconv-lite": {
-          "version": "0.2.11",
-          "from": "iconv-lite@0.2.11"
+          "version": "0.4.4",
+          "from": "iconv-lite@",
+          "resolved": "https://registry.npmjs.org/iconv-lite/-/iconv-lite-0.4.4.tgz"
         }
       }
     },
     "network": {
       "version": "0.0.7",
       "from": "https://registry.npmjs.org/network/-/network-0.0.7.tgz",
-      "resolved": "https://registry.npmjs.org/network/-/network-0.0.7.tgz"
+      "resolved": "https://registry.npmjs.org/network/-/network-0.0.7.tgz",
+      "dependencies": {
+        "needle": {
+          "version": "0.7.7",
+          "from": "needle@0.7.7",
+          "dependencies": {
+            "qs": {
+              "version": "0.6.6",
+              "from": "qs@"
+            },
+            "iconv-lite": {
+              "version": "0.4.4",
+              "from": "iconv-lite@",
+              "resolved": "https://registry.npmjs.org/iconv-lite/-/iconv-lite-0.4.4.tgz"
+            }
+          }
+        }
+      }
     },
     "nodemailer": {
       "version": "0.6.3",
