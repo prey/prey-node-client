@@ -8,7 +8,7 @@
       "default": "solid.preyproject.com",
       "allow_empty": false
     },
-    "port": {
+    "protocol": {
       "message": "Protocol to use. Either http or https.",
       "default": "https",
       "allow_empty": false
