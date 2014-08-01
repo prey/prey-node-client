@@ -27,7 +27,7 @@ device_key =
 host = solid.preyproject.com
 
 # Protocol to use. Either http or https.
-port = https
+protocol = https
 
 # Your account's API key.
 api_key = 
