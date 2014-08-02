@@ -2,6 +2,7 @@ var fs      = require('fs'),
     join    = require('path').join,
     spawn   = require('child_process').spawn,
     should  = require('should'),
+    inspect = require('util').inspect,
     sandbox = require('./../../utils/spawner_sandbox'),
     helpers = require('./../../helpers');
 
@@ -117,40 +118,49 @@ describe('config cli', function() {
 
   })
 
-  describe('settings', function(){
-
-  })
-
   describe('account', function() {
 
     describe('verify', function() {
 
       before(function(done) {
+
         var deps = {
           './../common' : common_base,
-          './panel' : { verify_keys: function(keys, cb) { return cb(new Error('Called!')) } }
+          './keys'  : {
+            get: function() { return { api: 123456789, device: 123123 } }
+          },
+          './panel' : { 
+            verify_keys: function(keys, cb) { 
+              var str = [keys.api, keys.device].join(', ');
+              return cb(new Error('Called with keys: ' + str))
+            } 
+          }
         }
 
         sandbox.put(conf_cli_file, deps, done);
       })
 
-      after(unsandboxize_cli)
+      after(unsandboxize_cli);
 
-      it('tries to verify keys', function(done){
+      describe('with --current (-c) param', function() {
 
-        run_cli(['config', 'account', 'verify', '-a', 'foobar', '-d', 'barbaz'], function(code, out, err) {
-          out.should.include('Error! Called!');
-          done();
+        it('tries to verify current keys', function(done){
+
+          run_cli(['config', 'account', 'verify', '-c'], function(code, out, err) {
+            out.should.containEql('Called with keys: 123456789, 123123');
+            done();
+          })
+
         })
 
       })
 
-      describe('with invalid api key and email', function() {
+      describe('with --api-key and --email', function() {
 
         it('returns error code 1', function(done){
 
           run_cli(['config', 'account', 'verify', '-a', 'invalid', '-d', 'blablabla'], function(code, out, err) {
-            code.should.equal(1);
+            out.should.containEql('Called with keys: invalid, blablabla');
             done();
           })
 
