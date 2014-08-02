@@ -20,6 +20,6 @@
 	<key>UserName</key>
 	<string>{{user}}</string>
 	<key>ExitTimeOut</key>
-	<integer>5</integer>
+	<integer>10</integer>
 </dict>
 </plist>
