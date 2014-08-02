@@ -1,10 +1,18 @@
-#! bin/node
+#!/bin/sh
 
-var script = process.argv[2];
+dir="$(dirname $0)"
+script="lib/agent/cli.js"
 
-if (script == 'config')
-  require('../lib/conf/cli');
-else if (script == 'test')
-  require('../node_modules/.bin/_mocha');
+if [ "$1" = "config" ]; then
+  script="lib/conf/cli.js"
+elif [ "$1" = "test" ]; then
+  script="node_modules/.bin/_mocha"
+elif [ "$1" = "scripts" ]; then
+  script="scripts/$2"
+fi
+
+if [ -x "$dir/node" ]; then
+  exec "$dir/node" "$dir/../${script}" "$@"
 else
-  require('../lib/agent/cli');
+  exec node "$dir/../${script}" "$@"
+fi
