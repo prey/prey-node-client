@@ -72,8 +72,7 @@ describe('config cli', function() {
         it('fails miserably', function(done) {
 
           run_cli(['config', 'upgrade'], function(code, out, err) {
-            should.not.exist(out);
-            code.should.equal(0); // TODO: this should be 1
+            code.should.equal(1);
             done();
           })
 
