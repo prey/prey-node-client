@@ -332,16 +332,12 @@
       "resolved": "https://registry.npmjs.org/entry/-/entry-0.2.6.tgz",
       "dependencies": {
         "needle": {
-          "version": "0.7.7",
-          "from": "needle@0.7.7",
+          "version": "0.7.8",
+          "from": "needle@0.7.8",
           "dependencies": {
-            "qs": {
-              "version": "0.6.6",
-              "from": "qs@"
-            },
             "iconv-lite": {
               "version": "0.4.4",
-              "from": "iconv-lite@",
+              "from": "iconv-lite@^0.4.4",
               "resolved": "https://registry.npmjs.org/iconv-lite/-/iconv-lite-0.4.4.tgz"
             }
           }
@@ -376,12 +372,12 @@
       }
     },
     "needle": {
-      "version": "0.7.7",
-      "from": "needle@0.7.7",
+      "version": "0.7.8",
+      "from": "needle@0.7.8",
       "dependencies": {
         "iconv-lite": {
           "version": "0.4.4",
-          "from": "iconv-lite@",
+          "from": "iconv-lite@^0.4.4",
           "resolved": "https://registry.npmjs.org/iconv-lite/-/iconv-lite-0.4.4.tgz"
         }
       }
@@ -392,16 +388,12 @@
       "resolved": "https://registry.npmjs.org/network/-/network-0.0.7.tgz",
       "dependencies": {
         "needle": {
-          "version": "0.7.7",
-          "from": "needle@0.7.7",
+          "version": "0.7.8",
+          "from": "needle@0.7.8",
           "dependencies": {
-            "qs": {
-              "version": "0.6.6",
-              "from": "qs@"
-            },
             "iconv-lite": {
               "version": "0.4.4",
-              "from": "iconv-lite@",
+              "from": "iconv-lite@^0.4.4",
               "resolved": "https://registry.npmjs.org/iconv-lite/-/iconv-lite-0.4.4.tgz"
             }
           }
@@ -523,8 +515,9 @@
       }
     },
     "petit": {
-      "version": "0.0.3",
-      "from": "petit@"
+      "version": "0.0.5",
+      "from": "petit@0.0.5",
+      "resolved": "https://registry.npmjs.org/petit/-/petit-0.0.5.tgz"
     },
     "qs": {
       "version": "0.6.6",
@@ -546,6 +539,10 @@
     "triggers": {
       "version": "0.1.4",
       "from": "triggers@0.1.4"
+    },
+    "tuna": {
+      "version": "0.0.2",
+      "from": "tuna@0.0.2"
     },
     "underscore": {
       "version": "1.6.0",
