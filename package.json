@@ -43,7 +43,7 @@
     "needle": "^0.7.8",
     "network": "",
     "nodemailer": "",
-    "petit": "0.0.3",
+    "petit": "0.0.5",
     "qs": "",
     "reply": "^0.3.1",
     "rimraf": "",
