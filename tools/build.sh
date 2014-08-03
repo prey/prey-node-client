@@ -49,7 +49,7 @@ build(){
   ZIP="prey-${VERSION}.zip"
 
   mkdir -p "$ROOT/$FOLDER"
-  cp -R npm-shrinkwrap.json README.md license.txt prey.conf.default package.json bin lib scripts "$ROOT/$FOLDER"
+  cp -R npm-shrinkwrap.json README.md license.txt prey.conf.default package.json bin lib "$ROOT/$FOLDER"
 
   cd "$ROOT/$FOLDER"
 
