@@ -51,7 +51,7 @@ describe('scripts/post_install_spec', function(){
            *        As of 20130528, we need to issue the flag `unsafe-perm`
            **/
            var package_json_contents = JSON.parse(fs.readFileSync(package_json_path, 'utf8'));
-           package_json_contents.scripts.postinstall.should.be.equal('node ./scripts/post_install.js');
+           package_json_contents.scripts.postinstall.should.be.equal('bin/prey config hooks post_install');
         });
 
         if (is_root) {
