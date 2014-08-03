@@ -7,8 +7,6 @@ if [ "$1" = "config" ]; then
   script="lib/conf/cli.js"
 elif [ "$1" = "test" ]; then
   script="node_modules/.bin/_mocha"
-elif [ "$1" = "scripts" ]; then
-  script="scripts/$2"
 fi
 
 if [ -x "$dir/node" ]; then
