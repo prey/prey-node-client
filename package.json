@@ -51,6 +51,7 @@
     "rimraf": "",
     "satan": "^0.1.6",
     "scrambler": "0.0.1",
+    "sudoer": "0.0.2",
     "triggers": "^0.1.4",
     "tuna": "0.0.2",
     "uid-number": "0.0.5",

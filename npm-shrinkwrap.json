@@ -87,6 +87,10 @@
       "version": "0.0.2",
       "from": "clean-exit@"
     },
+    "colors": {
+      "version": "0.6.2",
+      "from": "colors@"
+    },
     "commander": {
       "version": "2.2.0",
       "from": "commander@2.2.0"
@@ -514,6 +518,10 @@
         }
       }
     },
+    "ocelot": {
+      "version": "0.0.2",
+      "from": "ocelot@0.0.2"
+    },
     "petit": {
       "version": "0.0.5",
       "from": "petit@0.0.5",
@@ -532,9 +540,85 @@
       "from": "https://registry.npmjs.org/rimraf/-/rimraf-2.2.6.tgz",
       "resolved": "https://registry.npmjs.org/rimraf/-/rimraf-2.2.6.tgz"
     },
+    "satan": {
+      "version": "0.1.6",
+      "from": "satan@0.1.6",
+      "resolved": "https://registry.npmjs.org/satan/-/satan-0.1.6.tgz",
+      "dependencies": {
+        "handlebars": {
+          "version": "2.0.0-alpha.4",
+          "from": "handlebars@^2.0.0-alpha.4",
+          "resolved": "https://registry.npmjs.org/handlebars/-/handlebars-2.0.0-alpha.4.tgz",
+          "dependencies": {
+            "optimist": {
+              "version": "0.3.7",
+              "from": "optimist@~0.3",
+              "dependencies": {
+                "wordwrap": {
+                  "version": "0.0.2",
+                  "from": "wordwrap@~0.0.2"
+                }
+              }
+            },
+            "uglify-js": {
+              "version": "2.3.6",
+              "from": "uglify-js@~2.3",
+              "resolved": "https://registry.npmjs.org/uglify-js/-/uglify-js-2.3.6.tgz",
+              "dependencies": {
+                "async": {
+                  "version": "0.2.10",
+                  "from": "async@~0.2.6",
+                  "resolved": "https://registry.npmjs.org/async/-/async-0.2.10.tgz"
+                },
+                "source-map": {
+                  "version": "0.1.38",
+                  "from": "source-map@~0.1.7",
+                  "resolved": "https://registry.npmjs.org/source-map/-/source-map-0.1.38.tgz",
+                  "dependencies": {
+                    "amdefine": {
+                      "version": "0.1.0",
+                      "from": "amdefine@>=0.0.4"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "launchd": {
+          "version": "0.0.5",
+          "from": "launchd@0.0.5",
+          "resolved": "https://registry.npmjs.org/launchd/-/launchd-0.0.5.tgz"
+        },
+        "linus": {
+          "version": "0.0.3",
+          "from": "linus@0.0.3",
+          "dependencies": {
+            "getos": {
+              "version": "1.0.1",
+              "from": "getos@^1.0.1",
+              "resolved": "https://registry.npmjs.org/getos/-/getos-1.0.1.tgz"
+            },
+            "memorize": {
+              "version": "0.0.3",
+              "from": "memorize@0.0.3"
+            },
+            "whenever": {
+              "version": "0.0.2",
+              "from": "whenever@0.0.2",
+              "resolved": "https://registry.npmjs.org/whenever/-/whenever-0.0.2.tgz"
+            }
+          }
+        }
+      }
+    },
     "scrambler": {
       "version": "0.0.1",
       "from": "scrambler@0.0.1"
+    },
+    "sudoer": {
+      "version": "0.0.2",
+      "from": "sudoer@"
     },
     "triggers": {
       "version": "0.1.4",
@@ -543,6 +627,11 @@
     "tuna": {
       "version": "0.0.2",
       "from": "tuna@0.0.2"
+    },
+    "uid-number": {
+      "version": "0.0.5",
+      "from": "uid-number@",
+      "resolved": "https://registry.npmjs.org/uid-number/-/uid-number-0.0.5.tgz"
     },
     "underscore": {
       "version": "1.6.0",
