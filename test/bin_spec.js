@@ -119,7 +119,7 @@ describe('bin/prey', function(){
 
       it('calls lib/conf/cli.js', function(done){
         run_bin_prey(['config'], function(code, out){
-          out.should.include('config [<args>]');
+          out.should.include('config');
           out.should.include('activate');
           out.should.include('plugins');
           done();

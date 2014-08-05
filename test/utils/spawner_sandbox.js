@@ -39,6 +39,12 @@ exports.put = function(file, deps, cb) {
     })
   })
 
+  return {
+    release: function(done) {
+      exports.release(file, done);
+    }
+  }
+
 }
 
 exports.release = function(file, cb) {
