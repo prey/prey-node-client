@@ -37,6 +37,7 @@
     "connect": "",
     "dialog": "",
     "entry": "^0.3.0",
+    "firewall": "0.0.1",
     "getset": "^0.6.2",
     "memorize": "0.0.1",
     "mime": "1.2.5",
