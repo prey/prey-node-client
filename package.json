@@ -36,7 +36,7 @@
     "commander": "",
     "connect": "",
     "dialog": "",
-    "entry": "0.2.6",
+    "entry": "^0.3.0",
     "getset": "^0.6.2",
     "memorize": "0.0.1",
     "mime": "1.2.5",
@@ -59,8 +59,7 @@
     "whenever": "0.0.3",
     "which": "",
     "winssh": "",
-    "wmic": "0.0.2",
-    "xml2js": ""
+    "wmic": "0.0.2"
   },
   "devDependencies": {
     "mocha": "",
