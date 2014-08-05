@@ -6,7 +6,7 @@
 
 var path    = require('path'),
     getset  = require('getset'),
-    plugins = require('./../lib/ennio').init('./lib/agent/plugins'),
+    plugins = require('wink').init('./lib/agent/plugins'),
     version = require(__dirname + '/../package').version;
 
 var base_opts   = __dirname + '/../lib/agent/default.options',
@@ -32,15 +32,11 @@ function merge_options(options, plugin_name) {
   }
 
   // merge values
-  var obj = {};
-  obj[plugin_name] = values;
-
-  temp_config.merge_data('values', obj, true);
+  temp_config.set(plugin_name, values);
 
   // now merge comments
   var obj = {};
   obj[plugin_name] = comments;
-
   temp_config.merge_data('meta', { comments: obj }, true);
 }
 
