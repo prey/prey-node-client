@@ -10,6 +10,9 @@ var conf_path = helpers.lib_path('conf'),
 if (process.platform == 'win32')
   prey_bin = prey_bin + '.cmd';
 
+var cli_file = join(conf_path, 'cli.js'),
+    script_file = join(conf_path, 'install.js');
+
 /////////////////////////////////////////////////////////
 // set up the fake common obj
 
@@ -43,8 +46,8 @@ describe('install/local', function() {
 
 describe('upgrade/remote', function() {
 
-  var sb,
-      sb_file = join(conf_path, 'install.js');
+  var cli_sb,
+      script_sb;
 
   var run_cli = function(args, cb) {
     var out, err, child = spawn(prey_bin, args);
@@ -59,6 +62,11 @@ describe('upgrade/remote', function() {
     common.system.paths = { 
       versions: versions_path 
     }
+
+    var cli_deps = {
+      './../common' : common
+    }
+
     common.package = {
       get_version: function(requested, dest, cb) {
         cb(new Error('get_version called with version ' + requested)) 
@@ -69,17 +77,20 @@ describe('upgrade/remote', function() {
     }
 
     var deps = {
-      './../common' : common,
-      './shared': {
-        version_manager: { latest: function() { return '0.9.2' } }
-      }
-    }
+      './../common' : common
+    };
 
-    sb = sandbox.put(sb_file, deps, done);
+    deps['./shared'] = { version_manager: { latest: function() { return '0.9.2' } } }
+
+    cli_sb = sandbox.put(cli_file, cli_deps, function() {
+      script_sb = sandbox.put(script_file, deps, done);
+    });
   }
 
   function revert_sandbox(done) {
-    sb.release(done);
+    cli_sb.release(function(err) {
+      script_sb.release(done);
+    });
   }
 
   describe('with no versions support', function() {
@@ -107,7 +118,7 @@ describe('upgrade/remote', function() {
 
       it('fails miserably', function(done) {
 
-        run_cli(['config', 'upgrade'], function(code, out, err) {
+        run_cli(['config', 'upgrade', '1.2.3'], function(code, out, err) {
           code.should.equal(1);
           done();
         })
