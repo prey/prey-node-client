@@ -4,15 +4,16 @@ var fs            = require('fs'),
     os            = require('os'),
     sinon         = require('sinon'),
     should        = require('should'),
-    rmdir         = require('rimraf');
+    rmdir         = require('rimraf'),
+    helpers       = require('../helpers');
 
-var package       = require(join(__dirname, '..', '..', '..', 'lib', 'package'));
+var package       = require(helpers.lib_path('package'));
 
 var is_windows    = process.platform === 'win32';
 var tmpdir        = is_windows ? process.env.WINDIR + '\\Temp' : '/tmp';
 
 var dummy_version = '1.5.0';
-var dummy_zip     = join(__dirname, 'fixtures', 'prey-' + dummy_version + '.zip');
+var dummy_zip     = join(__dirname, 'conf', 'fixtures', 'prey-' + dummy_version + '.zip');
 
 //////////////////////////////////////////////////////
 // helpers
@@ -260,7 +261,7 @@ describe('config upgrade', function() {
           var dest = is_windows ? 'C:\\Windows\\System32\\' : '/';
 
           it('does not create folder', function(done) {
-            package.get_latest('1.2.3', dest, function(err) {
+            package.get_latest('1.2.3', dest, function(err, res) {
               should.exist(err);
               err.code.should.match(/(EACCES|EPERM)/);
               fs.exists(join(dest, new_version), function(exists) {
