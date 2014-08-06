@@ -84,8 +84,9 @@
       "resolved": "git://github.com/tomas/node-campfire#95a4ad0040cd50651a45bcfad69335230dda4f73"
     },
     "clean-exit": {
-      "version": "0.0.2",
-      "from": "clean-exit@"
+      "version": "0.0.3",
+      "from": "clean-exit@0.0.3",
+      "resolved": "https://registry.npmjs.org/clean-exit/-/clean-exit-0.0.3.tgz"
     },
     "colors": {
       "version": "0.6.2",
@@ -331,22 +332,39 @@
       "from": "dialog@0.1.8"
     },
     "entry": {
-      "version": "0.2.6",
-      "from": "https://registry.npmjs.org/entry/-/entry-0.2.6.tgz",
-      "resolved": "https://registry.npmjs.org/entry/-/entry-0.2.6.tgz",
+      "version": "0.3.0",
+      "from": "entry@0.3.0",
+      "resolved": "https://registry.npmjs.org/entry/-/entry-0.3.0.tgz",
       "dependencies": {
-        "needle": {
-          "version": "0.7.8",
-          "from": "needle@0.7.8",
+        "xml2js": {
+          "version": "0.4.4",
+          "from": "xml2js@^0.4.4",
+          "resolved": "https://registry.npmjs.org/xml2js/-/xml2js-0.4.4.tgz",
           "dependencies": {
-            "iconv-lite": {
-              "version": "0.4.4",
-              "from": "iconv-lite@^0.4.4",
-              "resolved": "https://registry.npmjs.org/iconv-lite/-/iconv-lite-0.4.4.tgz"
+            "sax": {
+              "version": "0.6.0",
+              "from": "sax@0.6.x",
+              "resolved": "https://registry.npmjs.org/sax/-/sax-0.6.0.tgz"
+            },
+            "xmlbuilder": {
+              "version": "2.4.0",
+              "from": "xmlbuilder@>=1.0.0",
+              "resolved": "https://registry.npmjs.org/xmlbuilder/-/xmlbuilder-2.4.0.tgz",
+              "dependencies": {
+                "lodash-node": {
+                  "version": "2.4.1",
+                  "from": "lodash-node@~2.4.1",
+                  "resolved": "https://registry.npmjs.org/lodash-node/-/lodash-node-2.4.1.tgz"
+                }
+              }
             }
           }
         }
       }
+    },
+    "firewall": {
+      "version": "0.0.1",
+      "from": "firewall@"
     },
     "getset": {
       "version": "0.6.2",
@@ -541,50 +559,10 @@
       "resolved": "https://registry.npmjs.org/rimraf/-/rimraf-2.2.6.tgz"
     },
     "satan": {
-      "version": "0.1.6",
-      "from": "satan@0.1.6",
-      "resolved": "https://registry.npmjs.org/satan/-/satan-0.1.6.tgz",
+      "version": "0.1.7",
+      "from": "satan@0.1.7",
+      "resolved": "https://registry.npmjs.org/satan/-/satan-0.1.7.tgz",
       "dependencies": {
-        "handlebars": {
-          "version": "2.0.0-alpha.4",
-          "from": "handlebars@^2.0.0-alpha.4",
-          "resolved": "https://registry.npmjs.org/handlebars/-/handlebars-2.0.0-alpha.4.tgz",
-          "dependencies": {
-            "optimist": {
-              "version": "0.3.7",
-              "from": "optimist@~0.3",
-              "dependencies": {
-                "wordwrap": {
-                  "version": "0.0.2",
-                  "from": "wordwrap@~0.0.2"
-                }
-              }
-            },
-            "uglify-js": {
-              "version": "2.3.6",
-              "from": "uglify-js@~2.3",
-              "resolved": "https://registry.npmjs.org/uglify-js/-/uglify-js-2.3.6.tgz",
-              "dependencies": {
-                "async": {
-                  "version": "0.2.10",
-                  "from": "async@~0.2.6",
-                  "resolved": "https://registry.npmjs.org/async/-/async-0.2.10.tgz"
-                },
-                "source-map": {
-                  "version": "0.1.38",
-                  "from": "source-map@~0.1.7",
-                  "resolved": "https://registry.npmjs.org/source-map/-/source-map-0.1.38.tgz",
-                  "dependencies": {
-                    "amdefine": {
-                      "version": "0.1.0",
-                      "from": "amdefine@>=0.0.4"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        },
         "launchd": {
           "version": "0.0.5",
           "from": "launchd@0.0.5",
@@ -607,6 +585,24 @@
               "version": "0.0.2",
               "from": "whenever@0.0.2",
               "resolved": "https://registry.npmjs.org/whenever/-/whenever-0.0.2.tgz"
+            }
+          }
+        },
+        "minstache": {
+          "version": "1.2.0",
+          "from": "minstache@^1.2.0",
+          "resolved": "https://registry.npmjs.org/minstache/-/minstache-1.2.0.tgz",
+          "dependencies": {
+            "commander": {
+              "version": "1.0.4",
+              "from": "commander@1.0.4",
+              "resolved": "https://registry.npmjs.org/commander/-/commander-1.0.4.tgz",
+              "dependencies": {
+                "keypress": {
+                  "version": "0.1.0",
+                  "from": "keypress@0.1.x"
+                }
+              }
             }
           }
         }
@@ -638,10 +634,18 @@
       "from": "https://registry.npmjs.org/underscore/-/underscore-1.6.0.tgz",
       "resolved": "https://registry.npmjs.org/underscore/-/underscore-1.6.0.tgz"
     },
+    "whenever": {
+      "version": "0.0.3",
+      "from": "whenever@"
+    },
     "which": {
       "version": "1.0.5",
       "from": "which@1.0.5",
       "resolved": "https://registry.npmjs.org/which/-/which-1.0.5.tgz"
+    },
+    "wink": {
+      "version": "0.0.1",
+      "from": "wink@"
     },
     "winssh": {
       "version": "0.0.1",
@@ -651,30 +655,6 @@
       "version": "0.0.2",
       "from": "https://registry.npmjs.org/wmic/-/wmic-0.0.2.tgz",
       "resolved": "https://registry.npmjs.org/wmic/-/wmic-0.0.2.tgz"
-    },
-    "xml2js": {
-      "version": "0.4.2",
-      "from": "https://registry.npmjs.org/xml2js/-/xml2js-0.4.2.tgz",
-      "resolved": "https://registry.npmjs.org/xml2js/-/xml2js-0.4.2.tgz",
-      "dependencies": {
-        "sax": {
-          "version": "0.5.8",
-          "from": "https://registry.npmjs.org/sax/-/sax-0.5.8.tgz",
-          "resolved": "https://registry.npmjs.org/sax/-/sax-0.5.8.tgz"
-        },
-        "xmlbuilder": {
-          "version": "2.2.1",
-          "from": "xmlbuilder@2.2.1",
-          "resolved": "https://registry.npmjs.org/xmlbuilder/-/xmlbuilder-2.2.1.tgz",
-          "dependencies": {
-            "lodash-node": {
-              "version": "2.4.1",
-              "from": "lodash-node@2.4.1",
-              "resolved": "https://registry.npmjs.org/lodash-node/-/lodash-node-2.4.1.tgz"
-            }
-          }
-        }
-      }
     }
   }
 }
