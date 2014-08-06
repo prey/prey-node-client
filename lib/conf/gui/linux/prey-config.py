@@ -43,7 +43,7 @@ FORCE_CONFIG = len(sys.argv) > 1 and (sys.argv[1] == '-f' or sys.argv[1] == '--f
 OUT = STDOUT # None
 
 SCRIPT_PATH = os.sys.path[0]
-PACKAGE_PATH = SCRIPT_PATH + '/../../..'
+PACKAGE_PATH = SCRIPT_PATH + '/../../../..'
 PREY_BIN = PACKAGE_PATH + '/bin/prey'
 PREY_CONFIG = PREY_BIN + ' config'
 
@@ -311,7 +311,7 @@ class PreyConfigurator(object):
     self.show_alert(_('Hold on!'), _(message), False)
 
   def exit_ok(self):
-    self.show_alert(_('Success'), _('Bingo! Your computer is now protected by Prey. To try it out or to start tracking it, please visit preyproject.com.'), True)
+    self.show_alert(_('Success'), _('Sweet! Your computer is now protected by Prey. To try it out or to start tracking it, please visit preyproject.com.'), True)
 
   def __init__(self):
     if not FORCE_CONFIG and self.client_configured():
