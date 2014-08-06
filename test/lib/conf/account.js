@@ -53,7 +53,20 @@ describe('account', function() {
 
     after(sandbox_revert);
 
-    describe('with --current (-c) param', function() {
+    describe('with --current param', function() {
+
+      it('tries to verify current keys', function(done){
+
+        run_cli(['config', 'account', 'verify', '--current'], function(code, out, err) {
+          out.should.containEql('Called with keys: 123456789, 123123');
+          done();
+        })
+
+      })
+
+    })
+
+    describe('with -c param', function() {
 
       it('tries to verify current keys', function(done){
 
@@ -68,10 +81,10 @@ describe('account', function() {
 
     describe('with --api-key and --email', function() {
 
-      it('returns error code 1', function(done){
+      it('tries to verify passed keys', function(done){
 
-        run_cli(['config', 'account', 'verify', '-a', 'invalid', '-d', 'blablabla'], function(code, out, err) {
-          out.should.containEql('Called with keys: invalid, blablabla');
+        run_cli(['config', 'account', 'verify', '-a', 'foobar', '-d', '567567'], function(code, out, err) {
+          out.should.containEql('Called with keys: foobar, 567567');
           done();
         })
 
