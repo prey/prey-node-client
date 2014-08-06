@@ -374,6 +374,26 @@
       "version": "2.0.3",
       "from": "graceful-fs@"
     },
+    "linus": {
+      "version": "0.0.3",
+      "from": "linus@*",
+      "dependencies": {
+        "getos": {
+          "version": "1.0.1",
+          "from": "getos@>=1.0.1-0 <2.0.0-0",
+          "resolved": "https://registry.npmjs.org/getos/-/getos-1.0.1.tgz"
+        },
+        "memorize": {
+          "version": "0.0.3",
+          "from": "memorize@0.0.3"
+        },
+        "whenever": {
+          "version": "0.0.2",
+          "from": "whenever@0.0.2",
+          "resolved": "https://registry.npmjs.org/whenever/-/whenever-0.0.2.tgz"
+        }
+      }
+    },
     "memorize": {
       "version": "0.0.1",
       "from": "memorize@"
