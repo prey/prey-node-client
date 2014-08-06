@@ -1,8 +1,14 @@
 #!/bin/sh
-
 dir="$(dirname $0)"
-script="lib/agent/cli.js"
 
+# if current file is a symlink (e.g. installed via npm) we'll append 
+# the relative path to where the package is actually installed.
+if [ -n "$(readlink $0)" ]; then
+  rel="$(dirname $(readlink $0))"
+  dir="$dir/$rel"
+fi
+
+script="lib/agent/cli.js"
 if [ "$1" = "config" ]; then
   script="lib/conf/cli.js"
 elif [ "$1" = "test" ]; then
