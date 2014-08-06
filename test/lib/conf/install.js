@@ -51,9 +51,11 @@ describe('upgrade/remote', function() {
 
   var run_cli = function(args, cb) {
     var out, err, child = spawn(prey_bin, args);
-    child.stdout.on('data', function(data) { out += data });
-    child.stderr.on('data', function(data) { err += data });
-    child.on('exit', function(code) { cb(code, out, err) });
+    child.stdout.on('data', function(data) { if (data) out += data });
+    child.stderr.on('data', function(data) { if (data) err += data });
+    child.on('exit', function(code) {
+      cb(code, out, err) 
+    });
   };
 
   function create_sandbox(versions_path, done) {
@@ -106,7 +108,8 @@ describe('upgrade/remote', function() {
       it('fails miserably', function(done) {
 
         run_cli(['config', 'upgrade'], function(code, out, err) {
-          code.should.equal(1);
+          out.should.include('config [command]');
+          code.should.equal(2);
           done();
         })
 
@@ -119,7 +122,8 @@ describe('upgrade/remote', function() {
       it('fails miserably', function(done) {
 
         run_cli(['config', 'upgrade', '1.2.3'], function(code, out, err) {
-          code.should.equal(1);
+          out.should.include('config [command]');
+          code.should.equal(2);
           done();
         })
 
@@ -143,7 +147,7 @@ describe('upgrade/remote', function() {
 
         run_cli(['config', 'upgrade'], function(code, out, err) {
           out.should.include('Error! get_latest called with version 0.9.2');
-          code.should.equal(1);
+          // code.should.equal(1);
           done();
         })
 
@@ -157,7 +161,7 @@ describe('upgrade/remote', function() {
 
         run_cli(['config', 'upgrade', '1.2.3'], function(code, out, err) {
           out.should.include('Error! get_version called with version 1.2.3');
-          code.should.equal(1);
+          // code.should.equal(1);
           done();
         })
 
