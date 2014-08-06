@@ -49,6 +49,9 @@ PREY_CONFIG = '"' + PREY_BIN + '" config'
 PIXMAPS     = find_in_path('pixmaps')
 LOGO        = PIXMAPS + '/prey-text-shadow.png'
 
+LOGO_WIDTH  = 280
+LOGO_HEIGHT = 55
+
 class ConfigWindow < NSWindow
 
   def windowShouldClose(sender)
@@ -75,7 +78,7 @@ class ConfigDelegate < NSObject
 
     @inputs = {}
     drawWindow
-    drawImage(LOGO, [292, 67, CENTER-(292/2), 310], window.contentView)
+    drawImage(LOGO, [LOGO_WIDTH, LOGO_HEIGHT, CENTER-(LOGO_WIDTH/2), 320], window.contentView)
     drawButtons
     drawTabs
 
