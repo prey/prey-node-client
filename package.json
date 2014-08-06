@@ -31,7 +31,7 @@
     "async": "",
     "buckle": "0.0.2",
     "campfire": "git://github.com/tomas/node-campfire",
-    "clean-exit": "0.0.2",
+    "clean-exit": "0.0.3",
     "colors": "^0.6.2",
     "commander": "",
     "connect": "",
