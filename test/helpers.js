@@ -42,7 +42,7 @@ helpers.lib_path = function() {
 helpers.stub_request = function(type, err, resp, body){
 
   var cb,
-      stub = sinon.stub(needle, type, function(){
+      stub = sinon.stub(needle, type, function() {
 
     for (var i = 0; i < arguments.length; i++) {
       if (typeof arguments[i] == 'function')
@@ -50,7 +50,7 @@ helpers.stub_request = function(type, err, resp, body){
     }
 
     cb(err, resp, body);
-    needle[type].restore();
+    stub.restore();
   });
 
   return stub;
