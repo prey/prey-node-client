@@ -50,7 +50,7 @@
     "qs": "",
     "reply": "^0.3.1",
     "rimraf": "",
-    "satan": "^0.1.7",
+    "satan": "^0.1.9",
     "scrambler": "0.0.1",
     "sudoer": "0.0.2",
     "triggers": "^0.1.4",
