@@ -1,9 +1,13 @@
 #!/bin/sh
+
+PATH="$PATH:/usr/local/bin"
+node="node"
 dir="$(dirname $0)"
+[ -x "$dir/node" ] && node="$dir/node" 
 
 # if current file is a symlink (e.g. installed via npm) we'll append 
 # the relative path to where the package is actually installed.
-if [ -n "$(readlink $0)" ]; then
+if [ -n "$(readlink $0 2> /dev/null)" ]; then
   rel="$(dirname $(readlink $0))"
   dir="$dir/$rel"
 fi
@@ -15,8 +19,4 @@ elif [ "$1" = "test" ]; then
   script="node_modules/.bin/_mocha"
 fi
 
-if [ -x "$dir/node" ]; then
-  exec "$dir/node" "$dir/../${script}" "$@"
-else
-  exec node "$dir/../${script}" "$@"
-fi
+exec "$node" "$dir/../${script}" "$@"
