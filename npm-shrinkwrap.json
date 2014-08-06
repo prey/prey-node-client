@@ -579,38 +579,18 @@
       "resolved": "https://registry.npmjs.org/rimraf/-/rimraf-2.2.6.tgz"
     },
     "satan": {
-      "version": "0.1.9",
-      "from": "satan@0.1.9",
-      "resolved": "https://registry.npmjs.org/satan/-/satan-0.1.9.tgz",
+      "version": "0.1.11",
+      "from": "satan@0.1.11",
+      "resolved": "https://registry.npmjs.org/satan/-/satan-0.1.11.tgz",
       "dependencies": {
         "launchd": {
           "version": "0.0.5",
           "from": "launchd@0.0.5",
           "resolved": "https://registry.npmjs.org/launchd/-/launchd-0.0.5.tgz"
         },
-        "linus": {
-          "version": "0.0.3",
-          "from": "linus@0.0.3",
-          "dependencies": {
-            "getos": {
-              "version": "1.0.1",
-              "from": "getos@^1.0.1",
-              "resolved": "https://registry.npmjs.org/getos/-/getos-1.0.1.tgz"
-            },
-            "memorize": {
-              "version": "0.0.3",
-              "from": "memorize@0.0.3"
-            },
-            "whenever": {
-              "version": "0.0.2",
-              "from": "whenever@0.0.2",
-              "resolved": "https://registry.npmjs.org/whenever/-/whenever-0.0.2.tgz"
-            }
-          }
-        },
         "minstache": {
           "version": "1.2.0",
-          "from": "minstache@^1.2.0",
+          "from": "minstache@>=1.2.0-0 <2.0.0-0",
           "resolved": "https://registry.npmjs.org/minstache/-/minstache-1.2.0.tgz",
           "dependencies": {
             "commander": {
@@ -620,7 +600,7 @@
               "dependencies": {
                 "keypress": {
                   "version": "0.1.0",
-                  "from": "keypress@0.1.x"
+                  "from": "keypress@>=0.1.0-0 <0.2.0-0"
                 }
               }
             }
