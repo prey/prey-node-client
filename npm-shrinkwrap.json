@@ -579,9 +579,9 @@
       "resolved": "https://registry.npmjs.org/rimraf/-/rimraf-2.2.6.tgz"
     },
     "satan": {
-      "version": "0.1.11",
-      "from": "satan@0.1.11",
-      "resolved": "https://registry.npmjs.org/satan/-/satan-0.1.11.tgz",
+      "version": "0.1.12",
+      "from": "satan@0.1.12",
+      "resolved": "https://registry.npmjs.org/satan/-/satan-0.1.12.tgz",
       "dependencies": {
         "launchd": {
           "version": "0.0.5",
@@ -613,8 +613,9 @@
       "from": "scrambler@0.0.1"
     },
     "sudoer": {
-      "version": "0.0.2",
-      "from": "sudoer@"
+      "version": "0.0.3",
+      "from": "sudoer@0.0.3",
+      "resolved": "https://registry.npmjs.org/sudoer/-/sudoer-0.0.3.tgz"
     },
     "triggers": {
       "version": "0.1.4",
