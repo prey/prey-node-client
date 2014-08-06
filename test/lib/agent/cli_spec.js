@@ -34,7 +34,7 @@ describe('lib/agent/cli_spec', function(){
     });
 
     it('logs error message', function(){
-      result.out.toLowerCase().should.include('no config file found');
+      result.out.toLowerCase().should.include('no config file');
     });
   })
 
