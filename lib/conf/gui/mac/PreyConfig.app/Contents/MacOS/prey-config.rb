@@ -20,10 +20,6 @@ CENTER = WIDTH/2
 DEBUGGING   = !!ENV['DEBUG']
 EMAIL_REGEX = /[A-Z0-9\._%-]+@([A-Z0-9-]+\.)+[A-Z]{2,4}\z/i
 
-PREY_CONFIG = '"' + File.expand_path(File.dirname(__FILE__) + '/../../../../../../bin/prey" config')
-PIXMAPS     = File.expand_path(File.dirname(__FILE__) + '/../../../../pixmaps')
-LOGO        = PIXMAPS + '/prey-text-shadow.png'
-
 TABS = ['welcome', 'new_user', 'existing_user', 'success']
 
 TITLES = {
@@ -37,6 +33,21 @@ OPTIONS = {
   :new           => "Choose this option if this is the first time you've installed Prey.",
   :existing      => "If you've already set up Prey on this or another device."
 }
+
+def find_in_path(file)
+  this_dir = File.expand_path(File.dirname(__FILE__))
+  segments = this_dir.split('/')
+
+  while (path = segments.pop and path != '') do
+    full_path = File.join(segments.join('/'), file)
+    return full_path if File.exist?(full_path) # && !File.directory?(full_path)
+  end
+end
+
+PREY_BIN    = find_in_path('bin/prey')
+PREY_CONFIG = '"' + PREY_BIN + '" config'
+PIXMAPS     = find_in_path('pixmaps')
+LOGO        = PIXMAPS + '/prey-text-shadow.png'
 
 class ConfigWindow < NSWindow
 
@@ -56,11 +67,18 @@ class ConfigDelegate < NSObject
   end
 
   def applicationDidFinishLaunching(aNotification)
+
+    if !File.exist?(PREY_BIN) or !File.executable?(PREY_BIN)
+      showAlert('Unable to locate prey executable in path.')
+      return terminate(nil)
+    end
+
     @inputs = {}
     drawWindow
     drawImage(LOGO, [292, 67, CENTER-(292/2), 310], window.contentView)
     drawButtons
     drawTabs
+
     if !FORCE_CONFIG and clientConfigured
       showSuccess
     else
@@ -448,7 +466,6 @@ def openConfig
   app.setDelegate ConfigDelegate.new
   setupMenus(app)
   app.activateIgnoringOtherApps(true)
-
   trap('SIGINT') { puts "Ctrl-C received." ; exit(1) }
   app.run
 end
