@@ -16,6 +16,11 @@ abort() {
   echo "$1" && exit 1
 }
 
+cleanup() {
+  cd $CURRENT_PATH
+  git checkout $current_branch
+}
+
 get_current_branch() {
   git branch --no-color 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/\1/'
 }
@@ -54,6 +59,12 @@ build(){
   cd "$ROOT/$FOLDER"
 
   BUNDLE_ONLY=1 npm install --production # > /dev/null
+  if [ $? -ne 0 ]; then
+    echo "NPM install failed. Reverting changes..."
+    cleanup
+    return 1
+  fi
+
   rm -f npm-shrinkwrap.json
 
   # remove stuff from main tarball
@@ -82,8 +93,7 @@ build(){
   rm -fr "$ROOT"
   cd $DIST
   # ./checksum.sh $VERSION
-  cd $CURRENT_PATH
-  git checkout $current_branch
+  cleanup
 
 }
 
