@@ -32,7 +32,7 @@ create_release() {
 }
 
 rollback_release() {
-  reset --hard HEAD~1
+  git reset --hard HEAD~1
   git tag -d $NEW_TAG
 }
 
