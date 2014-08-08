@@ -6,6 +6,10 @@
 # Output is: ./builds/$VERSION/prey-$VERSION.tar.gz
 ########################################################
 
+if [ "$1" = "new" ]; then
+  new_release=1
+fi
+
 run_specs(){
   echo "Ensuring we have the latest packages..."
   npm install
@@ -19,6 +23,17 @@ abort() {
 cleanup() {
   cd $CURRENT_PATH
   git checkout $current_branch
+  [ -n "$new_release" ] && rollback_release
+}
+
+create_release() {
+  # increase version number and add git tag
+  npm version patch
+}
+
+rollback_release() {
+  reset --hard HEAD~1
+  git tag -d $version
 }
 
 get_current_branch() {
@@ -35,11 +50,16 @@ git_modified_files() {
 
 build(){
 
-  VERSION="$1"
   CURRENT_PATH="$(pwd)"
   SCRIPT_PATH="$(dirname $0)"
 
-  if [ -n "$VERSION" ]; then
+  if [ -n "$new_release" ]; then
+    VERSION=$(create_release)
+    if [ $? -ne 0 ]; then
+      echo "Unable to create new release".
+      exit 1
+    fi
+  elif [ -n "$VERSION" ]; then
     echo "Building packages for version ${VERSION}."
   else
     echo "Defaulting to current version."
@@ -150,8 +170,8 @@ pack(){
 }
 
 if [ -z "$SKIP_TESTS" ]; then
-  run_specs && build $1
+  run_specs && build
 else
   echo "Skipping tests. You cheatin'?"
-  build $1	
+  build
 fi
