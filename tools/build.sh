@@ -33,7 +33,7 @@ create_release() {
 
 rollback_release() {
   reset --hard HEAD~1
-  git tag -d $version
+  git tag -d $NEW_TAG
 }
 
 get_current_branch() {
@@ -54,11 +54,13 @@ build(){
   SCRIPT_PATH="$(dirname $0)"
 
   if [ -n "$new_release" ]; then
-    VERSION=$(create_release)
+    NEW_TAG=$(create_release)
     if [ $? -ne 0 ]; then
       echo "Unable to create new release".
       exit 1
     fi
+    echo "New release: ${NEW_TAG}"
+    VERSION="${NEW_TAG:1}" # remove the leading 'v'
   elif [ -n "$VERSION" ]; then
     echo "Building packages for version ${VERSION}."
   else
