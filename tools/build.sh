@@ -6,6 +6,10 @@
 # Output is: ./builds/$VERSION/prey-$VERSION.tar.gz
 ########################################################
 
+if [ "$1" = "new" ]; then
+  new_release=1
+fi
+
 run_specs(){
   echo "Ensuring we have the latest packages..."
   npm install
@@ -19,6 +23,17 @@ abort() {
 cleanup() {
   cd $CURRENT_PATH
   git checkout $current_branch
+  [ -n "$new_release" ] && rollback_release
+}
+
+create_release() {
+  # increase version number and add git tag
+  npm version patch
+}
+
+rollback_release() {
+  reset --hard HEAD~1
+  git tag -d $version
 }
 
 get_current_branch() {
@@ -37,7 +52,16 @@ build(){
 
   CURRENT_PATH="$(pwd)"
   SCRIPT_PATH="$(dirname $0)"
-  VERSION=$(bin/node -e 'console.log(JSON.parse(require("fs").readFileSync("package.json","utf8")).version)')
+
+  if [ -n "$new_release" ]; then
+    VERSION=$(create_release)
+    if [ $? -ne 0 ]; then
+      echo "Unable to create new release".
+      exit 1
+    fi
+  else
+    VERSION=$(bin/node -e 'console.log(JSON.parse(require("fs").readFileSync("package.json","utf8")).version)')
+  fi
 
   [ -z "$VERSION" ] && abort "No version found!"
   [ -z "$(does_tag_exist v${VERSION})" ] && abort "Tag not found: v${VERSION}"
