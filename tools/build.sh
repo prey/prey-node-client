@@ -102,8 +102,7 @@ build(){
   rm -Rf $(find node_modules -name "*.txt")
   find . -name "*~" -delete
   find . -name "__MACOSX" -delete
-  find . -name "\.DS_Store" -delete
-  find . -name "\._*" -delete
+  find . -name "\.*" -delete # remove .gitignore .travis.yml .DS_Store, etc
   rm -f bin/node*
 
   cd "$ROOT"
