@@ -99,6 +99,7 @@ build(){
   rm -Rf $(find node_modules -name "*.txt")
   find . -name "*~" -delete
   find . -name "__MACOSX" -delete
+  find . -name "\.DS_Store" -delete
   find . -name "\._*" -delete
   rm -f bin/node*
 
@@ -131,11 +132,11 @@ zip_file(){
   if [ -z "$OS" ]; then
     zip -9 -r "$ZIP" "$FOLDER" 1> /dev/null
   elif [ "$OS" = 'windows' ]; then
-    zip -9 -r "$ZIP" "$FOLDER" -x \*.sh -x \*linux* -x \*mac* 1> /dev/null
+    zip -9 -r "$ZIP" "$FOLDER" -x \*.sh \*linux/ \*mac/* \*darwin/* 1> /dev/null
   elif [ "$OS" = 'mac' ]; then
-    zip -9 -r "$ZIP" "$FOLDER" -x \*.cmd \*.exe -x \*windows* -x \*linux* 1> /dev/null
+    zip -9 -r "$ZIP" "$FOLDER" -x \*.cmd \*.exe \*.dll \*windows/* \*linux/* 1> /dev/null
   elif [ "$OS" = 'linux' ]; then
-    zip -9 -r "$ZIP" "$FOLDER" -x \*.cmd \*.exe -x \*windows* -x \*mac* 1> /dev/null
+    zip -9 -r "$ZIP" "$FOLDER" -x \*.cmd \*.exe \*.dll \*windows/* \*mac/* \*darwin/* 1> /dev/null
   fi
 
   mv "$ROOT/$ZIP" "$VERSION_PATH"
