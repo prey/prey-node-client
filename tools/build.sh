@@ -67,7 +67,6 @@ build(){
 
   [ -z "$VERSION" ] && abort "No version found!"
   [ -z "$(does_tag_exist v${VERSION})" ] && abort "Tag not found: v${VERSION}"
-  [ "$(git_modified_files)" -gt 0 ] && abort "Tree contains changes. Please commit or stash to avoid losing data."
 
   local current_branch=$(get_current_branch)
   git checkout v${VERSION}
@@ -131,7 +130,7 @@ zip_file(){
   if [ -z "$OS" ]; then
     zip -9 -r "$ZIP" "$FOLDER" 1> /dev/null
   elif [ "$OS" = 'windows' ]; then
-    zip -9 -r "$ZIP" "$FOLDER" -x \*.sh \*linux/ \*mac/* \*darwin/* 1> /dev/null
+    zip -9 -r "$ZIP" "$FOLDER" -x \*.sh \*linux/* \*mac/* \*darwin/* 1> /dev/null
   elif [ "$OS" = 'mac' ]; then
     zip -9 -r "$ZIP" "$FOLDER" -x \*.cmd \*.exe \*.dll \*windows/* \*linux/* 1> /dev/null
   elif [ "$OS" = 'linux' ]; then
@@ -165,7 +164,9 @@ pack(){
 
 }
 
-if [ -z "$SKIP_TESTS" ]; then
+if [ "$(git_modified_files)" -gt 0 ]; then 
+  abort "Tree contains changes. Please commit or stash to avoid losing data."
+elif [ -z "$SKIP_TESTS" ]; then
   run_specs && build
 else
   echo "Skipping tests. You cheatin'?"
