@@ -56,7 +56,7 @@ build(){
   if [ -n "$new_release" ]; then
     NEW_TAG=$(create_release)
     if [ $? -ne 0 ]; then
-      echo "Unable to create new release".
+      echo "Unable to create new release.".
       exit 1
     fi
     echo "New release: ${NEW_TAG}"
