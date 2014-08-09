@@ -12,7 +12,7 @@ fi
 
 run_specs(){
   echo "Ensuring we have the latest packages..."
-  npm install
+  BUNDLE_ONLY=1 npm install
   bin/prey test --recursive --bail --reporter dot
 }
 
