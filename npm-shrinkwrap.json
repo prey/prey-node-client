@@ -363,8 +363,9 @@
       }
     },
     "firewall": {
-      "version": "0.0.1",
-      "from": "firewall@"
+      "version": "0.0.2",
+      "from": "firewall@0.0.2",
+      "resolved": "https://registry.npmjs.org/firewall/-/firewall-0.0.2.tgz"
     },
     "getset": {
       "version": "0.6.2",
