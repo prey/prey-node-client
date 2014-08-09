@@ -106,6 +106,11 @@ build(){
   rm -Rf "$VERSION_PATH"
   mkdir -p "$VERSION_PATH"
 
+  if [ -n "$new_release" ]; then
+    echo "Ok, we're ready to go. Press any key to build the packages."
+    read
+  fi
+
   zip_file
   pack windows x86
   pack linux x86
