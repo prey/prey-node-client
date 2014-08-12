@@ -658,9 +658,9 @@
       "from": "winssh@"
     },
     "wmic": {
-      "version": "0.0.2",
-      "from": "https://registry.npmjs.org/wmic/-/wmic-0.0.2.tgz",
-      "resolved": "https://registry.npmjs.org/wmic/-/wmic-0.0.2.tgz"
+      "version": "0.0.3",
+      "from": "wmic@0.0.3",
+      "resolved": "https://registry.npmjs.org/wmic/-/wmic-0.0.3.tgz"
     }
   }
 }
