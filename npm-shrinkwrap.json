@@ -580,9 +580,9 @@
       "resolved": "https://registry.npmjs.org/rimraf/-/rimraf-2.2.6.tgz"
     },
     "satan": {
-      "version": "0.2.2",
-      "from": "satan@0.2.2",
-      "resolved": "https://registry.npmjs.org/satan/-/satan-0.2.2.tgz",
+      "version": "0.2.3",
+      "from": "satan@0.2.3",
+      "resolved": "https://registry.npmjs.org/satan/-/satan-0.2.3.tgz",
       "dependencies": {
         "async": {
           "version": "0.9.0",
