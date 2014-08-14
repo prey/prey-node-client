@@ -2,9 +2,6 @@
   "name": "prey",
   "version": "1.2.0",
   "author": "Tomás Pollak <tomas@forkhq.com>",
-  "contributors": [
-    "Herman Junge <herman@forkhq.com>"
-  ],
   "keywords": [
     "prey",
     "anti",
