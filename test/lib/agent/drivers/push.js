@@ -37,6 +37,8 @@ describe('Push Driver', function(){
   before(function() {
     common.logger.off();
 
+    common.config.set('device_key', 'foobar');
+
     api_stub = sinon.stub(api.push, 'data', function(data, opts, cb) {
       var resp = { statusCode: 200 }
       cb && cb(null, resp)
