@@ -70,6 +70,9 @@ build(){
   rm -Rf "$VERSION_PATH"
   mkdir -p "$VERSION_PATH"
 
+  echo "OK, ready to go. Press any key to continue."
+  read
+
   zip_file
   pack windows x86
   pack linux x86
