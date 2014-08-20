@@ -78,7 +78,7 @@ build(){
   mkdir -p "$VERSION_PATH"
 
   echo "OK, ready to go. Press any key to continue."
-  read
+  read keypress
 
   zip_file
   pack windows x86
