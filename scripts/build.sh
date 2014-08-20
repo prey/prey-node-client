@@ -30,9 +30,16 @@ git_modified_files() {
 
 build(){
 
+  VERSION="$1"
   CURRENT_PATH="$(pwd)"
   SCRIPT_PATH="$(dirname $0)"
-  VERSION=$(bin/node -e 'console.log(JSON.parse(require("fs").readFileSync("package.json","utf8")).version)')
+
+  if [ -n "$VERSION" ]; then
+    echo "Building packages for version ${VERSION}."
+  else
+    echo "Defaulting to current version."
+    VERSION=$(bin/node -e 'console.log(JSON.parse(require("fs").readFileSync("package.json","utf8")).version)')
+  fi
 
   [ -z "$VERSION" ] && abort "No version found!"
   [ -z "$(does_tag_exist v${VERSION})" ] && abort "Tag not found: v${VERSION}"
@@ -133,8 +140,8 @@ pack(){
 }
 
 if [ -z "$SKIP_TESTS" ]; then
-  run_specs && build
+  run_specs && build $1
 else
   echo "Skipping tests. You cheatin'?"
-  build
+  build $1	
 fi
