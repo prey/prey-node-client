@@ -1,4 +1,4 @@
-#!/bin/sh -e
+#!/bin/bash -e
 ########################################################
 # This script generates a tarball containing all files,
 # dependencies and the installed node binary.
@@ -21,6 +21,7 @@ abort() {
 }
 
 cleanup() {
+  [ -n "$ROOT" ] && rm -Rf "$ROOT"
   cd $CURRENT_PATH
   git checkout $current_branch
   [ -n "$new_release" ] && rollback_release
@@ -50,15 +51,14 @@ git_modified_files() {
 
 build(){
 
+  VERSION="$1"
   CURRENT_PATH="$(pwd)"
   SCRIPT_PATH="$(dirname $0)"
 
   if [ -n "$new_release" ]; then
     NEW_TAG=$(create_release)
-    if [ $? -ne 0 ]; then
-      echo "Unable to create new release.".
-      exit 1
-    fi
+    [ $? -ne 0 ] && abort "Unable to create new release.".
+
     echo "New release: ${NEW_TAG}"
     VERSION="${NEW_TAG:1}" # remove the leading 'v'
   elif [ -n "$VERSION" ]; then
@@ -81,6 +81,7 @@ build(){
   VERSION_PATH="${DIST}/${VERSION}"
   ZIP="prey-${VERSION}.zip"
 
+  echo "Temp build directory set to ${ROOT}."
   mkdir -p "$ROOT/$FOLDER"
   cp -R npm-shrinkwrap.json README.md license.txt prey.conf.default package.json bin lib "$ROOT/$FOLDER"
 
@@ -88,20 +89,20 @@ build(){
 
   BUNDLE_ONLY=1 npm install --production # > /dev/null
   if [ $? -ne 0 ]; then
-    echo "NPM install failed. Reverting changes..."
     cleanup
-    return 1
+    abort "NPM install failed."
   fi
 
   rm -f npm-shrinkwrap.json
 
   # remove stuff from main tarball
+  echo "Stripping unneeded stuff..."
   rm -Rf $(find node_modules -name "example*")
   rm -Rf $(find node_modules -name "test")
   rm -Rf $(find node_modules -name "*.txt")
   find . -name "*~" -delete
   find . -name "__MACOSX" -delete
-  find . -name "\.*" -delete # remove .gitignore .travis.yml .DS_Store, etc
+  find . -name "\.*" -type f -delete # remove .gitignore .travis.yml .DS_Store, etc
   rm -f bin/node*
 
   cd "$ROOT"
@@ -121,7 +122,6 @@ build(){
   pack linux x64
   pack mac x64
 
-  rm -fr "$ROOT"
   cd $DIST
   # ./checksum.sh $VERSION
   cleanup
@@ -170,11 +170,11 @@ pack(){
 
 }
 
-if [ "$(git_modified_files)" -gt 0 ]; then 
+if [ "$(git_modified_files)" -gt 0 ]; then
   abort "Tree contains changes. Please commit or stash to avoid losing data."
 elif [ -z "$SKIP_TESTS" ]; then
-  run_specs && build
+  run_specs && build $1
 else
   echo "Skipping tests. You cheatin'?"
-  build
+  build $1
 fi
