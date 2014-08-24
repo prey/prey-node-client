@@ -10,21 +10,21 @@ if [ "$1" = "new" ]; then
   new_release=1
 fi
 
-run_specs(){
-  echo "Ensuring we have the latest packages..."
-  BUNDLE_ONLY=1 npm install
-  bin/prey test --recursive --bail --reporter dot
-}
-
 abort() {
   echo "$1" && exit 1
 }
 
 cleanup() {
-  [ -n "$ROOT" ] && rm -Rf "$ROOT"
   cd $CURRENT_PATH
-  git checkout $current_branch
-  [ -n "$new_release" ] && rollback_release
+  [ -n "$ROOT" ] && rm -Rf "$ROOT"
+  [ -n "$CURRENT_BRANCH" ] && git checkout $CURRENT_BRANCH
+  [ -n "$NEW_TAG" ] && rollback_release
+}
+
+run_specs(){
+  echo "Ensuring we have the latest packages..."
+  BUNDLE_ONLY=1 npm install
+  bin/prey test --recursive --bail --reporter dot
 }
 
 create_release() {
@@ -71,7 +71,7 @@ build(){
   [ -z "$VERSION" ] && abort "No version found!"
   [ -z "$(does_tag_exist v${VERSION})" ] && abort "Tag not found: v${VERSION}"
 
-  local current_branch=$(get_current_branch)
+  CURRENT_BRANCH=$(get_current_branch)
   git checkout v${VERSION}
 
   DIST="$(pwd)/builds"
@@ -89,7 +89,6 @@ build(){
 
   BUNDLE_ONLY=1 npm install --production # > /dev/null
   if [ $? -ne 0 ]; then
-    cleanup
     abort "NPM install failed."
   fi
 
@@ -124,8 +123,6 @@ build(){
 
   cd $DIST
   # ./checksum.sh $VERSION
-  cleanup
-
 }
 
 zip_file(){
@@ -174,7 +171,11 @@ pack(){
 
 if [ "$(git_modified_files)" -gt 0 ]; then
   abort "Tree contains changes. Please commit or stash to avoid losing data."
-elif [ -z "$SKIP_TESTS" ]; then
+fi
+
+trap cleanup EXIT
+
+if [ -z "$SKIP_TESTS" ]; then
   run_specs && build $1
 else
   echo "Skipping tests. You cheatin'?"
