@@ -19,7 +19,7 @@ var common_base = {
   }
 }
 
-describe('config cli', function() {
+describe('config cli arguments', function() {
 
   var sb,
       sandbox_file = './lib/conf/cli.js';
@@ -80,33 +80,48 @@ describe('config cli', function() {
     after(sandbox_revert);
 
     describe('activate', function() {
-      it('calls tasks.activate', function(done) {
-        helpers.run_cli(['config', 'activate'], function(code, out) {
-          code.should.eql(1);
-          out.should.containEql(' activate called: {"positional":[]}');
-          done();
+      describe('with no arguments', function() {
+        it('calls tasks.activate', function(done) {
+          helpers.run_cli(['config', 'activate'], function(code, out) {
+            code.should.eql(1);
+            out.should.containEql(' activate called: {"positional":[]}');
+            done();
+          })
         })
       })
     })
 
 /*
     describe('post_install', function() {
-      it('calls tasks.activate', function(done) {
-        helpers.run_cli(['config', 'hooks', 'post_install'], function(code, out) {
-          code.should.eql(1);
-          out.should.containEql(' post_install called: {"positional":[]}');
-          done();
+      describe('with no arguments', function() {
+        it('calls tasks.activate', function(done) {
+          helpers.run_cli(['config', 'hooks', 'post_install'], function(code, out) {
+            code.should.eql(1);
+            out.should.containEql(' post_install called: {"positional":[]}');
+            done();
+          })
         })
       })
     })
 */
 
     describe('pre_uninstall', function() {
-      it('calls tasks.activate', function(done) {
-        helpers.run_cli(['config', 'hooks', 'pre_uninstall', '--updating', '1'], function(code, out) {
-          code.should.eql(1);
-          out.should.containEql('pre_uninstall called: {"positional":["1"],"-u":true');
-          done();
+      describe('with no arguments', function() {
+        it('calls tasks.activate', function(done) {
+          helpers.run_cli(['config', 'hooks', 'pre_uninstall'], function(code, out) {
+            code.should.eql(1);
+            out.should.containEql('pre_uninstall called: {"positional":[]');
+            done();
+          })
+        })
+      })
+      describe('with --updating argument', function() {
+        it('calls tasks.activate', function(done) {
+          helpers.run_cli(['config', 'hooks', 'pre_uninstall', '--updating', '1'], function(code, out) {
+            code.should.eql(1);
+            out.should.containEql('pre_uninstall called: {"positional":["1"],"-u":true');
+            done();
+          })
         })
       })
     })
