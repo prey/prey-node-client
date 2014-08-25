@@ -33,7 +33,7 @@ describe('lib/agent/cli_spec', function(){
       signals.should.be.empty;
     });
 
-    it('logs error message', function(){
+    it('logs error message', function() {
       result.out.toLowerCase().should.include('no config file');
     });
   })
@@ -61,7 +61,7 @@ describe('lib/agent/cli_spec', function(){
     // this function accepts a boolean as an argument which defines if exceptions are notified
     var run_cli = function(send_exceptions) {
       var bad_pid  = { store: function() { throw(new Error('ola ke ase')) } }
-      var common   = { 
+      var common   = {
         config: { get: function(key) { return send_exceptions } },
         exceptions: { send: function(err) { sent_exception = err } }
       }
@@ -116,9 +116,9 @@ describe('lib/agent/cli_spec', function(){
 
     var run_cli = function(store_func) {
       var fake_pid = { store: store_func }
-      var fake_common = { 
+      var fake_common = {
         config: { get: function(key){ return key } },
-        exceptions: { send: function() { /* noop */ } } 
+        exceptions: { send: function() { /* noop */ } }
       }
       result = cli_sandbox.run({ pid: fake_pid, common: fake_common });
     }
@@ -130,7 +130,8 @@ describe('lib/agent/cli_spec', function(){
         run_cli(store_func);
       })
 
-      it('exits with status code 1', function(){
+      it('exits with status code 1', function() {
+        result.out.should.containEql('Cannot continue');
         result.code.should.equal(1);
       });
 
@@ -143,7 +144,8 @@ describe('lib/agent/cli_spec', function(){
         run_cli(store_func);
       })
 
-      it('exits with status code (10)', function(){
+      it('exits with status code (10)', function() {
+        result.out.should.containEql('The Prey agent is running');
         result.code.should.equal(10);
       });
 

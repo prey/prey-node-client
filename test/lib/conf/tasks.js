@@ -64,7 +64,7 @@ describe('tasks', function() {
         describe('and write permissions', function() {
 
         var dir  = tmpdir + '/foobar',
-            file = dir + '/test.conf'; 
+            file = dir + '/test.conf';
 
           before(function(done) {
             common.system.paths.config = dir;
@@ -97,7 +97,7 @@ describe('tasks', function() {
       describe('with existing config folder', function() {
 
         var dir  = tmpdir + '/existing',
-            file = dir + '/test.conf'; 
+            file = dir + '/test.conf';
 
         before(function() {
           common.system.paths.config = dir;
@@ -144,7 +144,7 @@ describe('tasks', function() {
               // ok, now go
               tasks.activate({}, function(err) {
                 fs.existsSync(file).should.be.true;
-                done();              
+                done();
               })
             })
 
@@ -155,7 +155,7 @@ describe('tasks', function() {
         describe('and existing file', function() {
 
           before(function() {
-            // this was generated on last test, so just check 
+            // this was generated on last test, so just check
             fs.existsSync(file).should.be.true;
           })
 
@@ -186,7 +186,7 @@ describe('tasks', function() {
               tasks.activate({}, function(err) {
                 should.not.exist(err);
                 fs.existsSync(file).should.be.true;
-                done();              
+                done();
               })
             })
 
@@ -228,7 +228,7 @@ describe('tasks', function() {
             var readlink = fs.realpathSync(common.system.paths.current);
             readlink.should.not.containEql('current');
 
-            done();              
+            done();
           })
         })
 
@@ -338,7 +338,7 @@ describe('tasks', function() {
                 it('fails miserably', function(done) {
                   tasks.activate({}, function(err) {
                     should.exist(err);
-                    err.code.should.eql('EPERM');
+                    err.code.should.match(/EPERM|EISDIR/);
                     done();
                   })
                 })
@@ -367,7 +367,7 @@ describe('tasks', function() {
                   tasks.activate({}, function(err) {
                     should.not.exist(err);
                     fs.existsSync(current_dir);
-                    done();              
+                    done();
                   })
 
                 })
@@ -429,8 +429,8 @@ describe('tasks', function() {
           var stub;
 
           before(function() {
-            stub = sinon.stub(firewall, 'add_rule', function(obj, cb) { 
-              cb(new Error('Windows Firewall is taking a nap.')) 
+            stub = sinon.stub(firewall, 'add_rule', function(obj, cb) {
+              cb(new Error('Windows Firewall is taking a nap.'))
             })
           })
 
