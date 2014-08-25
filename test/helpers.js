@@ -4,6 +4,7 @@ var needle    = require('needle'),
     root_path = path.resolve(__dirname, '..'),
     lib_path  = path.join(root_path, 'lib'),
     spawn     = require('child_process').spawn,
+    Emitter = require('events').EventEmitter,
     helpers   = {};
 
 var prey_bin  = path.join(root_path, 'bin', 'prey');
@@ -37,6 +38,13 @@ helpers.run_cli = function(args, cb) {
   child.stderr.on('data', function(data) { err += data });
   child.on('exit', function(code) { cb(code, out, err) });
 };
+
+helpers.fake_spawn_child = function() {
+  var child = new Emitter();
+  child.stdout = new Emitter();
+  child.stderr = new Emitter();
+  return child;
+}
 
 /*
   this helpers lets you fake requests using needle:

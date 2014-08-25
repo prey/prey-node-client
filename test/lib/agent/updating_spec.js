@@ -6,8 +6,7 @@ var join                = require('path').join,
     common              = require(helpers.lib_path('common')),
     system              = require(helpers.lib_path('system')),
     package             = require(helpers.lib_path('package')),
-    updater             = require(helpers.lib_path('agent', 'updater')),
-    fake_spawn_child    = require(join('..', '..', 'utils', 'fake_spawn_child'));
+    updater             = require(helpers.lib_path('agent', 'updater'));
 
 var versions_path = system.paths.versions;
 
@@ -108,7 +107,7 @@ describe('updating', function(){
 
         before(function() {
           fake_spawn = sinon.stub(child_process, 'spawn', function(cmd, args, opts){
-            var child = fake_spawn_child();
+            var child = helpers.fake_spawn_child();
 
             setTimeout(function(){
               child.stdout.emit('data', new Buffer('Downloading file...'));
@@ -150,7 +149,7 @@ describe('updating', function(){
 
         before(function() {
           fake_spawn = sinon.stub(child_process, 'spawn', function(cmd, args, opts){
-            var child = fake_spawn_child();
+            var child = helpers.fake_spawn_child();
 
             child.unref = function() {
               unreffed = true;
