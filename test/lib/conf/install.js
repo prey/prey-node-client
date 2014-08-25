@@ -4,13 +4,8 @@ var join    = require('path').join,
     sandbox = require('./../../utils/spawner_sandbox'),
     helpers = require('./../../helpers');
 
-var conf_path = helpers.lib_path('conf'),
-    prey_bin = join(__dirname, '..', '..', '..', 'bin', 'prey');
-
-if (process.platform == 'win32')
-  prey_bin = prey_bin + '.cmd';
-
-var cli_file = join(conf_path, 'cli.js'),
+var conf_path   = helpers.lib_path('conf'),
+    cli_file    = join(conf_path, 'cli.js'),
     script_file = join(conf_path, 'install.js');
 
 /////////////////////////////////////////////////////////
@@ -48,15 +43,6 @@ describe('upgrade/remote', function() {
 
   var cli_sb,
       script_sb;
-
-  var run_cli = function(args, cb) {
-    var out, err, child = spawn(prey_bin, args);
-    child.stdout.on('data', function(data) { if (data) out += data });
-    child.stderr.on('data', function(data) { if (data) err += data });
-    child.on('exit', function(code) {
-      cb(code, out, err) 
-    });
-  };
 
   function create_sandbox(versions_path, done) {
 
@@ -107,7 +93,7 @@ describe('upgrade/remote', function() {
 
       it('fails miserably', function(done) {
 
-        run_cli(['config', 'upgrade'], function(code, out, err) {
+        helpers.run_cli(['config', 'upgrade'], function(code, out, err) {
           out.should.include('config [command]');
           code.should.equal(2);
           done();
@@ -121,7 +107,7 @@ describe('upgrade/remote', function() {
 
       it('fails miserably', function(done) {
 
-        run_cli(['config', 'upgrade', '1.2.3'], function(code, out, err) {
+        helpers.run_cli(['config', 'upgrade', '1.2.3'], function(code, out, err) {
           out.should.include('config [command]');
           code.should.equal(2);
           done();
@@ -145,7 +131,7 @@ describe('upgrade/remote', function() {
 
       it('tries to fetch latest version', function(done) {
 
-        run_cli(['config', 'upgrade'], function(code, out, err) {
+        helpers.run_cli(['config', 'upgrade'], function(code, out, err) {
           out.should.include('Error! get_latest called with version 0.9.2');
           // code.should.equal(1);
           done();
@@ -159,7 +145,7 @@ describe('upgrade/remote', function() {
 
      it('tries to fetch requested version', function(done) {
 
-        run_cli(['config', 'upgrade', '1.2.3'], function(code, out, err) {
+        helpers.run_cli(['config', 'upgrade', '1.2.3'], function(code, out, err) {
           out.should.include('Error! get_version called with version 1.2.3');
           // code.should.equal(1);
           done();

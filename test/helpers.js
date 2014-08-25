@@ -3,7 +3,13 @@ var needle    = require('needle'),
     path      = require('path'),
     root_path = path.resolve(__dirname, '..'),
     lib_path  = path.join(root_path, 'lib'),
+    spawn     = require('child_process').spawn,
     helpers   = {};
+
+var prey_bin  = path.join(root_path, 'bin', 'prey');
+
+if (process.platform == 'win32')
+  prey_bin = prey_bin + '.cmd';
 
 console.log(' == NODE VERSION: ' + process.version);
 process.env.TESTING = 'true';
@@ -24,6 +30,13 @@ helpers.lib_path = function() {
 
   return path.join.apply(this, arr);
 }
+
+helpers.run_cli = function(args, cb) {
+  var out = '', err = '', child = spawn(prey_bin, args);
+  child.stdout.on('data', function(data) { out += data });
+  child.stderr.on('data', function(data) { err += data });
+  child.on('exit', function(code) { cb(code, out, err) });
+};
 
 /*
   this helpers lets you fake requests using needle:

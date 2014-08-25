@@ -62,6 +62,7 @@
     "wmic": "0.0.5"
   },
   "devDependencies": {
+    "node.extend": "",
     "mocha": "",
     "node-fs": "0.1.5",
     "should": "",

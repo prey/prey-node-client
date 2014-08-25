@@ -46,7 +46,7 @@ var emulate_download = function(file) {
 //////////////////////////////////////////////////////
 // go
 
-describe('config upgrade', function() {
+describe('package.get_latest', function() {
 
   before(function() {
     process.stdout.writable = false; // turns logging off for this module
