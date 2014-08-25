@@ -63,6 +63,7 @@
   },
   "devDependencies": {
     "node.extend": "",
+    "mkdirp": "",
     "mocha": "",
     "node-fs": "0.1.5",
     "should": "",
