@@ -80,6 +80,7 @@ describe('config cli arguments', function() {
     after(sandbox_revert);
 
     describe('activate', function() {
+
       describe('with no arguments', function() {
         it('calls tasks.activate', function(done) {
           helpers.run_cli(['config', 'activate'], function(code, out) {
@@ -89,6 +90,7 @@ describe('config cli arguments', function() {
           })
         })
       })
+
     })
 
 /*
@@ -106,6 +108,7 @@ describe('config cli arguments', function() {
 */
 
     describe('pre_uninstall', function() {
+
       describe('with no arguments', function() {
         it('calls tasks.activate', function(done) {
           helpers.run_cli(['config', 'hooks', 'pre_uninstall'], function(code, out) {
@@ -115,6 +118,7 @@ describe('config cli arguments', function() {
           })
         })
       })
+
       describe('with --updating argument', function() {
         it('calls tasks.activate', function(done) {
           helpers.run_cli(['config', 'hooks', 'pre_uninstall', '--updating', '1'], function(code, out) {
@@ -124,6 +128,7 @@ describe('config cli arguments', function() {
           })
         })
       })
+
     })
 
   })
