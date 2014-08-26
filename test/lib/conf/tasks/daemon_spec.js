@@ -461,3 +461,9 @@ describe('installing', function() {
   })
 
 })
+
+describe('remove', function() {
+
+  it('is very pending')
+
+})
