@@ -102,7 +102,7 @@ describe('tasks', function() {
             tasks.activate({}, function(err) {
               should.exist(err);
               err.code.should.eql('EACCES');
-              stub_mkdir.restore();     
+              stub_mkdir.restore();
               done();
             })
           })
@@ -319,10 +319,14 @@ describe('tasks', function() {
             vm.this().should.eql(vm.current());
           })
 
-          it('stops there', function(done) {
-            tasks.activate({}, function(err) {
-              should.exist(err);
-              err.message.should.containEql('is already set as current');
+          it('doesnt stop, but shows warning', function(done) {
+
+            // var spy = sinon.spy(process.stdout, 'write');
+            tasks.activate({}, function(err, out) {
+              should.not.exist(err);
+              // spy.called.should.be.true;
+              // spy.args[0][0].should.containEql('is already set as current');
+              // spy.restore();
               done();
             })
           })
@@ -660,7 +664,7 @@ describe('tasks', function() {
       var create_user_stub;
 
       before(function() {
-        // if running under win32, skip the set_up_version logic 
+        // if running under win32, skip the set_up_version logic
         if (process.platform == 'win32') {
           stage_one_stub = sinon.stub(vm, 'set_current', function(ver, cb) { cb() });
         } else {
