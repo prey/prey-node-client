@@ -15,22 +15,34 @@ var module_path = helpers.lib_path('conf', 'tasks', 'daemon');
 var common = require(helpers.lib_path('common'));
 var cp     = require(helpers.lib_path('conf', 'utils', 'cp'));
 
-var install_dir = tmpdir + '/daemon-spec';
-var current_dir = install_dir + '/current';
+var install_dir = path.join(tmpdir, 'daemon-spec');
+var current_dir = path.join(install_dir, 'current');
 
 describe('installing', function() {
 
   var spy, stub;
 
+  // toggable flag that defines whether cp works or not
+  var writable = true;
+
   var run = function(platform, method, cb) {
     var opts = {
       requires: {
         satan: satan,
-        '../utils/cp': cp,
+        '../utils/cp': { 
+          cp: function(source, dest, cb) {
+            if (writable)
+              return cp.cp(source, dest, cb)
+            
+            var err = new Error('Error: EACCES: ' + dest);
+            err.code = 'EACCES';
+            cb(err);
+          }
+        },
         './../../system/paths': {
            current: current_dir,
            install: install_dir
-        }
+        },
       },
       globals: {
         process: {
@@ -74,36 +86,34 @@ describe('installing', function() {
 
     describe('copying service bin', function() {
 
-      var source_bin = current_dir + '/lib/system/windows/bin/wpxsvc.exe';
-      var bin_path   = install_dir + '/wpxsvc.exe';
+      var source_bin = path.join(current_dir, 'lib/system/windows/bin/wpxsvc.exe');
+      var bin_path   = path.join(install_dir, 'wpxsvc.exe');
 
       before(function(done) {
-        // create full path. this makes both current and install paths available
-        mkdirp(path.dirname(source_bin), function(err) {
-          if (err) return done(err);
+        rimraf(install_dir, function() {
 
-          fs.writeFile(source_bin, 'source file', done)
-        })
-      })
+          // create full path. this makes both current and install paths available
+          mkdirp(path.dirname(source_bin), function(err) {
+            if (err) return done(err);
 
-      after(function(done) {
-        rimraf(install_dir, done);
+            fs.writeFile(source_bin, 'source file', done);
+          })
+        });
       })
 
       describe('with no write access', function() {
 
         describe('and file not present', function() {
 
-          before(function(done) {
-            fs.chmod(install_dir, '500', done);
+          before(function() {
+            writable = false;
+            fs.existsSync(bin_path).should.be.false;
+            // fs.chmod(install_dir, '0000', done);
           })
 
           after(function(done) {
-            fs.chmod(install_dir, '750', done);
-          })
-
-          before(function() {
-            fs.existsSync(bin_path).should.be.false;
+            writable = true;
+            fs.chmod(install_dir, '0750', done);
           })
 
           it('returns an error', function(done) {
@@ -131,13 +141,13 @@ describe('installing', function() {
         describe('and file is present', function() {
 
           before(function(done) {
-            fs.writeFile(bin_path, 'Hola que tal', { mode: '500' }, function(err) {
-              fs.chmod(install_dir, '500', done);
+            fs.writeFile(bin_path, 'Hola que tal', { mode: '0000' }, function(err) {
+              fs.chmod(bin_path, '0000', done);
             });
           })
 
           after(function(done) {
-            fs.chmod(install_dir, '750', function(err) {
+            fs.chmod(bin_path, '0750', function(err) {
               fs.unlink(bin_path, done);
             });
           })
@@ -145,7 +155,7 @@ describe('installing', function() {
           it('returns an error', function(done) {
             run('win32', 'install', function(err) {
               err.should.exist;
-              err.code.should.eql('EACCES');
+              err.code.should.match(/EACCES|EPERM/);
 
               // bin should still be there
               fs.existsSync(bin_path).should.be.true;
@@ -176,7 +186,7 @@ describe('installing', function() {
       describe('with write access', function() {
 
         before(function(done) {
-          fs.chmod(install_dir, '750', done);
+          fs.chmod(install_dir, '0750', done);
         })
 
         describe('and file not present', function() {

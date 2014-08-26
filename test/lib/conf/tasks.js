@@ -2,20 +2,21 @@ var fs      = require('fs'),
     join    = require('path').join,
     should  = require('should'),
     sinon   = require('sinon'),
-    rimraf  = require('rimraf'),
     async   = require('async'),
+    getset  = require('getset'),
+    rimraf  = require('rimraf'),
     helpers = require('./../../helpers'),
     tmpdir  = require('os').tmpdir();
 
-var getset  = require('getset');
-var common  = require(helpers.lib_path('common'));
-var tasks   = require(helpers.lib_path('conf', 'tasks'));
-var vm      = require(helpers.lib_path('conf', 'shared', 'version_manager'));
+var os_name = process.platform.replace('win32', 'windows').replace('darwin', 'mac');
 
-var prey_user = require(helpers.lib_path('conf', 'tasks', 'prey_user'));
+var common  = require(helpers.lib_path('common')),
+    tasks   = require(helpers.lib_path('conf', 'tasks')),
+    vm      = require(helpers.lib_path('conf', 'shared', 'version_manager'));
 
-var hooks  = require(helpers.lib_path('conf', 'tasks', 'os', process.platform ));
-var daemon = require(helpers.lib_path('conf', 'tasks', 'daemon'));
+var prey_user = require(helpers.lib_path('conf', 'tasks', 'prey_user')),
+    hooks   = require(helpers.lib_path('conf', 'tasks', 'os', os_name )),
+    daemon  = require(helpers.lib_path('conf', 'tasks', 'daemon'));
 
 describe('tasks', function() {
 
@@ -27,7 +28,7 @@ describe('tasks', function() {
           old_version_paths;
 
       before(function() {
-        process.stdout.writable = false;
+        // process.stdout.writable = false;
 
         // store old config so we can reset it afterwards
         old_config = common.config;
@@ -53,14 +54,25 @@ describe('tasks', function() {
         describe('and no write permissions', function() {
 
           before(function() {
-            common.system.paths.config = '/foobar';
-            load_config('/foobar/test.conf');
+            var dir = tmpdir + '/stubbed';
+            common.system.paths.config = dir;
+            load_config(dir + '/test.conf');
+
+            fs.existsSync(dir).should.be.false;
           })
 
-          it('returns a EACCESS error', function(done) {
+          it('returns a EACCES error', function(done) {
+
+            var stub_mkdir = sinon.stub(fs, 'mkdir', function(dir, cb) {
+              var err = new Error('EACCES: ' + dir);
+              err.code = 'EACCES';
+              cb(err)
+            })
+
             tasks.activate({}, function(err) {
               should.exist(err);
               err.code.should.eql('EACCES');
+              stub_mkdir.restore();     
               done();
             })
           })
@@ -69,18 +81,37 @@ describe('tasks', function() {
 
         describe('and write permissions', function() {
 
-        var dir  = tmpdir + '/foobar',
-            file = dir + '/test.conf';
+        var dir  = join(tmpdir, 'writable'),
+            file = join(dir, 'test.conf');
+
+        var post_activate_stub;
 
           before(function(done) {
+            common.system.paths.versions = null;
+
             common.system.paths.config = dir;
             common.config = load_config(file);
 
+            if (fs.existsSync(dir)) {
+              fs.unlinkSync(dir);
+            }
+
+            fs.existsSync(dir).should.be.false;
+
+            post_activate_stub = sinon.stub(hooks, 'post_activate', function(cb) {
+              cb(new Error('post_activate hooks called'));
+            })
+
             // ok, now go
-            tasks.activate({}, done);
+            tasks.activate({}, function(err) {
+              err.message.should.eql('post_activate hooks called');
+              done();
+            });
           })
 
           after(function(done) {
+            post_activate_stub.restore();
+
             fs.unlink(file, function(err) {
               if (err) return done(err);
               fs.rmdir(dir, done);
@@ -99,11 +130,10 @@ describe('tasks', function() {
 
       })
 
-
       describe('with existing config folder', function() {
 
-        var dir  = tmpdir + '/existing',
-            file = dir + '/test.conf';
+        var dir  = join(tmpdir, 'existing'),
+            file = join(dir, 'test.conf')
 
         before(function() {
           common.system.paths.config = dir;
@@ -111,23 +141,30 @@ describe('tasks', function() {
         })
 
         after(function(done) {
-          fs.unlink(file, function(err) {
-            if (err) return done(err);
-            fs.rmdir(dir, done);
-          });
+          rimraf(dir, done);
         })
 
         describe('and nonexisting file', function() {
 
-          before(function() {
+          beforeEach(function() {
             common.config = load_config(file);
             fs.existsSync(file).should.be.false;
           })
 
           describe('no write access to dir', function() {
 
+            var stub_write;
+
             before(function() {
-              fs.chmodSync(dir, '500');
+              stub_write = sinon.stub(fs, 'writeFile', function(file, data, cb) {
+                var err = new Error('EACCES: ' + dir);
+                err.code = 'EACCES';
+                cb(err)
+              })
+            })
+
+            after(function() {
+              stub_write.restore();
             })
 
             it('returns an error', function(done) {
@@ -142,12 +179,7 @@ describe('tasks', function() {
 
           describe('with write access to dir', function() {
 
-            before(function(done) {
-              fs.chmod(dir, 750, done);
-            })
-
             it('generates a new config file', function(done) {
-              // ok, now go
               tasks.activate({}, function(err) {
                 fs.existsSync(file).should.be.true;
                 done();
@@ -160,15 +192,24 @@ describe('tasks', function() {
 
         describe('and existing file', function() {
 
-          before(function() {
-            // this was generated on last test, so just check
-            fs.existsSync(file).should.be.true;
+          before(function(done) {
+            fs.writeFile(file, 'foo = bar\n', done);
           })
 
           describe('no write access to file', function() {
 
-            before(function(done) {
-              fs.chmod(file, '000', done);
+            var stub_write;
+
+            before(function() {
+              stub_write = sinon.stub(fs, 'writeFile', function(file, data, cb) {
+                var err = new Error('EACCES: ' + dir);
+                err.code = 'EACCES';
+                cb(err)
+              })
+            })
+
+            after(function() {
+              stub_write.restore();
             })
 
             it('returns an error', function(done) {
@@ -182,10 +223,6 @@ describe('tasks', function() {
           })
 
           describe('with write access to file', function() {
-
-            before(function(done) {
-              fs.chmod(file, '750', done);
-            })
 
             it('syncs and returns no errors', function(done) {
               // ok, now go
