@@ -26,7 +26,7 @@ describe('tasks', function() {
         old_versions_path;
 
     before(function() {
-      // process.stdout.writable = false;
+      process.stdout.writable = false;
 
       // store old config so we can reset it afterwards
       old_config = common.config;
@@ -660,11 +660,6 @@ describe('tasks', function() {
       var create_user_stub;
 
       before(function() {
-        // let's assume we have a versions path and that config.sync works
-        // we're already testing the versions/no versions logic in .activate()
-        old_versions_path = common.system.paths.versions;
-        common.system.paths.versions = tmpdir + '/versions';
-
         // if running under win32, skip the set_up_version logic 
         if (process.platform == 'win32') {
           stage_one_stub = sinon.stub(vm, 'set_current', function(ver, cb) { cb() });
