@@ -270,29 +270,29 @@ describe('prey_user', function() {
 
         describe('and "config activate" as prey user succeeds', function() {
 
-          var activate_stub;
-
-          before(function() {
-            activate_stub = sinon.stub(ocelot, 'exec_as', function(user, cmd, cb) {
-              // let's determine that it worked based
-              // on whether the bin path is correct
-
-              if (fs.existsSync(cmd)) {
-                var out = 'It worked!';
-                cb(null, out);
-              } else {
-                var out = 'Failed miserably. Error.';
-                cb(null, out);
-              }
-            });
-          })
-
-          after(function() {
-            activate_stub.restore();
-          })
-
           it('works', function(done) {
-            run(function(err) {
+
+            var obj = {
+              requires: {
+                'ocelot': {
+                  exec_as: function(user, cmd, cb) {
+                    // let's determine that it worked based
+                    // on whether the bin path is correct
+                    var bin = cmd.split(' ')[0];
+
+                    if (cmd.match('config activate') && fs.existsSync(bin)) {
+                      var out = 'It worked!';
+                      cb(null, out);
+                    } else {
+                      var out = 'Failed miserably. Error.';
+                      cb(null, out);
+                    }
+                  }
+                }
+              }
+            }
+
+            run_sandboxed(obj, function(err) {
               should.not.exist(err);
               done();
             })
