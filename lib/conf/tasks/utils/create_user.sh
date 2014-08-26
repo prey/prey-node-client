@@ -120,16 +120,18 @@ test_impersonation() {
   fi
 }
 
+#################### 
+## the main course
+
+# ask_confirmation
 id $USER_NAME &> /dev/null
 
 if [ $? -eq 0 ]; then
   echo "${USER_NAME} user already exists!"
-  grant_privileges # in case it was an older installation without sudoer rights set
-  exit 1
+else 
+  create_user
 fi
 
-# ask_confirmation
-create_user
 grant_privileges
 # test_impersonation
 exit $?
