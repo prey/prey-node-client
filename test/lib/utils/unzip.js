@@ -3,8 +3,8 @@ var fs                = require('fs'),
     should            = require('should'),
     os                = require('os'),
     helpers           = require(join('..', '..', 'helpers')),
-    unzip             = require(helpers.lib_path('utils', 'unzip')),
-    rmdir             = require(helpers.lib_path('utils', 'rmdir'));
+    unzip             = require('buckle').open,
+    rmdir             = require('rimraf');
 
 var is_windows        = process.platform === 'win32',
     tmpdir            = require('os').tmpDir(),
@@ -16,7 +16,7 @@ describe('lib/utils/unzip', function (){
   describe('when an unvalid zip file is given', function (){
 
     before(function(done){
-      fs.writeFile(invalid_zip_path, '..................', done);
+      fs.writeFile(invalid_zip_path, '.....', done);
     });
 
     after(function(done){
@@ -26,6 +26,7 @@ describe('lib/utils/unzip', function (){
     it('unzip will callback with an error', function (done){
       unzip(invalid_zip_path, tmpdir, function(err){
         should.exist(err);
+        err.message.should.containEql('Could not find the End of Central Directory');
         done();
       });
     });
@@ -34,7 +35,11 @@ describe('lib/utils/unzip', function (){
 
   describe('when a valid zip file is given', function (){
 
-    describe('with write permissions', function (){
+    describe('with write permissions', function () {
+
+      after(function(done){
+        rmdir(join(tmpdir, 'aaa'), done);
+      });
 
       it('expands it in the destination directory', function (done){
         unzip(valid_zip_path, tmpdir, function(err) {
@@ -46,10 +51,6 @@ describe('lib/utils/unzip', function (){
         })
       });
 
-      after(function(done){
-        rmdir(join(tmpdir, 'aaa'), done);
-      });
-
     });
 
     // no write perms only testable in *Nix and Windows > XP
@@ -57,7 +58,7 @@ describe('lib/utils/unzip', function (){
 
     describe('with no write permissions', function (){
 
-      var test_no_perms_path = tmpdir + '/test_no_perms';
+      var test_no_perms_path = join(tmpdir, '/test_no_perms');
 
       before(function(done) {
         fs.mkdir(test_no_perms_path, function(err) {
@@ -67,21 +68,25 @@ describe('lib/utils/unzip', function (){
 
       after(function(done){
         fs.chmodSync(test_no_perms_path, 0700);
-        fs.rmdir(test_no_perms_path, done);
+        rmdir(test_no_perms_path, done);
       });
 
       it('unzip will callback with an EACCES error', function(done) {
 
         unzip(valid_zip_path, test_no_perms_path, function(err) {
           should.exist(err);
-          err.code.should.equal('EACCES');
+          if (err.code) {
+            err.code.should.equal('EACCES');
+          } else {
+            err.name.should.eql('AssertionError'); // happens in Win8.1
+          }
           done();
         });
 
       });
 
     });
-    
+
     }
 
   });

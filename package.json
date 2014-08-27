@@ -1,10 +1,7 @@
 {
   "name": "prey",
-  "version": "1.1.6",
+  "version": "1.2.1",
   "author": "Tomás Pollak <tomas@forkhq.com>",
-  "contributors": [
-    "Herman Junge <herman@forkhq.com>"
-  ],
   "keywords": [
     "prey",
     "anti",
@@ -28,30 +25,45 @@
     "url": "https://github.com/prey/prey-node-client.git"
   },
   "dependencies": {
-    "commander": "",
-    "getset": ">=0.4.0",
-    "qs": "",
-    "needle": ">=0.5.5",
-    "xml2js": "",
-    "dialog": "",
-    "mime": "1.2.5",
-    "reply": "",
     "async": "",
-    "underscore": "",
-    "campfire": "",
-    "nodemailer": "",
-    "network": "",
-    "wmic": "0.0.2",
+    "buckle": "0.0.2",
+    "campfire": "git://github.com/tomas/node-campfire",
+    "clean-exit": "0.0.3",
+    "colors": "^0.6.2",
+    "commander": "",
     "connect": "",
-    "entry": "0.2.6",
-    "triggers": "0.1.3",
-    "winssh": "",
-    "rimraf": "",
-    "which": "",
+    "dialog": "",
+    "entry": "^0.3.0",
+    "firewall": "0.0.2",
+    "getset": "^0.6.2",
+    "linus": "0.0.3",
+    "memorize": "0.0.1",
+    "mime": "1.2.5",
     "nat-pmp": "",
-    "decompress-zip": "git://github.com/tomas/decompress-zip"
+    "needle": "^0.7.8",
+    "network": "0.0.11",
+    "nodemailer": "",
+    "ocelot": "0.0.2",
+    "petit": "0.0.5",
+    "qs": "",
+    "reply": "^0.3.1",
+    "rimraf": "",
+    "satan": "^0.2.5",
+    "scrambler": "0.0.1",
+    "sudoer": "0.0.3",
+    "triggers": "^0.1.4",
+    "tuna": "0.0.2",
+    "uid-number": "0.0.5",
+    "underscore": "",
+    "whenever": "0.0.3",
+    "which": "",
+    "wink": "0.0.1",
+    "winssh": "",
+    "wmic": "0.0.5"
   },
   "devDependencies": {
+    "node.extend": "",
+    "mkdirp": "",
     "mocha": "",
     "node-fs": "0.1.5",
     "should": "",
@@ -66,13 +78,15 @@
     "bin": "./bin",
     "lib": "./lib",
     "scripts": "./scripts",
-    "spec": "./spec"
+    "test": "./test"
   },
   "scripts": {
     "start": "./bin/prey",
-    "test": "./bin/prey test --recursive --reporter dot",
-    "postinstall": "node ./scripts/post_install.js",
-    "preuninstall": "node ./scripts/pre_uninstall.js"
+    "test": "./bin/prey test lib/agent/plugins test --recursive --reporter dot",
+    "coverage": "istanbul cover _mocha -- lib/agent/plugins test --recursive",
+    "postinstall": "./bin/prey config hooks post_install",
+    "postupdate": "./bin/prey config hooks post_install",
+    "preuninstall": "./bin/prey config hooks pre_uninstall"
   },
   "bugs": {
     "url": "http://github.com/prey/prey-node-client/issues"
@@ -80,7 +94,7 @@
   "licenses": [
     {
       "type": "GPLv3",
-      "url": "https://github.com/prey/prey-node-client/raw/master/LICENSE"
+      "url": "https://github.com/prey/prey-node-client/raw/master/license.txt"
     }
   ]
 }

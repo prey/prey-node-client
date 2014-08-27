@@ -3,9 +3,9 @@ var sandbox      = require('sandboxed-module'),
     agent_path   = path.resolve(__dirname, '..', '..', 'lib', 'agent');
 
 var result = {
-  out      : '', 
+  out      : '',
   code     : null,
-  triggers : [], 
+  triggers : [],
   murders  : {},
   signals  : {}
 }
@@ -13,13 +13,13 @@ var result = {
 var callbacks = {};
 
 var fake_logger = {
-  write: function(str) { result.out += str }, 
+  write: function(str) { result.out += str },
   debug: function(str) { this.write('debug: ' + str) },
   critical: function(str) { this.write('critical: ' + str) },
   warn: function(str) { this.write('warn: ' + str) }
 }
 
-var defaults = { 
+var defaults = {
   common: {
     logger: fake_logger,
     config: { present: function(){ return true } },
@@ -28,7 +28,6 @@ var defaults = {
   agent: {
     // run: function() { },
     running: function() { return true },
-    engage: function(trigger) { result.triggers.push(trigger) },
     shutdown: function() { }
   },
   pid: {
@@ -38,7 +37,11 @@ var defaults = {
   process: {
     env  : process.env,
     argv : [],
-    stdout: { _type: '_tty' },
+    stdout: {
+      _type: '_tty',
+      writable: true,
+      write: function(str) { result.out += str }
+    },
     exit: function(code){ result.code = code },
     on:   function(signal, cb) { callbacks[signal] = cb },
     kill: function(pid, signal) { result.murders[pid] = signal }
@@ -75,30 +78,30 @@ var clone = function(obj){
 
 exports.run = function(opts) {
 
-  // clone defaults object, so it retains 
+  // clone defaults object, so it retains
   // its original values for future calls
-  var def = clone(defaults); 
-  
+  var def = clone(defaults);
+
   var sandbox_opts = {
-    requires : { 
+    requires : {
       './common' : merge(def.common, opts.common),
       './'       : merge(def.agent, opts.agent),
     },
-    globals  : { 
-      process    : merge(def.process, opts.process) 
+    globals  : {
+      process    : merge(def.process, opts.process)
     }
   }
 
   // this is a tricky one
-  sandbox_opts.requires[path.join('..', 'utils', 'pidfile')] = merge(def.pid, opts.pid);
+  sandbox_opts.requires['./utils/pidfile'] = merge(def.pid, opts.pid);
 
   // load any additional requires passed
   if (opts.requires) {
-    for (var key in opts.requires) 
+    for (var key in opts.requires)
       sandbox_opts.requires[key] = opts.requires[key];
   }
 
-  // fire it up! 
+  // fire it up!
   try {
     sandbox.require(path.resolve(agent_path, 'cli'), sandbox_opts);
   } catch(e) { // oops, uncaughtException

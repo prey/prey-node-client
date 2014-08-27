@@ -1,10 +1,22 @@
-#! bin/node
+#!/bin/sh
 
-var script = process.argv[2];
+PATH="$PATH:/usr/local/bin"
+node="node"
+dir="$(dirname $0)"
+[ -x "$dir/node" ] && node="$dir/node" 
 
-if (script == 'config')
-  require('../lib/conf/cli');
-else if (script == 'test')
-  require('../node_modules/.bin/_mocha');
-else
-  require('../lib/agent/cli');
+# if current file is a symlink (e.g. installed via npm) we'll append 
+# the relative path to where the package is actually installed.
+if [ -n "$(readlink $0 2> /dev/null)" ]; then
+  rel="$(dirname $(readlink $0))"
+  dir="$dir/$rel"
+fi
+
+script="lib/agent/cli.js"
+if [ "$1" = "config" ]; then
+  script="lib/conf/cli.js"
+elif [ "$1" = "test" ]; then
+  script="node_modules/.bin/_mocha"
+fi
+
+exec "$node" "$dir/../${script}" "$@"
