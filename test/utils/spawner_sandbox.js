@@ -1,6 +1,11 @@
 var fs = require('fs');
 
-exports.put = function(file, deps, cb) {
+exports.put = function(file, deps, vars, cb) {
+
+  if (typeof vars == 'function') {
+    cb = vars;
+    vars = {};
+  }
 
   var serialize = function(obj) {
     return JSON.stringify(obj, function(key, val) {
@@ -19,6 +24,12 @@ exports.put = function(file, deps, cb) {
         str = str.replace(regex, serialize(deps[name]));
       }
     }
+    for (var name in vars) {
+      for (var key in vars[name]) {
+        str = name + '.' + key + ' = ' + serialize(vars[name][key]) + ";\n" + str;
+      }
+    }
+
     return str.replace(/\"?____\"?/g, '').replace(/\\n/g, '');
   }
 
@@ -29,6 +40,7 @@ exports.put = function(file, deps, cb) {
       if (err) return cb(err);
 
       var modified = replace_deps(data.toString(), deps);
+      // console.log(modified);
 
       fs.rename(file, file + '.original', function(err) {
         if (err) return cb(err);

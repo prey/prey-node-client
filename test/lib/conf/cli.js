@@ -24,10 +24,10 @@ describe('config cli arguments', function() {
   var sb,
       sandbox_file = './lib/conf/cli.js';
 
-  function sandbox_enable(opts, done) {
+  function sandbox_enable(opts, vars, done) {
     var base = { './../common': common_base };
     var deps = extend(true, base, opts); // deep merge
-    sb = sandbox.put(sandbox_file, deps, done);
+    sb = sandbox.put(sandbox_file, deps, vars, done);
   }
 
   function sandbox_revert(done) {
@@ -59,24 +59,40 @@ describe('config cli arguments', function() {
 
   describe('tasks', function() {
 
-    before(function(done) {
-      var obj = { 
-        './tasks': { 
-          activate: function(values, cb) { 
+    var getuid = null;
+
+    var enable_tasks_sandbox = function(cb) {
+      var obj = {
+        './tasks': {
+          activate: function(values, cb) {
             return cb(new Error('activate called: ' + JSON.stringify(values)));
           },
-          post_install: function(values, cb) { 
+          post_install: function(values, cb) {
             return cb(new Error('post_install called: ' + JSON.stringify(values)));
           },
-          pre_uninstall: function(values, cb) { 
+          pre_uninstall: function(values, cb) {
             return cb(new Error('pre_uninstall called: ' + JSON.stringify(values)));
           }
         }
       }
 
-      sandbox_enable(obj, done);
-    })
+      var global_obj = {
+        process: {
+          getuid: getuid
+        }
+      }
 
+      sandbox_enable(obj, global_obj, cb);
+    }
+
+    // used in the pre_install tests, but useful helper for other situations
+    var toggle_sandbox = function(done) {
+      sandbox_revert(function() {
+        enable_tasks_sandbox(done);
+      })
+    }
+
+    before(enable_tasks_sandbox);
     after(sandbox_revert);
 
     describe('activate', function() {
@@ -93,40 +109,178 @@ describe('config cli arguments', function() {
 
     })
 
-/*
     describe('post_install', function() {
-      describe('with no arguments', function() {
-        it('calls tasks.activate', function(done) {
-          helpers.run_cli(['config', 'hooks', 'post_install'], function(code, out) {
-            code.should.eql(1);
-            out.should.containEql(' post_install called: {"positional":[]}');
-            done();
-          })
+
+      var run = function(args, code, out_string, cb) {
+        helpers.run_cli(args, function(code, out) {
+          code.should.eql(code);
+          out.should.containEql(out_string);
+          cb();
         })
+      }
+
+      var run_test = function(code, out_string, cb) {
+        run(['config', 'hooks', 'post_install'], code, out_string, cb);
+      }
+
+      describe('on windows', function() {
+
+        // make sure getuid is null, and reset sandbox
+        before(function(done) {
+          getuid = null;
+          toggle_sandbox(done);
+        })
+
+        it('works', function(done) {
+          run_test(0, 'post_install called', done);
+        });
+
       })
+
+      describe('on linux/mac', function() {
+
+        // this guy will release the sandbox and set up a new one
+        // using the getuid changes that we want. once we're done,
+        // we don't really need to revert the sandbox to its initial position
+        // so no need to do an after() thingy.
+
+        describe('as non-root', function() {
+
+          before(function(done) {
+            getuid = function() { return 100 };
+            toggle_sandbox(done);
+          })
+
+          describe('if running via npm', function() {
+
+            before(function() {
+              process.env.npm_package_version = '1.2.3';
+            })
+
+            it('shows an error, but returns with code 0', function(done) {
+              run_test(0, 'To continue with the install process', done);
+            })
+
+          })
+
+          describe('not via NPM', function() {
+
+            before(function() {
+              delete process.env.npm_package_version;
+              delete process.env.npm_lifecycle_script;
+            })
+
+            it('shows an error, but returns with code 0', function(done) {
+              run_test(0, 'To continue with the install process', done);
+            })
+
+          })
+
+        })
+
+        describe('as root', function() {
+
+          before(function(done) {
+            getuid = function() { return 0 };
+            toggle_sandbox(done);
+          })
+
+          it('works', function(done) {
+            run_test(0, 'post_install called', done);
+          });
+
+        })
+
+      })
+
     })
-*/
 
     describe('pre_uninstall', function() {
 
-      describe('with no arguments', function() {
-        it('calls tasks.activate', function(done) {
-          helpers.run_cli(['config', 'hooks', 'pre_uninstall'], function(code, out) {
-            code.should.eql(1);
-            out.should.containEql('pre_uninstall called: {"positional":[]');
-            done();
-          })
+      var run = function(args, out_string, cb) {
+        helpers.run_cli(args, function(code, out) {
+          code.should.eql(1);
+          out.should.containEql(out_string);
+          cb();
         })
+      }
+
+      var run_test = function(out_string, cb) {
+        // with no arguments
+        run(['config', 'hooks', 'pre_uninstall'], out_string, function() {
+          // with --updating argument
+          run(['config', 'hooks', 'pre_uninstall', '--updating', '1'], out_string, cb);
+        })
+      }
+
+      describe('on windows', function() {
+
+        // make sure getuid is null, and reset sandbox
+        before(function(done) {
+          getuid = null;
+          toggle_sandbox(done);
+        })
+
+        it('works', function(done) {
+          run_test('pre_uninstall called', done);
+        });
+
       })
 
-      describe('with --updating argument', function() {
-        it('calls tasks.activate', function(done) {
-          helpers.run_cli(['config', 'hooks', 'pre_uninstall', '--updating', '1'], function(code, out) {
-            code.should.eql(1);
-            out.should.containEql('pre_uninstall called: {"positional":["1"],"-u":true');
-            done();
+      describe('on linux/mac', function() {
+
+        // this guy will release the sandbox and set up a new one
+        // using the getuid changes that we want. once we're done,
+        // we don't really need to revert the sandbox to its initial position
+        // so no need to do an after() thingy.
+
+        describe('as non-root', function() {
+
+          before(function(done) {
+            getuid = function() { return 100 };
+            toggle_sandbox(done);
           })
+
+          describe('running via npm', function() {
+
+            before(function() {
+              process.env.npm_package_version = '1.2.3';
+            })
+
+            it('shows an error', function(done) {
+              run_test('without the --unsafe-perm flag', done);
+            })
+
+          })
+
+          describe('not via npm', function() {
+
+            before(function() {
+              delete process.env.npm_package_version;
+              delete process.env.npm_lifecycle_script;
+            })
+
+            it('works', function(done) {
+              run_test('pre_uninstall called', done);
+            });
+
+          })
+
         })
+
+        describe('as root', function() {
+
+          before(function(done) {
+            getuid = function() { return 0 };
+            toggle_sandbox(done);
+          })
+
+          it('works', function(done) {
+            run_test('pre_uninstall called', done);
+          });
+
+        })
+
       })
 
     })
@@ -155,7 +309,7 @@ describe('config cli arguments', function() {
         local_file = './lib/conf/account.js';
 
     before(function(done) {
-      var obj = { 
+      var obj = {
         './../common': {
           config: {
             get: mirror,
@@ -164,7 +318,7 @@ describe('config cli arguments', function() {
         }
       }
 
-      sandbox_enable(obj, done)
+      sandbox_enable(obj, {}, done)
     })
 
     after(sandbox_revert);
@@ -244,11 +398,11 @@ describe('config cli arguments', function() {
             keys : {
               get: function() { return { api: 123456789, device: 123123 } }
             },
-            panel : { 
-              verify_keys: function(keys, cb) { 
+            panel : {
+              verify_keys: function(keys, cb) {
                 var str = [keys.api, keys.device].join(', ');
                 return cb(new Error('Called with keys: ' + str))
-              } 
+              }
             }
           }
         }
@@ -352,7 +506,7 @@ describe('config cli arguments', function() {
             './shared': {
               keys: {
                 is_api_key_set: function() { return false }
-              }, 
+              },
               panel: {
                 signup: function(opts, cb) {
                   return cb(new Error('panel.signup called with opts: ' + JSON.stringify(opts)))
