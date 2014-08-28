@@ -133,7 +133,7 @@ zip_file(){
   if [ -z "$OS" ]; then
     zip -9 -r "$ZIP" "$FOLDER" 1> /dev/null
   elif [ "$OS" = 'windows' ]; then
-    zip -9 -r "$ZIP" "$FOLDER" -x \*bin/prey -x \*.sh \*linux/* \*mac/* \*darwin/* 1> /dev/null
+    zip -9 -r "$ZIP" "$FOLDER" -x \*.sh \*linux/* \*mac/* \*darwin/* 1> /dev/null
   elif [ "$OS" = 'mac' ]; then
     zip -9 -r "$ZIP" "$FOLDER" -x \*.cmd \*.exe \*.dll \*windows/* \*linux/* 1> /dev/null
   elif [ "$OS" = 'linux' ]; then
