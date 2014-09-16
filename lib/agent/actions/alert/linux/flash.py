@@ -1,9 +1,11 @@
 #!/usr/bin/env python
+# coding: utf8
+
 #############################################
-# Prey Linux Alert
-# By Tomas Pollak - (c) 2014 Fork Ltd.
-# http://preyproject.com
-# GPLv3
+# Linux System Flash Messages
+# Written by Tomas Pollak <tomas@forkhq.com>
+# (c) 2014 Fork Ltd.
+# GPLv3 Licensed
 #############################################
 
 import os, sys

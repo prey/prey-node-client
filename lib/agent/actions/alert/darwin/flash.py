@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 # coding: utf8
 
-#################################
-# Python Mac Lock
+#############################################
+# Mac System Flash Messages
 # Written by Tomas Pollak <tomas@forkhq.com>
-# (c) 2011 Fork Ltd.
-# Licensed under the GPLv3
-#################################
+# (c) 2014 Fork Ltd.
+# GPLv3 Licensed
+#############################################
 
 import os
 import sys
@@ -30,6 +30,10 @@ background_color = blue
 # dark red
 
 close_icon = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAABZklEQVRYR+2VvW0CQRCFwWCTQQDGEg0Q0AWBK6EAZy7AfwVYwvwFxEADtitAuAHnNIDk2OI96UY6obvdmbngkkN60gI7+76dnZ2t10r+1Ev2r1UAVQZCGWijQP+g/4KF2kH8KW+NEMAjgobQpABEH7HfyRqHLIgQAP/7gG6cEGL+gviNJwOMIcQMujZC0PwLeg2Zi0HsiAkxh5pKCLW5FkDmaSDEnGnfxnZmAZC5CwwaOZm4TaVdZW4FkPlLDK4uIFzmHoAsiC5+/EwKbqdJe3qOtxUzbgXxio685t4MyAYGGPxCe+gecnVMbwbuYMgO9wSNoVZOYUZPxANAczYZmvPMucbUC2EFkPYq5rJDd9u2AEiTeU52fpleF4QWQO45O1zoqpnfDg0AzS333AQRA+glBcdXzdJk1A9YCIDm3Pmb0TxdmNEHLATwgJWOTvM0xDu+rKGfrKYQO4JoIyk6oQKoMlB6Bs6DNUoh5TlqhAAAAABJRU5ErkJggg=='
+
+def write(str):
+  print str
+  sys.stdout.flush()
 
 class AlertWindow(NSWindow):
 
@@ -97,7 +101,7 @@ class AlertView(NSView):
     if str == "" or str == self.field.default_value:
       return
 
-    print "User input: " + str
+    write("User input: " + str)
     self.button.setTitle_('Submitting...')
     self.button.setEnabled_(False)
     AppHelper.callLater(2, self.update_button_and_exit)
