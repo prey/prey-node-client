@@ -12,6 +12,14 @@ var versions_path = system.paths.versions;
 
 describe('updating', function(){
 
+  before(function() {
+    common.logger.pause();
+  })
+
+  after(function() {
+    common.logger.resume();
+  });
+
   describe('when there is NO versions support', function(){
 
     before(function(){
@@ -128,7 +136,7 @@ describe('updating', function(){
 
           updater.check(function(err){
             should.exist(err);
-            err.message.should.equal('Update to 1.2.5 failed.');
+            err.message.should.equal('Upgrade to 1.2.5 failed. Exit code: undefined');
             err.stack.should.include('Launching rockets\nSHOOT!!');
             done();
           });
@@ -174,10 +182,10 @@ describe('updating', function(){
           fake_exit.restore();
         });
 
-        it('process exits with status code(33)', function (done){
+        it('process exits with status code(0)', function (done){
 
           updater.check(function(err){
-            exit_code.should.equal(33);
+            exit_code.should.equal(0);
             unreffed.should.be.true;
             done();
           });
