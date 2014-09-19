@@ -49,6 +49,17 @@ git_modified_files() {
   git status | grep modified | wc -l
 }
 
+check_node_version() {
+  EXPECTED_NODE_VER="$(cat .nvmrc)"
+  CURRENT_NODE_VER="$(./bin/node --version)"
+  
+  if [ "v${EXPECTED_NODE_VER}" != "$CURRENT_NODE_VER" ]; then
+    echo "Looks like your node version in bin is outdated: ${CURRENT_NODE_VER}"
+    echo "Please update to v${EXPECTED_NODE_VER} using the 'tools/node_bins.sh' script"
+    abort "Stopping here."
+  fi
+}
+
 build(){
 
   VERSION="$1"
@@ -172,6 +183,9 @@ pack(){
 if [ "$(git_modified_files)" -gt 0 ]; then
   abort "Tree contains changes. Please commit or stash to avoid losing data."
 fi
+
+# ensure node version matches the expected one
+check_node_version
 
 trap cleanup EXIT
 
