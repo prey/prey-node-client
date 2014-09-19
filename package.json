@@ -26,7 +26,7 @@
   },
   "dependencies": {
     "async": "",
-    "buckle": "0.0.2",
+    "buckle": "0.0.3",
     "campfire": "git://github.com/tomas/node-campfire",
     "clean-exit": "0.0.3",
     "colors": "^0.6.2",
@@ -50,7 +50,7 @@
     "remover": "0.0.2",
     "reply": "^0.3.1",
     "rimraf": "",
-    "satan": "^0.2.6",
+    "satan": "^0.2.8",
     "scrambler": "0.0.1",
     "sudoer": "0.0.3",
     "triggers": "^0.1.4",
