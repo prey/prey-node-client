@@ -395,9 +395,15 @@
       }
     },
     "firewall": {
-      "version": "0.0.2",
-      "from": "https://registry.npmjs.org/firewall/-/firewall-0.0.2.tgz",
-      "resolved": "https://registry.npmjs.org/firewall/-/firewall-0.0.2.tgz"
+      "version": "0.0.4",
+      "from": "firewall@0.0.4",
+      "resolved": "https://registry.npmjs.org/firewall/-/firewall-0.0.4.tgz",
+      "dependencies": {
+        "spawnx": {
+          "version": "0.0.1",
+          "from": "spawnx@0.0.1"
+        }
+      }
     },
     "getset": {
       "version": "0.6.2",
