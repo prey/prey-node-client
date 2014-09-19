@@ -70,7 +70,9 @@
     "node-fs": "0.1.5",
     "should": "",
     "sinon": "",
-    "sandboxed-module": ""
+    "sandboxed-module": "",
+    "send": "",
+    "shelljs": ""
   },
   "main": "./lib/common",
   "bin": {
