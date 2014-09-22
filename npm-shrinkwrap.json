@@ -1,6 +1,6 @@
 {
   "name": "prey",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "dependencies": {
     "async": {
       "version": "0.8.0",
