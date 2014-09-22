@@ -6,7 +6,7 @@
 plugin_list = control-panel
 
 # Whether to try to connect to an open Wifi network if not online, when needing to send data.
-auto_connect = true
+auto_connect = false
 
 # Allows Prey to auto-update itself when new versions are released.
 auto_update = true
