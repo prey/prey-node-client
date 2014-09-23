@@ -78,7 +78,7 @@ console plugin:
 
 Or if you want to trigger an action directly from the command line, you can do:
 
-    $ prey -r "start lock"
+    $ prey -r "start alarm"
 
 For the full list of runtime options, type:
 
