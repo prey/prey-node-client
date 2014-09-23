@@ -81,7 +81,7 @@
   "directories": {
     "bin": "./bin",
     "lib": "./lib",
-    "scripts": "./scripts",
+    "tools": "./tools",
     "test": "./test"
   },
   "scripts": {
