@@ -406,9 +406,9 @@
       }
     },
     "getset": {
-      "version": "0.6.2",
-      "from": "getset@0.6.2",
-      "resolved": "https://registry.npmjs.org/getset/-/getset-0.6.2.tgz"
+      "version": "0.6.3",
+      "from": "getset@0.6.3",
+      "resolved": "https://registry.npmjs.org/getset/-/getset-0.6.3.tgz"
     },
     "graceful-fs": {
       "version": "2.0.3",
