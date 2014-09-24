@@ -13,10 +13,11 @@ var result = {
 var callbacks = {};
 
 var fake_logger = {
-  write: function(str) { result.out += str },
-  debug: function(str) { this.write('debug: ' + str) },
-  critical: function(str) { this.write('critical: ' + str) },
-  warn: function(str) { this.write('warn: ' + str) }
+  write    : function(str) { result.out += str },
+  debug    : function(str) { this.write('debug: ' + str) },
+  info     : function(str) { this.write('info: ' + str) },
+  critical : function(str) { this.write('critical: ' + str) },
+  warn     : function(str) { this.write('warn: ' + str) }
 }
 
 var defaults = {
