@@ -233,7 +233,9 @@ describe('storage', function() {
         before(function(done) {
           fs.createWriteStream(file);
           storage.init(file);
-          fs.chmod(file, '0000', done);
+          setTimeout(function() {
+            fs.chmod(file, '0000', done);
+          }, 10);
         })
 
         after(storage.clear);
