@@ -43,7 +43,7 @@
     "needle": "^0.7.9",
     "network": "0.0.11",
     "nodemailer": "",
-    "ocelot": "0.0.2",
+    "ocelot": "0.0.3",
     "petit": "0.0.5",
     "qs": "",
     "random-ua": "0.0.6",
