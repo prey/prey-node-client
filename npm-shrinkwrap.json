@@ -1,6 +1,6 @@
 {
   "name": "prey",
-  "version": "1.2.3",
+  "version": "1.2.4",
   "dependencies": {
     "async": {
       "version": "0.8.0",
@@ -357,17 +357,6 @@
       "from": "https://registry.npmjs.org/entry/-/entry-0.3.2.tgz",
       "resolved": "https://registry.npmjs.org/entry/-/entry-0.3.2.tgz",
       "dependencies": {
-        "needle": {
-          "version": "0.7.9",
-          "from": "needle@0.7.9",
-          "dependencies": {
-            "iconv-lite": {
-              "version": "0.4.4",
-              "from": "iconv-lite@^0.4.4",
-              "resolved": "https://registry.npmjs.org/iconv-lite/-/iconv-lite-0.4.4.tgz"
-            }
-          }
-        },
         "xml2js": {
           "version": "0.4.4",
           "from": "https://registry.npmjs.org/xml2js/-/xml2js-0.4.4.tgz",
@@ -602,7 +591,7 @@
     },
     "ocelot": {
       "version": "0.0.3",
-      "from": "ocelot@0.0.3",
+      "from": "https://registry.npmjs.org/ocelot/-/ocelot-0.0.3.tgz",
       "resolved": "https://registry.npmjs.org/ocelot/-/ocelot-0.0.3.tgz"
     },
     "petit": {
