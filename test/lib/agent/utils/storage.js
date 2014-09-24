@@ -58,10 +58,7 @@ describe('storage', function() {
         fs.chmod(file, '0000', done);
       })
 
-      after(function(done) {
-        storage.close();
-        fs.unlink(file, done);
-      })
+      after(storage.close);
 
       it('callsback an error', function(done) {
         storage.get('foo', function(err) {
@@ -117,7 +114,7 @@ describe('storage', function() {
         storage.init(file);
       })
 
-      after(storage.clear);
+      after(storage.close);
 
       describe('and key does not exist', function() {
 
@@ -185,7 +182,7 @@ describe('storage', function() {
           storage.init(file);
         })
 
-        after(storage.clear);
+        after(storage.close);
 
         it('does not callback an error', function(done) {
           storage.set('foo', 'bar', function(err) {
@@ -238,7 +235,7 @@ describe('storage', function() {
           }, 10);
         })
 
-        after(storage.clear);
+        after(storage.close);
 
         it('callsback an error', function(done) {
           storage.get('foo', function(err) {
@@ -258,9 +255,7 @@ describe('storage', function() {
 
     describe('when not initialized', function() {
 
-      before(function() {
-        storage.close();
-      })
+      before(storage.close)
 
       it('callsback an error', function(done) {
         storage.get('foo', function(err) {
@@ -279,7 +274,7 @@ describe('storage', function() {
         storage.init(file);
       })
 
-      after(storage.clear);
+      after(storage.close);
 
       describe('if key does not exist', function() {
 
