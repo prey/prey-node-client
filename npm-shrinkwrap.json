@@ -353,9 +353,9 @@
       "resolved": "https://registry.npmjs.org/dialog/-/dialog-0.1.8.tgz"
     },
     "entry": {
-      "version": "0.3.0",
-      "from": "https://registry.npmjs.org/entry/-/entry-0.3.0.tgz",
-      "resolved": "https://registry.npmjs.org/entry/-/entry-0.3.0.tgz",
+      "version": "0.3.2",
+      "from": "https://registry.npmjs.org/entry/-/entry-0.3.2.tgz",
+      "resolved": "https://registry.npmjs.org/entry/-/entry-0.3.2.tgz",
       "dependencies": {
         "needle": {
           "version": "0.7.9",
