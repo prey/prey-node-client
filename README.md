@@ -91,13 +91,21 @@ Prey keeps a set of config files plus the generated SSL keys in its configuratio
 a different path for the config files. (Note: this only affects at run time, so if you wished to change it permanently
 you should modify the daemon init script).
 
+## Contributing 
+
+Yes, contributions are more than welcome, as long as you don't plan to include a keylogger or something of the likes.
+
+Just make sure to add tests for your feature or bugfix, so we don't break it in a a future version unintentionally. Once you're ready, submit a pull request and we'll get your code onboard.
+
 ## Authors
 
 By Tomás Pollak, with the help of contributors.
 
 ## Credits
 
-To Robert Harder for the ImageSnap OSX utility.
+ - To Robert Harder for the ImageSnap utility for OS X.
+ - To Michael Hipp for mpg123.
+ - And to all the Node.js developers for their awesome modules (async, connect, rimraf, etc).
 
 ## Legal
 
