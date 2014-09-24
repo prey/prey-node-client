@@ -95,7 +95,7 @@ you should modify the daemon init script).
 
 Yes, contributions are more than welcome, as long as you don't plan to include a keylogger or something of the likes.
 
-Just make sure to add tests for your feature or bugfix, so we don't break it in a a future version unintentionally. Once you're ready, submit a pull request and we'll get your code onboard.
+Just make sure to add tests for your feature or bugfix, so we don't break it in a future version unintentionally. Once you're ready, submit a pull request and we'll get your code onboard.
 
 ## Authors
 
