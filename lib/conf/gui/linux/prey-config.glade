@@ -12,7 +12,7 @@
     <property name="skip_taskbar_hint">True</property>
     <property name="program_name">Prey Configurator</property>
     <property name="version">0.0.0</property>
-    <property name="copyright" translatable="yes" comments="Mnemonic: No&#10;Context: Application&#10;Item: about - copyright">(c) 2012 - Fork Ltd.</property>
+    <property name="copyright" translatable="yes" comments="Mnemonic: No&#10;Context: Application&#10;Item: about - copyright">(c) 2014 - Fork Ltd.</property>
     <property name="comments" translatable="yes" comments="Mnemonic: No&#10;Context: Application&#10;Item: about - application description">GUI for setting up Prey, the open source anti theft solution.</property>
     <property name="website">http://preyproject.com</property>
     <property name="license" translatable="yes" comments="Mnemonic: No&#10;Context: Application&#10;Item: about - license">GPLv3</property>
@@ -242,7 +242,7 @@
                         <property name="can_focus">False</property>
                         <property name="xalign">0</property>
                         <property name="yalign">0</property>
-                        <property name="label" translatable="yes" comments="Mnemonic: No&#10;Context: Page 3 (Create user)&#10;Item: create account page instructions">Please type in your info and we'll sign you up for a new Prey account. We'll send you an email to confirm the address you entered is valid.</property>
+                        <property name="label" translatable="yes" comments="Mnemonic: No&#10;Context: Page 3 (Create user)&#10;Item: create account page instructions">Please type in your info and we'll sign you up for a new Prey account.</property>
                         <property name="wrap">True</property>
                       </object>
                       <packing>
