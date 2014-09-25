@@ -353,28 +353,27 @@
       "resolved": "https://registry.npmjs.org/dialog/-/dialog-0.1.8.tgz"
     },
     "entry": {
-      "version": "0.3.2",
-      "from": "https://registry.npmjs.org/entry/-/entry-0.3.2.tgz",
-      "resolved": "https://registry.npmjs.org/entry/-/entry-0.3.2.tgz",
+      "version": "0.3.3",
+      "from": "entry@0.3.3",
       "dependencies": {
         "xml2js": {
           "version": "0.4.4",
-          "from": "https://registry.npmjs.org/xml2js/-/xml2js-0.4.4.tgz",
+          "from": "xml2js@^0.4.4",
           "resolved": "https://registry.npmjs.org/xml2js/-/xml2js-0.4.4.tgz",
           "dependencies": {
             "sax": {
               "version": "0.6.0",
-              "from": "https://registry.npmjs.org/sax/-/sax-0.6.0.tgz",
+              "from": "sax@0.6.x",
               "resolved": "https://registry.npmjs.org/sax/-/sax-0.6.0.tgz"
             },
             "xmlbuilder": {
-              "version": "2.4.0",
-              "from": "https://registry.npmjs.org/xmlbuilder/-/xmlbuilder-2.4.0.tgz",
-              "resolved": "https://registry.npmjs.org/xmlbuilder/-/xmlbuilder-2.4.0.tgz",
+              "version": "2.4.4",
+              "from": "xmlbuilder@>=1.0.0",
+              "resolved": "https://registry.npmjs.org/xmlbuilder/-/xmlbuilder-2.4.4.tgz",
               "dependencies": {
                 "lodash-node": {
                   "version": "2.4.1",
-                  "from": "https://registry.npmjs.org/lodash-node/-/lodash-node-2.4.1.tgz",
+                  "from": "lodash-node@~2.4.1",
                   "resolved": "https://registry.npmjs.org/lodash-node/-/lodash-node-2.4.1.tgz"
                 }
               }

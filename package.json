@@ -33,7 +33,7 @@
     "commander": "",
     "connect": "",
     "dialog": "",
-    "entry": "^0.3.2",
+    "entry": "^0.3.3",
     "firewall": "0.0.4",
     "getset": "^0.6.3",
     "linus": "0.0.3",
