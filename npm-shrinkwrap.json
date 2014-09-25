@@ -664,9 +664,9 @@
       "resolved": "https://registry.npmjs.org/scrambler/-/scrambler-0.0.1.tgz"
     },
     "sudoer": {
-      "version": "0.0.3",
-      "from": "https://registry.npmjs.org/sudoer/-/sudoer-0.0.3.tgz",
-      "resolved": "https://registry.npmjs.org/sudoer/-/sudoer-0.0.3.tgz"
+      "version": "0.1.0",
+      "from": "sudoer@0.1.0",
+      "resolved": "https://registry.npmjs.org/sudoer/-/sudoer-0.1.0.tgz"
     },
     "triggers": {
       "version": "0.1.4",
