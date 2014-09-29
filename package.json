@@ -33,7 +33,7 @@
     "commander": "",
     "connect": "",
     "dialog": "",
-    "entry": "^0.3.3",
+    "entry": "^0.3.5",
     "firewall": "0.0.4",
     "getset": "^0.6.3",
     "linus": "0.0.3",
@@ -41,7 +41,7 @@
     "mime": "1.2.5",
     "nat-pmp": "",
     "needle": "^0.7.9",
-    "network": "0.0.11",
+    "network": "^0.1.0",
     "nodemailer": "",
     "ocelot": "0.0.3",
     "petit": "0.0.5",
@@ -61,7 +61,7 @@
     "which": "",
     "wink": "0.0.1",
     "winssh": "",
-    "wmic": "0.0.5"
+    "wmic": "0.0.6"
   },
   "devDependencies": {
     "node.extend": "",

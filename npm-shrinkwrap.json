@@ -353,8 +353,9 @@
       "resolved": "https://registry.npmjs.org/dialog/-/dialog-0.1.8.tgz"
     },
     "entry": {
-      "version": "0.3.3",
-      "from": "entry@0.3.3",
+      "version": "0.3.5",
+      "from": "entry@0.3.5",
+      "resolved": "https://registry.npmjs.org/entry/-/entry-0.3.5.tgz",
       "dependencies": {
         "xml2js": {
           "version": "0.4.4",
@@ -457,13 +458,13 @@
       }
     },
     "network": {
-      "version": "0.0.11",
-      "from": "https://registry.npmjs.org/network/-/network-0.0.11.tgz",
-      "resolved": "https://registry.npmjs.org/network/-/network-0.0.11.tgz",
+      "version": "0.1.0",
+      "from": "network@0.1.0",
+      "resolved": "https://registry.npmjs.org/network/-/network-0.1.0.tgz",
       "dependencies": {
         "needle": {
-          "version": "0.7.9",
-          "from": "needle@0.7.9",
+          "version": "0.7.10",
+          "from": "needle@^0.7.10",
           "dependencies": {
             "iconv-lite": {
               "version": "0.4.4",
@@ -707,9 +708,9 @@
       "resolved": "https://registry.npmjs.org/winssh/-/winssh-0.0.1.tgz"
     },
     "wmic": {
-      "version": "0.0.5",
-      "from": "https://registry.npmjs.org/wmic/-/wmic-0.0.5.tgz",
-      "resolved": "https://registry.npmjs.org/wmic/-/wmic-0.0.5.tgz"
+      "version": "0.0.6",
+      "from": "wmic@0.0.6",
+      "resolved": "https://registry.npmjs.org/wmic/-/wmic-0.0.6.tgz"
     }
   }
 }
