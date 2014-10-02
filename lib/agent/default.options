@@ -11,6 +11,9 @@ auto_connect = false
 # Allows Prey to auto-update itself when new versions are released.
 auto_update = true
 
+# Fetch edge releases before they reach the stable branch. No effect without auto_update.
+download_edge = false
+
 # Whether to inform about runtime errors to the development team. It helps. :)
 send_crash_reports = true
 

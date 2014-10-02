@@ -1,8 +1,8 @@
-var join    = require('path').join,
-    spawn   = require('child_process').spawn,
-    should  = require('should'),
-    sandbox = require('./../../utils/spawner_sandbox'),
-    helpers = require('./../../helpers');
+var join        = require('path').join,
+    spawn       = require('child_process').spawn,
+    should      = require('should'),
+    sandbox     = require('./../../utils/spawner_sandbox'),
+    helpers     = require('./../../helpers');
 
 var conf_path   = helpers.lib_path('conf'),
     cli_file    = join(conf_path, 'cli.js'),
@@ -59,7 +59,7 @@ describe('upgrade/remote', function() {
       get_version: function(requested, dest, cb) {
         cb(new Error('get_version called with version ' + requested)) 
       },
-      get_latest: function(latest, dest, cb) { 
+      get_latest: function(branch, latest, dest, cb) { 
         cb(new Error('get_latest called with version ' + latest)) 
       }
     }

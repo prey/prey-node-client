@@ -24,9 +24,9 @@ var get_file_name = function(ver) {
   return ['prey', os_name, ver, arch].join('-') + '.zip';
 }
 
-var upstream_version = function(ver) {
+var stable_version = function(ver) {
   var fn = function(cb) { cb(null, ver) }
-  return sinon.stub(package, 'get_upstream_version', fn);
+  return sinon.stub(package, 'get_stable_version', fn);
 }
 
 var emulate_download = function(file) {
@@ -56,10 +56,14 @@ describe('package.get_latest', function() {
     process.stdout.writable = true; // logging back on
   })
 
+  function get_latest(current_version, dest, cb) {
+    package.get_latest('stable', current_version, dest, cb);
+  }
+
   it('checks if a new version is available', function (done) {
     var spy = sinon.spy(needle, 'get');
 
-    package.get_upstream_version(function(err, ver) {
+    package.get_stable_version(function(err, ver) {
       spy.restore();
       should.not.exist(err);
       ver.should.match(/\d\.\d\.\d/);
@@ -73,7 +77,7 @@ describe('package.get_latest', function() {
     var stub, down;
 
     before(function() {
-      stub = upstream_version('1.2.3');
+      stub = stable_version('1.2.3');
       down = sinon.spy(package, 'download_release');
     })
 
@@ -83,14 +87,14 @@ describe('package.get_latest', function() {
     })
 
     it('does not download anything', function (done) {
-      package.get_latest('1.2.3', tmpdir, function (err, new_ver) {
+      get_latest('1.2.3', tmpdir, function (err, new_ver) {
         down.called.should.be.false;
         done();
       });
     });
 
     it('returns an error', function(done) {
-      package.get_latest('1.2.3', tmpdir, function (err, new_ver) {
+      get_latest('1.2.3', tmpdir, function (err, new_ver) {
         err.message.should.equal('Already running latest version.');
         should.not.exist(new_ver);
         done();
@@ -104,7 +108,7 @@ describe('package.get_latest', function() {
     var stub, new_version = '1.5.0';
 
     before(function () {
-      stub = upstream_version(new_version);
+      stub = stable_version(new_version);
     });
 
     after(function() {
@@ -123,7 +127,7 @@ describe('package.get_latest', function() {
         done()
       });
 
-      package.get_latest('1.2.3', tmpdir, function(err) { /* noop */ });
+      get_latest('1.2.3', tmpdir, function(err) { /* noop */ });
     });
 
     describe('and the download fails', function() {
@@ -142,7 +146,7 @@ describe('package.get_latest', function() {
 
       it('returns an error', function(done) {
 
-        package.get_latest('1.2.3', tmpdir, function(err) {
+        get_latest('1.2.3', tmpdir, function(err) {
           err.should.be.a.Error;
           err.message.should.match('Unable to download because I dont feel like it.');
           done()
@@ -154,7 +158,7 @@ describe('package.get_latest', function() {
 
         var spy = sinon.spy(package, 'verify_checksum');
 
-        package.get_latest('1.2.3', tmpdir, function(err) {
+        get_latest('1.2.3', tmpdir, function(err) {
           spy.called.should.be.false;
           spy.restore();
           done()
@@ -180,7 +184,7 @@ describe('package.get_latest', function() {
 
         var spystub = sinon.spy(package, 'verify_checksum');
 
-        package.get_latest('1.2.3', tmpdir, function(err) {
+        get_latest('1.2.3', tmpdir, function(err) {
           spystub.restore();
           // spystub.called.should.be.true;
           // spystub.calledWith.should.be('foobar');
@@ -205,7 +209,7 @@ describe('package.get_latest', function() {
 
         it('returns an error', function(done) {
 
-          package.get_latest('1.2.3', tmpdir, function(err) {
+          get_latest('1.2.3', tmpdir, function(err) {
             err.should.be.a.Error;
             err.message.should.match('Unable to retrieve checksums');
             done()
@@ -217,7 +221,7 @@ describe('package.get_latest', function() {
 
           var spy = sinon.spy(package, 'install');
 
-          package.get_latest('1.2.3', tmpdir, function(err) {
+          get_latest('1.2.3', tmpdir, function(err) {
             spy.called.should.be.false;
             spy.restore();
             done();
@@ -230,7 +234,7 @@ describe('package.get_latest', function() {
           var file = get_file_name(new_version);
           var dest = join(tmpdir, file)
 
-          package.get_latest('1.2.3', tmpdir, function(err) {
+          get_latest('1.2.3', tmpdir, function(err) {
             fs.existsSync(dest).should.be.false;
             done();
           })
@@ -261,7 +265,7 @@ describe('package.get_latest', function() {
           var dest = is_windows ? 'C:\\Windows\\System32\\' : '/';
 
           it('does not create folder', function(done) {
-            package.get_latest('1.2.3', dest, function(err, res) {
+            get_latest('1.2.3', dest, function(err, res) {
               should.exist(err);
               err.code.should.match(/(EACCES|EPERM)/);
               fs.exists(join(dest, new_version), function(exists) {
@@ -276,7 +280,7 @@ describe('package.get_latest', function() {
             var file_name = get_file_name(new_version);
             var out       = join(tmpdir, file_name);
 
-            package.get_latest('1.2.3', dest, function (err) {
+            get_latest('1.2.3', dest, function (err) {
               should.exist(err);
               err.code.should.match(/(EACCES|EPERM)/);
               fs.exists(out, function(exists) {
@@ -303,7 +307,7 @@ describe('package.get_latest', function() {
           })
 
           it('unzips the package to requested path', function(done) {
-            package.get_latest('1.2.3', dest, function(err) {
+            get_latest('1.2.3', dest, function(err) {
               should.not.exist(err);
               fs.existsSync(join(dest, new_version)).should.be.true;
               done()
@@ -313,7 +317,7 @@ describe('package.get_latest', function() {
           // this test probably passes only in *nixes
           if (!is_windows) {
             it('makes sure bin/node and bin/prey are executable', function(done) {
-              package.get_latest('1.2.3', dest, function(err) {
+              get_latest('1.2.3', dest, function(err) {
                 fs.statSync(join(dest, new_version, 'bin', 'prey')).mode.should.equal(33261);
                 fs.statSync(join(dest, new_version, 'bin', 'node')).mode.should.equal(33261);
                 done()
@@ -325,7 +329,7 @@ describe('package.get_latest', function() {
             var file_name = get_file_name(new_version);
             var out       = join(tmpdir, file_name);
 
-            package.get_latest('1.2.3', dest, function (err) {
+            get_latest('1.2.3', dest, function (err) {
               should.not.exist(err);
               fs.existsSync(out).should.be.false;
               done();
