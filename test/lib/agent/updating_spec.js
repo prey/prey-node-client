@@ -10,7 +10,7 @@ var join                = require('path').join,
 
 var versions_path = system.paths.versions;
 
-describe('updating', function(){
+describe('updating', function() {
 
   before(function() {
     common.logger.pause();
@@ -20,7 +20,7 @@ describe('updating', function(){
     common.logger.resume();
   });
 
-  describe('when there is NO versions support', function(){
+  describe('when there is NO versions support', function() {
 
     before(function(){
       system.paths.versions = undefined;
@@ -31,7 +31,7 @@ describe('updating', function(){
     })
 
     it('callbacks with error', function(done) {
-      updater.check(function(err){
+      updater.check(function(err) {
         should.exist(err);
         err.message.should.equal("No versions support.");
         done();
@@ -40,17 +40,17 @@ describe('updating', function(){
 
   });
 
-  describe('when there is versions support', function(){
+  describe('when there is versions support', function() {
 
-    before(function(){
+    before(function() {
       system.paths.versions = '/somewhere/over/the/rainbow';
     });
 
     after(function() {
       system.paths.versions = versions_path;
     })
-
-    describe('and no new versions are found', function(){
+ 
+    describe('and no new versions are found', function() {
 
       var stub,
           real_version,
@@ -59,9 +59,9 @@ describe('updating', function(){
       before(function() {
         real_version = common.version;
         common.version = '1.2.3';
-        upstream_version = '1.2.3';
+        upstream_version = '1.2.1'; // should not happen, but anyway
 
-        stub = sinon.stub(package, 'get_upstream_version', function(cb) {
+        stub = sinon.stub(package, 'get_stable_version', function(cb) {
           cb(null, upstream_version);
         });
       });
@@ -71,9 +71,9 @@ describe('updating', function(){
         stub.restore();
       });
 
-      it('callsback with no errors', function(done){
+      it('callsback with no errors', function(done) {
 
-        updater.check(function(err, ver){
+        updater.check(function(err, ver) {
           should.not.exist(err);
           should.not.exist(ver);
           done();
@@ -95,7 +95,7 @@ describe('updating', function(){
         common.version = '1.2.3';
         upstream_version = '1.2.5';
 
-        stub = sinon.stub(package, 'get_upstream_version', function(cb) {
+        stub = sinon.stub(package, 'get_stable_version', function(cb) {
           cb(null, upstream_version);
         });
       });
@@ -105,7 +105,6 @@ describe('updating', function(){
         stub.restore();
       });
 
-
       // for this test, we fake the 'spawn' call and return a fake child,
       // for whom we will trigger a fake 'exit' event, as if the child process
       // had exited, so updater.check's callback gets triggered
@@ -114,7 +113,7 @@ describe('updating', function(){
         var fake_spawn;
 
         before(function() {
-          fake_spawn = sinon.stub(child_process, 'spawn', function(cmd, args, opts){
+          fake_spawn = sinon.stub(child_process, 'spawn', function(cmd, args, opts) {
             var child = helpers.fake_spawn_child();
 
             setTimeout(function(){
@@ -134,7 +133,7 @@ describe('updating', function(){
 
         it('callbacks an error', function (done){
 
-          updater.check(function(err){
+          updater.check(function(err) {
             should.exist(err);
             err.message.should.equal('Upgrade to 1.2.5 failed. Exit code: undefined');
             err.stack.should.include('Launching rockets\nSHOOT!!');
@@ -156,7 +155,7 @@ describe('updating', function(){
             unreffed = false;
 
         before(function() {
-          fake_spawn = sinon.stub(child_process, 'spawn', function(cmd, args, opts){
+          fake_spawn = sinon.stub(child_process, 'spawn', function(cmd, args, opts) {
             var child = helpers.fake_spawn_child();
 
             child.unref = function() {
@@ -164,7 +163,7 @@ describe('updating', function(){
               child.emit('exit');
             }
 
-            setTimeout(function(){
+            setTimeout(function() {
               child.stdout.emit('data', new Buffer('YOUARENOTMYFATHER'));
             }, 100);
 
@@ -184,7 +183,7 @@ describe('updating', function(){
 
         it('process exits with status code(0)', function (done){
 
-          updater.check(function(err){
+          updater.check(function(err) {
             exit_code.should.equal(0);
             unreffed.should.be.true;
             done();
