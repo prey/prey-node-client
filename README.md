@@ -91,6 +91,16 @@ Prey keeps a set of config files plus the generated SSL keys in its configuratio
 a different path for the config files. (Note: this only affects at run time, so if you wished to change it permanently
 you should modify the daemon init script).
 
+## Updating and Edge
+
+Unless you installed via NPM, Prey will check whether new versions are available if the `auto_update` config option is 
+set to true. By default, this checks on our stable branch for updates, but if you wish to keep up with the latest bleeding
+edge releases, you can optionally set the `download_edge` option on the config file to true. If so, Prey will check against 
+our edge branch so you'll be running the latest and greatest, before everyone else.
+
+Note: This means you'll be running non-stable versions, but you'll also be helping us detect bugs and exterminate them 
+much quicker.
+
 ## Contributing 
 
 Yes, contributions are more than welcome, as long as you don't plan to include a keylogger or something of the likes.
