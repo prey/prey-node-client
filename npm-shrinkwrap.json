@@ -1,6 +1,6 @@
 {
   "name": "prey",
-  "version": "1.2.5",
+  "version": "1.2.6",
   "dependencies": {
     "async": {
       "version": "0.8.0",
@@ -623,9 +623,9 @@
       "resolved": "https://registry.npmjs.org/rimraf/-/rimraf-2.2.6.tgz"
     },
     "satan": {
-      "version": "0.2.16",
-      "from": "satan@0.2.16",
-      "resolved": "https://registry.npmjs.org/satan/-/satan-0.2.16.tgz",
+      "version": "0.3.1",
+      "from": "satan@0.3.1",
+      "resolved": "https://registry.npmjs.org/satan/-/satan-0.3.1.tgz",
       "dependencies": {
         "async": {
           "version": "0.9.0",
@@ -655,6 +655,11 @@
               }
             }
           }
+        },
+        "whenever": {
+          "version": "0.0.4",
+          "from": "whenever@0.0.4",
+          "resolved": "https://registry.npmjs.org/whenever/-/whenever-0.0.4.tgz"
         }
       }
     },
