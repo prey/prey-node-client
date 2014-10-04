@@ -713,9 +713,9 @@
       "resolved": "https://registry.npmjs.org/winssh/-/winssh-0.0.1.tgz"
     },
     "wmic": {
-      "version": "0.0.6",
-      "from": "wmic@0.0.6",
-      "resolved": "https://registry.npmjs.org/wmic/-/wmic-0.0.6.tgz"
+      "version": "0.0.7",
+      "from": "wmic@0.0.7",
+      "resolved": "https://registry.npmjs.org/wmic/-/wmic-0.0.7.tgz"
     }
   }
 }

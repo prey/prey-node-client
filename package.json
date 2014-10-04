@@ -61,7 +61,7 @@
     "which": "",
     "wink": "0.0.1",
     "winssh": "",
-    "wmic": "0.0.6"
+    "wmic": "0.0.7"
   },
   "devDependencies": {
     "node.extend": "",
