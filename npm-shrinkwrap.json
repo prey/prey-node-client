@@ -458,9 +458,9 @@
       }
     },
     "network": {
-      "version": "0.1.0",
-      "from": "network@0.1.0",
-      "resolved": "https://registry.npmjs.org/network/-/network-0.1.0.tgz",
+      "version": "0.1.2",
+      "from": "network@0.1.2",
+      "resolved": "https://registry.npmjs.org/network/-/network-0.1.2.tgz",
       "dependencies": {
         "needle": {
           "version": "0.7.10",

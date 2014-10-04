@@ -41,7 +41,7 @@
     "mime": "1.2.5",
     "nat-pmp": "",
     "needle": "^0.7.9",
-    "network": "^0.1.0",
+    "network": "^0.1.2",
     "nodemailer": "",
     "ocelot": "0.0.3",
     "petit": "0.0.5",
