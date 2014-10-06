@@ -20,14 +20,18 @@ function plugin_list() {
   return list;
 }
 
+function is_empty(val) {
+  return typeof val == 'undefined' || val === null;
+}
+
 function merge_options(options, plugin_name) {
   var values   = {};
   var comments = {};
 
   for (var key in options) {
-    values[key] = options[key].default || '';
+    values[key] = is_empty(options[key].default) ? '' : options[key].default;
     if (options[key].message) {
-      comments[key] = options[key].message; 
+      comments[key] = options[key].message;
     }
   }
 
