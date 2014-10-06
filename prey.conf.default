@@ -40,3 +40,6 @@ device_key =
 
 # Includes status info (battery info, logged user, etc) when checking in.
 send_status_info = true
+
+# Whether to send hardware information on boot, to detect any changes.
+scan_hardware = false
