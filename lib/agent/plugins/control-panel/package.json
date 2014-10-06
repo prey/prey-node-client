@@ -24,6 +24,10 @@
     "send_status_info": {
       "message": "Includes status info (battery info, logged user, etc) when checking in.",
       "default": true
+    },
+    "scan_hardware": {
+      "message": "Whether to send hardware information on boot, to detect any changes.",
+      "default": false
     }
   }
 }
