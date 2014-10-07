@@ -14,8 +14,8 @@ describe('plugins', function() {
     it('loads ' + dir + ' plugin properly', function() {
 
       var mod = require(join(plugins_path, dir));
-      Object.keys(mod).should.include('load');
-      Object.keys(mod).should.include('unload');
+      Object.keys(mod).should.containEql('load');
+      Object.keys(mod).should.containEql('unload');
 
     })
 

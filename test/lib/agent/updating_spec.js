@@ -136,7 +136,7 @@ describe('updating', function() {
           updater.check(function(err) {
             should.exist(err);
             err.message.should.equal('Upgrade to 1.2.5 failed. Exit code: undefined');
-            err.stack.should.include('Launching rockets\nSHOOT!!');
+            err.stack.should.containEql('Launching rockets\nSHOOT!!');
             done();
           });
 

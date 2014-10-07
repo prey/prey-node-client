@@ -34,7 +34,7 @@ describe('lib/agent/cli_spec', function(){
     });
 
     it('logs error message', function() {
-      result.out.toLowerCase().should.include('no config file');
+      result.out.toLowerCase().should.containEql('no config file');
     });
   })
 
@@ -96,7 +96,7 @@ describe('lib/agent/cli_spec', function(){
 
       it('sends exception to endpoint', function(){
         sent_exception.should.be.an.instanceof(Error);
-        sent_exception.message.should.include('ola ke ase');
+        sent_exception.message.should.containEql('ola ke ase');
       });
 
     });

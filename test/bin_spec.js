@@ -89,7 +89,7 @@ describe('bin/prey', function(){
         run_bin_prey(['-l', fake_log_file, '-N'], function(code) {
           code.should.equal(0);
           var read_version = fs.readFileSync(fake_log_file, 'utf8');
-          read_version.should.include(node_versions.local);
+          read_version.should.containEql(node_versions.local);
           done();
         })
       });
@@ -107,8 +107,8 @@ describe('bin/prey', function(){
 
       it('calls lib/agent/cli.js', function(done){
         run_bin_prey(['-h'], function(code, out, err){
-          // out.should.include('spreads its wings');
-          out.should.include('--logfile');
+          // out.should.containEql('spreads its wings');
+          out.should.containEql('--logfile');
           done();
         });
       });
