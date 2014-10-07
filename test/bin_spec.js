@@ -119,17 +119,17 @@ describe('bin/prey', function(){
 
       it('calls lib/conf/cli.js', function(done){
         run_bin_prey(['config'], function(code, out){
-          out.should.include('config');
-          out.should.include('activate');
-          out.should.include('plugins');
+          out.should.containEql('config');
+          out.should.containEql('activate');
+          out.should.containEql('plugins');
           done();
         });
       });
 
       it('passes any other arguments too (eg. `config activate`)', function(done){
         run_bin_prey(['config', 'account'], function(code, out){
-          out.should.include('verify');
-          out.should.include('signup');
+          out.should.containEql('verify');
+          out.should.containEql('signup');
           done();
         });
       });
@@ -143,7 +143,7 @@ describe('bin/prey', function(){
           var out_command =
             is_windows ? 'node_modules\\.bin\\_mocha'
                        : 'node_modules/.bin/_mocha'
-          out.should.include(out_command);
+          out.should.containEql(out_command);
           done();
         });
       });
@@ -153,9 +153,9 @@ describe('bin/prey', function(){
           var out_command =
             is_windows  ? 'node_modules\\.bin\\_mocha'
                         : 'node_modules/.bin/_mocha';
-          out.should.include(out_command);
-          out.should.include('--reporter');
-          out.should.include('nyan');
+          out.should.containEql(out_command);
+          out.should.containEql('--reporter');
+          out.should.containEql('nyan');
           done();
         });
       });
@@ -166,7 +166,7 @@ describe('bin/prey', function(){
     describe('when called with unknown argument', function(){
       it('returns unknown option', function(done){
         run_bin_prey(['--hellomyfriend'], function(err, out, stderr){
-          stderr.should.include('unknown option');
+          stderr.should.containEql('unknown option');
           done();
         });
       });
