@@ -1,4 +1,5 @@
 # Prey Node.js client
+[![Gitter](https://badges.gitter.im/Join Chat.svg)](https://gitter.im/prey/prey-node-client?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 Asynchronous, ruthless event-driven client for the [Prey anti-theft software](http://preyproject.com), based on Node.js.
 
