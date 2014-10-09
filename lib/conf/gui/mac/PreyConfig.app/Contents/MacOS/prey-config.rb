@@ -10,14 +10,14 @@
 require 'osx/cocoa'
 include OSX
 
-FORCE_CONFIG = ARGV[0] == '-f' or ARGV[0] == '--force'
+FORCE_CONFIG = ARGV[0] == '-f' || ARGV[0] == '--force'
+DEBUGGING   = !!ENV['DEBUG']
 
 APP_NAME  = 'Prey Configurator'
 HEIGHT = 400
 WIDTH  = 500
 CENTER = WIDTH/2
 
-DEBUGGING   = !!ENV['DEBUG']
 EMAIL_REGEX = /[A-Z0-9\._%-]+@([A-Z0-9-]+\.)+[A-Z]{2,4}\z/i
 
 TABS = ['welcome', 'new_user', 'existing_user', 'success']
@@ -282,7 +282,9 @@ class ConfigDelegate < NSObject
   end
 
   def parseError(message)
-    if message['already been taken']
+    if message.nil?
+      return 'Unexpected error. Please try again.'
+    elsif message['already been taken']
       return 'Email has been taken. Seems you already signed up!'
     elsif message['Unexpected status code: 401']
       return 'Invalid account credentials. Please try again.'
