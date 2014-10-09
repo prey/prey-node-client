@@ -22,8 +22,10 @@ describe('prey_user', function() {
     var base = {
       requires: {
         // let's assume that this guy will do his job.
-        'uid-number': function(user, group, cb) {
-          cb(null, 123, 123);
+        chela: {
+          own: function(path, user, cb) {
+            cb();
+          }
         }
       },
       globals:  {
