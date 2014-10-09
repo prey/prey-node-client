@@ -20,6 +20,7 @@ describe('prey_user', function() {
 
   var run_sandboxed = function(opts, cb) {
     var base = {
+      singleOnly: true, // https://github.com/felixge/node-sandboxed-module/issues/36
       requires: {
         // let's assume that this guy will do his job.
         chela: {

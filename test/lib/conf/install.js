@@ -94,7 +94,7 @@ describe('upgrade/remote', function() {
       it('fails miserably', function(done) {
 
         helpers.run_cli(['config', 'upgrade'], function(code, out, err) {
-          out.should.include('config [command]');
+          out.should.containEql('config [command]');
           code.should.equal(2);
           done();
         })
@@ -108,7 +108,7 @@ describe('upgrade/remote', function() {
       it('fails miserably', function(done) {
 
         helpers.run_cli(['config', 'upgrade', '1.2.3'], function(code, out, err) {
-          out.should.include('config [command]');
+          out.should.containEql('config [command]');
           code.should.equal(2);
           done();
         })
@@ -132,7 +132,7 @@ describe('upgrade/remote', function() {
       it('tries to fetch latest version', function(done) {
 
         helpers.run_cli(['config', 'upgrade'], function(code, out, err) {
-          out.should.include('Error! get_latest called with version 0.9.2');
+          out.should.containEql('Error! get_latest called with version 0.9.2');
           // code.should.equal(1);
           done();
         })
@@ -146,7 +146,7 @@ describe('upgrade/remote', function() {
      it('tries to fetch requested version', function(done) {
 
         helpers.run_cli(['config', 'upgrade', '1.2.3'], function(code, out, err) {
-          out.should.include('Error! get_version called with version 1.2.3');
+          out.should.containEql('Error! get_version called with version 1.2.3');
           // code.should.equal(1);
           done();
         })

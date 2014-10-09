@@ -1,4 +1,3 @@
-
 var fs                  = require('fs'),
     join                = require('path').join,
     should              = require('should'),
@@ -66,7 +65,7 @@ describe('prey_conf_spec', function() {
 
     // it should be under the control-panel subkey
     var obj = config.get('control-panel');
-    Object.keys(obj).should.include('api_key');
+    Object.keys(obj).should.containEql('api_key');
   });
 
   it('device_key should be empty', function(){
@@ -75,7 +74,7 @@ describe('prey_conf_spec', function() {
 
     // it should be under the control-panel subkey
     var obj = config.get('control-panel');
-    Object.keys(obj).should.include('device_key');
+    Object.keys(obj).should.containEql('device_key');
   });
 
 });

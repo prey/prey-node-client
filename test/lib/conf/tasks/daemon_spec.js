@@ -27,13 +27,14 @@ describe('installing', function() {
 
   var run = function(platform, method, cb) {
     var opts = {
+      singleOnly: true, // https://github.com/felixge/node-sandboxed-module/issues/36
       requires: {
         satan: satan,
-        '../utils/cp': { 
+        '../utils/cp': {
           cp: function(source, dest, cb) {
             if (writable)
               return cp.cp(source, dest, cb)
-            
+
             var err = new Error('Error: EACCES: ' + dest);
             err.code = 'EACCES';
             cb(err);
@@ -42,7 +43,7 @@ describe('installing', function() {
         './../../system/paths': {
            current: current_dir,
            install: install_dir
-        },
+        }
       },
       globals: {
         process: {
