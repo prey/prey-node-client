@@ -1,6 +1,6 @@
 {
   "name": "prey",
-  "version": "1.2.7",
+  "version": "1.2.8",
   "dependencies": {
     "async": {
       "version": "0.9.0",
@@ -175,21 +175,10 @@
       "resolved": "https://registry.npmjs.org/dialog/-/dialog-0.1.8.tgz"
     },
     "entry": {
-      "version": "0.3.5",
-      "from": "entry@0.3.5",
-      "resolved": "https://registry.npmjs.org/entry/-/entry-0.3.5.tgz",
+      "version": "0.3.6",
+      "from": "entry@0.3.6",
+      "resolved": "https://registry.npmjs.org/entry/-/entry-0.3.6.tgz",
       "dependencies": {
-        "needle": {
-          "version": "0.7.10",
-          "from": "needle@0.7.10",
-          "dependencies": {
-            "iconv-lite": {
-              "version": "0.4.4",
-              "from": "iconv-lite@^0.4.4",
-              "resolved": "https://registry.npmjs.org/iconv-lite/-/iconv-lite-0.4.4.tgz"
-            }
-          }
-        },
         "xml2js": {
           "version": "0.4.4",
           "from": "xml2js@^0.4.4",
