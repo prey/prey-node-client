@@ -37,58 +37,6 @@ describe('system functions', function(){
 
   });
 
-  describe('spawn_as_logged_user()', function(){
-    
-    describe('when no user is logged in ', function() {
-      
-      it('returns an error')
-      
-    })
-    
-    describe('with logged user', function() {
-
-      describe('when command exists', function() {
-        
-        it('callsback the child process')
-            
-      })
-    
-      describe('when command does not exist', function() {
-        
-        it('returns an error')
-      
-      })
-
-    })
-
-  });
-
-  describe('spawn_as_logged_user()', function(){
-    
-    describe('when no user is logged in ', function() {
-      
-      it('returns an error')
-      
-    })
-    
-    describe('with logged user', function() {
-
-      describe('when command exists', function() {
-        
-        it('callsback the child process')
-            
-      })
-    
-      describe('when command does not exist', function() {
-        
-        it('returns an error')
-      
-      })
-
-    })
-
-  });
-
   describe('get_running_user()', function(){
 
     it('gets a value for the running user', function(){
