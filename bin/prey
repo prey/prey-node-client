@@ -1,9 +1,8 @@
 #!/bin/bash
 
 PATH="$PATH:/usr/local/bin"
-node="node"
 dir="$(dirname $0)"
-[ -x "$dir/node" ] && node="$dir/node"
+[ -x "$dir/node" ] && node="$dir/node" || node="$(command -v node || command -v nodejs)"
 
 # if current file is a symlink (e.g. installed via npm) we'll append
 # the relative path to where the package is actually installed.
