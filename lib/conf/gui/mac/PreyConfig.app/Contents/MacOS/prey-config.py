@@ -47,6 +47,8 @@ OPTIONS = {
 }
 
 SCRIPT_PATH  = os.sys.path[0]
+ICON_PATH    = SCRIPT_PATH + '/../Resources/prey.icns'
+
 PACKAGE_PATH = SCRIPT_PATH + '/../../../../../../../'
 PREY_BIN     = PACKAGE_PATH + '/bin/prey'
 PREY_CONFIG  = PREY_BIN + ' config'
@@ -56,9 +58,10 @@ PACKAGE_JSON = open(PACKAGE_PATH + '/package.json', 'r')
 PACKAGE_INFO = json.loads(PACKAGE_JSON.read())
 VERSION      = PACKAGE_INFO['version']
 
-LOGO = PIXMAPS + '/prey-text-shadow.png'
-LOGO_WIDTH  = 280
-LOGO_HEIGHT = 55
+CHECK_ICON   = PIXMAPS + '/conf/check.png'
+LOGO         = PIXMAPS + '/prey-text-shadow.png'
+LOGO_WIDTH   = 280
+LOGO_HEIGHT  = 55
 
 def debug(str):
   if DEBUGGING:
@@ -290,6 +293,9 @@ class ConfigDelegate(NSObject):
    alert = NSAlert.alloc().init()
    alert.setMessageText_(message)
    alert.setAlertStyle_(NSCriticalAlertStyle)
+   if icon:
+    alert.setIcon_(icon)
+
    alert.runModal()
 
   def show_success(self):
@@ -452,10 +458,9 @@ class ConfigDelegate(NSObject):
       tab.view().addSubview_(element)
 
   def drawSuccess(self, tab, name):
-    self.drawImage(PIXMAPS + '/conf/check.png', 96, 88, CENTER-(70), 80, tab.view())
+    self.drawImage(CHECK_ICON, 96, 88, CENTER-(70), 80, tab.view())
 
 def setupMenus(app):
-
   menubar      = NSMenu.alloc().init()
   appMenuItem  = NSMenuItem.alloc().init()
   editMenuItem = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_('Edit', 'menu_edit', '')
@@ -479,6 +484,8 @@ def setupMenus(app):
   app.setMainMenu_(menubar)
 
 def main():
+  global icon # for alerts
+
   app = NSApplication.sharedApplication()
   delegate = ConfigDelegate.alloc().init()
 
@@ -486,8 +493,8 @@ def main():
   app.setDelegate_(delegate)
   app.activateIgnoringOtherApps_(True)
 
-  # image = NSImage.alloc().initWithContentsOfURL_(NSURL.URLWithString_(close_icon))
-  # app.setApplicationIconImage_(image)
+  icon = NSImage.alloc().initWithContentsOfFile_(ICON_PATH)
+  app.setApplicationIconImage_(icon)
 
   setupMenus(app)
   delegate.drawWindow()
