@@ -20,7 +20,8 @@ from time import sleep
 from PyObjCTools import AppHelper
 from AppKit import *
 
-script_path = sys.path[0]
+################################################
+# base settings, strings, etc
 
 FORCE_CONFIG = len(sys.argv) > 1 and (sys.argv[1] == '-f' or sys.argv[1] == '--force')
 DEBUGGING = False
@@ -46,22 +47,38 @@ OPTIONS = {
   'existing'      : "If you've already set up Prey on this or another device."
 }
 
-SCRIPT_PATH  = os.sys.path[0]
+################################################
+# paths and such 
+
+SCRIPT_PATH = sys.path[0]
+
+def find_in_path(file):
+  segments = SCRIPT_PATH.split('/')
+  path = segments.pop()
+
+  while (path and path != ''):
+    full_path = os.path.join('/'.join(segments), file)
+    # print "Checking %s" % full_path
+    if os.path.exists(full_path):
+      return full_path 
+    else:
+      path = segments.pop()
+
 ICON_PATH    = SCRIPT_PATH + '/../Resources/prey.icns'
+PREY_BIN     = find_in_path('bin/prey')
+PIXMAPS      = find_in_path('pixmaps')
+PACKAGE_JSON = find_in_path('package.json')
 
-PACKAGE_PATH = SCRIPT_PATH + '/../../../../../../../'
-PREY_BIN     = PACKAGE_PATH + '/bin/prey'
-PREY_CONFIG  = PREY_BIN + ' config'
-PIXMAPS      = PACKAGE_PATH + '/lib/conf/gui/pixmaps'
-
-PACKAGE_JSON = open(PACKAGE_PATH + '/package.json', 'r')
-PACKAGE_INFO = json.loads(PACKAGE_JSON.read())
+PACKAGE_INFO = json.loads(open(PACKAGE_JSON, 'r').read())
 VERSION      = PACKAGE_INFO['version']
 
 CHECK_ICON   = PIXMAPS + '/conf/check.png'
 LOGO         = PIXMAPS + '/prey-text-shadow.png'
 LOGO_WIDTH   = 280
 LOGO_HEIGHT  = 55
+
+################################################
+# helpers
 
 def debug(str):
   if DEBUGGING:
@@ -78,22 +95,25 @@ def flatten(arr):
     else: rt.append(i)
   return rt
 
+################################################
+# the delegator
+
 class ConfigDelegate(NSObject):
 
   def windowWillClose_(self, sender):
-    NSApp().terminate_(self)
+    self.terminate(sender)
 
   def applicationDidFinishLaunching_(self, sender):
-
-    # if !File.exist?(PREY_BIN) or !File.executable?(PREY_BIN)
-    #   showAlert('Unable to locate prey executable in path.')
-    #   return terminate(nil)
-    # end
 
     self.inputs = {}
     self.drawImage(LOGO, LOGO_WIDTH, LOGO_HEIGHT, CENTER-(LOGO_WIDTH/2), 320, self.window.contentView())
     self.drawButtons()
     self.drawTabs()
+
+    # show this alert after rendering logo and labels. otherwise it looks weird.
+    if PREY_BIN is None or not os.path.exists(PREY_BIN): # or !File.executable?(PREY_BIN)
+      self.show_alert('Unable to locate prey executable in path. Cannot continue.')
+      return self.terminate(None)
 
     if not FORCE_CONFIG and self.is_client_configured():
       self.show_success()
@@ -199,6 +219,7 @@ class ConfigDelegate(NSObject):
     input.setEditable_(True)
     input.setSelectable_(True)
     input.setEnabled_(True)
+    input.setAction_('enter_pressed')
     self.inputs[id] = input
     return [label, input]
 
@@ -304,6 +325,10 @@ class ConfigDelegate(NSObject):
     self.next.setAction_('terminate')
     self.setTab(len(TABS)-1) # last one
 
+  def enter_pressed(self, sender):
+    index = self.getCurrentTab()
+    self.submit_data(index)
+
   def submit_data(self, index):
     if TABS[index] == 'new_user':
       self.user_signup()
@@ -381,7 +406,7 @@ class ConfigDelegate(NSObject):
       self.show_success()
 
   def run_config(self, args):
-    cmd = PREY_CONFIG + " account " + args
+    cmd = PREY_BIN + " config account " + args
     debug("Running: %s" % cmd)
     self.run_command(cmd)
     debug(self.out)
@@ -410,18 +435,6 @@ class ConfigDelegate(NSObject):
 
   def terminate(self, sender):
     NSApp().terminate_(self)
-
-  def menu_edit(self, sender):
-    return True
-
-  def menu_select_all(self, sender):
-    return True
-
-  def menu_cut(self, sender):
-    return True
-
-  def menu_copy(self, sender):
-    return True
 
   ######################################################
   # draw logic
@@ -461,19 +474,20 @@ class ConfigDelegate(NSObject):
     self.drawImage(CHECK_ICON, 96, 88, CENTER-(70), 80, tab.view())
 
 def setupMenus(app):
+
   menubar      = NSMenu.alloc().init()
   appMenuItem  = NSMenuItem.alloc().init()
-  editMenuItem = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_('Edit', 'menu_edit', '')
+  editMenuItem = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_('Edit', None, '')
 
   appmenu = NSMenu.alloc().init()
   quitMenuItem = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_('Quit', 'terminate', 'q')
   appMenuItem.setSubmenu_(appmenu)
 
   editMenu = NSMenu.alloc().init()
-  editMenu.addItemWithTitle_action_keyEquivalent_('Select All', 'menu_select_all', 'a')
-  editMenu.addItemWithTitle_action_keyEquivalent_('Cut', 'menu_cut', 'x')
-  editMenu.addItemWithTitle_action_keyEquivalent_('Copy', 'menu_copy', 'c')
-  editMenu.addItemWithTitle_action_keyEquivalent_('Paste', 'menu_paste', 'v')
+  editMenu.addItemWithTitle_action_keyEquivalent_('Select All', 'selectText:', 'a')
+  editMenu.addItemWithTitle_action_keyEquivalent_('Cut', 'cut:', 'x')
+  editMenu.addItemWithTitle_action_keyEquivalent_('Copy', 'copy:', 'c')
+  editMenu.addItemWithTitle_action_keyEquivalent_('Paste', 'paste:', 'v')
   editMenuItem.setSubmenu_(editMenu)
   editMenuItem.setEnabled_(True)
 
