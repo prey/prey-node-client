@@ -336,7 +336,7 @@ if __name__ == '__main__':
 
   if args.level == "warn" or args.level == "warning":
     background_color = red
-    if args.title == 'Important'
+    if args.title == 'Important':
       args.title = 'Warning'
 
   main()
