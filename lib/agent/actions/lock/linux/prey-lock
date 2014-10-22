@@ -1,4 +1,10 @@
-#!/usr/bin/env python
+#!/bin/sh
+''':'
+':'; python=$(command -v python)
+':'; [[ "$python" != */usr* ]] && python="/usr/bin/python"
+':'; exec "$python" "$0" "$@"
+'''
+
 #############################################
 # Prey Linux Lock
 # By Tomas Pollak - (c) 2010 Fork Ltd.
