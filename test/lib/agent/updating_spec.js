@@ -12,12 +12,20 @@ var versions_path = system.paths.versions;
 
 describe('updating', function() {
 
+  var branch_stub;
+
   before(function() {
     common.logger.pause();
+
+    // ensure the config.get('download_edge') call returns false
+    branch_stub = sinon.stub(common.config, 'get', function(key) {
+      return false;
+    })
   })
 
   after(function() {
     common.logger.resume();
+    branch_stub.restore();
   });
 
   describe('when there is NO versions support', function() {
@@ -49,7 +57,7 @@ describe('updating', function() {
     after(function() {
       system.paths.versions = versions_path;
     })
- 
+
     describe('and no new versions are found', function() {
 
       var stub,
@@ -80,7 +88,6 @@ describe('updating', function() {
         });
 
       })
-
 
     })
 
