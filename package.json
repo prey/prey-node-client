@@ -52,7 +52,7 @@
     "remover": "0.0.2",
     "reply": "^0.3.1",
     "rimraf": "",
-    "satan": "^0.4.0",
+    "satan": "^0.4.1",
     "scrambler": "0.0.1",
     "serve-static": "^1.7.0",
     "sudoer": "^0.1.1",
