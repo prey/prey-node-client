@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [ -z "$(which curl)" ]; then
-  echo "You need to have wget in your system."
+  echo "You need to have curl in your system."
   exit 1
 fi
 
