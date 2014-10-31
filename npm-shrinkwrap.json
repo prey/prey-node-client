@@ -464,9 +464,9 @@
       "resolved": "https://registry.npmjs.org/rimraf/-/rimraf-2.2.8.tgz"
     },
     "satan": {
-      "version": "0.4.1",
-      "from": "satan@0.4.1",
-      "resolved": "https://registry.npmjs.org/satan/-/satan-0.4.1.tgz",
+      "version": "0.4.2",
+      "from": "satan@0.4.2",
+      "resolved": "https://registry.npmjs.org/satan/-/satan-0.4.2.tgz",
       "dependencies": {
         "launchd": {
           "version": "0.0.5",
