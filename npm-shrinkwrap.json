@@ -598,9 +598,9 @@
       "resolved": "https://registry.npmjs.org/sudoer/-/sudoer-0.1.1.tgz"
     },
     "triggers": {
-      "version": "0.1.4",
-      "from": "triggers@0.1.4",
-      "resolved": "https://registry.npmjs.org/triggers/-/triggers-0.1.4.tgz"
+      "version": "0.2.0",
+      "from": "triggers@0.2.0",
+      "resolved": "https://registry.npmjs.org/triggers/-/triggers-0.2.0.tgz"
     },
     "tuna": {
       "version": "0.0.2",
