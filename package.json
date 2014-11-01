@@ -35,7 +35,7 @@
     "connect": "",
     "dialog": "",
     "entry": "^0.3.6",
-    "firewall": "0.0.4",
+    "firewall": "0.0.5",
     "folder": "0.0.4",
     "getset": "^0.6.3",
     "linus": "0.0.3",
