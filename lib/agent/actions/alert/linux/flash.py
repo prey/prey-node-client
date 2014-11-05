@@ -83,7 +83,7 @@ class Alert:
 
     entry.set_size_request(self.input_width, self.input_height * self.scale)
     entry.modify_base(gtk.STATE_NORMAL, gtk.gdk.color_parse('#FFFFFF'))
-    entry.modify_font(pango.FontDescription(FONT + " 12"))
+    entry.modify_font(pango.FontDescription(FONT + " 11"))
 
     entry.connect('activate', self.enter_pressed)
     entry.show()
@@ -140,6 +140,7 @@ class Alert:
     ###################################
 
     self.create_window(bg_color) # sets self.window
+
     main_screen_width   = self.window.get_screen().get_monitor_geometry(0).width
     main_screen_height  = self.window.get_screen().get_monitor_geometry(0).height
 
@@ -148,10 +149,10 @@ class Alert:
 
     one_third_width     = main_screen_width / 3
     elements_width      = one_third_width * 2
-    base_height         = (main_screen_height / 5) # one fourth of height
+    base_height         = 180 * self.scale
 
     if args.entry is not None:
-      base_height += 60
+      base_height += 30 * self.scale
 
     letters_per_line = elements_width / (8 * self.scale)
     lines = int(math.ceil(len(args.message) / float(letters_per_line)))
@@ -161,6 +162,11 @@ class Alert:
     self.input_width    = elements_width
     self.left_offset    = one_third_width / 2 # the other have should be to the right
     right_offset   = self.left_offset + elements_width
+
+    # print "Letters per line: %d" % letters_per_line
+    # print "Lines: %d" % lines
+    # print "Left offset: %d" % self.left_offset
+    # print "Right offset: %d" % right_offset
 
     # set vbox position and move main window
     vbox = gtk.VBox(False, 0)
@@ -175,7 +181,7 @@ class Alert:
     ###################################
 
     # title
-    title = self.new_label(title, 20)
+    title = self.new_label(title, 22)
     self.put(self.box, title, self.left_offset, 20 * self.scale)
 
     # load image from data
@@ -196,13 +202,13 @@ class Alert:
     fixed = gtk.Fixed()
     fixed.put(close_button, 0, 0)
     fixed.set_size_request(40 * self.scale, 40 * self.scale)
-    self.put(self.box, fixed, right_offset - 40, -60) # minus the width and height of itself for x/y coords
+    self.put(self.box, fixed, right_offset - 30, -40 * self.scale) # minus the width and height of itself for x/y coords
 
     # text area
     text = gtk.TextBuffer()
     text.set_text(args.message)
     textview = gtk.TextView(text)
-    textview.set_size_request(elements_width, lines * 50)
+    textview.set_size_request(elements_width, lines * 30 * self.scale)
     textview.set_wrap_mode(gtk.WRAP_WORD)
     textview.set_editable(False)
     textview.modify_base(gtk.STATE_NORMAL, bg_color)
