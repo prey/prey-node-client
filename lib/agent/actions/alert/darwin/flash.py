@@ -1,4 +1,10 @@
-#!/usr/bin/env python
+#!/bin/sh
+''':'
+':'; python=$(command -v python)
+':'; [ -z "$python" ] || [ -n "${python##*usr*}" ] && python="/usr/bin/python"
+':'; exec "$python" "$0" "$@"
+'''
+
 # coding: utf8
 
 #############################################
