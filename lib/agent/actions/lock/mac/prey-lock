@@ -1,7 +1,7 @@
 #!/bin/sh
 ''':'
 ':'; python=$(command -v python)
-':'; [[ "$python" != */usr* ]] && python="/usr/bin/python"
+':'; [ -z "$python" ] || [ -n "${python##*usr*}" ] && python="/usr/bin/python"
 ':'; exec "$python" "$0" "$@"
 '''
 
