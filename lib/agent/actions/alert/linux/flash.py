@@ -149,14 +149,15 @@ class Alert:
 
     one_third_width     = main_screen_width / 3
     elements_width      = one_third_width * 2
-    base_height         = 180 * self.scale
+    base_height         = 150 * self.scale
 
     if args.entry is not None:
       base_height += 30 * self.scale
 
     letters_per_line = elements_width / (8 * self.scale)
     lines = int(math.ceil(len(args.message) / float(letters_per_line)))
-    window_height = (lines * 20 * self.scale) + base_height
+    text_height = 15 + (lines * 22 * self.scale)
+    window_height = text_height + base_height
 
     # these are needed later to position the input
     self.input_width    = elements_width
@@ -208,7 +209,7 @@ class Alert:
     text = gtk.TextBuffer()
     text.set_text(args.message)
     textview = gtk.TextView(text)
-    textview.set_size_request(elements_width, lines * 30 * self.scale)
+    textview.set_size_request(elements_width, text_height)
     textview.set_wrap_mode(gtk.WRAP_WORD)
     textview.set_editable(False)
     textview.modify_base(gtk.STATE_NORMAL, bg_color)
