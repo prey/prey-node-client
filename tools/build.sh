@@ -10,6 +10,8 @@ if [ "$1" = "new" ]; then
   new_release=1
 fi
 
+[ $(uname) = 'Darwin' ] && is_mac=1
+
 abort() {
   echo "$1" && exit 1
 }
@@ -58,6 +60,30 @@ check_node_version() {
     echo "Please update to v${EXPECTED_NODE_VER} using the 'tools/node_bins.sh' script"
     abort "Stopping here."
   fi
+}
+
+sign_bin() {
+  bin=$1
+  codesign -f -s "Developer ID Application: Fork Ltd" $bin
+}
+
+check_code_signatures() {
+
+  alert="lib/agent/actions/alert/darwin/flash.py"
+  lock="lib/agent/actions/lock/mac/prey-lock"
+  gui="lib/conf/gui/mac/PreyConfig.app"
+
+  for bin in $alert $lock $gui; do 
+    echo "Verifying code signature of ${bin}..."
+    codesign -dv $bin 2> /dev/null || (sign_bin $bin && codesign -dv $bin)
+
+    if [ $? -ne 0 ]; then
+      echo "Invalid code signature: ${bin}"
+      return 1
+    fi
+  done
+
+  return 0
 }
 
 build(){
@@ -126,11 +152,11 @@ build(){
   zip_file
   pack windows x86
   pack linux x86
-  pack mac x86
+  [ -n "$is_mac" ] && pack mac x86
 
   pack windows x64
   pack linux x64
-  pack mac x64
+  [ -n "$is_mac" ] && pack mac x64
 
   cd $DIST
   # ./checksum.sh $VERSION
@@ -186,6 +212,7 @@ fi
 
 # ensure node version matches the expected one
 check_node_version
+[ -n "$is_mac" ] && check_code_signatures
 
 trap cleanup EXIT
 
