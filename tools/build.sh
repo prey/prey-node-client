@@ -136,6 +136,7 @@ build(){
   rm -Rf $(find node_modules -name "example*")
   rm -Rf $(find node_modules -name "test")
   rm -Rf $(find node_modules -name "*.txt")
+  rm -Rf $(find node_modules/ -type l \! -name "_mocha") # remove all symlinks in node_modules except for _mocha
   find . -name "*~" -delete
   find . -name "__MACOSX" -delete
   find . -name "\.*" -type f -delete # remove .gitignore .travis.yml .DS_Store, etc
