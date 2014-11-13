@@ -289,11 +289,12 @@ def main():
   # ok, make the rect that we'll use for the window and view
   rect = NSMakeRect(0, offset_top, screen_width, window_height)
 
-  window = AlertWindow.alloc().initWithContentRect_styleMask_backing_defer_(
+  window = AlertWindow.alloc().initWithContentRect_styleMask_backing_defer_screen_(
     rect,
     NSBorderlessWindowMask,
     NSBackingStoreBuffered,
-    True)
+    True, 
+    screen)
 
   # render view and draw message and button
   view    = AlertView.alloc().initWithFrame_(rect)
