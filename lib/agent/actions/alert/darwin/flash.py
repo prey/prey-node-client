@@ -130,7 +130,7 @@ class AlertView(NSView):
     img_width  = rep.pixelsWide()
     img_height = rep.pixelsHigh()
 
-    top = (self.bounds().size.height - img_height) - 25 # offset from top
+    top = (self.bounds().size.height - img_height) - 20 # offset from top
 
     right_offset = (self.bounds().size.width - 600) / 2
     right = self.bounds().size.width - right_offset - img_width
@@ -217,7 +217,7 @@ class AlertView(NSView):
     width  = 600
 
     height = 30
-    top = self.bounds().size.height - 55
+    top = self.bounds().size.height - 50
     self.add_label(title, default_font, 24, self.getLeftOffset(width) + 3, top, width, height)
 
     # width + 10 is to add padding
