@@ -1,10 +1,4 @@
-#!/bin/sh
-''':'
-':'; python=$(command -v python)
-':'; [ -z "$python" ] || [ -n "${python##*usr*}" ] && python="/usr/bin/python"
-':'; exec "$python" "$0" "$@"
-'''
-
+#!/usr/bin/python
 # coding: utf8
 
 #############################################
@@ -25,7 +19,7 @@ from AppKit import *
 script_path = sys.path[0]
 
 app_name = 'Alert'
-default_font = 'Helvetica LT Light'
+default_font = 'Helvetica Light'
 
 # pale blue
 blue = NSColor.colorWithCalibratedRed_green_blue_alpha_(33/255.0, 104/255.0, 198/255.0, 1.0)
@@ -223,8 +217,8 @@ class AlertView(NSView):
     width  = 600
 
     height = 30
-    top = self.bounds().size.height - 60
-    self.add_label(title, 'Helvetica CE 35 Thin', 30, self.getLeftOffset(width) + 3, top, width, height)
+    top = self.bounds().size.height - 55
+    self.add_label(title, default_font, 24, self.getLeftOffset(width) + 3, top, width, height)
 
     # width + 10 is to add padding
     height = self.bounds().size.height - 180
