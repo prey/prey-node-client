@@ -17,6 +17,7 @@ import hashlib
 from AppKit import *
 from Quartz import CGCaptureAllDisplays, CGShieldingWindowLevel
 
+app_name = 'Lock'
 font_name = 'Helvetica'
 
 script_path = sys.path[0]
@@ -112,6 +113,21 @@ class LockView(NSView):
     msg.setTextColor_(NSColor.redColor())
     self.addSubview_(msg)
 
+def draw_menus(app):
+  mainmenu = NSMenu.alloc().init()
+  app.setMainMenu_(mainmenu)
+  appMenuItem = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(app_name, 'sample', '')
+  mainmenu.addItem_(appMenuItem)
+
+  appMenu = NSMenu.alloc().init()
+  appMenuItem.setSubmenu_(appMenu)
+  appMenuItem.setEnabled_(True)
+
+  # no quit item, otherwise command-q will work!
+  # quitItem = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_('Quit', 'quit', 'q')
+  # quitItem.setTarget_(app)
+  # appMenu.addItem_(quitItem)
+
 def main():
 
   global app
@@ -125,6 +141,8 @@ def main():
     | NSApplicationPresentationDisableForceQuit
     | NSApplicationPresentationDisableSessionTermination
     | NSApplicationPresentationDisableHideApplication)
+
+  draw_menus(app)
 
   # raise app
   app.activateIgnoringOtherApps_(True)
