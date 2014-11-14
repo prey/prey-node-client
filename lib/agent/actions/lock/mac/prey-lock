@@ -18,7 +18,8 @@ from AppKit import *
 from Quartz import CGCaptureAllDisplays, CGShieldingWindowLevel
 
 app_name = 'Lock'
-font_name = 'Helvetica'
+font_name = 'Helvetica Light'
+error_color = NSColor.redColor()
 
 script_path = sys.path[0]
 bg_path = script_path + "/../lib/bg-lock-with-input.png"
@@ -52,10 +53,11 @@ class LockView(NSView):
     # get background image
     image = NSImage.alloc().initWithContentsOfFile_(bg_path)
     rep = image.representations()[0]
-    # bg_width = rep.pixelsWide()
-    # bg_height = rep.pixelsHigh()
-    bg_height = self.bounds().size.height
-    bg_width = int((self.bounds().size.height / rep.pixelsHigh()) * rep.pixelsWide())
+
+    bg_width = rep.pixelsWide()
+    bg_height = rep.pixelsHigh()
+    # bg_height = self.bounds().size.height
+    # bg_width = int((self.bounds().size.height / rep.pixelsHigh()) * rep.pixelsWide())
     image.drawInRect_fromRect_operation_fraction_(((self.getLeftOffset(bg_width), self.getTopOffset(bg_height)), (bg_width, bg_height)), NSZeroRect, NSCompositeCopy, 1.0)
 
     # draw background image
@@ -64,17 +66,19 @@ class LockView(NSView):
     self.addSubview_(imageView)
 
   def addInputField(self):
-    width = 360
-    height = 32
-    field = NSSecureTextField.alloc().initWithFrame_(NSMakeRect(self.getLeftOffset(width), self.getTopOffset(height) - 11, width, height))
+    width = 270
+    height = 40
+    field = NSSecureTextField.alloc().initWithFrame_(NSMakeRect(self.getLeftOffset(width), self.getTopOffset(height), width, height))
     # field.setStringValue_("Type here")
     field.setBezeled_(False)
     field.setBordered_(False)
+    field.setDrawsBackground_(False)
+    # field.cell().setUsesSingleLineMode_(True)
     field.setFocusRingType_(NSFocusRingTypeNone)
     # field.setDrawsBackground_(False)
     field.setEditable_(True)
     field.setSelectable_(True)
-    font = NSFont.fontWithName_size_(font_name, 25)
+    font = NSFont.fontWithName_size_(font_name, 34)
     field.setFont_(font)
 
     field.setTarget_(self)
@@ -103,14 +107,15 @@ class LockView(NSView):
   def show_message(self, message):
     width = 300
     height = 25
-    msg = NSTextField.alloc().initWithFrame_(NSMakeRect(self.getLeftOffset(width), self.getTopOffset(height) - 50, width, height))
+    msg = NSTextField.alloc().initWithFrame_(NSMakeRect(self.getLeftOffset(width), self.getTopOffset(height) - 44, width, height))
     msg.setStringValue_(message)
     msg.setBezeled_(False)
     msg.setBordered_(False)
     msg.setDrawsBackground_(False)
-    font = NSFont.fontWithName_size_(font_name, 22)
+    msg.setAlignment_(NSCenterTextAlignment)
+    font = NSFont.fontWithName_size_(font_name, 13)
     msg.setFont_(font)
-    msg.setTextColor_(NSColor.redColor())
+    msg.setTextColor_(error_color)
     self.addSubview_(msg)
 
 def draw_menus(app):
