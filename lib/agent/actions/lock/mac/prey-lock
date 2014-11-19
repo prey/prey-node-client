@@ -14,6 +14,7 @@ import hashlib
 # import objc
 # import signal
 # from Foundation import *
+from time import sleep
 from AppKit import *
 from Quartz import CGCaptureAllDisplays, CGShieldingWindowLevel
 
@@ -22,7 +23,7 @@ font_name = 'Helvetica Light'
 error_color = NSColor.redColor()
 
 script_path = sys.path[0]
-bg_path = script_path + "/../lib/bg-lock-with-input.png"
+bg_path = script_path + "/../lib/bg-lock.png"
 
 # class LockApp(NSApplication):
 
@@ -39,6 +40,8 @@ class FullScreenWindow(NSWindow):
     return True
 
 class LockView(NSView):
+
+  message_shown = False
 
   def getTopOffset(self, height):
     return (self.bounds().size.height / 2) - height / 2
@@ -68,7 +71,7 @@ class LockView(NSView):
   def addInputField(self):
     width = 270
     height = 40
-    field = NSSecureTextField.alloc().initWithFrame_(NSMakeRect(self.getLeftOffset(width), self.getTopOffset(height), width, height))
+    field = NSSecureTextField.alloc().initWithFrame_(NSMakeRect(self.getLeftOffset(width), self.getTopOffset(height) - 20, width, height))
     # field.setStringValue_("Type here")
     field.setBezeled_(False)
     field.setBordered_(False)
@@ -101,22 +104,33 @@ class LockView(NSView):
       os._exit(66)
     else:
       print "Invalid password."
-      self.show_message("Invalid password. Try again.")
+      if not self.message_shown:
+        self.show_message("Invalid password. Try again.")
       sys.stdout.flush()
 
   def show_message(self, message):
     width = 300
     height = 25
-    msg = NSTextField.alloc().initWithFrame_(NSMakeRect(self.getLeftOffset(width), self.getTopOffset(height) - 44, width, height))
+    msg = NSTextField.alloc().initWithFrame_(NSMakeRect(self.getLeftOffset(width), self.getTopOffset(height) - 64, width, height))
     msg.setStringValue_(message)
     msg.setBezeled_(False)
     msg.setBordered_(False)
     msg.setDrawsBackground_(False)
     msg.setAlignment_(NSCenterTextAlignment)
-    font = NSFont.fontWithName_size_(font_name, 13)
+    font = NSFont.fontWithName_size_(font_name, 14)
     msg.setFont_(font)
     msg.setTextColor_(error_color)
+
     self.addSubview_(msg)
+    self.message_shown = True
+    self.message_view = msg
+
+    NSTimer.scheduledTimerWithTimeInterval_target_selector_userInfo_repeats_(3.0, self, 'hide_message', '', False)
+
+  def hide_message(self):
+    self.message_view.removeFromSuperview()
+    self.message_shown = False
+    self.message_view = None
 
 def draw_menus(app):
   mainmenu = NSMenu.alloc().init()
