@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python
 # coding: utf8
 
 #############################################
@@ -19,7 +19,7 @@ from AppKit import *
 script_path = sys.path[0]
 
 app_name = 'Alert'
-default_font = 'Helvetica LT Light'
+default_font = 'Helvetica Light'
 
 # pale blue
 blue = NSColor.colorWithCalibratedRed_green_blue_alpha_(33/255.0, 104/255.0, 198/255.0, 1.0)
@@ -130,7 +130,7 @@ class AlertView(NSView):
     img_width  = rep.pixelsWide()
     img_height = rep.pixelsHigh()
 
-    top = (self.bounds().size.height - img_height) - 25 # offset from top
+    top = (self.bounds().size.height - img_height) - 20 # offset from top
 
     right_offset = (self.bounds().size.width - 600) / 2
     right = self.bounds().size.width - right_offset - img_width
@@ -217,8 +217,8 @@ class AlertView(NSView):
     width  = 600
 
     height = 30
-    top = self.bounds().size.height - 60
-    self.add_label(title, 'Helvetica CE 35 Thin', 30, self.getLeftOffset(width) + 3, top, width, height)
+    top = self.bounds().size.height - 50
+    self.add_label(title, default_font, 24, self.getLeftOffset(width) + 3, top, width, height)
 
     # width + 10 is to add padding
     height = self.bounds().size.height - 180
@@ -289,11 +289,12 @@ def main():
   # ok, make the rect that we'll use for the window and view
   rect = NSMakeRect(0, offset_top, screen_width, window_height)
 
-  window = AlertWindow.alloc().initWithContentRect_styleMask_backing_defer_(
+  window = AlertWindow.alloc().initWithContentRect_styleMask_backing_defer_screen_(
     rect,
     NSBorderlessWindowMask,
     NSBackingStoreBuffered,
-    True)
+    True, 
+    screen)
 
   # render view and draw message and button
   view    = AlertView.alloc().initWithFrame_(rect)

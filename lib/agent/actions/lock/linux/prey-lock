@@ -1,7 +1,7 @@
 #!/bin/sh
 ''':'
 ':'; python=$(command -v python)
-':'; [[ "$python" != */usr* ]] && python="/usr/bin/python"
+':'; [ -z "$python" ] || [ -n "${python##*usr*}" ] && python="/usr/bin/python"
 ':'; exec "$python" "$0" "$@"
 '''
 
@@ -13,15 +13,20 @@
 #############################################
 
 import os, sys
-from hashlib import md5
 import gtk
 import pango
+from gobject import timeout_add
+from hashlib import md5
 
-image_file = "/../lib/bg-lock-with-input.png"
+image_file = "/../lib/bg-lock.png"
 
 class Lock:
 	def get_md5(self, string):
 		return md5(string).hexdigest()
+
+	def hide_error(self):
+		self.label.hide()
+		return False # stops timeout from repeating
 
 	def enter_callback(self, widget, entry):
 		hashed_text = self.get_md5(entry.get_text())
@@ -31,6 +36,7 @@ class Lock:
 			print "Invalid password"
 			sys.stdout.flush()
 			self.label.show()
+			timeout_add(3000, self.hide_error)
 			return True
 		else:
 			enable_XF86Switch()
@@ -44,12 +50,12 @@ class Lock:
 		# self.window.set_keep_above(True)
 
 	def on_focus_change(self, widget, event):
-		print " -- Focus changed."
+		print "Focus changed."
 		return True
 
 	def on_window_state_change(self, widget, event):
 		self.window.activate_focus()
-		print " -- Something happened."
+		print "Something happened."
 		return False
 
 	def on_key_press(self, widget, event):
@@ -66,6 +72,12 @@ class Lock:
 			# return True
 		if event.state & gtk.gdk.SHIFT_MASK:
 			print "Shift was being held down"
+
+	def scale_image(self, pixbuf, scale):
+		new_width = int(scale*pixbuf.get_width())
+		new_height = int(scale*pixbuf.get_height())
+		# print "Scaled image to: %s x %s" % (new_width, new_height)
+		return pixbuf.scale_simple(new_width, new_height, gtk.gdk.INTERP_BILINEAR)
 
 	def __init__(self):
 
@@ -134,13 +146,18 @@ class Lock:
 
 		# print 'Image size: %s x %s' % (image_width, image_height)
 		scale = 1
+		input_font = 16
+		error_font = 11
 
 		if image_width > main_screen_width or image_height > main_screen_height:
 			scale = min(float(main_screen_width)/image_width, float(main_screen_height)/image_height)
-			new_width = int(scale*image_width)
-			new_height = int(scale*image_height)
-			# print "Scaled image to: %s x %s" % (new_width, new_height)
-			pixbuf = pixbuf.scale_simple(new_width, new_height, gtk.gdk.INTERP_BILINEAR)
+			pixbuf = scale_image(pixbuf, scale)
+
+		elif main_screen_width > 2000:
+			scale = 2
+			pixbuf = self.scale_image(pixbuf, scale)
+			input_font -= 2
+			error_font -= 1
 
 		image.set_from_pixbuf(pixbuf)
 		image.set_size_request(main_screen_width, main_screen_height)
@@ -155,19 +172,18 @@ class Lock:
 		self.entry.set_max_length(40)
 
 		self.entry.set_inner_border(None)
-		self.entry.set_width_chars(24)
+		self.entry.set_width_chars(20)
 		self.entry.set_visibility(False)
 		self.entry.set_has_frame(False)
 		self.entry.modify_base(gtk.STATE_NORMAL, gtk.gdk.color_parse("#FFFFFF"))
-		self.entry.modify_font(pango.FontDescription("sans 16"))
+		self.entry.modify_font(pango.FontDescription("sans " + str(input_font)))
 		self.entry.set_flags(gtk.CAN_FOCUS | gtk.HAS_FOCUS | gtk.HAS_GRAB | gtk.CAN_DEFAULT | gtk.SENSITIVE)
 		self.entry.connect("activate", self.enter_callback, self.entry)
 		# self.entry.show()
 
-		input_size = 210
-
+		input_size = 140
 		padding_left = int(input_size*scale)
-		padding_top = -3
+		padding_top = 5*scale
 		# print 'Padding: left %s, top %s' % (padding_left, padding_top)
 
 		# if image was scaled down, calculate offset for positioning elements
@@ -185,13 +201,13 @@ class Lock:
 
 		text = 'Invalid password. Access denied.'
 		self.label = gtk.Label()
-		self.label.set_markup('<span foreground="#aa0000">'+text+'</span>');
-		self.label.modify_font(pango.FontDescription("sans 15"))
+		self.label.set_markup('<span foreground="#b22222">'+text+'</span>');
+		self.label.modify_font(pango.FontDescription("sans " + str(error_font)))
 		# self.label.set_size_request(main_screen_width, 30)
 
 		fixed2 = gtk.Fixed()
 		# push label down a bit, and left a bit so it remains centered
-		fixed2.put(self.label, x_position + 26, y_position + 44)
+		fixed2.put(self.label, x_position + 20, y_position + (46 * scale))
 		vbox.pack_start(fixed2, False, False, 0)
 
 		disable_XF86Switch()

@@ -1,9 +1,5 @@
-#!/bin/sh
-''':'
-':'; python=$(command -v python)
-':'; [[ "$python" != */usr* ]] && python="/usr/bin/python"
-':'; exec "$python" "$0" "$@"
-'''
+#!/usr/bin/python
+# coding: utf-8
 
 #################################
 # Python Mac Lock
@@ -18,13 +14,16 @@ import hashlib
 # import objc
 # import signal
 # from Foundation import *
+from time import sleep
 from AppKit import *
 from Quartz import CGCaptureAllDisplays, CGShieldingWindowLevel
 
-font_name = 'Helvetica'
+app_name = 'Lock'
+font_name = 'Helvetica Light'
+error_color = NSColor.redColor()
 
 script_path = sys.path[0]
-bg_path = script_path + "/../lib/bg-lock-with-input.png"
+bg_path = script_path + "/../lib/bg-lock.png"
 
 # class LockApp(NSApplication):
 
@@ -42,6 +41,8 @@ class FullScreenWindow(NSWindow):
 
 class LockView(NSView):
 
+  message_shown = False
+
   def getTopOffset(self, height):
     return (self.bounds().size.height / 2) - height / 2
 
@@ -55,10 +56,11 @@ class LockView(NSView):
     # get background image
     image = NSImage.alloc().initWithContentsOfFile_(bg_path)
     rep = image.representations()[0]
-    # bg_width = rep.pixelsWide()
-    # bg_height = rep.pixelsHigh()
-    bg_height = self.bounds().size.height
-    bg_width = int((self.bounds().size.height / rep.pixelsHigh()) * rep.pixelsWide())
+
+    bg_width = rep.pixelsWide()
+    bg_height = rep.pixelsHigh()
+    # bg_height = self.bounds().size.height
+    # bg_width = int((self.bounds().size.height / rep.pixelsHigh()) * rep.pixelsWide())
     image.drawInRect_fromRect_operation_fraction_(((self.getLeftOffset(bg_width), self.getTopOffset(bg_height)), (bg_width, bg_height)), NSZeroRect, NSCompositeCopy, 1.0)
 
     # draw background image
@@ -67,17 +69,19 @@ class LockView(NSView):
     self.addSubview_(imageView)
 
   def addInputField(self):
-    width = 360
-    height = 32
-    field = NSSecureTextField.alloc().initWithFrame_(NSMakeRect(self.getLeftOffset(width), self.getTopOffset(height) - 11, width, height))
+    width = 270
+    height = 40
+    field = NSSecureTextField.alloc().initWithFrame_(NSMakeRect(self.getLeftOffset(width), self.getTopOffset(height) - 20, width, height))
     # field.setStringValue_("Type here")
     field.setBezeled_(False)
     field.setBordered_(False)
+    field.setDrawsBackground_(False)
+    # field.cell().setUsesSingleLineMode_(True)
     field.setFocusRingType_(NSFocusRingTypeNone)
     # field.setDrawsBackground_(False)
     field.setEditable_(True)
     field.setSelectable_(True)
-    font = NSFont.fontWithName_size_(font_name, 25)
+    font = NSFont.fontWithName_size_(font_name, 34)
     field.setFont_(font)
 
     field.setTarget_(self)
@@ -100,21 +104,48 @@ class LockView(NSView):
       os._exit(66)
     else:
       print "Invalid password."
-      self.show_message("Invalid password. Try again.")
+      if not self.message_shown:
+        self.show_message("Invalid password. Try again.")
       sys.stdout.flush()
 
   def show_message(self, message):
     width = 300
     height = 25
-    msg = NSTextField.alloc().initWithFrame_(NSMakeRect(self.getLeftOffset(width), self.getTopOffset(height) - 50, width, height))
+    msg = NSTextField.alloc().initWithFrame_(NSMakeRect(self.getLeftOffset(width), self.getTopOffset(height) - 64, width, height))
     msg.setStringValue_(message)
     msg.setBezeled_(False)
     msg.setBordered_(False)
     msg.setDrawsBackground_(False)
-    font = NSFont.fontWithName_size_(font_name, 22)
+    msg.setAlignment_(NSCenterTextAlignment)
+    font = NSFont.fontWithName_size_(font_name, 14)
     msg.setFont_(font)
-    msg.setTextColor_(NSColor.redColor())
+    msg.setTextColor_(error_color)
+
     self.addSubview_(msg)
+    self.message_shown = True
+    self.message_view = msg
+
+    NSTimer.scheduledTimerWithTimeInterval_target_selector_userInfo_repeats_(3.0, self, 'hide_message', '', False)
+
+  def hide_message(self):
+    self.message_view.removeFromSuperview()
+    self.message_shown = False
+    self.message_view = None
+
+def draw_menus(app):
+  mainmenu = NSMenu.alloc().init()
+  app.setMainMenu_(mainmenu)
+  appMenuItem = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(app_name, 'sample', '')
+  mainmenu.addItem_(appMenuItem)
+
+  appMenu = NSMenu.alloc().init()
+  appMenuItem.setSubmenu_(appMenu)
+  appMenuItem.setEnabled_(True)
+
+  # no quit item, otherwise command-q will work!
+  # quitItem = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_('Quit', 'quit', 'q')
+  # quitItem.setTarget_(app)
+  # appMenu.addItem_(quitItem)
 
 def main():
 
@@ -129,6 +160,8 @@ def main():
     | NSApplicationPresentationDisableForceQuit
     | NSApplicationPresentationDisableSessionTermination
     | NSApplicationPresentationDisableHideApplication)
+
+  draw_menus(app)
 
   # raise app
   app.activateIgnoringOtherApps_(True)
