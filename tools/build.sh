@@ -69,9 +69,12 @@ sign_bin() {
 
 check_code_signatures() {
 
-  alert="lib/agent/actions/alert/darwin/flash.py"
-  lock="lib/agent/actions/lock/mac/prey-lock"
-  gui="lib/conf/gui/mac/PreyConfig.app"
+  # make sure there are no extended attributes in path
+  xattr -rc .
+
+  local alert="lib/agent/actions/alert/darwin/flash.py"
+  local lock="lib/agent/actions/lock/mac/prey-lock"
+  local gui="lib/conf/gui/mac/PreyConfig.app"
 
   for bin in $alert $lock $gui; do 
     echo "Verifying code signature of ${bin}..."
@@ -86,7 +89,7 @@ check_code_signatures() {
   return 0
 }
 
-build(){
+build() {
 
   VERSION="$1"
   CURRENT_PATH="$(pwd)"
