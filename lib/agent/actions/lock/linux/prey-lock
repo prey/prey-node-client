@@ -16,12 +16,17 @@ import os, sys
 from hashlib import md5
 import gtk
 import pango
+import threading
 
-image_file = "/../lib/bg-lock-with-input.png"
+image_file = "/../lib/bg-lock.png"
 
 class Lock:
 	def get_md5(self, string):
 		return md5(string).hexdigest()
+
+	def hide_error(self):
+		self.label.hide()
+		self.timer.cancel()
 
 	def enter_callback(self, widget, entry):
 		hashed_text = self.get_md5(entry.get_text())
@@ -31,6 +36,8 @@ class Lock:
 			print "Invalid password"
 			sys.stdout.flush()
 			self.label.show()
+			self.timer = threading.Timer(3.0, self.hide_error)
+			self.timer.start()
 			return True
 		else:
 			enable_XF86Switch()
@@ -139,7 +146,7 @@ class Lock:
 			scale = min(float(main_screen_width)/image_width, float(main_screen_height)/image_height)
 			new_width = int(scale*image_width)
 			new_height = int(scale*image_height)
-			# print "Scaled image to: %s x %s" % (new_width, new_height)
+			print "Scaled image to: %s x %s" % (new_width, new_height)
 			pixbuf = pixbuf.scale_simple(new_width, new_height, gtk.gdk.INTERP_BILINEAR)
 
 		image.set_from_pixbuf(pixbuf)
@@ -155,7 +162,7 @@ class Lock:
 		self.entry.set_max_length(40)
 
 		self.entry.set_inner_border(None)
-		self.entry.set_width_chars(24)
+		self.entry.set_width_chars(20)
 		self.entry.set_visibility(False)
 		self.entry.set_has_frame(False)
 		self.entry.modify_base(gtk.STATE_NORMAL, gtk.gdk.color_parse("#FFFFFF"))
@@ -164,10 +171,11 @@ class Lock:
 		self.entry.connect("activate", self.enter_callback, self.entry)
 		# self.entry.show()
 
-		input_size = 210
+		input_size = 140
+		# input_size = 170
 
 		padding_left = int(input_size*scale)
-		padding_top = -3
+		padding_top = 5
 		# print 'Padding: left %s, top %s' % (padding_left, padding_top)
 
 		# if image was scaled down, calculate offset for positioning elements
@@ -186,12 +194,12 @@ class Lock:
 		text = 'Invalid password. Access denied.'
 		self.label = gtk.Label()
 		self.label.set_markup('<span foreground="#aa0000">'+text+'</span>');
-		self.label.modify_font(pango.FontDescription("sans 15"))
+		self.label.modify_font(pango.FontDescription("sans 11"))
 		# self.label.set_size_request(main_screen_width, 30)
 
 		fixed2 = gtk.Fixed()
 		# push label down a bit, and left a bit so it remains centered
-		fixed2.put(self.label, x_position + 26, y_position + 44)
+		fixed2.put(self.label, x_position + 20, y_position + 46)
 		vbox.pack_start(fixed2, False, False, 0)
 
 		disable_XF86Switch()
