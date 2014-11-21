@@ -9,16 +9,18 @@
 # Prey Linux Lock
 # By Tomas Pollak - (c) 2010 Fork Ltd.
 # http://preyproject.com
-# GPLv3 Licence
+# GPLv3 License
 #############################################
 
-import os, sys
-import gtk
-import pango
+import os, sys, gtk, pango
 from gobject import timeout_add
 from hashlib import md5
 
 image_file = "/../lib/bg-lock.png"
+
+def write(text):
+	print text
+	sys.stdout.flush()
 
 class Lock:
 	def get_md5(self, string):
@@ -33,8 +35,7 @@ class Lock:
 		# print hashed_text
 
 		if hashed_text != passwd:
-			print "Invalid password"
-			sys.stdout.flush()
+			write("Invalid password")
 			self.label.show()
 			timeout_add(3000, self.hide_error)
 			return True
@@ -263,7 +264,6 @@ def disable_XF86Switch():
 		# do nothing if xmodmap is not found or return an error
 		return
 
-
 if __name__ == "__main__":
 
 	if len(sys.argv) < 2 or len(sys.argv[1]) != 32:
@@ -272,5 +272,6 @@ if __name__ == "__main__":
 	else:
 		passwd = sys.argv[1]
 
+  write("Process PID: %d" % os.getpid())
 	lock = Lock()
 	gtk.main()

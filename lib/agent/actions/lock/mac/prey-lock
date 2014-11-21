@@ -14,7 +14,6 @@ import hashlib
 # import objc
 # import signal
 # from Foundation import *
-from time import sleep
 from AppKit import *
 from Quartz import CGCaptureAllDisplays, CGShieldingWindowLevel
 
@@ -30,6 +29,10 @@ bg_path = script_path + "/../lib/bg-lock.png"
 #   def shutdown(self):
 #     print "Shutting down"
 #     exit(66)
+
+def write(text):
+  print text
+  sys.stdout.flush()
 
 class FullScreenWindow(NSWindow):
 
@@ -103,10 +106,10 @@ class LockView(NSView):
       # app.terminate_(self)
       os._exit(66)
     else:
-      print "Invalid password."
       if not self.message_shown:
         self.show_message("Invalid password. Try again.")
-      sys.stdout.flush()
+
+      write("Invalid password.")
 
   def show_message(self, message):
     width = 300
@@ -199,4 +202,5 @@ if __name__ == '__main__':
   else:
     passwd = sys.argv[1]
 
+  write("Process PID: %d" % os.getpid())
   main()
