@@ -246,7 +246,7 @@ def disable_XF86Switch():
 				items = line.split()
 				keycode = items[0]
 				keysym  = items[1]
-				keysym2  = items[7]
+				keysym2 = items[7]
 				keyname = items[2][1:-1]
 				matched.append((keycode, keyname))
 				original_keycodes.append((keycode, keysym, keysym2))
@@ -272,6 +272,6 @@ if __name__ == "__main__":
 	else:
 		passwd = sys.argv[1]
 
-  write("Process PID: %d" % os.getpid())
+	write("Process PID: %d" % os.getpid())
 	lock = Lock()
 	gtk.main()
