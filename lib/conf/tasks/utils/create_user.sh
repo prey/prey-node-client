@@ -10,10 +10,11 @@ USER_NAME="$1"
 
 FULL_NAME="Prey Anti-Theft"
 SHELL="/bin/bash"
+SU_CMD=$(command -v su) || SU_CMD="/bin/su"
 
 # this means user will be able to run commands as other users except root
 SUDOERS_FILE="/etc/sudoers.d/50_${USER_NAME}_switcher"
-SUDOERS_ARGS="$(which su) [A-z]*, !$(which su) root*, !$(which su) -*"
+SUDOERS_ARGS="${SU_CMD} [A-z]*, !${SU_CMD} root*, !${SU_CMD} -*"
 
 if [ "$(uname)" == "Linux" ]; then
   USERS_PATH="/home"
@@ -120,7 +121,7 @@ test_impersonation() {
   fi
 }
 
-#################### 
+####################
 ## the main course
 
 # ask_confirmation
@@ -128,7 +129,7 @@ id $USER_NAME &> /dev/null
 
 if [ $? -eq 0 ]; then
   echo "${USER_NAME} user already exists!"
-else 
+else
   create_user
 fi
 
