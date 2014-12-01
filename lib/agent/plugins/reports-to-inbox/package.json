@@ -1,7 +1,7 @@
 {
   "name": "prey-plugin-reports-to-inbox",
   "description": "Delivers a copy of each generated report to a specified inbox, directly via SMTP (no password needed).",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "options": {
     "recipient": {
       "message": "Enter email address for delivery. This is where the reports will be sent.",
@@ -15,7 +15,7 @@
     "from": {
       "message": "Enter from address.",
       "default": "Prey <prey-anti-theft@somewhere.com>",
-      "allow_empty": false  
+      "allow_empty": false
     }
   }
 }
