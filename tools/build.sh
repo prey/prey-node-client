@@ -117,6 +117,9 @@ build() {
   DIST="$(pwd)/builds"
   ROOT="/tmp/prey-build.$$"
 
+  # if we're building a temp version, mark it as prerelease
+  [ -n "$NEW_TAG" ] && VERSION="${VERSION}-pre"
+
   FOLDER="prey-${VERSION}"
   VERSION_PATH="${DIST}/${VERSION}"
   ZIP="prey-${VERSION}.zip"
