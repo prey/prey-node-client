@@ -340,7 +340,7 @@ class ConfigDelegate(NSObject):
     return self.code == 0
 
   def get_value(self, input_id):
-    return self.inputs[input_id].objectValue()
+    return self.inputs[input_id].stringValue().encode('utf-8')
 
   def valid_email_regex(self, string):
     if len(string) > 7:
@@ -350,7 +350,7 @@ class ConfigDelegate(NSObject):
 
   def validate_email(self, email):
     if not self.valid_email_regex(email):
-      self.show_alert("Please make sure the email address you typed is valid.")
+      self.show_alert("Please make sure the email address is valid.")
       return False
 
     return True
@@ -417,8 +417,8 @@ class ConfigDelegate(NSObject):
       proc = Popen(args, stdout=PIPE, shell=False)
       self.out  = proc.communicate()[0]
       self.code = proc.returncode
-    except OSError as e:
-      self.out  = e.strerror
+    except (TypeError, OSError) as e:
+      self.out  = "Exception! %s" % e
       self.code = 1
 
   ######################################################
