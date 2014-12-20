@@ -116,18 +116,17 @@ build() {
 
   DIST="$(pwd)/builds"
   ROOT="/tmp/prey-build.$$"
+  FOLDER="prey-${VERSION}" # folder name within zip file
 
-  # if we're building a temp version, mark it as prerelease
-  [ -n "$NEW_TAG" ] && VERSION="${VERSION}-pre"
+  # if we're building a temp version, mark package versions as prerelease
+  [ -n "$NEW_TAG" ] && VERSION="${VERSION}pre"
 
-  FOLDER="prey-${VERSION}"
-  VERSION_PATH="${DIST}/${VERSION}"
+  VERSION_PATH="${DIST}/${VERSION}" # path to put new packages
   ZIP="prey-${VERSION}.zip"
 
   echo "Temp build directory set to ${ROOT}."
   mkdir -p "$ROOT/$FOLDER"
   cp -R npm-shrinkwrap.json README.md license.txt prey.conf.default package.json bin lib "$ROOT/$FOLDER"
-
   cd "$ROOT/$FOLDER"
 
   BUNDLE_ONLY=1 npm install --production # > /dev/null
