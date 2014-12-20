@@ -1,4 +1,4 @@
-var helpers  = require('./../../../../helpers'),
+var helpers  = require('./../../../helpers'),
     should   = require('should'),
     sinon    = require('sinon'),
     needle   = require('needle'),
