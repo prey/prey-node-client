@@ -54,6 +54,7 @@
     "rimraf": "",
     "satan": "^0.4.2",
     "scrambler": "0.0.1",
+    "semver": "^4.2.0",
     "serve-static": "^1.7.0",
     "sudoer": "^0.1.1",
     "triggers": "^0.2.0",
