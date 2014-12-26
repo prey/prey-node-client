@@ -430,9 +430,9 @@
       }
     },
     "ocelot": {
-      "version": "0.0.4",
-      "from": "ocelot@0.0.4",
-      "resolved": "https://registry.npmjs.org/ocelot/-/ocelot-0.0.4.tgz"
+      "version": "0.0.5",
+      "from": "ocelot@0.0.5",
+      "resolved": "https://registry.npmjs.org/ocelot/-/ocelot-0.0.5.tgz"
     },
     "petit": {
       "version": "0.0.5",
