@@ -1,5 +1,6 @@
 var fs            = require('fs'),
     join          = require('path').join,
+    basename      = require('path').basename,
     needle        = require('needle'),
     os            = require('os'),
     sinon         = require('sinon'),
@@ -14,6 +15,9 @@ var tmpdir        = is_windows ? process.env.WINDIR + '\\Temp' : '/tmp';
 
 var dummy_version = '1.5.0';
 var dummy_zip     = join(__dirname, 'conf', 'fixtures', 'prey-' + dummy_version + '.zip');
+var dummy_checksum = '1cb6c1b14888d1d88021689b5971a25dfb3a132a';
+
+var current_checksum;
 
 //////////////////////////////////////////////////////
 // helpers
@@ -25,14 +29,38 @@ var get_file_name = function(ver) {
 }
 
 var stable_version = function(ver) {
-  var fn = function(cb) { cb(null, ver) }
-  return sinon.stub(package, 'get_stable_version', fn);
+  var fn = function(url, opts, cb) {
+    if (typeof opts == 'function') {
+      cb = opts;
+      opts = {};
+    }
+
+    function resp(err, body, code) {
+      cb(null, { statusCode: code || 200, body: body }, body);
+    }
+
+    if (url.match('latest.txt')) {
+      resp(null, '1.2.3');
+    } else {
+      resp(new Error('GET ' + url));
+    }
+  };
+
+  return sinon.stub(needle, 'get', fn);
 }
 
 var emulate_download = function(file) {
+  var requested_file = null;
+
   var fn = function(url, opts, cb) {
-    if (!opts.output)
-      return cb(null, { body: { 'filename': 'checksum' } });
+
+    if (!opts.output) {
+      var obj = {};
+      obj[requested_file] = current_checksum || 'c.h.e.c.k.s.u.m';
+      return cb(null, { body: obj });
+    }
+
+    requested_file = basename(url); // store it for later
 
     fs.readFile(file, function(err, data) {
       fs.writeFile(opts.output, data, function(err) {
@@ -40,7 +68,8 @@ var emulate_download = function(file) {
       });
     })
   }
-  return sinon.stub(needle, 'get', fn)
+
+  return sinon.stub(needle, 'get', fn);
 }
 
 //////////////////////////////////////////////////////
@@ -63,10 +92,15 @@ describe('package.get_latest', function() {
   it('checks if a new version is available', function (done) {
     var spy = sinon.spy(needle, 'get');
 
-    package.get_stable_version(function(err, ver) {
+    var cut = sinon.stub(package, 'get_version', function(ver, dest, cb) {
+      cb(new Error('Stopping here.'))
+    })
+
+    package.get_latest('stable', '1.2.3', '/tmp', function(err, ver) {
       spy.restore();
-      should.not.exist(err);
-      ver.should.match(/\d\.\d\.\d/);
+      cut.restore();
+      err.message.should.eql('Stopping here.');
+      spy.args[0][0].should.eql("https://s3.amazonaws.com/prey-releases/node-client/latest.txt");
       spy.calledOnce.should.be.true;
       done();
     });
@@ -78,17 +112,15 @@ describe('package.get_latest', function() {
 
     before(function() {
       stub = stable_version('1.2.3');
-      down = sinon.spy(package, 'download_release');
     })
 
     after(function() {
       stub.restore();
-      down.restore();
     })
 
     it('does not download anything', function (done) {
       get_latest('1.2.3', tmpdir, function (err, new_ver) {
-        down.called.should.be.false;
+        stub.callCount.should.eql(1);
         done();
       });
     });
@@ -108,7 +140,9 @@ describe('package.get_latest', function() {
     var stub, new_version = '1.5.0';
 
     before(function () {
-      stub = stable_version(new_version);
+      stub = sinon.stub(package, 'new_version_available', function(branch, current_version, cb) {
+        cb(null, new_version);
+      })
     });
 
     after(function() {
@@ -124,7 +158,7 @@ describe('package.get_latest', function() {
         requested_url.should.equal(url);
         opts.output.should.equal(outfile);
         getter.restore();
-        done()
+        done();
       });
 
       get_latest('1.2.3', tmpdir, function(err) { /* noop */ });
@@ -156,7 +190,7 @@ describe('package.get_latest', function() {
 
       it('does not verify checksum of anything', function(done) {
 
-        var spy = sinon.spy(package, 'verify_checksum');
+        var spy = sinon.spy(fs, 'ReadStream');
 
         get_latest('1.2.3', tmpdir, function(err) {
           spy.called.should.be.false;
@@ -182,11 +216,12 @@ describe('package.get_latest', function() {
 
       it('verifies the checksum', function(done) {
 
-        var spystub = sinon.spy(package, 'verify_checksum');
+        var spy = sinon.spy(fs, 'ReadStream');
 
         get_latest('1.2.3', tmpdir, function(err) {
-          spystub.restore();
-          // spystub.called.should.be.true;
+          spy.called.should.be.true;
+          spy.args[0][0].should.match(/prey-(\w+)-1.5.0-(\w+).zip/);
+          spy.restore();
           // spystub.calledWith.should.be('foobar');
           done()
         });
@@ -195,23 +230,13 @@ describe('package.get_latest', function() {
 
       describe('and the checksum is invalid', function() {
 
-        var checksum_stub;
-
-        before(function() {
-          checksum_stub = sinon.stub(package, 'verify_checksum', function(version, release, file, cb) {
-            cb(new Error('Unable to retrieve checksums'));
-          })
-        })
-
-        after(function() {
-          checksum_stub.restore();
-        })
+        // just keep the checksum as it is
 
         it('returns an error', function(done) {
 
           get_latest('1.2.3', tmpdir, function(err) {
             err.should.be.a.Error;
-            err.message.should.match('Unable to retrieve checksums');
+            err.message.should.containEql('Invalid checksum');
             done()
           });
 
@@ -245,16 +270,8 @@ describe('package.get_latest', function() {
 
       describe('and the checksum is valid', function() {
 
-        var checksum_stub;
-
         before(function() {
-          checksum_stub = sinon.stub(package, 'verify_checksum', function(version, release, file, cb) {
-            cb(null, true);
-          })
-        })
-
-        after(function() {
-          checksum_stub.restore();
+          current_checksum = dummy_checksum;
         })
 
         // no write perms only testable in *Nix and Windows > XP

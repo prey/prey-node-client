@@ -2,6 +2,7 @@ var join                = require('path').join,
     sinon               = require('sinon'),
     should              = require('should'),
     child_process       = require('child_process'),
+    needle              = require('needle'),
     helpers             = require(join('..', '..', 'helpers')),
     common              = require(helpers.lib_path('common')),
     system              = require(helpers.lib_path('system')),
@@ -69,9 +70,7 @@ describe('updating', function() {
         common.version = '1.2.3';
         upstream_version = '1.2.1'; // should not happen, but anyway
 
-        stub = sinon.stub(package, 'get_stable_version', function(cb) {
-          cb(null, upstream_version);
-        });
+        stub = stub_get_stable_version(upstream_version);
       });
 
       after(function() {
@@ -102,9 +101,7 @@ describe('updating', function() {
         common.version = '1.2.3';
         upstream_version = '1.2.5';
 
-        stub = sinon.stub(package, 'get_stable_version', function(cb) {
-          cb(null, upstream_version);
-        });
+        stub = stub_get_stable_version(upstream_version);
       });
 
       after(function() {
@@ -203,5 +200,26 @@ describe('updating', function() {
     });
 
   });
+
+  function stub_get_stable_version(ver) {
+    var fn = function(url, opts, cb) {
+      if (typeof opts == 'function') {
+        cb = opts;
+        opts = {};
+      }
+
+      function resp(err, body, code) {
+        cb(null, { statusCode: code || 200, body: body }, body);
+      }
+
+      if (url.match('latest.txt')) {
+        resp(null, ver);
+      } else {
+        resp(new Error('GET ' + url));
+      }
+    };
+
+    return sinon.stub(needle, 'get', fn);
+  }
 
 });
