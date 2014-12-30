@@ -6,6 +6,7 @@ var fs            = require('fs'),
     sinon         = require('sinon'),
     should        = require('should'),
     rmdir         = require('rimraf'),
+    child_process = require('child_process'),
     helpers       = require('../helpers');
 
 var package       = require(helpers.lib_path('package'));
@@ -70,6 +71,14 @@ var emulate_download = function(file) {
   }
 
   return sinon.stub(needle, 'get', fn);
+}
+
+var stub_unpacker = function(fn) {
+
+  if (process.platform == 'darwin')
+    return sinon.stub(child_process, 'exec', fn || function(cmd, opts, cb) { cb(new Error('Unpack called!')) } );
+  else
+    return sinon.stub(buckle, 'open', fn || function(from, dest, cb) { cb(new Error('Unpack called!')) });
 }
 
 //////////////////////////////////////////////////////
@@ -323,36 +332,132 @@ describe('package.get_latest', function() {
             rmdir(dest, done);
           })
 
-          it('unzips the package to requested path', function(done) {
-            get_latest('1.2.3', dest, function(err) {
-              should.not.exist(err);
-              fs.existsSync(join(dest, new_version)).should.be.true;
-              done()
-            })
-          });
+          it('tries to unzip the package to requested path', function(done) {
+            var spy = stub_unpacker();
 
-          // this test probably passes only in *nixes
-          if (!is_windows) {
-            it('makes sure bin/node and bin/prey are executable', function(done) {
-              get_latest('1.2.3', dest, function(err) {
-                fs.statSync(join(dest, new_version, 'bin', 'prey')).mode.should.equal(33261);
-                fs.statSync(join(dest, new_version, 'bin', 'node')).mode.should.equal(33261);
-                done()
-              });
+            get_latest('1.2.3', dest, function(err) {
+              spy.calledOnce.should.be.true;
+              spy.restore();
+              done()
             });
-          }
+
+          });
 
           it('removes downloaded package', function (done) {
             var file_name = get_file_name(new_version);
             var out       = join(tmpdir, file_name);
 
             get_latest('1.2.3', dest, function (err) {
-              should.not.exist(err);
               fs.existsSync(out).should.be.false;
               done();
             });
-
           });
+
+          describe('if unpacking fails', function() {
+
+            var failer;
+
+            before(function() {
+              failer = stub_unpacker(); // default function returns error already
+            })
+
+            after(function() {
+              failer.restore();
+            })
+
+            it('does not try to rename', function(done) {
+              var spy = sinon.spy(fs, 'rename'); 
+
+              get_latest('1.2.3', dest, function(err) {
+                err.message.should.eql('Unpack called!');
+                spy.called.should.be.false;
+                spy.restore();
+                done();
+              });
+
+            })
+
+          })
+
+          describe('if unpacking works', function() {
+
+            // no need to stub, should work by default
+
+            it('tries to rename the folder from prey-a.b.c to simply a.b.c', function(done) {
+
+              var spy = sinon.spy(fs, 'rename'); 
+
+              get_latest('1.2.3', dest, function(err) {
+                spy.called.should.be.true;
+                spy.args[0][0].should.eql(join(dest, 'prey-' + new_version));
+                spy.args[0][1].should.eql(join(dest, new_version));
+                spy.restore();
+                done();
+              });
+
+            })
+
+            describe('if renaming fails', function() {
+
+              var failer;
+
+              before(function() {
+                failer = sinon.stub(fs, 'rename', function(from, to, cb) {
+
+                  fs.mkdirSync(to);
+                  fs.writeFileSync(join(to, 'package.json'), 'just testing');
+
+                  cb(new Error('I dont feel like finishing right now.'))
+                })
+              })
+
+              after(function() {
+                failer.restore();
+              })
+
+              it('ensures the destination folder is removed', function(done) {
+
+                get_latest('1.2.3', dest, function(err) {
+                  err.message.should.eql('I dont feel like finishing right now.');
+
+                  fs.existsSync(join(dest, new_version)).should.be.false;
+                  fs.existsSync(join(dest, new_version, 'package.json')).should.be.false;
+
+                  done();
+                });
+              })
+
+            })
+
+            describe('if renaming works', function() {
+
+              // nothing to stub, it should work by default
+
+              it('final folder should exist', function(done) {
+                get_latest('1.2.3', dest, function(err) {
+                  should.not.exist(err);
+
+                  fs.existsSync(join(dest, new_version)).should.be.true;
+                  done()
+                });
+              });
+
+              // this test probably passes only in *nixes
+              if (!is_windows) {
+
+                it('makes sure bin/node and bin/prey are executable', function(done) {
+                  get_latest('1.2.3', dest, function(err) {
+                    fs.statSync(join(dest, new_version, 'bin', 'prey')).mode.should.equal(33261);
+                    fs.statSync(join(dest, new_version, 'bin', 'node')).mode.should.equal(33261);
+                    done()
+                  });
+                });
+
+              }
+
+            })
+
+          })
 
         });
 
