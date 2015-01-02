@@ -76,7 +76,8 @@ check_code_signatures() {
   local lock="lib/agent/actions/lock/mac/prey-lock"
   local gui="lib/conf/gui/mac/PreyConfig.app"
 
-  for bin in $alert $lock $gui; do 
+  # for bin in $alert $lock $gui; do 
+  for bin in $gui; do
     echo "Verifying code signature of ${bin}..."
     codesign -dv $bin 2> /dev/null || (sign_bin $bin && codesign -dv $bin)
 
