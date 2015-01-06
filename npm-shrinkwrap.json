@@ -102,14 +102,14 @@
       "resolved": "git://github.com/tomas/node-campfire#c4b0517ce0e49000a14ba3cedcbd9b8df2d2f8d4"
     },
     "chela": {
-      "version": "0.0.3",
-      "from": "chela@0.0.3",
-      "resolved": "https://registry.npmjs.org/chela/-/chela-0.0.3.tgz",
+      "version": "0.0.5",
+      "from": "chela@0.0.5",
+      "resolved": "https://registry.npmjs.org/chela/-/chela-0.0.5.tgz",
       "dependencies": {
         "graceful-fs": {
-          "version": "3.0.4",
-          "from": "graceful-fs@3.0.4",
-          "resolved": "https://registry.npmjs.org/graceful-fs/-/graceful-fs-3.0.4.tgz"
+          "version": "3.0.5",
+          "from": "graceful-fs@3.0.5",
+          "resolved": "https://registry.npmjs.org/graceful-fs/-/graceful-fs-3.0.5.tgz"
         }
       }
     },
