@@ -60,7 +60,7 @@ create_user() {
     useradd -r -M -U -G ${ADMIN_GROUP} -s $SHELL $USER_NAME
 
     for group in $groups; do
-      adduser $USER_NAME $group 2> /dev/null || true
+      usermod -a -G $group $USER_NAME 2> /dev/null || true
     done
 
   else
