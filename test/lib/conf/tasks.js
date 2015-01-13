@@ -6,6 +6,7 @@ var fs      = require('fs'),
     getset  = require('getset'),
     rimraf  = require('rimraf'),
     helpers = require('./../../helpers'),
+    chela   = require('chela'),
     tmpdir  = require('os').tmpdir();
 
 var os_name = process.platform.replace('win32', 'windows').replace('darwin', 'mac');
@@ -23,7 +24,8 @@ var firewall  = require('firewall');
 describe('tasks', function() {
 
     var old_config,
-        old_versions_path;
+        old_versions_path,
+        chmod_stub;
 
     before(function() {
       process.stdout.writable = false;
@@ -34,30 +36,40 @@ describe('tasks', function() {
       // disable version paths for these tests
       old_versions_path = common.system.paths.versions;
       common.system.paths.versions = null;
-    })
+
+      stub_chmod();
+    });
 
     after(function() {
       process.stdout.writable = true;
 
       common.config = old_config;
       common.system.paths.versions = old_versions_path;
+
+      // release the chela.mod stub
+      chmod_stub.restore();
     })
 
-  if (os_name == 'windows') {
+    function stub_chmod() {
+      // stub out chela.mod so we don't accidentally chmod the source dir
+      chmod_stub = sinon.stub(chela, 'mod', function(path, octal, cb) { cb() });
+    }
 
-    var firewall_stubs = {};
+    if (os_name == 'windows') {
 
-    before(function() {
-      firewall_stubs.add = sinon.stub(firewall, 'add_rule', function(obj, cb) { cb() })
-      firewall_stubs.del = sinon.stub(firewall, 'remove_rule', function(obj, cb) { cb() })
-    })
+      var firewall_stubs = {};
 
-    after(function() {
-      firewall_stubs.add.restore()
-      firewall_stubs.del.restore();
-    })
+      before(function() {
+        firewall_stubs.add = sinon.stub(firewall, 'add_rule', function(obj, cb) { cb() })
+        firewall_stubs.del = sinon.stub(firewall, 'remove_rule', function(obj, cb) { cb() })
+      })
 
-  }
+      after(function() {
+        firewall_stubs.add.restore()
+        firewall_stubs.del.restore();
+      })
+
+    }
 
   describe('activate', function() {
 
@@ -303,11 +315,62 @@ describe('tasks', function() {
           })
         })
 
+        it('calls chela.mod', function(done) {
+          tasks.activate({}, function(err) {
+            chmod_stub.called.should.be.true;
+            done();
+          });
+        })
+
+        describe('with write access to paths.current', function() {
+
+          before(function(done) {
+            chmod_stub.restore();
+            fs.chmod(common.system.paths.current, '0755', done);
+          })
+
+          after(stub_chmod);
+
+          it('chmods files to 33261 (0755)', function(done) {
+            tasks.activate({}, function(err) {
+              should.not.exist(err);
+              fs.readdir(common.system.paths.current, function(err, list) {
+                var stat = fs.lstatSync(list[0]);
+                stat.mode.should.eql(33261);
+                done();
+              })
+            });
+          })
+
+        })
+
+        describe('with NO write access to paths.current', function() {
+
+          before(function(done) {
+            chmod_stub.restore();
+            fs.chmod(common.system.paths.current, '0200', done);
+          })
+
+          after(function(done) {
+            stub_chmod();
+            fs.chmod(common.system.paths.current, '0755', done);
+          })
+
+          it('returns a EPERM error', function(done) {
+            tasks.activate({}, function(err) {
+              should.exist(err);
+              err.code.should.eql('EACCES');
+              done();
+            });
+          })
+
+        })
+
       })
 
       describe('with versions support', function() {
 
-        var dir = tmpdir + '/versions';
+        var dir = join(tmpdir, 'versions');
 
         before(function() {
           common.system.paths.versions = dir;
@@ -386,10 +449,13 @@ describe('tasks', function() {
 
             describe('and specific version dir is found', function() {
 
-              var version_dir = join(dir, '/2.3.4');
-              var install_dir = join(tmpdir, 'install');
+              var version_dir, install_dir;
 
               before(function(done) {
+
+                version_dir = join(dir, '2.3.4');
+                install_dir = join(tmpdir, 'install');
+
                 fs.mkdir(version_dir, function(err) {
                   if (err) return done(err);
 
@@ -427,13 +493,23 @@ describe('tasks', function() {
                   })
                 })
 
+                it('does not chmod anything', function(done) {
+                  chmod_stub.reset();
+                  tasks.activate({}, function(err) {
+                    chmod_stub.called.should.be.false;
+                    done();
+                  })
+                })
+
               })
 
               describe('with write access to install path', function() {
 
-                var current_dir = install_dir + '/current';
+                var current_dir;
 
                 before(function(done) {
+                  current_dir = join(install_dir, 'current');
+
                   common.system.paths.current = current_dir;
                   fs.existsSync(current_dir).should.be.false;
 
@@ -453,6 +529,22 @@ describe('tasks', function() {
                     fs.existsSync(current_dir);
                     done();
                   })
+
+                })
+
+                it('chmods files to 33261 (0755)', function(done) {
+
+                  chmod_stub.restore();
+
+                  tasks.activate({}, function(err) {
+                    should.not.exist(err);
+                    fs.readdir(common.system.paths.current, function(err, list) {
+                      var stat = fs.lstatSync(list[0]);
+                      stat.mode.should.eql(33261);
+                      stub_chmod();
+                      done();
+                    })
+                  });
 
                 })
 
@@ -484,7 +576,7 @@ describe('tasks', function() {
         // let's assume we have a versions path and that config.sync works
         // we're already testing the versions/no versions logic in .activate()
         old_versions_path = common.system.paths.versions;
-        common.system.paths.versions = tmpdir + '/versions';
+        common.system.paths.versions = join(tmpdir, 'versions');
 
         sync_stub = sinon.stub(common.config, 'sync', function(other_file, method, cb) { cb() } )
       })
