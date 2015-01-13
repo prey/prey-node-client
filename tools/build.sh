@@ -26,7 +26,7 @@ cleanup() {
 run_specs(){
   echo "Ensuring we have the latest packages..."
   BUNDLE_ONLY=1 npm install
-  bin/prey test --recursive --bail --reporter dot
+  bin/prey test lib/agent/plugins --recursive --bail --reporter dot
 }
 
 create_release() {
