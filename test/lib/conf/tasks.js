@@ -295,9 +295,37 @@ describe('tasks', function() {
 
       describe('with no versions support', function() {
 
-        before(function() {
+        before(function(done) {
           common.system.paths.versions = null;
+          common.system.paths.current = join(tmpdir, "foobar");
+
+          var dir = common.system.paths.current;
+
+          var createDirStructure = function (base_dir) {
+            fs.mkdir(base_dir, function () {
+              fs.mkdir(join(base_dir, "bin"), function () {
+                fs.link("./bin/prey", join(base_dir, "bin", "prey"), function (err) {
+                  done();
+                });
+              });
+            });
+          }
+
+          fs.exists(dir, function (exists) {
+            if (exists) {
+              rimraf(dir, function () {
+                createDirStructure(dir);
+              });
+            } else {
+              createDirStructure(dir);
+            }
+          });
+
         })
+
+        after(function(done) {
+          rimraf(common.system.paths.current, done)
+        });
 
         it('does not create a current symlink/dir', function(done) {
           var spy = sinon.spy(vm, 'set_current');
@@ -326,19 +354,21 @@ describe('tasks', function() {
 
           before(function(done) {
             chmod_stub.restore();
-            fs.chmod(common.system.paths.current, '0755', done);
+            fs.chmod(common.system.paths.current, '0755', function () {
+              fs.chmod(join(common.system.paths.current, "bin", "prey"), '0644', done);
+            });
+
           })
 
           after(stub_chmod);
 
-          it('chmods files to 33261 (0755)', function(done) {
+          it('chmods files to 40755 (0755)', function(done) {
             tasks.activate({}, function(err) {
               should.not.exist(err);
-              fs.readdir(common.system.paths.current, function(err, list) {
-                var stat = fs.lstatSync(list[0]);
-                stat.mode.should.eql(33261);
-                done();
-              })
+              var stat  = fs.lstatSync(join(common.system.paths.current, "bin", "prey"));
+              var intMode = stat.mode.toString(8);
+              intMode.should.eql('100755'); // stat -f %p
+              done();
             });
           })
 
