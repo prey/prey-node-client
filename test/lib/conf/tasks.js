@@ -295,8 +295,12 @@ describe('tasks', function() {
 
       describe('with no versions support', function() {
 
+        var old_current;
+
         before(function(done) {
           common.system.paths.versions = null;
+
+          old_current = common.system.paths.current;
           common.system.paths.current = join(tmpdir, "foobar");
 
           var dir = common.system.paths.current;
@@ -304,7 +308,10 @@ describe('tasks', function() {
           var createDirStructure = function (base_dir) {
             fs.mkdir(base_dir, function () {
               fs.mkdir(join(base_dir, "bin"), function () {
-                fs.link("./bin/prey", join(base_dir, "bin", "prey"), function (err) {
+                var preyBinDir = join(__dirname, "..", "..", "..","bin", "prey");
+                var tempBinDir = join(base_dir, "bin", "prey");
+                fs.link(join(__dirname, "..", "..", "..","bin", "prey"), join(base_dir, "bin", "prey"), function (err) {
+                  if (err) { console.log(err) }
                   done();
                 });
               });
@@ -325,6 +332,7 @@ describe('tasks', function() {
 
         after(function(done) {
           rimraf(common.system.paths.current, done)
+          common.system.paths.current = old_current;
         });
 
         it('does not create a current symlink/dir', function(done) {
@@ -362,7 +370,7 @@ describe('tasks', function() {
 
           after(stub_chmod);
 
-          it('chmods files to 40755 (0755)', function(done) {
+          it('chmods files to 100755 (0755)', function(done) {
             tasks.activate({}, function(err) {
               should.not.exist(err);
               var stat  = fs.lstatSync(join(common.system.paths.current, "bin", "prey"));
@@ -414,12 +422,8 @@ describe('tasks', function() {
 
           it('doesnt stop, but shows warning', function(done) {
 
-            // var spy = sinon.spy(process.stdout, 'write');
             tasks.activate({}, function(err, out) {
               should.not.exist(err);
-              // spy.called.should.be.true;
-              // spy.args[0][0].should.containEql('is already set as current');
-              // spy.restore();
               done();
             })
           })
@@ -442,7 +446,6 @@ describe('tasks', function() {
 
             before(function(done) {
               rimraf(dir, done);
-              // fs.existsSync(dir).should.be.false;
             })
 
             it('fails miserably', function(done) {
@@ -562,18 +565,17 @@ describe('tasks', function() {
 
                 })
 
-                it('chmods files to 33261 (0755)', function(done) {
+                it('chmods files to 100755 (0755)', function(done) {
 
                   chmod_stub.restore();
 
                   tasks.activate({}, function(err) {
                     should.not.exist(err);
-                    fs.readdir(common.system.paths.current, function(err, list) {
-                      var stat = fs.lstatSync(list[0]);
-                      stat.mode.should.eql(33261);
-                      stub_chmod();
-                      done();
-                    })
+                    var stat  = fs.lstatSync(join(common.system.paths.current, "package.json"));
+                    var intMode = stat.mode.toString(8);
+                    intMode.should.eql('100755'); // stat -f %p
+                    stub_chmod();
+                    done();
                   });
 
                 })
