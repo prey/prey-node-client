@@ -9,7 +9,15 @@ USER_NAME="$1"
 [ -z "$USER_NAME" ] && echo "User name required." && exit 1
 
 FULL_NAME="Prey Anti-Theft"
-SHELL="/bin/bash"
+
+# for security reasons, Prey user shouldn't have a login shell defined
+if [ "$(uname)" == "Linux" ]; then
+  # since nologin path changes between linux distros, lets use /bin/false instead
+  SHELL="/bin/false"
+else
+  SHELL="/sbin/nologin"
+fi
+
 SU_CMD=$(command -v su) || SU_CMD="/bin/su"
 
 # this means user will be able to run commands as other users except root
