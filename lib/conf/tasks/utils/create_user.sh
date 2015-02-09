@@ -10,14 +10,6 @@ USER_NAME="$1"
 
 FULL_NAME="Prey Anti-Theft"
 
-# for security reasons, Prey user shouldn't have a login shell defined
-if [ "$(uname)" == "Linux" ]; then
-  # since nologin path changes between linux distros, lets use /bin/false instead
-  SHELL="/bin/false"
-else
-  SHELL="/sbin/nologin"
-fi
-
 SU_CMD=$(command -v su) || SU_CMD="/bin/su"
 
 # this means user will be able to run commands as other users except root
@@ -28,14 +20,17 @@ if [ "$(uname)" == "Linux" ]; then
   USERS_PATH="/home"
   [ -n "$(which dmidecode)" ] && SUDOERS_ARGS="$(which dmidecode), ${SUDOERS_ARGS}"
   [ -n "$(which iwlist)" ] && SUDOERS_ARGS="$(which iwlist), ${SUDOERS_ARGS}"
+  # for security reasons, Prey user shouldn't have a login shell defined
+  # also, since nologin path changes between linux distros, lets use /bin/false instead
+  SHELL="/bin/false"
 else
   USERS_PATH="/Users"
+  SHELL="/sbin/nologin"
 fi
 
 SUDOERS_LINE="${USER_NAME} ALL = NOPASSWD: ${SUDOERS_ARGS}"
 
 if [ "$(uname)" == "Linux" ]; then
-  # EXISTING_USER=$(find ${USERS_PATH} -maxdepth 1 -not -path "*/\.*" | grep -v ${USER_NAME} | tail -1 | cut -f3 -d "/")
   EXISTING_USER=$(cat /etc/passwd | grep -E "home.*bash" | tail -1 | cut -d":" -f1)
 else
   EXISTING_USER=$(dscl . -list /Users | grep -Ev "^_|daemon|nobody|root|Guest|${USER_NAME}" | tail -1)
