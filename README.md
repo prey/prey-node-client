@@ -115,7 +115,6 @@ By Tomás Pollak, with the help of contributors.
 
  - To Robert Harder for the ImageSnap utility for OS X.
  - To Michael Hipp for mpg123.
- - To Nir Sofer for NirCmd.
  - And to all the Node.js developers for their awesome modules (async, connect, rimraf, etc).
 
 ## Legal
