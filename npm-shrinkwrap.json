@@ -263,6 +263,11 @@
       "from": "https://registry.npmjs.org/getset/-/getset-0.6.3.tgz",
       "resolved": "https://registry.npmjs.org/getset/-/getset-0.6.3.tgz"
     },
+    "graceful-fs": {
+      "version": "3.0.5",
+      "from": "graceful-fs@*",
+      "resolved": "https://registry.npmjs.org/graceful-fs/-/graceful-fs-3.0.5.tgz"
+    },
     "linus": {
       "version": "0.0.4",
       "from": "linus@0.0.4",

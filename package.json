@@ -38,6 +38,7 @@
     "firewall": "0.0.5",
     "folder": "0.0.4",
     "getset": "^0.6.3",
+    "graceful-fs": "^3.0.5",
     "linus": "0.0.4",
     "memorize": "0.0.1",
     "mime": "1.2.5",
