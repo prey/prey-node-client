@@ -31,7 +31,7 @@ describe('location', function(){
 
         before(function(){
           helpers.stub_request('get', null, {}, 'Bad response');
-        })
+        });
 
         it('returns error', function(done){
 
@@ -39,7 +39,7 @@ describe('location', function(){
             err.should.be.an.instanceof(Error);
             should.not.exist(data);
             done();
-          })
+          });
 
         });
 
@@ -50,18 +50,27 @@ describe('location', function(){
         before(function(done){
           fs.readFile(__dirname + '/../fixtures/location_response.json', function(err, data){
             helpers.stub_request('get', null, { statusCode: 200 }, data.toString().trim());
-            done()
-          })
-        })
+            done();
+          });
+        });
 
         it('callsback coordinates', function(done){
 
           provider.send_data(list, function(err, data){
             // should.not.exist(err); TODO: fix this
             data.should.be.an.instanceof(Object);
-            data.should.have.keys(['lat', 'lng', 'accuracy'])
+            data.should.have.keys(['lat', 'lng', 'accuracy', 'method']);
             done();
-          })
+          });
+
+        });
+
+        it('sets method to wifi', function (done) {
+
+          provider.send_data(list, function (err, data){
+            data.method.should.equal('wifi');
+            done();
+          });
 
         });
 
@@ -81,7 +90,7 @@ describe('location', function(){
               console.log('========================================\n');
             }
             done();
-          })
+          });
 
         });
 
