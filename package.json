@@ -57,7 +57,7 @@
     "scrambler": "0.0.1",
     "serve-static": "^1.7.0",
     "sudoer": "^0.1.1",
-    "triggers": "^0.2.0",
+    "triggers": "^0.3.0",
     "tuna": "0.0.2",
     "underscore": "",
     "whenever": "0.0.3",
