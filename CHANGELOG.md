@@ -1,5 +1,27 @@
 # Change Log
 
+## [v1.3.9](https://github.com/prey/prey-node-client/tree/v1.3.9) (2015-04-07)
+
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.3.8...v1.3.9)
+
+**Implemented enhancements:**
+
+- please add Parabola GNU/Linux to your OS list [\#105](https://github.com/prey/prey-node-client/issues/105)
+
+**Fixed bugs:**
+
+- escape emojis when encodeUriCOmponent on geo [\#117](https://github.com/prey/prey-node-client/issues/117)
+
+- \[Win 10\]-Message-If a user writes a message in a column, whole message will not be shown in client [\#112](https://github.com/prey/prey-node-client/issues/112)
+
+**Closed issues:**
+
+- CentOS is not being correctly added to Prey panel. [\#114](https://github.com/prey/prey-node-client/issues/114)
+
+**Merged pull requests:**
+
+- 1.3.9 rc [\#118](https://github.com/prey/prey-node-client/pull/118) ([lemavri](https://github.com/lemavri))
+
 ## [v1.3.8](https://github.com/prey/prey-node-client/tree/v1.3.8) (2015-03-20)
 
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.3.7...v1.3.8)
