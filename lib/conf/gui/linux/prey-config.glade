@@ -470,6 +470,19 @@
                         <property name="y">120</property>
                       </packing>
                     </child>
+                    <child>
+                      <object class="GtkLinkButton" id="forgot_password">
+                        <property name="width_request">280</property>
+                        <property name="height_request">30</property>
+                        <property name="visible">True</property>
+                        <property name="uri">https://panel.preyproject.com/forgot</property>
+                        <property name="label">Forgot your password?</property>
+                      </object>
+                      <packing>
+                        <property name="x">150</property>
+                        <property name="y">160</property>
+                      </packing>
+                    </child>
                   </object>
                   <packing>
                     <property name="position">3</property>
