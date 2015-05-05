@@ -6,6 +6,7 @@ var fs            = require('fs'),
     sinon         = require('sinon'),
     should        = require('should'),
     rmdir         = require('rimraf'),
+    buckle        = require('buckle'),
     child_process = require('child_process'),
     helpers       = require('../helpers');
 
