@@ -48,7 +48,7 @@ OPTIONS = {
 }
 
 ################################################
-# paths and such 
+# paths and such
 
 SCRIPT_PATH = sys.path[0]
 
@@ -60,7 +60,7 @@ def find_in_path(file):
     full_path = os.path.join('/'.join(segments), file)
     # print "Checking %s" % full_path
     if os.path.exists(full_path):
-      return full_path 
+      return full_path
     else:
       path = segments.pop()
 
@@ -421,6 +421,10 @@ class ConfigDelegate(NSObject):
       self.out  = "Exception! %s" % e
       self.code = 1
 
+  def open_pass_recovery_url(self):
+    url = "https://panel.preyproject.com/forgot"
+    res = NSWorkspace.sharedWorkspace().openURL_(NSURL.URLWithString_(url))
+
   ######################################################
   # tab clicks
 
@@ -466,7 +470,8 @@ class ConfigDelegate(NSObject):
     elements = []
     elements.append(self.drawTextInput('existing_email', 'Email', 15, 140))
     elements.append(self.drawPasswordInput('existing_pass', 'Password', 15, 85))
-    
+    elements.append(self.drawButton(NSMakeRect(15, 20, 420, 50), 'Forgot your password?', 'open_pass_recovery_url'))
+
     for element in flatten(elements):
       tab.view().addSubview_(element)
 
