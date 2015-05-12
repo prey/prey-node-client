@@ -1,5 +1,29 @@
 # Change Log
 
+## [v1.3.10](https://github.com/prey/prey-node-client/tree/v1.3.10) (2015-05-12)
+
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.3.9...v1.3.10)
+
+**Fixed bugs:**
+
+- \[Win 10\]-Unlocking-Using '1','0' or '\_' for password in prey panel - leads to an error in client [\#110](https://github.com/prey/prey-node-client/issues/110)
+
+- \[ Win 8.1 Pro, Chrome\] : " Alarm Sound "  time is less than the mentioned. [\#107](https://github.com/prey/prey-node-client/issues/107)
+
+**Closed issues:**
+
+- Please Update prey package on NPM! [\#120](https://github.com/prey/prey-node-client/issues/120)
+
+**Merged pull requests:**
+
+- 1.3.10-rc [\#130](https://github.com/prey/prey-node-client/pull/130) ([lemavri](https://github.com/lemavri))
+
+- Syntax and fixes 2 [\#123](https://github.com/prey/prey-node-client/pull/123) ([lemavri](https://github.com/lemavri))
+
+- Syntax and fixes 2 [\#122](https://github.com/prey/prey-node-client/pull/122) ([tomas](https://github.com/tomas))
+
+- Syntax and some fixes [\#121](https://github.com/prey/prey-node-client/pull/121) ([tomas](https://github.com/tomas))
+
 ## [v1.3.9](https://github.com/prey/prey-node-client/tree/v1.3.9) (2015-04-07)
 
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.3.8...v1.3.9)
