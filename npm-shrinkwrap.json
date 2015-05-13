@@ -685,6 +685,11 @@
       "from": "scrambler@0.0.1",
       "resolved": "https://registry.npmjs.org/scrambler/-/scrambler-0.0.1.tgz"
     },
+    "semver": {
+      "version": "4.3.4",
+      "from": "semver@*",
+      "resolved": "https://registry.npmjs.org/semver/-/semver-4.3.4.tgz"
+    },
     "serve-static": {
       "version": "1.9.1",
       "from": "serve-static@1.9.1",
@@ -779,9 +784,9 @@
       "resolved": "https://registry.npmjs.org/sudoer/-/sudoer-0.1.1.tgz"
     },
     "triggers": {
-      "version": "0.2.0",
-      "from": "https://registry.npmjs.org/triggers/-/triggers-0.2.0.tgz",
-      "resolved": "https://registry.npmjs.org/triggers/-/triggers-0.2.0.tgz"
+      "version": "0.3.0",
+      "from": "triggers@>=0.3.0 <0.4.0",
+      "resolved": "https://registry.npmjs.org/triggers/-/triggers-0.3.0.tgz"
     },
     "tuna": {
       "version": "0.0.2",
