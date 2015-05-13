@@ -1,6 +1,6 @@
 {
   "name": "prey",
-  "version": "1.3.10",
+  "version": "1.4.0",
   "author": "Tomás Pollak <tomas@forkhq.com>",
   "keywords": [
     "prey",
@@ -55,6 +55,7 @@
     "rimraf": "",
     "satan": "^0.4.2",
     "scrambler": "0.0.1",
+    "semver": "^4.3.4",
     "serve-static": "^1.7.0",
     "sudoer": "^0.1.1",
     "triggers": "^0.3.0",
