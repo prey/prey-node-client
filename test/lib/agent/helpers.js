@@ -10,4 +10,29 @@ describe('helpers.is_greater_than', function() {
   it('returns true when first is higher than second', function() {
     helpers.is_greater_than("1.3.10", "1.3.9").should.equal(true);
   });
+
+  it('returns false when both are equal', function() {
+    helpers.is_greater_than("1.3.10", "1.3.10").should.equal(false);
+  });
+
+  // In the following cases, there's no way to compare, hence it returns false
+
+  it('returns false when second is empty, null or undefined', function() {
+    helpers.is_greater_than("1.3.10", "").should.equal(false);
+    helpers.is_greater_than("1.3.10", null).should.equal(false);
+    helpers.is_greater_than("1.3.10", undefined).should.equal(false);
+  });
+
+  it('returns false when first is empty, null or undefined', function() {
+    helpers.is_greater_than("", "1.3.10").should.equal(false);
+    helpers.is_greater_than(null, "1.3.10").should.equal(false);
+    helpers.is_greater_than(undefined, "1.3.10").should.equal(false);
+  });
+
+  it('returns false if both are empty, null or undefined', function() {
+    helpers.is_greater_than("", "").should.equal(false);
+    helpers.is_greater_than(null, undefined).should.equal(false);
+    helpers.is_greater_than(undefined, null).should.equal(false);
+  });
+
 });
