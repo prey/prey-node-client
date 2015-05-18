@@ -1,3 +1,5 @@
+[![Code Climate](https://codeclimate.com/github/prey/prey-node-client/badges/gpa.svg)](https://codeclimate.com/github/prey/prey-node-client)
+
 # Prey Node.js client
 
 Asynchronous, ruthless event-driven client for the [Prey anti-theft software](http://preyproject.com), based on Node.js.
