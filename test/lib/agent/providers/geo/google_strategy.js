@@ -1,7 +1,6 @@
 var helpers  = require('./../../../../helpers'),
     should   = require('should'),
-    fs       = require('fs'),
-    provider = helpers.load('providers/geo');
+    google_strat = helpers.load('providers/geo/strategies').google;
 
 describe('location', function(){
 
@@ -14,8 +13,6 @@ describe('location', function(){
   });
 
   describe('when access points is valid', function(){
-
-    var list = require('./../fixtures/parsed_access_points_list');
 
     describe('and geolocation endpoint returns error', function(){
 
@@ -35,7 +32,7 @@ describe('location', function(){
 
         it('returns error', function(done){
 
-          provider.send_data(list, function(err, data){
+          google_strat(function(err, data) {
             err.should.be.an.instanceof(Error);
             should.not.exist(data);
             done();
@@ -47,18 +44,15 @@ describe('location', function(){
 
       describe('and response contains valid coordinates', function(){
 
-        before(function(done){
-          fs.readFile(__dirname + '/../fixtures/location_response.json', function(err, data){
-            helpers.stub_request('get', null, { statusCode: 200 }, data.toString().trim());
-            done();
-          });
+        before(function(){
+          var location_response = require('../fixtures/google_location_response');
+          helpers.stub_request('get', null, { statusCode: 200 }, location_response);
         });
 
         it('callsback coordinates', function(done){
 
-          provider.send_data(list, function(err, data){
-            // should.not.exist(err); TODO: fix this
-            data.should.be.an.instanceof(Object);
+           google_strat(function(err, data) {
+            should.not.exist(err);
             data.should.have.keys(['lat', 'lng', 'accuracy', 'method']);
             done();
           });
@@ -67,7 +61,7 @@ describe('location', function(){
 
         it('sets method to wifi', function (done) {
 
-          provider.send_data(list, function (err, data){
+          google_strat(function(err, data) {
             data.method.should.equal('wifi');
             done();
           });
@@ -82,7 +76,7 @@ describe('location', function(){
 
           this.timeout(3000); // response may take longer
 
-          provider.send_data(list, function(err, data){
+          google_strat(function(err, data) {
             if (err) {
               console.log('\n========================================');
               console.log(' Geolocation endpoint seems to be down!');
