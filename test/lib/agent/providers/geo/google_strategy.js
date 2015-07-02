@@ -74,7 +74,7 @@ describe('location', function(){
 
         it('works', function(done){
 
-          this.timeout(3000); // response may take longer
+          this.timeout(6000); // response may take longer
 
           google_strat(function(err, data) {
             if (err) {
