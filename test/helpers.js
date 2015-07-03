@@ -5,6 +5,7 @@ var needle    = require('needle'),
     lib_path  = path.join(root_path, 'lib'),
     spawn     = require('child_process').spawn,
     Emitter = require('events').EventEmitter,
+    providers = require(path.join(lib_path, 'agent','providers'));
     helpers   = {};
 
 var prey_bin  = path.join(root_path, 'bin', 'prey');
@@ -47,7 +48,7 @@ helpers.fake_spawn_child = function() {
 }
 
 /*
-  this helpers lets you fake requests using needle:
+  this helper lets you fake requests using needle:
   helpers.stub_request(method, err, resp, body);
 
   examples:
@@ -77,5 +78,21 @@ helpers.stub_request = function(type, err, resp, body){
   return stub;
 
 }
+
+helpers.stub_provider = function(name, err, return_value) {
+  var cb,
+    stub = sinon.stub(providers, 'get', function() {
+
+      for (var i = 0, len = arguments.length; i < len; i++) {
+        if (typeof arguments[i] === 'function') {
+          cb = arguments[i]
+        }
+      }
+
+      cb(err, return_value);
+    });
+
+  return stub;
+};
 
 module.exports = helpers;
