@@ -50,10 +50,10 @@ declare module "windows.devices.geolocation" {
   }
 
   export class Geopoint {
-    position: BasicGeoposition;
     altitudeReferenceSystem: AltitudeReferenceSystem;
     geoshapeType: GeoshapeType;
     spatialReferenceId: Number;
+    position: BasicGeoposition;
     constructor();
     constructor(position: BasicGeoposition);
     constructor(position: BasicGeoposition, altitudeReferenceSystem: AltitudeReferenceSystem);
@@ -70,6 +70,8 @@ declare module "windows.devices.geolocation" {
   }
 
   export class Geocoordinate {
+    positionSource: PositionSource;
+    satelliteData: GeocoordinateSatelliteData;
     accuracy: Number;
     altitude: Number;
     altitudeAccuracy: Number;
@@ -78,8 +80,6 @@ declare module "windows.devices.geolocation" {
     longitude: Number;
     speed: Number;
     timestamp: Date;
-    positionSource: PositionSource;
-    satelliteData: GeocoordinateSatelliteData;
     point: Geopoint;
     constructor();
 
@@ -115,11 +115,11 @@ declare module "windows.devices.geolocation" {
   }
 
   export class Geolocator {
+    desiredAccuracyInMeters: Number;
     reportInterval: Number;
     movementThreshold: Number;
     desiredAccuracy: PositionAccuracy;
     locationStatus: PositionStatus;
-    desiredAccuracyInMeters: Number;
     constructor();
 
     getGeopositionAsync(callback: (error: Error, result: Geoposition) => void): void ;
