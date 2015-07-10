@@ -56,7 +56,7 @@ describe('location', function() {
 
       describe('and response contains valid coordinates', function() {
 
-        before(function() {
+        beforeEach(function() {
           helpers.stub_request('get', null, { statusCode: 200 }, location_response);
         });
 
