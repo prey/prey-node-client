@@ -1,12 +1,12 @@
-var needle    = require('needle'),
-    sinon     = require('sinon'),
-    path      = require('path'),
+var needle = require('needle'),
+    sinon = require('sinon'),
+    path = require('path'),
     root_path = path.resolve(__dirname, '..'),
-    lib_path  = path.join(root_path, 'lib'),
-    spawn     = require('child_process').spawn,
+    lib_path = path.join(root_path, 'lib'),
+    spawn = require('child_process').spawn,
     Emitter = require('events').EventEmitter,
-    providers = require(path.join(lib_path, 'agent','providers'));
-    helpers   = {};
+    providers = require(path.join(lib_path, 'agent','providers')), 
+    helpers = {};
 
 var prey_bin  = path.join(root_path, 'bin', 'prey');
 
@@ -61,19 +61,16 @@ helpers.fake_spawn_child = function() {
 
 */
 
+// TODO @lemavri DRY stub creation
+
 helpers.stub_request = function(type, err, resp, body){
 
   var cb,
       stub = sinon.stub(needle, type, function() {
-
-    for (var i = 0; i < arguments.length; i++) {
-      if (typeof arguments[i] == 'function')
-        cb = arguments[i];
-    }
-
-    cb(err, resp, body);
-    stub.restore();
-  });
+        cb = helpers.callback_from_args(arguments);
+        cb(err, resp, body);
+        stub.restore();
+      });
 
   return stub;
 
@@ -81,18 +78,26 @@ helpers.stub_request = function(type, err, resp, body){
 
 helpers.stub_provider = function(name, err, return_value) {
   var cb,
-    stub = sinon.stub(providers, 'get', function() {
-
-      for (var i = 0, len = arguments.length; i < len; i++) {
-        if (typeof arguments[i] === 'function') {
-          cb = arguments[i]
-        }
-      }
-
-      cb(err, return_value);
-    });
+      stub = sinon.stub(providers, 'get', function() {
+        cb = helpers.callback_from_args(arguments);
+        cb(err, return_value);
+      });
 
   return stub;
 };
+
+helpers.callback_from_args = function(args) {
+  var cb;
+
+  for (var i = 0, len = args.length; i < len; i++) {
+    if (typeof args[i] === 'function') {
+      cb = args[i]
+    }
+  }
+
+  return cb;
+}
+
+helpers.lib_path = lib_path;
 
 module.exports = helpers;
