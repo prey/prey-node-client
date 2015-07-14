@@ -2,7 +2,9 @@ var helpers = require('./../../../../helpers'),
     should = require('should'),
     sinon = require('sinon'),
     join = require('path').join,
-    lib_path = helpers.lib_path,
+    lib_path = helpers.lib_path(),
+    system = require(join(lib_path, 'common')).system,
+    child_process = require('child_process'),
     geo_path = join(lib_path, 'agent', 'providers', 'geo'),
     geo = {
       darwin: require(join(geo_path, 'darwin')),
@@ -127,7 +129,6 @@ describe('native geoloc', function () {
 
   describe('darwin', function() {
 
-    var succesful_location = 
     describe('when successful', function() {
 
       beforeEach(function() {
@@ -142,6 +143,54 @@ describe('native geoloc', function () {
         geo.darwin.get_location(function(err, res) {
           should(err).be.null;
           res.should.be.equal(successful_location.darwin);
+          done();
+        });
+      });
+
+    });
+
+    describe('when Mac OS X version lower than 10.6', function() {
+
+      var os_version_stub;
+
+      before(function() {
+        os_version_stub = sinon.stub(system, 'get_os_version', function(cb) {
+          cb(null, "10.5");
+        });
+      });
+
+      after(function() {
+        os_version_stub.restore();
+      });
+
+      it('returns error with "CoreLocation not supported" message', function(done) {
+        geo.darwin.get_location(function(err, res) {
+          err.should.exist;
+          err.message.should.equal("CoreLocation not suppored in OSX 10.5");
+          done();
+        });
+      });
+
+    });
+
+    describe('when whereami output does not have latitue', function() {
+
+      var exec_stub;
+
+      before(function() {
+        exec_stub = sinon.stub(child_process, 'exec', function(bin, cb) {
+          return cb(null, {});
+        });
+      });
+
+      after(function() {
+        exec_stub.restore();
+      });
+
+      it('returns error', function(done) {
+        geo.darwin.get_location(function(err, res) {
+          err.should.exist;
+          err.message.should.equal("Unable to get geoposition data using CoreLocation.");
           done();
         });
       });

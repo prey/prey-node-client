@@ -98,6 +98,4 @@ helpers.callback_from_args = function(args) {
   return cb;
 }
 
-helpers.lib_path = lib_path;
-
 module.exports = helpers;
