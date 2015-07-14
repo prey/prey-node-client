@@ -1,15 +1,31 @@
 var helpers = require('./../../../../helpers'),
-  should = require('should'),
-  google_strat = helpers.load('providers/geo/strategies').google,
-  location_response = require('../fixtures/google_location_response');
+    should = require('should'),
+    google_strat = helpers.load('providers/geo/strategies').google,
+    location_response = require('../fixtures/google_location_response');
 
 describe('location', function() {
 
-  describe('when access points return error', function() {
+  describe('when access points list return error', function() {
 
-  });
+    var provider_stub = {},
+        error = new Error('No access points found.');
 
-  describe('when access points list is empty', function() {
+    before(function() {
+      provider_stub = helpers.stub_provider('access_points_list', error, null);
+    });
+
+    after(function() {
+      provider_stub.restore();
+    });
+
+    it('returns error', function(done) {
+      google_strat(function(err, res) {
+        should(res).not.exist;
+        err.should.exist;
+        err.should.equal(error);
+        done();
+      });
+    });
 
   });
 

@@ -1,6 +1,6 @@
 var helpers = require('./../../../../helpers'),
-  should = require('should'),
-  geoip_strat = helpers.load('providers/geo/strategies').geoip;
+    should = require('should'),
+    geoip_strat = helpers.load('providers/geo/strategies').geoip;
 
 describe('geoip', function () {
 
