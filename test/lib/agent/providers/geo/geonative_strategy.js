@@ -151,11 +151,12 @@ describe('native geoloc', function () {
 
     describe('when Mac OS X version lower than 10.6', function() {
 
-      var os_version_stub;
+      var os_version_stub,
+          os_version = "10.5.0";
 
       before(function() {
         os_version_stub = sinon.stub(system, 'get_os_version', function(cb) {
-          cb(null, "10.5");
+          cb(null, os_version);
         });
       });
 
@@ -166,7 +167,7 @@ describe('native geoloc', function () {
       it('returns error with "CoreLocation not supported" message', function(done) {
         geo.darwin.get_location(function(err, res) {
           err.should.exist;
-          err.message.should.equal("CoreLocation not suppored in OSX 10.5");
+          err.message.should.equal("CoreLocation not suppored in OSX " + os_version);
           done();
         });
       });
@@ -175,16 +176,22 @@ describe('native geoloc', function () {
 
     describe('when whereami output does not have latitue', function() {
 
-      var exec_stub;
+      var exec_stub,
+          os_version_stub; // needed when running specs on OS other than Mac OS X
 
       before(function() {
         exec_stub = sinon.stub(child_process, 'exec', function(bin, cb) {
           return cb(null, {});
         });
+
+        os_version_stub = sinon.stub(system, 'get_os_version', function(cb) {
+          cb(null, "10.10.0");
+        });
       });
 
       after(function() {
         exec_stub.restore();
+        os_version_stub.restore();
       });
 
       it('returns error', function(done) {
