@@ -4,17 +4,18 @@ var helpers = require('./../../../../helpers'),
     join = require('path').join,
     lib_path = helpers.lib_path,
     geo_path = join(lib_path, 'agent', 'providers', 'geo'),
-    geo_darwin = require(join(geo_path, 'darwin')),
-    geo_linux = require(join(geo_path, 'linux')),
-    geo_win = require(join(geo_path, 'win32')),
-    geonative_strat = helpers.load('providers/geo/strategies').geonative;
+    geo = {
+      darwin: require(join(geo_path, 'darwin')),
+      linux: require(join(geo_path, 'linux')),
+      win: require(join(geo_path, 'win32')),
+    },
+    geonative_strat = helpers.load('providers/geo/strategies').native;
 
 describe('native geoloc', function () {
 
   var stub_get_location = function (platform, err, return_value) {
-    console.log(geo_darwin);
     var cb,
-        stub = sinon.stub("geo_" + platform, 'get_location', function() {
+        stub = sinon.stub(geo[platform], 'get_location', function() {
           cb = helpers.callback_from_args(arguments);
           cb(err, return_value);
         });
@@ -51,7 +52,7 @@ describe('native geoloc', function () {
     describe('on successful location', function() {
 
       before(function() {
-        stub = stub_get_location(platform, null, successful_location[platform]); 
+        stub = stub_get_location(platform, null, successful_location[platform]);
       });
 
       after(function() {
@@ -65,6 +66,7 @@ describe('native geoloc', function () {
           res.lat.should.exist;
           res.lng.should.exist;
           res.method.should.equal('geonative');
+          done();
         });
       });
 
@@ -83,11 +85,15 @@ describe('native geoloc', function () {
       });
 
       afterEach(function() {
-        stub = stub_get_location.restore();
+        stub.restore();
       });
 
       it('returns location', function(done) {
-
+        geo.win.get_location(function(err, res) {
+          should(err).be.null;
+          res.should.be.equal(successful_location.win);
+          done();
+        });
       });
 
     });
@@ -96,15 +102,51 @@ describe('native geoloc', function () {
 
   describe('linux', function () {
 
-    var succesful_location = 
-    describe('when successful', function() {});
+    describe('when successful', function() {
+
+      beforeEach(function() {
+        stub = stub_get_location('linux', null, successful_location.linux);
+      });
+
+      afterEach(function() {
+        stub.restore();
+      });
+
+      it('returns location', function(done) {
+        geo.linux.get_location(function(err, res) {
+          should(err).be.null;
+          res.should.be.equal(successful_location.linux);
+          done();
+        });
+      });
+
+
+    });
 
   });
 
   describe('darwin', function() {
 
     var succesful_location = 
-    describe('when successful', function() {});
+    describe('when successful', function() {
+
+      beforeEach(function() {
+        stub = stub_get_location('darwin', null, successful_location.darwin);
+      });
+
+      afterEach(function() {
+        stub.restore();
+      });
+
+      it('returns location', function(done) {
+        geo.darwin.get_location(function(err, res) {
+          should(err).be.null;
+          res.should.be.equal(successful_location.darwin);
+          done();
+        });
+      });
+
+    });
 
   });
 
