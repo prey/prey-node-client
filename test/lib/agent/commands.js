@@ -3,6 +3,7 @@ var helpers = require('./../../helpers'),
     sinon = require('sinon'),
     commands = helpers.load('commands'),
     reports = helpers.load('reports'),
+    storage   = helpers.load('utils/storage');
     hooks = helpers.load('hooks');
 
 describe('perform', function() {
@@ -13,7 +14,7 @@ describe('perform', function() {
         report_stub;
 
     beforeEach(function() {
-      // stub reports.get so it doesn't gather a report
+      // stub reports.get so it doesn't gather a report when triggering the command
       report_stub = sinon.stub(reports, 'get', function(report_name, options, callback) {
         return true;
       });
@@ -39,7 +40,19 @@ describe('perform', function() {
 
     });
 
-    it('persist the command', function() {});
+    it('persist the command', function(done) {
+
+      var stub = sinon.stub(storage, 'set', function(key, data, cb) {
+        key.should.equal("report-stolen");
+        data.should.eql(command);
+        stub.restore();
+        done();
+      });
+
+      commands.start_watching();
+      commands.perform(command);
+
+    });
 
   });
 
