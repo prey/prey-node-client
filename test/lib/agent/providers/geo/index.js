@@ -53,7 +53,7 @@ describe('geoloc fallback', function() {
     it('reaches geoip and return no location', function(done) {
       geo.get_location(function(err, res) {
         err.should.equal(err);
-        should(res).be.null;
+        should(res).not.exist;
         stubs.native.calledOnce.should.equal(true);
         stubs.google.calledOnce.should.equal(true);
         stubs.geoip.calledOnce.should.equal(true);
