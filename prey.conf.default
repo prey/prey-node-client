@@ -20,6 +20,9 @@ send_crash_reports = true
 # HTTP proxy server to try if a request fails (eg. http://my.proxy.com:3128)
 try_proxy = 
 
+# What log level should be used. Possible values: debug, info [default].
+log_level = info
+
 # These are temporary placeholders to persist the values when upgrading. Do not remove.
 api_key = 
 device_key = 
