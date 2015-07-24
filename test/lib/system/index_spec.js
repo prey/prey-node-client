@@ -4,17 +4,17 @@ var join        = require('path').join,
     helpers     = require('../../helpers'),
     is_windows  = process.platform === 'win32';
 
-describe('system functions', function(){
+describe('system functions', function() {
 
   var index = require(helpers.lib_path('system'));
 
-  describe('get_logged_user()', function(){
+  describe('get_logged_user()', function() {
 
-    describe('when there is no logged user', function(){
+    describe('when there is no logged user', function() {
       it('returns an error');
     })
 
-    describe('when there IS a logged user', function(){
+    describe('when there IS a logged user', function() {
 
       it('returns his username', function(done){
         index.get_logged_user(function(err, user){
@@ -37,15 +37,15 @@ describe('system functions', function(){
 
   });
 
-  describe('get_running_user()', function(){
+  describe('get_running_user()', function() {
 
-    it('gets a value for the running user', function(){
+    it('gets a value for the running user', function() {
       var user = index.get_running_user();
       user.length.should.be.above(0);
     });
   });
 
-  describe('get_os_info() -> get_os_version + get_os_name', function(){
+  describe('get_os_info() -> get_os_version + get_os_name', function() {
 
     it('returns properties [name, version, arch]', function(done){
       index.get_os_info(function(err, response){
@@ -56,7 +56,7 @@ describe('system functions', function(){
     });
   });
 
-  describe('get_os_name', function(){
+  describe('get_os_name', function() {
 
     it('does not fail', function(done) {
       index.get_os_name(function(err, name) {
@@ -68,10 +68,10 @@ describe('system functions', function(){
 
   });
 
-  describe('get_os_version', function(){
+  describe('get_os_version', function() {
 
     it('does not fail', function(done) {
-      index.get_os_name(function(err, version) {
+      index.get_os_version(function(err, version) {
         should.not.exist(err);
         version.should.be.a.String;
         done();
@@ -80,7 +80,7 @@ describe('system functions', function(){
 
   });
 
-  describe('process_running()', function(){
+  describe('process_running()', function() {
 
     it('should proxy to os function', function(done){
       var process_name = is_windows ? 'node.exe' : 'node';
@@ -91,7 +91,17 @@ describe('system functions', function(){
     });
   });
 
-  describe('auto_connect()', function(){
+  describe('auto_connect()', function() {
+    // implementation pending
+  });
+
+  describe('scan_networks()', function() {
+
+    it('runs', function(done) {
+      if (!is_windows) return done(); // windows only
+
+      index.scan_networks(done);
+    });
 
   });
 
