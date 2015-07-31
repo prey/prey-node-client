@@ -1,5 +1,21 @@
 # Change Log
 
+## [v1.4.1](https://github.com/prey/prey-node-client/tree/v1.4.1) (2015-07-31)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.4.0...v1.4.1)
+
+**Fixed bugs:**
+
+- Can't get device location [\#99](https://github.com/prey/prey-node-client/issues/99)
+
+**Closed issues:**
+
+- Screen Lock doesn't work on Arch Linux [\#146](https://github.com/prey/prey-node-client/issues/146)
+- Win8+ Nearby AP list not refreshing in tablets [\#145](https://github.com/prey/prey-node-client/issues/145)
+
+**Merged pull requests:**
+
+- Fix WiFi networks refresh in windows [\#148](https://github.com/prey/prey-node-client/pull/148) ([lemavri](https://github.com/lemavri))
+
 ## [v1.4.0](https://github.com/prey/prey-node-client/tree/v1.4.0) (2015-07-20)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.3.10...v1.4.0)
 
