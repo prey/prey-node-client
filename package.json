@@ -68,15 +68,16 @@
     "wmic": "0.0.7"
   },
   "devDependencies": {
-    "node.extend": "",
     "mkdirp": "",
     "mocha": "",
+    "mock-spawn": "^0.2.6",
     "node-fs": "0.1.5",
-    "should": "",
-    "sinon": "",
+    "node.extend": "",
     "sandboxed-module": "",
     "send": "",
-    "shelljs": ""
+    "shelljs": "",
+    "should": "",
+    "sinon": ""
   },
   "main": "./lib/common",
   "bin": {
