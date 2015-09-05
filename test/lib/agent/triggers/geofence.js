@@ -4,7 +4,7 @@ var helpers = require('./../../../helpers'),
     should = require('should'),
     sinon = require('sinon'),
     geo = helpers.load('providers/geo'),
-    geofence = helpers.load('triggers/geofence');
+    geofence = helpers.load('triggers/geofencing');
 
 var get_location_stub,
     defaults = {
@@ -31,7 +31,7 @@ describe('geofence trigger', function() {
 
     describe('on start', function() {
 
-      describe('when options does not include origin', function() {
+      describe('when options does not include locations', function() {
 
         var opts = {};
 
@@ -41,15 +41,15 @@ describe('geofence trigger', function() {
 
       });
 
-      describe('when options include origin', function() {
+      describe('when options include locations', function() {
 
-        var opts = {origin: {lat: -33.4421755, lng: -70.6271705}};
-
+        var opts = {locations: [{id: "geo1", center: '-33.4421755, -70.6271705'}]};
 
         it('sets fence with default radius and interval', function(done) {
 
           geofence.start(opts, function(err, gf) {
-            gf.origin.should.eql(opts.origin);
+            var origin = gf.origin.lat + ", " + gf.origin.lng;
+            origin.should.eql(opts.locations[0].center);
             gf.radius.should.equal(1000);
             gf.interval.should.equal(60000);
             done();
@@ -63,7 +63,7 @@ describe('geofence trigger', function() {
 
         describe('and was previously outside the fence', function() {
 
-          var opts = {origin: {lat: -33.4421755, lng: -70.6271705}};
+          var opts = {locations: [{id: "geo1", center: '-33.4421755, -70.6271705'}]};
 
           it('triggers "entered_geofence" event', function(done) {
 
@@ -71,8 +71,11 @@ describe('geofence trigger', function() {
 
             geofence.start(opts, function(err, gf) {
 
+              var loc_opts = opts.locations[0],
+                  opts_coord = loc_opts.center.replace(' ', '').split(',').map(function (loc) { return parseFloat(loc) });
+
               gf.on('entered_geofence', function(coords) {
-                coords.should.eql({lat: opts.origin.lat, lng: opts.origin.lng, accuracy: defaults.accuracy, method: defaults.method});
+                coords.should.eql({lat: opts_coord[0], lng: opts_coord[1], accuracy: defaults.accuracy, method: defaults.method});
                 done();
               });
 
@@ -101,7 +104,7 @@ describe('geofence trigger', function() {
 
         describe('and was previously inside the fence', function() {
 
-          var opts = {origin: {lat: -33.4421755, lng: -70.6271705}};
+          var opts = {locations: [{id: "geo1", center: '-33.4421755, -70.6271705'}]};
 
           it('triggers "left_geofence" event', function(done) {
 
