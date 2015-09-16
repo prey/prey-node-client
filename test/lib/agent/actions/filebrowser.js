@@ -36,7 +36,7 @@ describe('on start', function () {
     // Matches http://sub.domain.com:1234
     var urlRegex = /http:\/\/[a-zA-Z0-9]*.[a-zA-Z0-9]*.[a-zA-Z0-9]*:[0-9]{4,5}/;
 
-    tunnelUrl.should.not.be.empty();
+    tunnelUrl.should.not.be.empty;
     tunnelUrl.should.match(urlRegex);
   });
 });
