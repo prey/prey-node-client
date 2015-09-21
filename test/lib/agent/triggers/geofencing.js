@@ -63,35 +63,76 @@ describe('geofence trigger', function() {
 
         describe('and was previously outside the fence', function() {
 
-          var opts = {locations: [{id: "geo1", center: '-33.4421755, -70.6271705'}]};
+          describe ('and type is "in"', function() {
 
-          it('triggers "entered_geofence" event', function(done) {
+            var opts = {locations: [{id: "geo1", center: '-33.4421755, -70.6271705', type: 'in'}]};
 
-            var clock = sinon.useFakeTimers();
+            it('triggers "entered_geofence" event', function(done) {
 
-            geofence.start(opts, function(err, gf) {
+              var clock = sinon.useFakeTimers();
 
-              var loc_opts = opts.locations[0],
-                  opts_coord = loc_opts.center.replace(' ', '').split(',').map(function (loc) { return parseFloat(loc) });
+              geofence.start(opts, function(err, gf) {
 
-              gf.on('entered_geofence', function(coords) {
-                coords.should.eql({lat: opts_coord[0], lng: opts_coord[1], accuracy: defaults.accuracy, method: defaults.method});
-                done();
+                var loc_opts = opts.locations[0],
+                    opts_coord = loc_opts.center.replace(' ', '').split(',').map(function (loc) { return parseFloat(loc) });
+
+                gf.on('entered_geofence', function(coords) {
+                  coords.should.eql({lat: opts_coord[0], lng: opts_coord[1], accuracy: defaults.accuracy, method: defaults.method});
+                  done();
+                });
+
+                // fast-forward 1 minute to set last_coords
+                stub_get_location({lat: -30, lng: -68});
+                clock.tick(60000);
+                get_location_stub.restore();
+                stub_get_location({lat: -33.4421755, lng: -70.6271705});
+                clock.tick(60000);
+                clock.restore();
+                get_location_stub.restore();
+
+                process.nextTick(function() {
+                  should.fail('"entered_geofence" event not triggered');
+                  done();
+                });
               });
 
-              // fast-forward 1 minute to set last_coords
-              stub_get_location({lat: -30, lng: -68});
-              clock.tick(60000);
-              get_location_stub.restore();
-              stub_get_location({lat: -33.4421755, lng: -70.6271705});
-              clock.tick(60000);
-              clock.restore();
-              get_location_stub.restore();
+            });
 
-              process.nextTick(function() {
-                should.fail('"entered_geofence" event not triggered');
-                done();
+          });
+
+          describe ('and type is "out"', function() {
+
+            var opts = {locations: [{id: "geo1", center: '-33.4421755, -70.6271705', type: 'out'}]};
+
+            it('does not trigger "entered_geofence" event', function(done) {
+
+              var clock = sinon.useFakeTimers();
+
+              geofence.start(opts, function(err, gf) {
+
+                var loc_opts = opts.locations[0],
+                    opts_coord = loc_opts.center.replace(' ', '').split(',').map(function (loc) { return parseFloat(loc) });
+
+                gf.on('entered_geofence', function(coords) {
+                  should.fail('"entered_geofence" event triggered with "out" type');
+                  done();
+                });
+
+                // fast-forward 1 minute to set last_coords
+                stub_get_location({lat: -30, lng: -68});
+                clock.tick(60000);
+                get_location_stub.restore();
+                stub_get_location({lat: -33.4421755, lng: -70.6271705});
+                clock.tick(60000);
+                clock.restore();
+                get_location_stub.restore();
+
+                process.nextTick(function() {
+                  // As expected, no event was triggered
+                  done();
+                });
               });
+
             });
 
           });
@@ -104,35 +145,74 @@ describe('geofence trigger', function() {
 
         describe('and was previously inside the fence', function() {
 
-          var opts = {locations: [{id: "geo1", center: '-33.4421755, -70.6271705'}]};
+          describe('and type is "in"', function() {
 
-          it('triggers "left_geofence" event', function(done) {
+            var opts = {locations: [{id: "geo1", center: '-33.4421755, -70.6271705', type: 'in'}]};
 
-            var clock = sinon.useFakeTimers();
+            it('does not trigger "left_geofence" event', function(done) {
 
-            geofence.start(opts, function(err, gf) {
+              var clock = sinon.useFakeTimers();
 
-              var outside_location = {lat: -30, lng: -68}
+              geofence.start(opts, function(err, gf) {
 
-              gf.on('left_geofence', function(coords) {
-                coords.should.eql({lat: outside_location.lat, lng: outside_location.lng, accuracy: defaults.accuracy, method: defaults.method});
-                done();
-              });
+                var outside_location = {lat: -30, lng: -68}
 
-              // fast-forward 1 minute to set last_coords
-              stub_get_location({lat: -33.4421755, lng: -70.6271705});
-              clock.tick(60000);
-              get_location_stub.restore();
-              stub_get_location(outside_location);
-              clock.tick(60000);
-              clock.restore();
-              get_location_stub.restore();
+                gf.on('left_geofence', function(coords) {
+                  should.fail('"left_geofence" event triggered with "in" type');
+                  done();
+                });
 
-              process.nextTick(function() {
-                should.fail('"left_geofence" event not triggered');
-                done();
+                // fast-forward 1 minute to set last_coords
+                stub_get_location({lat: -33.4421755, lng: -70.6271705});
+                clock.tick(60000);
+                get_location_stub.restore();
+                stub_get_location(outside_location);
+                clock.tick(60000);
+                clock.restore();
+                get_location_stub.restore();
+
+                process.nextTick(function() {
+                  // As expected, does not trigger event
+                  done();
+                });
               });
             });
+
+          });
+
+          describe('and type is "out"', function() {
+
+            var opts = {locations: [{id: "geo1", center: '-33.4421755, -70.6271705', type: 'out'}]};
+
+            it('triggers "left_geofence" event', function(done) {
+
+              var clock = sinon.useFakeTimers();
+
+              geofence.start(opts, function(err, gf) {
+
+                var outside_location = {lat: -30, lng: -68}
+
+                gf.on('left_geofence', function(coords) {
+                  coords.should.eql({lat: outside_location.lat, lng: outside_location.lng, accuracy: defaults.accuracy, method: defaults.method});
+                  done();
+                });
+
+                // fast-forward 1 minute to set last_coords
+                stub_get_location({lat: -33.4421755, lng: -70.6271705});
+                clock.tick(60000);
+                get_location_stub.restore();
+                stub_get_location(outside_location);
+                clock.tick(60000);
+                clock.restore();
+                get_location_stub.restore();
+
+                process.nextTick(function() {
+                  should.fail('"left_geofence" event not triggered');
+                  done();
+                });
+              });
+            });
+
           });
 
         });
