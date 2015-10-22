@@ -73,7 +73,7 @@ describe('storage', function() {
     describe('with valid path', function() {
 
       before(function() {
-        storage.init(tmpdir + '/ok.db');
+        storage.init(tmpdir() + '/ok.db');
       })
 
       after(storage.close);
