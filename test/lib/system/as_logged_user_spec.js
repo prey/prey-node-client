@@ -6,7 +6,7 @@ var fs          = require('fs'),
     system      = require(helpers.lib_path('system')),
     is_windows  = process.platform === 'win32';
 
-if (!is_windows && process.getuid() != 0) {
+if (!is_windows && process.getuid() !== 0) {
   console.log('\nThe impersonation tests should be run as root.');
   console.log('Please run `sudo mocha test/lib/system/as_logged_user_spec.js.` to run them separately.');
   return;
@@ -189,7 +189,7 @@ describe('as_logged_user()', function(){
           cb(err, out);
         })
 
-        child.on('exit', function() {
+        child.on('exit', function(a, b) {
           cb(err, out);
         })
       });
@@ -237,7 +237,7 @@ describe('as_logged_user()', function(){
             // let's try to run something that doesn't nor will ever exist
             run('bugless_windows', [], function(err, out) {
               err.should.be.a.Error;
-              err.message.should.containEql('not found');
+              err.code.should.eql('ENOENT');
               done();
             })
           })
@@ -285,7 +285,7 @@ describe('as_logged_user()', function(){
               // but when running as user we get the right 'not found' error message
 
               // err.message.should.containEql('not found');
-              err.message.should.containEql('ENOENT');
+              err.code.should.eql('ENOENT');
               done();
             })
           })
