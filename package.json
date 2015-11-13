@@ -61,6 +61,7 @@
     "triggers": "^0.3.0",
     "tuna": "0.0.2",
     "underscore": "",
+    "walkdir": "0.0.10",
     "whenever": "0.0.3",
     "which": "",
     "wink": "0.0.1",

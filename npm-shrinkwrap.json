@@ -614,49 +614,49 @@
     },
     "satan": {
       "version": "0.4.3",
-      "from": "satan@0.4.3",
+      "from": "https://registry.npmjs.org/satan/-/satan-0.4.3.tgz",
       "resolved": "https://registry.npmjs.org/satan/-/satan-0.4.3.tgz",
       "dependencies": {
         "launchd": {
           "version": "0.0.5",
-          "from": "launchd@0.0.5",
+          "from": "https://registry.npmjs.org/launchd/-/launchd-0.0.5.tgz",
           "resolved": "https://registry.npmjs.org/launchd/-/launchd-0.0.5.tgz"
         },
         "linus": {
           "version": "0.0.3",
-          "from": "linus@0.0.3",
+          "from": "https://registry.npmjs.org/linus/-/linus-0.0.3.tgz",
           "resolved": "https://registry.npmjs.org/linus/-/linus-0.0.3.tgz",
           "dependencies": {
             "getos": {
               "version": "1.0.1",
-              "from": "getos@>=1.0.1 <2.0.0",
+              "from": "https://registry.npmjs.org/getos/-/getos-1.0.1.tgz",
               "resolved": "https://registry.npmjs.org/getos/-/getos-1.0.1.tgz"
             },
             "memorize": {
               "version": "0.0.3",
-              "from": "memorize@0.0.3",
+              "from": "https://registry.npmjs.org/memorize/-/memorize-0.0.3.tgz",
               "resolved": "https://registry.npmjs.org/memorize/-/memorize-0.0.3.tgz"
             },
             "whenever": {
               "version": "0.0.2",
-              "from": "whenever@0.0.2",
+              "from": "https://registry.npmjs.org/whenever/-/whenever-0.0.2.tgz",
               "resolved": "https://registry.npmjs.org/whenever/-/whenever-0.0.2.tgz"
             }
           }
         },
         "minstache": {
           "version": "1.2.0",
-          "from": "minstache@>=1.2.0 <2.0.0",
+          "from": "https://registry.npmjs.org/minstache/-/minstache-1.2.0.tgz",
           "resolved": "https://registry.npmjs.org/minstache/-/minstache-1.2.0.tgz",
           "dependencies": {
             "commander": {
               "version": "1.0.4",
-              "from": "commander@1.0.4",
+              "from": "https://registry.npmjs.org/commander/-/commander-1.0.4.tgz",
               "resolved": "https://registry.npmjs.org/commander/-/commander-1.0.4.tgz",
               "dependencies": {
                 "keypress": {
                   "version": "0.1.0",
-                  "from": "keypress@>=0.1.0 <0.2.0",
+                  "from": "https://registry.npmjs.org/keypress/-/keypress-0.1.0.tgz",
                   "resolved": "https://registry.npmjs.org/keypress/-/keypress-0.1.0.tgz"
                 }
               }
@@ -665,7 +665,7 @@
         },
         "whenever": {
           "version": "0.0.4",
-          "from": "whenever@0.0.4",
+          "from": "https://registry.npmjs.org/whenever/-/whenever-0.0.4.tgz",
           "resolved": "https://registry.npmjs.org/whenever/-/whenever-0.0.4.tgz"
         }
       }
@@ -787,6 +787,11 @@
       "version": "1.8.2",
       "from": "https://registry.npmjs.org/underscore/-/underscore-1.8.2.tgz",
       "resolved": "https://registry.npmjs.org/underscore/-/underscore-1.8.2.tgz"
+    },
+    "walkdir": {
+      "version": "0.0.10",
+      "from": "walkdir@*",
+      "resolved": "https://registry.npmjs.org/walkdir/-/walkdir-0.0.10.tgz"
     },
     "whenever": {
       "version": "0.0.3",
