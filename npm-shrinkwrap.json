@@ -788,11 +788,6 @@
       "from": "https://registry.npmjs.org/underscore/-/underscore-1.8.2.tgz",
       "resolved": "https://registry.npmjs.org/underscore/-/underscore-1.8.2.tgz"
     },
-    "walkdir": {
-      "version": "0.0.10",
-      "from": "walkdir@*",
-      "resolved": "https://registry.npmjs.org/walkdir/-/walkdir-0.0.10.tgz"
-    },
     "whenever": {
       "version": "0.0.3",
       "from": "https://registry.npmjs.org/whenever/-/whenever-0.0.3.tgz",
