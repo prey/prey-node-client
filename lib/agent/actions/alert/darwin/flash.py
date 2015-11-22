@@ -308,6 +308,7 @@ def main():
 
   # set window properties and display
   window.setBackgroundColor_(background_color)
+  window.setCollectionBehavior_(NSWindowCollectionBehaviorCanJoinAllSpaces)
   window.setTitle_(app_name)
   window.setContentView_(view)
   window.orderFrontRegardless()
