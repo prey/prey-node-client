@@ -19,7 +19,6 @@ from AppKit import *
 script_path = sys.path[0]
 
 app_name = 'Alert'
-default_font = 'Helvetica Light'
 
 # pale blue
 blue = NSColor.colorWithCalibratedRed_green_blue_alpha_(33/255.0, 104/255.0, 198/255.0, 1.0)
@@ -171,7 +170,7 @@ class AlertView(NSView):
     field.setSelectable_(True)
     # field.setEnabled_(True)
 
-    font = NSFont.fontWithName_size_(default_font, 14)
+    font = NSFont.systemFontOfSize_(14)
     field.setFont_(font)
 
     field.setTarget_(self)
@@ -197,7 +196,7 @@ class AlertView(NSView):
     self.button = button
     self.addSubview_(button)
 
-  def add_label(self, text, font_name, font_size, x, y, width, height):
+  def add_label(self, text, font_size, x, y, width, height):
     label = NSTextField.alloc().initWithFrame_(NSMakeRect(x, y, width, height))
     label.setStringValue_(text)
     label.setBezeled_(False)
@@ -206,7 +205,7 @@ class AlertView(NSView):
     label.setSelectable_(False)
     label.setDrawsBackground_(False)
 
-    font = NSFont.fontWithName_size_(font_name, font_size)
+    font = NSFont.systemFontOfSize_(font_size)
     label.setFont_(font)
     label.setTextColor_(NSColor.whiteColor())
 
@@ -218,7 +217,7 @@ class AlertView(NSView):
 
     height = 30
     top = self.bounds().size.height - 50
-    self.add_label(title, default_font, 24, self.getLeftOffset(width) + 3, top, width, height)
+    self.add_label(title, 24, self.getLeftOffset(width) + 3, top, width, height)
 
     # width + 10 is to add padding
     height = self.bounds().size.height - 180
@@ -233,7 +232,7 @@ class AlertView(NSView):
     textview.setEditable_(False)
     textview.setBackgroundColor_(background_color)
 
-    font = NSFont.fontWithName_size_(default_font, 15)
+    font = NSFont.systemFontOfSize_(15)
     textview.setFont_(font)
     textview.setTextColor_(NSColor.whiteColor())
 
@@ -293,7 +292,7 @@ def main():
     rect,
     NSBorderlessWindowMask,
     NSBackingStoreBuffered,
-    True, 
+    True,
     screen)
 
   # render view and draw message and button
