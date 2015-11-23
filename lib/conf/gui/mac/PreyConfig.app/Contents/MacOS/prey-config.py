@@ -31,7 +31,7 @@ HEIGHT = 400
 WIDTH  = 500
 CENTER = WIDTH/2
 
-EMAIL_REGEX = "^.+\\@(\\[?)[a-zA-Z0-9\\-\\.]+\\.([a-zA-Z]{2,4}|[0-9]{1,3})(\\]?)$"
+EMAIL_REGEX = "^[A-Z0-9._%+-]{1,64}@(?:[A-Z0-9-]{1,63}\.){1,125}[A-Z]{2,63}$"
 
 TABS = ['welcome', 'new_user', 'existing_user', 'success']
 
@@ -343,9 +343,8 @@ class ConfigDelegate(NSObject):
     return self.inputs[input_id].stringValue().encode('utf-8')
 
   def valid_email_regex(self, string):
-    if len(string) > 7:
-      if re.match(EMAIL_REGEX, string) != None:
-        return True
+    if re.match(EMAIL_REGEX, string, re.IGNORECASE) != None:
+      return True
     return False
 
   def validate_email(self, email):

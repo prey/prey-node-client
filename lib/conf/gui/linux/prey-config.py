@@ -52,7 +52,7 @@ PACKAGE_INFO = json.loads(PACKAGE_JSON.read())
 VERSION = PACKAGE_INFO['version']
 
 PAGES = ['control_panel_options', 'new_user', 'existing_user', 'existing_device']
-EMAIL_REGEX = "^.+\\@(\\[?)[a-zA-Z0-9\\-\\.]+\\.([a-zA-Z]{2,4}|[0-9]{1,3})(\\]?)$"
+EMAIL_REGEX = "^[A-Z0-9._%+-]{1,64}@(?:[A-Z0-9-]{1,63}\.){1,125}[A-Z]{2,63}$"
 
 class PreyConfigurator(object):
 
@@ -71,9 +71,8 @@ class PreyConfigurator(object):
   ################################################
 
   def valid_email_regex(self, string):
-    if len(string) > 7:
-      if re.match(EMAIL_REGEX, string) != None:
-        return True
+    if re.match(EMAIL_REGEX, string, re.IGNORECASE) != None:
+      return True
     return False
 
   def validate_email(self, email_field):
