@@ -1,5 +1,43 @@
 # Change Log
 
+## [v1.5.0](https://github.com/prey/prey-node-client/tree/v1.5.0) (2015-12-11)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.4.2...v1.5.0)
+
+**Fixed bugs:**
+
+- Can't install on OS X El Capitan 10.11 [\#147](https://github.com/prey/prey-node-client/issues/147)
+
+**Closed issues:**
+
+- Add support for the latest openSUSE [\#170](https://github.com/prey/prey-node-client/issues/170)
+- "Unable to map port: Could not locate gateway on time." [\#168](https://github.com/prey/prey-node-client/issues/168)
+
+**Merged pull requests:**
+
+- Fix issue when verbose mode is disabled [\#177](https://github.com/prey/prey-node-client/pull/177) ([lemavri](https://github.com/lemavri))
+- Fix new lock blocking capabilities [\#176](https://github.com/prey/prey-node-client/pull/176) ([lemavri](https://github.com/lemavri))
+- Refresh lock binaries cert signature. [\#172](https://github.com/prey/prey-node-client/pull/172) ([lemavri](https://github.com/lemavri))
+- Change long-polling strategy to 5secs interval strategy on 5+ instant responses [\#166](https://github.com/prey/prey-node-client/pull/166) ([lemavri](https://github.com/lemavri))
+- Fix long polling with proxy [\#165](https://github.com/prey/prey-node-client/pull/165) ([lemavri](https://github.com/lemavri))
+- Add new-prey-lock binary. [\#164](https://github.com/prey/prey-node-client/pull/164) ([lemavri](https://github.com/lemavri))
+- Fix reconnect delay for notify [\#162](https://github.com/prey/prey-node-client/pull/162) ([lemavri](https://github.com/lemavri))
+- Add logic to spawn different lock.exe based on windows version [\#151](https://github.com/prey/prey-node-client/pull/151) ([lemavri](https://github.com/lemavri))
+
+## [v1.4.2](https://github.com/prey/prey-node-client/tree/v1.4.2) (2015-10-01)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.4.1...v1.4.2)
+
+**Fixed bugs:**
+
+- Devices don't report location; can't find access points even though Wi-Fi is on [\#95](https://github.com/prey/prey-node-client/issues/95)
+- Win 8.1 X64 - 'Get Location' fails on installed desktop, identified as laptop [\#86](https://github.com/prey/prey-node-client/issues/86)
+- Windows XP SP3 32 bit  - Not able to finish installation configuration as Existing user [\#85](https://github.com/prey/prey-node-client/issues/85)
+- No Prey package for Slitaz distribution of Linux [\#66](https://github.com/prey/prey-node-client/issues/66)
+
+**Closed issues:**
+
+- iOS Failed jobs [\#157](https://github.com/prey/prey-node-client/issues/157)
+- Invalid os:  does not exist [\#155](https://github.com/prey/prey-node-client/issues/155)
+
 ## [v1.4.1](https://github.com/prey/prey-node-client/tree/v1.4.1) (2015-07-31)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.4.0...v1.4.1)
 
@@ -63,6 +101,7 @@
 
 - escape emojis when encodeUriCOmponent on geo [\#117](https://github.com/prey/prey-node-client/issues/117)
 - \[Win 10\]-Message-If a user writes a message in a column, whole message will not be shown in client [\#112](https://github.com/prey/prey-node-client/issues/112)
+- Please add distro  to known OS's [\#94](https://github.com/prey/prey-node-client/issues/94)
 
 **Closed issues:**
 
@@ -207,6 +246,7 @@
 - Beta: Reports Sorted Oldest to Newest [\#33](https://github.com/prey/prey-node-client/issues/33)
 - Beta: Only Able to See Reports if Device is Missing... [\#32](https://github.com/prey/prey-node-client/issues/32)
 - Install fails on linux [\#31](https://github.com/prey/prey-node-client/issues/31)
+- Mac iSight Light Activates When Not Missing [\#30](https://github.com/prey/prey-node-client/issues/30)
 - { \[Error: spawn ENOENT\] code: 'ENOENT', errno: 'ENOENT', syscall: 'spawn' } [\#28](https://github.com/prey/prey-node-client/issues/28)
 - Problem for finding the version of Prey in the windows registry [\#27](https://github.com/prey/prey-node-client/issues/27)
 - Default webcam camera [\#24](https://github.com/prey/prey-node-client/issues/24)
