@@ -1,5 +1,13 @@
 # Change Log
 
+## [Unreleased](https://github.com/prey/prey-node-client/tree/HEAD)
+
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.5.0...HEAD)
+
+**Fixed bugs:**
+
+- "Empty or outdated config file. Please run ‘config activate’ and retry" while upgrading on OS X El Capitan [\#161](https://github.com/prey/prey-node-client/issues/161)
+
 ## [v1.5.0](https://github.com/prey/prey-node-client/tree/v1.5.0) (2015-12-11)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.4.2...v1.5.0)
 
