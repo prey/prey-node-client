@@ -43,13 +43,11 @@ describe('geofence trigger', function() {
 
       describe('when options include locations', function() {
 
-        var opts = {locations: [{id: "geo1", center: '-33.4421755, -70.6271705'}]};
+        var opts = {locations: [{"id":27,"name":"La Cerca","lat":"-33.4219525","lng":"-70.6116441","zones":null,"color":"#0081C2","expires":null,"deleted_at":null,"account_id":5429766,"direction":"both","state":null,"created_at":"2015-12-24T16:15:42.000Z","updated_at":"2015-12-24T16:15:42.000Z"}]};
 
         it('sets fence with default radius and interval', function(done) {
 
           geofence.start(opts, function(err, gf) {
-            var origin = gf.origin.lat + ", " + gf.origin.lng;
-            origin.should.eql(opts.locations[0].center);
             gf.radius.should.equal(1000);
             gf.interval.should.equal(60000);
             done();
@@ -65,7 +63,7 @@ describe('geofence trigger', function() {
 
           describe ('and type is "in"', function() {
 
-            var opts = {locations: [{id: "geo1", center: '-33.4421755, -70.6271705', type: 'in'}]};
+            var opts = {locations: [{id: 28, name: "La Cerca", lat: '-33.4421755', lng: '-70.6271705', direction: 'in'}]};
 
             it('triggers "entered_geofence" event', function(done) {
 
@@ -73,11 +71,8 @@ describe('geofence trigger', function() {
 
               geofence.start(opts, function(err, gf) {
 
-                var loc_opts = opts.locations[0],
-                    opts_coord = loc_opts.center.replace(' ', '').split(',').map(function (loc) { return parseFloat(loc) });
-
                 gf.on('entered_geofence', function(coords) {
-                  coords.should.eql({lat: opts_coord[0], lng: opts_coord[1], accuracy: defaults.accuracy, method: defaults.method});
+                  coords.should.eql({lat: parseFloat(opts.locations[0].lat), lng: parseFloat(opts.locations[0].lng), accuracy: defaults.accuracy, method: defaults.method});
                   done();
                 });
 
@@ -102,16 +97,13 @@ describe('geofence trigger', function() {
 
           describe ('and type is "out"', function() {
 
-            var opts = {locations: [{id: "geo1", center: '-33.4421755, -70.6271705', type: 'out'}]};
+            var opts = {locations: [{id: 29, name: "La Cerca", lat: '-33.4421755', lng: '-70.6271705', direction: 'out'}]};
 
             it('does not trigger "entered_geofence" event', function(done) {
 
               var clock = sinon.useFakeTimers();
 
               geofence.start(opts, function(err, gf) {
-
-                var loc_opts = opts.locations[0],
-                    opts_coord = loc_opts.center.replace(' ', '').split(',').map(function (loc) { return parseFloat(loc) });
 
                 gf.on('entered_geofence', function(coords) {
                   should.fail('"entered_geofence" event triggered with "out" type');
@@ -147,7 +139,7 @@ describe('geofence trigger', function() {
 
           describe('and type is "in"', function() {
 
-            var opts = {locations: [{id: "geo1", center: '-33.4421755, -70.6271705', type: 'in'}]};
+            var opts = {locations: [{id: 29, name: "La Cerca", lat: '-33.4421755', lng: '-70.6271705', direction: 'in'}]};
 
             it('does not trigger "left_geofence" event', function(done) {
 
@@ -182,7 +174,7 @@ describe('geofence trigger', function() {
 
           describe('and type is "out"', function() {
 
-            var opts = {locations: [{id: "geo1", center: '-33.4421755, -70.6271705', type: 'out'}]};
+            var opts = {locations: [{id: 29, name: "La Cerca", lat: '-33.4421755', lng: '-70.6271705', direction: 'out'}]};
 
             it('triggers "left_geofence" event', function(done) {
 
