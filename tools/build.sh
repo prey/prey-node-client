@@ -64,7 +64,7 @@ check_node_version() {
 
 sign_bin() {
   bin=$1
-  codesign -f --deep -s "Developer ID Application: Fork Ltd" $bin
+  codesign -f --deep -s "Developer ID Application: Prey, Inc." $bin
 }
 
 check_code_signatures() {
