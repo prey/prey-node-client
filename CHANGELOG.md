@@ -1,4 +1,12 @@
 # Change Log
+## [v.1.5.1](https://github.com/prey/prey-node-client/tree/v1.5.1) (2016-04-05)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.5.0...v1.5.1)
+
+**Fixed bugs:**
+
+- Improved laptop/desktop detection.
+- Wi-Fi signal strength on reports is now available for non-English Windows versions.
+- Fix for eternal "Reloading config..." bug on new OS X installations.
 
 ## [v1.5.0](https://github.com/prey/prey-node-client/tree/v1.5.0) (2015-12-22)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.4.2...v1.5.0)
