@@ -121,6 +121,6 @@ By Tomás Pollak, with the help of contributors.
 
 ## Legal
 
-Copyright © 2011-2014, Fork Ltd.
+Copyright © 2011-2016, Fork Ltd.
 Released under the GPLv3 license.
 For full details see the `license.txt` file included in this distribution.
