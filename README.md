@@ -111,7 +111,12 @@ Just make sure to add tests for your feature or bugfix, so we don't break it in 
 
 ## Authors
 
-By Tomás Pollak, with the help of contributors.
+By Tomás Pollak, with the help of the following contributors:
+
+ - Carlos Yaconi
+ - Javier Acuña
+ - Mauricio Schneider
+ - Rodrigo Aliste
 
 ## Credits
 
@@ -121,6 +126,6 @@ By Tomás Pollak, with the help of contributors.
 
 ## Legal
 
-Copyright © 2011-2014, Fork Ltd.
+Copyright © 2011-2016 Prey, Inc.
 Released under the GPLv3 license.
 For full details see the `license.txt` file included in this distribution.
