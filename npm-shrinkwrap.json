@@ -1,6 +1,6 @@
 {
   "name": "prey",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "dependencies": {
     "async": {
       "version": "0.9.0",
@@ -712,7 +712,7 @@
             },
             "destroy": {
               "version": "1.0.3",
-              "from": "https://registry.npmjs.org/destroy/-/destroy-1.0.3.tgz",
+              "from": "destroy@1.0.3",
               "resolved": "https://registry.npmjs.org/destroy/-/destroy-1.0.3.tgz"
             },
             "etag": {
@@ -734,7 +734,7 @@
             },
             "mime": {
               "version": "1.3.4",
-              "from": "https://registry.npmjs.org/mime/-/mime-1.3.4.tgz",
+              "from": "mime@1.3.4",
               "resolved": "https://registry.npmjs.org/mime/-/mime-1.3.4.tgz"
             },
             "ms": {
@@ -756,7 +756,7 @@
             },
             "range-parser": {
               "version": "1.0.2",
-              "from": "https://registry.npmjs.org/range-parser/-/range-parser-1.0.2.tgz",
+              "from": "range-parser@>=1.0.2 <1.1.0",
               "resolved": "https://registry.npmjs.org/range-parser/-/range-parser-1.0.2.tgz"
             }
           }
@@ -797,6 +797,18 @@
       "version": "1.0.9",
       "from": "https://registry.npmjs.org/which/-/which-1.0.9.tgz",
       "resolved": "https://registry.npmjs.org/which/-/which-1.0.9.tgz"
+    },
+    "winattr": {
+      "version": "1.1.0",
+      "from": "winattr@>=1.1.0 <2.0.0",
+      "resolved": "https://registry.npmjs.org/winattr/-/winattr-1.1.0.tgz",
+      "dependencies": {
+        "fswin": {
+          "version": "2.16.501",
+          "from": "fswin@>=2.15.915 <3.0.0",
+          "resolved": "https://registry.npmjs.org/fswin/-/fswin-2.16.501.tgz"
+        }
+      }
     },
     "wink": {
       "version": "0.0.1",
