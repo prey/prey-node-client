@@ -189,7 +189,7 @@ describe('as_logged_user()', function(){
           cb(err, out);
         })
 
-        child.on('exit', function(a, b) {
+        child.on('exit', function() {
           cb(err, out);
         })
       });
