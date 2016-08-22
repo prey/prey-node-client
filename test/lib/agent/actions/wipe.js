@@ -21,7 +21,7 @@ var outlook_versions = {
   }
 };
 
-var regispath = {
+var registryPath = {
   outlook_version: join('HKEY_CLASSES_ROOT', 'Outlook.Application', 'CurVEr'),
   profileRegistry: join('HKEY_CURRENT_USER', 'Software', 'Microsoft'),
   firefox:         join('HKEY_CLASSES_ROOT', 'FirefoxHTML', 'DefaultIcon'),
@@ -34,11 +34,11 @@ describe('in Windows OS', function() {
       outlook_version;
 
   describe('on registry commands', function() {
-    wipe_win.registry.query.toString().should.containEql('reg query');
-    wipe_win.registry.add.toString().should.containEql('reg add');
-    wipe_win.registry.delete.toString().should.containEql('reg delete');
-    wipe_win.registry.killtask.toString().should.containEql('taskkill');
-    wipe_win.registry.createProfile.toString().should.containEql('-CreateProfile default');
+    wipe_win.registryManager.query.toString().should.containEql('reg query');
+    wipe_win.registryManager.add.toString().should.containEql('reg add');
+    wipe_win.registryManager.delete.toString().should.containEql('reg delete');
+    wipe_win.registryManager.killtask.toString().should.containEql('taskkill');
+    wipe_win.registryManager.createProfile.toString().should.containEql('-CreateProfile default');
   })
 
   describe('when running in old Outlook version', function() {
@@ -57,9 +57,9 @@ describe('in Windows OS', function() {
 
   function get_outlook_path(version) {
     if (parseInt(version) >= 15) {
-      return join(regispath.profileRegistry, 'Office', version + '.0', 'Outlook', 'Profiles');
+      return join(registryPath.profileRegistry, 'Office', version + '.0', 'Outlook', 'Profiles');
     } else {
-      return join(regispath.profileRegistry, 'Windows NT', 'CurrentVersion', 'Windows Messaging Subsystem', 'Profiles');
+      return join(registryPath.profileRegistry, 'Windows NT', 'CurrentVersion', 'Windows Messaging Subsystem', 'Profiles');
     }
   }
 
