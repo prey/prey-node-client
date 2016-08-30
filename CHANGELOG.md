@@ -1,4 +1,20 @@
 # Change Log
+## [v1.6.1](https://github.com/prey/prey-node-client/tree/v1.6.1) (2016-06-21)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.5.1...v1.6.1)
+
+**Fixed bugs:**
+
+- OS version detection error on user-agent settings.
+- Windows Lock action using a second screen and on soft shutdown.
+- Linux installation error "dpkg: error processing package prey (--configure)" [\#201](https://github.com/prey/prey-node-client/issues/201)
+
+**Merged pull requests:**
+
+- File Retrieval for desktop [\#184] (https://github.com/prey/prey-node-client/pull/184) ([javo](https://github.com/javo))
+- File Retrival permissions fix [\#205] (https://github.com/prey/prey-node-client/pull/205) ([javo](https://github.com/javo))
+- Correct OS version on user-agent [\#210](https://github.com/prey/prey-node-client/pull/210) ([cyaconi](https://github.com/cyaconi))
+- Add new-prey-lock binary. [\#216](https://github.com/prey/prey-node-client/pull/216)
+
 ## [v.1.5.1](https://github.com/prey/prey-node-client/tree/v1.5.1) (2016-04-05)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.5.0...v1.5.1)
 
