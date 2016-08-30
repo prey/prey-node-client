@@ -1,4 +1,17 @@
 # Change Log
+## [v1.6.2](https://github.com/prey/prey-node-client/tree/v1.6.2) (2016-08-30)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.6.1...v1.6.2)
+
+**Fixed bugs:**
+
+- Prey installation with cirilic characters error [\#58](https://github.com/prey/prey-node-client/issues/58)
+- "Empty or outdated config file. Please run ‘config activate’ and retry" [\#161](https://github.com/prey/prey-node-client/issues/161)
+
+**Merged pull requests:**
+
+- Remove mails and browsers profiles data using wipe action on Windows [\#221] (https://github.com/prey/prey-node-client/pull/221) ([javo](https://github.com/javo))
+- Commands storage handle using sqlite [\#226] (https://github.com/prey/prey-node-client/pull/226) ([javo](https://github.com/javo))
+
 ## [v1.6.1](https://github.com/prey/prey-node-client/tree/v1.6.1) (2016-06-21)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.5.1...v1.6.1)
 
