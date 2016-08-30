@@ -4,7 +4,7 @@
 
 **Fixed bugs:**
 
-- Prey installation with cirilic characters error [\#58](https://github.com/prey/prey-node-client/issues/58)
+- Prey installation with cyrillic characters error [\#58](https://github.com/prey/prey-node-client/issues/58)
 - "Empty or outdated config file. Please run ‘config activate’ and retry" [\#161](https://github.com/prey/prey-node-client/issues/161)
 
 **Merged pull requests:**
