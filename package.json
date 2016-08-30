@@ -1,6 +1,6 @@
 {
   "name": "prey",
-  "version": "1.6.1",
+  "version": "1.6.2",
   "author": "Client Engineering <client-eng@preyhq.com>",
   "keywords": [
     "prey",
@@ -57,6 +57,7 @@
     "scrambler": "0.0.1",
     "semver": "^4.3.4",
     "serve-static": "^1.7.0",
+    "sqlite3": "",
     "sudoer": "^0.1.1",
     "triggers": "^0.3.0",
     "tuna": "0.0.2",
