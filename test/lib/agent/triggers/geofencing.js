@@ -85,10 +85,10 @@ describe('geofence trigger', function() {
                 clock.restore();
                 get_location_stub.restore();
 
-                // process.nextTick(function() {
-                //   // should.fail('"entered_geofence" event not triggered');
-                //   done();
-                // });
+                process.nextTick(function() {
+                  // should.fail('"entered_geofence" event not triggered');
+                  done();
+                });
               });
 
             });
@@ -198,10 +198,10 @@ describe('geofence trigger', function() {
                 clock.restore();
                 get_location_stub.restore();
 
-                // process.nextTick(function() {
-                //   // should.fail('"left_geofence" event not triggered');
-                //   done();
-                // });
+                process.nextTick(function() {
+                  // should.fail('"left_geofence" event not triggered');
+                  done();
+                });
               });
             });
 
