@@ -40,28 +40,28 @@ describe('geoloc fallback', function() {
     stubs = {};
   }
 
-  // describe('when all strategies fail', function() {
+  describe('when all strategies fail', function() {
 
-  //   before(function() {
-  //     setup_stubs([err_cb]);
-  //   });
+    before(function() {
+      setup_stubs([err_cb]);
+    });
 
-  //   after(function() {
-  //     restore_stubs();
-  //   });
+    after(function() {
+      restore_stubs();
+    });
 
-  //   it('reaches geoip and return no location', function(done) {
-  //     geo.get_location(function(err, res) {
-  //       err.should.equal(err);
-  //       should(res).not.exist;
-  //       stubs.native.calledOnce.should.equal(true);
-  //       stubs.google.calledOnce.should.equal(true);
-  //       stubs.geoip.calledOnce.should.equal(true);
-  //       done();
-  //     });
-  //   });
+    it('reaches geoip and return no location', function(done) {
+      geo.get_location(function(err, res) {
+        err.should.equal(err);
+        should(res).not.exist;
+        stubs.native.calledOnce.should.equal(true);
+        stubs.google.calledOnce.should.equal(true);
+        stubs.geoip.calledOnce.should.equal(true);
+        done();
+      });
+    });
 
-  // });
+  });
 
   describe('when running osx', function() {
 
