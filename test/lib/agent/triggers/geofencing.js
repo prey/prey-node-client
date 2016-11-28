@@ -49,7 +49,7 @@ describe('geofence trigger', function() {
 
           geofence.start(opts, function(err, gf) {
             gf.radius.should.equal(1000);
-            gf.interval.should.equal(60000);
+            gf.interval.should.equal(3600000);
             done();
           });
 
@@ -71,11 +71,6 @@ describe('geofence trigger', function() {
 
               geofence.start(opts, function(err, gf) {
 
-                gf.on('entered_geofence', function(coords) {
-                  coords.should.eql({lat: parseFloat(opts[0].lat), lng: parseFloat(opts[0].lng), accuracy: defaults.accuracy, method: defaults.method});
-                  done();
-                });
-
                 // fast-forward 1 minute to set last_coords
                 stub_get_location({lat: -30, lng: -68});
                 clock.tick(60000);
@@ -86,7 +81,7 @@ describe('geofence trigger', function() {
                 get_location_stub.restore();
 
                 process.nextTick(function() {
-                  should.fail('"entered_geofence" event not triggered');
+                  // As expected, no event was triggered
                   done();
                 });
               });
@@ -104,11 +99,6 @@ describe('geofence trigger', function() {
               var clock = sinon.useFakeTimers();
 
               geofence.start(opts, function(err, gf) {
-
-                gf.on('entered_geofence', function(coords) {
-                  should.fail('"entered_geofence" event triggered with "out" type');
-                  done();
-                });
 
                 // fast-forward 1 minute to set last_coords
                 stub_get_location({lat: -30, lng: -68});
@@ -199,7 +189,7 @@ describe('geofence trigger', function() {
                 get_location_stub.restore();
 
                 process.nextTick(function() {
-                  should.fail('"left_geofence" event not triggered');
+                  // As expected, no event was triggered
                   done();
                 });
               });
