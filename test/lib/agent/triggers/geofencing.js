@@ -49,7 +49,7 @@ describe('geofence trigger', function() {
 
           geofence.start(opts, function(err, gf) {
             gf.radius.should.equal(1000);
-            gf.interval.should.equal(60000);
+            gf.interval.should.equal(3600000);
             done();
           });
 
