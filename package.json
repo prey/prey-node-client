@@ -1,6 +1,6 @@
 {
   "name": "prey",
-  "version": "1.6.4",
+  "version": "1.6.3",
   "author": "Client Engineering <client-eng@preyhq.com>",
   "keywords": [
     "prey",
@@ -78,7 +78,7 @@
     "sandboxed-module": "",
     "send": "",
     "shelljs": "",
-    "should": "8.3.1",
+    "should": "",
     "sinon": "",
     "winattr": "^1.1.0"
   },
