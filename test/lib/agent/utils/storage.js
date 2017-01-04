@@ -135,7 +135,7 @@ describe('storage', function() {
 
           storage.get('foo', function(err, res) {
             err.should.be.a.Error;
-            err.message.should.containEql('Not commands or files');
+            err.message.should.containEql('Not an allowed type of key');
             done();
           })
 

@@ -1,4 +1,17 @@
 # Change Log
+## [v1.6.4](https://github.com/prey/prey-node-client/tree/v1.6.4) (2016-11-29)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.6.3...v1.6.4)
+
+**Fixed bugs:**
+
+- Prey verify keys error on mac and linux [\#219](https://github.com/prey/prey-node-client/issues/219)
+
+**Merged pull requests:**
+
+- Geofencing on node client using sqlite storage [\#244](https://github.com/prey/prey-node-client/pull/244) ([javo](https://github.com/javo))
+- Synchronous user-agent obtaining for keys verification [\#250](https://github.com/prey/prey-node-client/pull/250) ([javo](https://github.com/javo)) 
+- Node releases url changed from s3.amazon to storage.googleapis [\#251](https://github.com/prey/prey-node-client/pull/251) ([javo](https://github.com/javo))
+
 ## [v1.6.2](https://github.com/prey/prey-node-client/tree/v1.6.2) (2016-08-30)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.6.1...v1.6.2)
 
