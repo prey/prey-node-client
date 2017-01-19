@@ -55,11 +55,13 @@ describe('storage', function() {
       before(function(done) {
         file = tmpdir() + '/load.db';
         fs.createWriteStream(file);
-        storage.init('commands', file, function() {
-          storage.set('start-lock', 'xxx', function(){
-            fs.chmod(file, '0000', done);
-          })
-        });
+        storage.close('commands', function() {
+          storage.init('commands', file, function() {
+            storage.set('start-lock', 'xxx', function() {
+              fs.chmod(file, '0000', done);
+            })
+          });
+        })
       })
 
       after(function() {
@@ -80,7 +82,9 @@ describe('storage', function() {
 
       before(function(done) {
         file = tmpdir() + '/foo.db';
-        storage.init('commands', file, done);
+        storage.close('commands', function() {
+          storage.init('commands', file, done);
+        })
       })
 
       after(function() {
