@@ -110,7 +110,7 @@ describe('package.get_latest', function() {
       spy.restore();
       cut.restore();
       err.message.should.eql('Stopping here.');
-      spy.args[0][0].should.eql("https://storage.googleapis.com/prey_public/prey-releases/node-client/latest.txt");
+      spy.args[0][0].should.eql("https://downloads.preyproject.com/prey-client-releases/node-client/latest.txt");
       spy.calledOnce.should.be.true;
       done();
     });
@@ -161,7 +161,7 @@ describe('package.get_latest', function() {
 
     it('requests the package', function (done) {
       var file_name = get_file_name(new_version),
-          url       = 'https://storage.googleapis.com/prey_public/prey-releases/node-client/' + new_version + '/' + file_name,
+          url       = 'https://downloads.preyproject.com/prey-client-releases/node-client/' + new_version + '/' + file_name,
           outfile   = join(tmpdir, file_name);
 
       var getter    = sinon.stub(needle, 'get', function(requested_url, opts, cb) {
