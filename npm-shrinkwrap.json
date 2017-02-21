@@ -536,9 +536,9 @@
       "resolved": "https://registry.npmjs.org/random-ua/-/random-ua-0.0.6.tgz"
     },
     "remover": {
-      "version": "0.0.2",
-      "from": "https://registry.npmjs.org/remover/-/remover-0.0.2.tgz",
-      "resolved": "https://registry.npmjs.org/remover/-/remover-0.0.2.tgz"
+      "version": "0.1.2",
+      "from": "git://github.com/javo/remover.git#29a0254e3e07358f151efcecaa94e7451be2e05c",
+      "resolved": "git://github.com/javo/remover.git#29a0254e3e07358f151efcecaa94e7451be2e05c"
     },
     "reply": {
       "version": "0.3.1",
