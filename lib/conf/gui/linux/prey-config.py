@@ -52,7 +52,7 @@ PACKAGE_INFO = json.loads(PACKAGE_JSON.read())
 VERSION = PACKAGE_INFO['version']
 
 PAGES = ['control_panel_options', 'new_user', 'existing_user', 'existing_device']
-EMAIL_REGEX = "^.+\\@(\\[?)[a-zA-Z0-9\\-\\.]+\\.([a-zA-Z]{2,4}|[0-9]{1,3})(\\]?)$"
+EMAIL_REGEX = "^.+\\@(\\[?)[a-zA-Z0-9\\-\\.]+\\.([a-zA-Z]{2,7}|[0-9]{1,3})(\\]?)$"
 
 class PreyConfigurator(object):
 

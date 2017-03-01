@@ -31,7 +31,7 @@ HEIGHT = 400
 WIDTH  = 500
 CENTER = WIDTH/2
 
-EMAIL_REGEX = "^.+\\@(\\[?)[a-zA-Z0-9\\-\\.]+\\.([a-zA-Z]{2,4}|[0-9]{1,3})(\\]?)$"
+EMAIL_REGEX = "^.+\\@(\\[?)[a-zA-Z0-9\\-\\.]+\\.([a-zA-Z]{2,7}|[0-9]{1,3})(\\]?)$"
 
 TABS = ['welcome', 'new_user', 'existing_user', 'success']
 
