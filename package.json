@@ -79,7 +79,7 @@
     "send": "",
     "shelljs": "",
     "should": "8.3.1",
-    "sinon": "",
+    "sinon": "1.17.2",
     "winattr": "^1.1.0"
   },
   "main": "./lib/common",
