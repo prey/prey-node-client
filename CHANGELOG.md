@@ -1,4 +1,42 @@
 # Change Log
+## [v1.6.7](https://github.com/prey/prey-node-client/tree/v1.6.6) (2016-11-29)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.6.5...v1.6.6)
+
+**Merged pull requests:**
+- Client upgrade retry limit [\#281](https://github.com/prey/prey-node-client/pull/281) ([javo](https://github.com/javo))
+- Wipe action execute on Windows without user logged in [\#282](https://github.com/prey/prey-node-client/pull/282) ([javo](https://github.com/javo))
+- Sqlite storage commands improvements [\#287](https://github.com/prey/prey-node-client/pull/287) ([javo](https://github.com/javo))
+- Include log rotate options [\#288](https://github.com/prey/prey-node-client/pull/288) ([javo](https://github.com/javo))
+- Multiple actions job-id incorporation [\#289](https://github.com/prey/prey-node-client/pull/289) ([javo](https://github.com/javo))
+- Un-bypasseable alarm [\#292](https://github.com/prey/prey-node-client/pull/292) ([javo](https://github.com/javo))
+
+## [v1.6.6](https://github.com/prey/prey-node-client/tree/v1.6.6) (2016-11-29)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.6.5...v1.6.6)
+
+**Merged pull requests:**
+- Delete files local files from Google Drive and Dropbox [\#258](https://github.com/prey/prey-node-client/pull/258) ([javo](https://github.com/javo))
+- Fix 502 status code client freeze [\#262](https://github.com/prey/prey-node-client/pull/262) ([javo](https://github.com/javo))
+- Copyright update to 2017 [\#263](https://github.com/prey/prey-node-client/pull/263) ([javo](https://github.com/javo))
+- Storage tables initialisation fix [\#266](https://github.com/prey/prey-node-client/pull/266) ([javo](https://github.com/javo))
+- Request timeout added for 406 status code on overdue accounts [\#269](https://github.com/prey/prey-node-client/pull/269) ([javo](https://github.com/javo))
+- Secure wipe integration [\#270](https://github.com/prey/prey-node-client/pull/270) ([javo](https://github.com/javo))
+- New host for prey node client download [\#272](https://github.com/prey/prey-node-client/pull/272) ([javo](https://github.com/javo))
+- Resume files fix in Fileretrieval when the connection is lost [\#273](https://github.com/prey/prey-node-client/pull/273) ([javo](https://github.com/javo))
+- New Lock bin fixing sticky keys and taskbar bypasses [\#274](https://github.com/prey/prey-node-client/pull/274) ([javo](https://github.com/javo))
+- Signup mail characters change [\#275](https://github.com/prey/prey-node-client/pull/275) ([javo](https://github.com/javo))
+- Linux wipe child process fix [\#276](https://github.com/prey/prey-node-client/pull/276) ([javo](https://github.com/javo))
+
+## [v1.6.5](https://github.com/prey/prey-node-client/tree/v1.6.5) (2016-11-29)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.6.4...v1.6.5)
+
+**Fixed bugs:**
+- Error creating account on the install suit and numeric api key problem.
+
+**Merged pull requests:**
+- Fix apikey undefined case [\#255](https://github.com/prey/prey-node-client/pull/255) ([javo](https://github.com/javo))
+- Numeric api key case [\#257](https://github.com/prey/prey-node-client/pull/257) ([javo](https://github.com/javo)) 
+
+
 ## [v1.6.4](https://github.com/prey/prey-node-client/tree/v1.6.4) (2016-11-29)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.6.3...v1.6.4)
 
