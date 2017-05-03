@@ -522,8 +522,8 @@
     },
     "petit": {
       "version": "0.0.5",
-      "from": "git://github.com/javo/petit.git#5cdae52626a0999722f32efe66b0976b7126111e",
-      "resolved": "git://github.com/javo/petit.git#5cdae52626a0999722f32efe66b0976b7126111e"
+      "from": "git://github.com/javo/petit.git#417e3b59d8460c58f5a2e1f18ce14b042b7c0842",
+      "resolved": "git://github.com/javo/petit.git#417e3b59d8460c58f5a2e1f18ce14b042b7c0842"
     },
     "qs": {
       "version": "2.3.3",
