@@ -264,9 +264,9 @@
       "resolved": "https://registry.npmjs.org/graceful-fs/-/graceful-fs-3.0.5.tgz"
     },
     "linus": {
-      "version": "0.0.4",
-      "from": "https://registry.npmjs.org/linus/-/linus-0.0.4.tgz",
-      "resolved": "https://registry.npmjs.org/linus/-/linus-0.0.4.tgz",
+      "version": "0.0.5",
+      "from": "git://github.com/javo/linus.git#ebf4e2ba2e84364acb190c33a548591b9bfc666c",
+      "resolved": "git://github.com/javo/linus.git#ebf4e2ba2e84364acb190c33a548591b9bfc666c",
       "dependencies": {
         "getos": {
           "version": "1.0.1",
