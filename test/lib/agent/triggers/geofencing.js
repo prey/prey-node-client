@@ -1,6 +1,7 @@
 "use strict";
 
 var helpers = require('./../../../helpers'),
+    device_keys = require('./../../../../lib/agent/utils/keys-storage'),
     should = require('should'),
     sinon = require('sinon'),
     geo = helpers.load('providers/geo'),
@@ -25,6 +26,20 @@ function stub_get_location(location) {
   });
 }
 
+function save_fake_mac_address(done) {
+  device_keys.get_stored('mac', function(err, stored_mac) {
+    if (!stored_mac) {
+      device_keys.store('mac', '00:00:00:00:00:00', function(err) {
+        done();
+      })
+    } else {
+      device_keys.update('mac', stored_mac, '00:00:00:00:00:00', function(err) {
+        done();
+      })
+    }
+  })
+}
+
 describe('geofence trigger', function() {
 
   describe('with one geofence', function() {
@@ -47,10 +62,12 @@ describe('geofence trigger', function() {
 
         it('sets fence with default radius and interval', function(done) {
 
-          geofence.start(opts, function(err, gf) {
-            gf.radius.should.equal(1000);
-            gf.interval.should.equal(3600000);
-            done();
+          save_fake_mac_address(function() {
+            geofence.start(opts, function(err, gf) {
+              gf.radius.should.equal(1000);
+              gf.interval.should.equal(3600000);
+              done();
+            });
           });
 
         });
@@ -64,26 +81,30 @@ describe('geofence trigger', function() {
           describe ('and type is "in"', function() {
 
             var opts = [{id: 28, name: "La Cerca", lat: '-33.4421755', lng: '-70.6271705', direction: 'in'}];
-
+            
             it('triggers "entered_geofence" event', function(done) {
 
               var clock = sinon.useFakeTimers();
 
-              geofence.start(opts, function(err, gf) {
+              save_fake_mac_address(function() {
+                geofence.start(opts, function(err, gf) {
+                
+                  // fast-forward 1 minute to set last_coords
+                  stub_get_location({lat: -30, lng: -68});
+                  clock.tick(60000);
+                  get_location_stub.restore();
+                  stub_get_location({lat: -33.4421755, lng: -70.6271705});
+                  clock.tick(60000);
+                  clock.restore();
+                  get_location_stub.restore();
 
-                // fast-forward 1 minute to set last_coords
-                stub_get_location({lat: -30, lng: -68});
-                clock.tick(60000);
-                get_location_stub.restore();
-                stub_get_location({lat: -33.4421755, lng: -70.6271705});
-                clock.tick(60000);
-                clock.restore();
-                get_location_stub.restore();
+                  process.nextTick(function() {
+                    // As expected, no event was triggered
+                    done();
+                  });
 
-                process.nextTick(function() {
-                  // As expected, no event was triggered
-                  done();
                 });
+
               });
 
             });
@@ -98,21 +119,25 @@ describe('geofence trigger', function() {
 
               var clock = sinon.useFakeTimers();
 
-              geofence.start(opts, function(err, gf) {
-
+              save_fake_mac_address(function() {
+                geofence.start(opts, function(err, gf) {
+                
                 // fast-forward 1 minute to set last_coords
-                stub_get_location({lat: -30, lng: -68});
-                clock.tick(60000);
-                get_location_stub.restore();
-                stub_get_location({lat: -33.4421755, lng: -70.6271705});
-                clock.tick(60000);
-                clock.restore();
-                get_location_stub.restore();
+                  stub_get_location({lat: -30, lng: -68});
+                  clock.tick(60000);
+                  get_location_stub.restore();
+                  stub_get_location({lat: -33.4421755, lng: -70.6271705});
+                  clock.tick(60000);
+                  clock.restore();
+                  get_location_stub.restore();
 
-                process.nextTick(function() {
-                  // As expected, no event was triggered
-                  done();
+                  process.nextTick(function() {
+                    // As expected, no event was triggered
+                    done();
+                  });
+
                 });
+
               });
 
             });
@@ -135,27 +160,29 @@ describe('geofence trigger', function() {
 
               var clock = sinon.useFakeTimers();
 
-              geofence.start(opts, function(err, gf) {
+              save_fake_mac_address(function() {
+                geofence.start(opts, function(err, gf) {
 
-                var outside_location = {lat: -30, lng: -68}
+                  var outside_location = {lat: -30, lng: -68}
 
-                gf.on('left_geofence', function(coords) {
-                  should.fail('"left_geofence" event triggered with "in" type');
-                  done();
-                });
+                  gf.on('left_geofence', function(coords) {
+                    should.fail('"left_geofence" event triggered with "in" type');
+                    done();
+                  });
 
-                // fast-forward 1 minute to set last_coords
-                stub_get_location({lat: -33.4421755, lng: -70.6271705});
-                clock.tick(60000);
-                get_location_stub.restore();
-                stub_get_location(outside_location);
-                clock.tick(60000);
-                clock.restore();
-                get_location_stub.restore();
+                  // fast-forward 1 minute to set last_coords
+                  stub_get_location({lat: -33.4421755, lng: -70.6271705});
+                  clock.tick(60000);
+                  get_location_stub.restore();
+                  stub_get_location(outside_location);
+                  clock.tick(60000);
+                  clock.restore();
+                  get_location_stub.restore();
 
-                process.nextTick(function() {
-                  // As expected, does not trigger event
-                  done();
+                  process.nextTick(function() {
+                    // As expected, does not trigger event
+                    done();
+                  });
                 });
               });
             });
@@ -170,27 +197,29 @@ describe('geofence trigger', function() {
 
               var clock = sinon.useFakeTimers();
 
-              geofence.start(opts, function(err, gf) {
+              save_fake_mac_address(function() {
+                geofence.start(opts, function(err, gf) {
+                
+                  var outside_location = {lat: -30, lng: -68}
 
-                var outside_location = {lat: -30, lng: -68}
+                  gf.on('left_geofence', function(coords) {
+                    coords.should.eql({lat: outside_location.lat, lng: outside_location.lng, accuracy: defaults.accuracy, method: defaults.method});
+                    done();
+                  });
 
-                gf.on('left_geofence', function(coords) {
-                  coords.should.eql({lat: outside_location.lat, lng: outside_location.lng, accuracy: defaults.accuracy, method: defaults.method});
-                  done();
-                });
+                  // fast-forward 1 minute to set last_coords
+                  stub_get_location({lat: -33.4421755, lng: -70.6271705});
+                  clock.tick(60000);
+                  get_location_stub.restore();
+                  stub_get_location(outside_location);
+                  clock.tick(60000);
+                  clock.restore();
+                  get_location_stub.restore();
 
-                // fast-forward 1 minute to set last_coords
-                stub_get_location({lat: -33.4421755, lng: -70.6271705});
-                clock.tick(60000);
-                get_location_stub.restore();
-                stub_get_location(outside_location);
-                clock.tick(60000);
-                clock.restore();
-                get_location_stub.restore();
-
-                process.nextTick(function() {
-                  // As expected, no event was triggered
-                  done();
+                  process.nextTick(function() {
+                    // As expected, no event was triggered
+                    done();
+                  });
                 });
               });
             });
