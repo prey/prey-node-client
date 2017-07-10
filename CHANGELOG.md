@@ -1,6 +1,24 @@
 # Change Log
-## [v1.6.7](https://github.com/prey/prey-node-client/tree/v1.6.6) (2016-11-29)
-[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.6.5...v1.6.6)
+
+## [v1.6.9](https://github.com/prey/prey-node-client/tree/v1.6.9) (2017-07-10)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.6.8...v1.6.9)
+
+**Fixed bugs:**
+
+- openSUSE invalid OS error message [\#249](https://github.com/prey/prey-node-client/issues/249)
+
+**Merged pull requests:**
+
+- Geofencing mac address check [\#303](https://github.com/prey/prey-node-client/pull/303) ([javo](https://github.com/javo))
+- OneDrive local files wipe [\#304](https://github.com/prey/prey-node-client/pull/304) ([javo](https://github.com/javo)) 
+- Alarm volume raise fix [\#305](https://github.com/prey/prey-node-client/pull/305) ([javo](https://github.com/javo))
+- Force networks re-scan fix [\#306](https://github.com/prey/prey-node-client/pull/306) ([javo](https://github.com/javo))
+- Location fix for cyrillic alphabet [\#307](https://github.com/prey/prey-node-client/pull/307) ([javo](https://github.com/javo))
+- Add opensuse distro case [\#309](https://github.com/prey/prey-node-client/pull/309) ([javo](https://github.com/javo))
+- Enable task bar after lock on windows [\#310](https://github.com/prey/prey-node-client/pull/310) ([javo](https://github.com/javo))
+
+## [v1.6.7](https://github.com/prey/prey-node-client/tree/v1.6.7) (2017-05-05)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.6.6...v1.6.7)
 
 **Merged pull requests:**
 - Client upgrade retry limit [\#281](https://github.com/prey/prey-node-client/pull/281) ([javo](https://github.com/javo))
@@ -14,6 +32,7 @@
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.6.5...v1.6.6)
 
 **Merged pull requests:**
+
 - Delete files local files from Google Drive and Dropbox [\#258](https://github.com/prey/prey-node-client/pull/258) ([javo](https://github.com/javo))
 - Fix 502 status code client freeze [\#262](https://github.com/prey/prey-node-client/pull/262) ([javo](https://github.com/javo))
 - Copyright update to 2017 [\#263](https://github.com/prey/prey-node-client/pull/263) ([javo](https://github.com/javo))
@@ -30,6 +49,7 @@
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.6.4...v1.6.5)
 
 **Fixed bugs:**
+
 - Error creating account on the install suit and numeric api key problem.
 
 **Merged pull requests:**
