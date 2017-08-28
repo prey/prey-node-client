@@ -1,6 +1,6 @@
 {
   "name": "prey",
-  "version": "1.6.9",
+  "version": "1.7.0",
   "dependencies": {
     "async": {
       "version": "0.9.0",
@@ -105,6 +105,11 @@
           "version": "0.0.5",
           "from": "https://registry.npmjs.org/uid-number/-/uid-number-0.0.5.tgz",
           "resolved": "https://registry.npmjs.org/uid-number/-/uid-number-0.0.5.tgz"
+        },
+        "graceful-fs": {
+          "version": "3.0.3",
+          "from": "https://registry.npmjs.org/graceful-fs/-/graceful-fs-3.0.3.tgz",
+          "resolved": "https://registry.npmjs.org/graceful-fs/-/graceful-fs-3.0.3.tgz"
         }
       }
     },
