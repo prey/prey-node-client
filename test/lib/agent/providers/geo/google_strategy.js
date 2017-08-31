@@ -1,7 +1,8 @@
 var helpers = require('./../../../../helpers'),
     should = require('should'),
     google_strat = helpers.load('providers/geo/strategies').google,
-    location_response = require('../fixtures/google_location_response');
+    location_response = require('../fixtures/google_location_response'),
+    link_response = require('../fixtures/location_link_response');
 
 describe('location', function() {
 
@@ -73,7 +74,8 @@ describe('location', function() {
       describe('and response contains valid coordinates', function() {
 
         beforeEach(function() {
-          helpers.stub_request('get', null, { statusCode: 200 }, location_response);
+          helpers.stub_request('get', null, { statusCode: 200 }, link_response);
+          helpers.stub_request('post', null, { statusCode: 200 }, location_response);
         });
 
         it('callsback coordinates', function(done) {
