@@ -72,7 +72,7 @@ module.exports = [
 { ssid: 'Test15',
   mac_address: '5c:33:5e:e9:04:08',
   signal_strength: '-77',
-  channel: '3,+1',
+  channel: '3',
   security: 'WPA2(PSK/AES,TKIP/TKIP)' },
 { ssid: 'Test16',
   mac_address: '0f:01:36:02:7e:f3',

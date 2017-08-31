@@ -51,7 +51,7 @@ describe('geoloc fallback', function() {
     });
 
     it('reaches geoip and return no location', function(done) {
-      geo.get_location(function(err, res) {
+      geo.fetch_location(function(err, res) {
         err.should.equal(err);
         should(res).not.exist;
         stubs.native.calledOnce.should.equal(true);
@@ -82,7 +82,7 @@ describe('geoloc fallback', function() {
     });
 
     it('fallbacks to google api', function(done) {
-      geo.get_location(function(err, res) {
+      geo.fetch_location(function(err, res) {
         geonative_spy.calledOnce.should.be.true;
         stubs.google.calledOnce.should.be.true;
         done();
