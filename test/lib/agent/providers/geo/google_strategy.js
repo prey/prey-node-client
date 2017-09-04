@@ -56,7 +56,7 @@ describe('location', function() {
       describe('and response is not valid', function() {
 
         before(function() {
-          helpers.stub_request('get', null, {}, 'Bad response');
+          helpers.stub_request('post', null, {}, 'Bad response');
         });
 
         it('returns error', function(done) {
@@ -73,26 +73,47 @@ describe('location', function() {
 
       describe('and response contains valid coordinates', function() {
 
-        beforeEach(function() {
-          helpers.stub_request('get', null, { statusCode: 200 }, link_response);
-          helpers.stub_request('post', null, { statusCode: 200 }, location_response);
-        });
+        describe('and the body is a string', function() {
 
-        it('callsback coordinates', function(done) {
+          beforeEach(function() {
+            helpers.stub_request('post', null, { statusCode: 200 }, location_response);
+          });
 
-          google_strat(function(err, data) {
-            should.not.exist(err);
-            data.should.have.keys(['lat', 'lng', 'accuracy', 'method']);
-            done();
+
+          it('callsback coordinates', function(done) {
+            google_strat(function(err, data) {
+              should.not.exist(err);
+              data.should.have.keys(['lat', 'lng', 'accuracy', 'method']);
+              done();
+            });
+
+          });
+
+          it('sets method to wifi', function(done) {
+
+            google_strat(function(err, data) {
+              data.method.should.equal('wifi');
+              done();
+            });
+
           });
 
         });
 
-        it('sets method to wifi', function(done) {
+        describe('and the body is an object', function() {
 
-          google_strat(function(err, data) {
-            data.method.should.equal('wifi');
-            done();
+          beforeEach(function() {
+            helpers.stub_request('post', null, { statusCode: 200 }, JSON.parse(location_response));
+          });
+
+
+          it('callsback coordinates', function(done) {
+            google_strat(function(err, data) {
+              should.not.exist(err);
+              data.should.have.keys(['lat', 'lng', 'accuracy', 'method']);
+              done();
+            });
+
           });
 
         });
@@ -102,8 +123,8 @@ describe('location', function() {
       describe('real endpoint', function() {
 
         it('works', function(done) {
-
-          this.timeout(3000); // response may take longer
+          provider_stub.restore();
+          this.timeout(5000); // response may take longer
 
           google_strat(function(err, data) {
             if (err) {
