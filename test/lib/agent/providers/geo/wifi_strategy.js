@@ -1,7 +1,7 @@
 var helpers = require('./../../../../helpers'),
     should = require('should'),
-    google_strat = helpers.load('providers/geo/strategies').google,
-    location_response = require('../fixtures/google_location_response'),
+    wifi_strat = helpers.load('providers/geo/strategies').wifi,
+    location_response = require('../fixtures/wifi_location_response'),
     link_response = require('../fixtures/location_link_response');
 
 describe('location', function() {
@@ -20,7 +20,7 @@ describe('location', function() {
     });
 
     it('returns error', function(done) {
-      google_strat(function(err, res) {
+      wifi_strat(function(err, res) {
         should(res).not.exist;
         err.should.exist;
         err.should.equal(error);
@@ -56,12 +56,12 @@ describe('location', function() {
       describe('and response is not valid', function() {
 
         before(function() {
-          helpers.stub_request('get', null, {}, 'Bad response');
+          helpers.stub_request('post', null, {}, 'Bad response');
         });
 
         it('returns error', function(done) {
 
-          google_strat(function(err, data) {
+          wifi_strat(function(err, data) {
             err.should.be.an.instanceof(Error);
             should.not.exist(data);
             done();
@@ -73,26 +73,47 @@ describe('location', function() {
 
       describe('and response contains valid coordinates', function() {
 
-        beforeEach(function() {
-          helpers.stub_request('get', null, { statusCode: 200 }, link_response);
-          helpers.stub_request('post', null, { statusCode: 200 }, location_response);
-        });
+        describe('and the body is a string', function() {
 
-        it('callsback coordinates', function(done) {
+          beforeEach(function() {
+            helpers.stub_request('post', null, { statusCode: 200 }, location_response);
+          });
 
-          google_strat(function(err, data) {
-            should.not.exist(err);
-            data.should.have.keys(['lat', 'lng', 'accuracy', 'method']);
-            done();
+
+          it('callsback coordinates', function(done) {
+            wifi_strat(function(err, data) {
+              should.not.exist(err);
+              data.should.have.keys(['lat', 'lng', 'accuracy', 'method']);
+              done();
+            });
+
+          });
+
+          it('sets method to wifi', function(done) {
+
+            wifi_strat(function(err, data) {
+              data.method.should.equal('wifi');
+              done();
+            });
+
           });
 
         });
 
-        it('sets method to wifi', function(done) {
+        describe('and the body is an object', function() {
 
-          google_strat(function(err, data) {
-            data.method.should.equal('wifi');
-            done();
+          beforeEach(function() {
+            helpers.stub_request('post', null, { statusCode: 200 }, JSON.parse(location_response));
+          });
+
+
+          it('callsback coordinates', function(done) {
+            wifi_strat(function(err, data) {
+              should.not.exist(err);
+              data.should.have.keys(['lat', 'lng', 'accuracy', 'method']);
+              done();
+            });
+
           });
 
         });
@@ -102,10 +123,10 @@ describe('location', function() {
       describe('real endpoint', function() {
 
         it('works', function(done) {
+          provider_stub.restore();
+          this.timeout(5000); // response may take longer
 
-          this.timeout(3000); // response may take longer
-
-          google_strat(function(err, data) {
+          wifi_strat(function(err, data) {
             if (err) {
               console.log('\n========================================');
               console.log(' Geolocation endpoint seems to be down!');
