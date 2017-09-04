@@ -16,7 +16,7 @@ describe('geoloc fallback', function() {
 
     if (cbs_len && cbs_len < 3) {
 
-      ['native', 'google', 'geoip'].forEach(function(strat, i) {
+      ['native', 'wifi', 'geoip'].forEach(function(strat, i) {
         if (cbs_len === 1) {
           stubs[strat] = sinon.stub(strats, strat, cbs[0]);
         } else if (cbs[i] && typeof cbs[i] === 'function') {
@@ -31,7 +31,7 @@ describe('geoloc fallback', function() {
   }
 
   function restore_stubs() {
-    ['native', 'google', 'geoip'].forEach(function(strat) {
+    ['native', 'wifi', 'geoip'].forEach(function(strat) {
       if (stubs[strat]) {
         stubs[strat].restore();
       }
@@ -55,7 +55,7 @@ describe('geoloc fallback', function() {
         err.should.equal(err);
         should(res).not.exist;
         stubs.native.calledOnce.should.equal(true);
-        stubs.google.calledOnce.should.equal(true);
+        stubs.wifi.calledOnce.should.equal(true);
         stubs.geoip.calledOnce.should.equal(true);
         done();
       });
@@ -81,10 +81,10 @@ describe('geoloc fallback', function() {
       restore_stubs();
     });
 
-    it('fallbacks to google api', function(done) {
+    it('fallbacks to wifi strategy', function(done) {
       geo.fetch_location(function(err, res) {
         geonative_spy.calledOnce.should.be.true;
-        stubs.google.calledOnce.should.be.true;
+        stubs.wifi.calledOnce.should.be.true;
         done();
       });
     });
