@@ -171,7 +171,9 @@ describe('package.get_latest', function() {
         done();
       });
 
-      get_latest('1.2.3', tmpdir, function(err) { /* noop */ });
+      fs.unlink(outfile, function() {
+        get_latest('1.2.3', tmpdir, function(err) { /* noop */ });
+      });
     });
 
     describe('and the download fails', function() {

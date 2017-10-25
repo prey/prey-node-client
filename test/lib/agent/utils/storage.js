@@ -64,9 +64,10 @@ describe('storage', function() {
         })
       })
 
-      after(function() {
-        storage.close('commands');
-        storage.erase(file);
+      after(function(done) {
+        storage.close('commands', function() {
+          storage.erase(file, done);
+        });
       })
 
       it('does not callback an error', function(done) {
@@ -87,9 +88,10 @@ describe('storage', function() {
         })
       })
 
-      after(function() {
-        storage.close('commands');
-        storage.erase(file);
+      after(function(done) {
+        storage.close('commands', function() {
+          storage.erase(file, done);
+        });
       })
 
       it('does not callback an error', function(done) {
@@ -107,8 +109,8 @@ describe('storage', function() {
 
     describe('when not initialized', function() {
 
-      before(function() {
-        storage.close('commands');
+      before(function(done) {
+        storage.close('commands', done);
       })
 
       it('callsback an error', function(done) {
@@ -128,9 +130,10 @@ describe('storage', function() {
         storage.init('commands', file, done);
       })
 
-      after(function() {
-        storage.close('commands');
-        storage.erase(file);
+      after(function(done) {
+        storage.close('commands', function() {
+          storage.erase(file, done);
+        });
       })
 
       describe('and key does not exist', function() {
@@ -172,8 +175,8 @@ describe('storage', function() {
 
     describe('when not initialized', function() {
 
-      before(function() {
-        storage.close('commands');
+      before(function(done) {
+        storage.close('commands', done);
       })
 
       it('callsback an error', function(done) {
@@ -198,9 +201,10 @@ describe('storage', function() {
           storage.init('commands', file, done);
         })
 
-        after(function() {
-          storage.close('commands');
-          storage.erase(file);
+        after(function(done) {
+          storage.close('commands', function() {
+            storage.erase(file, done);
+          });
         })
 
         it('does not callback an error', function(done) {
@@ -255,9 +259,10 @@ describe('storage', function() {
           });
         })
 
-        after(function() {
-          storage.close('commands');
-          storage.erase(file);
+        after(function(done) {
+          storage.close('commands', function() {
+            storage.erase(file, done);
+          });
         })
 
         it('does not callback an error', function(done) {
@@ -277,8 +282,8 @@ describe('storage', function() {
 
     describe('when not initialized', function() {
 
-      before(function() {
-        storage.close('commands');
+      before(function(done) {
+        storage.close('commands', done);
       });
 
       it('callsback an error', function(done) {
@@ -298,9 +303,10 @@ describe('storage', function() {
         storage.init('commands', file, done);
       })
 
-      after(function() {
-        storage.close('commands');
-        storage.erase(file);
+      after(function(done) {
+        storage.close('commands', function() {
+          storage.erase(file, done);
+        });
       })
 
       describe('if key does not exist', function() {
