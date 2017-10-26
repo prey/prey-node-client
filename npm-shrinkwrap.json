@@ -619,8 +619,8 @@
     },
     "satan": {
       "version": "0.4.3",
-      "from": "https://registry.npmjs.org/satan/-/satan-0.4.3.tgz",
-      "resolved": "https://registry.npmjs.org/satan/-/satan-0.4.3.tgz",
+      "from": "git://github.com/javo/satan.git#91ea6abe690bb2f2e04a0f2945bbd414af3602a3",
+      "resolved": "git://github.com/javo/satan.git#91ea6abe690bb2f2e04a0f2945bbd414af3602a3",
       "dependencies": {
         "launchd": {
           "version": "0.0.5",
