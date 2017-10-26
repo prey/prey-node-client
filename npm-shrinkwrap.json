@@ -780,8 +780,8 @@
     },
     "sudoer": {
       "version": "0.1.1",
-      "from": "https://registry.npmjs.org/sudoer/-/sudoer-0.1.1.tgz",
-      "resolved": "https://registry.npmjs.org/sudoer/-/sudoer-0.1.1.tgz"
+      "from": "git://github.com/javo/sudoer.git#8d5619a1acdd7d37fa688a7ea5c041cb5e3cb697",
+      "resolved": "git://github.com/javo/sudoer.git#8d5619a1acdd7d37fa688a7ea5c041cb5e3cb697"
     },
     "triggers": {
       "version": "0.3.0",
