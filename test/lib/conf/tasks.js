@@ -886,6 +886,63 @@ describe('tasks', function() {
 
       })
 
+      describe('if hooks.post_install fails', function() {
+
+        before(function() {
+          stub = sinon.stub(hooks, 'post_install', function(cb) { cb() })
+        })
+
+        after(function() {
+          stub.restore();
+        })
+
+        it('returns EACCESS error', function(done) {
+          tasks.post_install({}, function(err) {
+            err.should.exist;
+            err.code.should.eql('EACCES');
+            done();
+          })
+        })
+
+        it('does not run daemon set_watcher', function(done) {
+          var async_spy = sinon.spy(daemon, 'set_watcher');
+
+          tasks.post_install({}, function(err) {
+            async_spy.called.should.be.false;
+            async_spy.restore();
+            done();
+          })
+        })
+
+      })
+
+      describe('if hooks.post_install works', function() {
+
+        describe('and set watcher succeed', function() {
+
+          var stub, watcher_stub;
+
+          before(function() {
+            stub = sinon.stub(daemon, 'install', function(cb) { cb() })
+            watcher_stub = sinon.stub(daemon, 'set_watcher', function(cb) { cb() })
+          })
+
+          after(function() {
+            stub.restore();
+            watcher_stub.restore();
+          })
+
+          it('returns no error', function(done) {
+            tasks.post_install({}, function(err) {
+              should.not.exist(err);
+              done();
+            })
+          })
+
+        })
+
+      })
+
     })
 
   })
