@@ -1,5 +1,26 @@
 # Change Log
 
+## [v1.7.2](https://github.com/prey/prey-node-client/tree/v1.7.2) (2017-10-30)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.7.1...v1.7.2)
+
+**Merged pull requests:**
+
+- Prey user watcher for mac [\#332](https://github.com/prey/prey-node-client/pull/332) ([javo](https://github.com/javo))
+- Ubuntu fixed hardware info [\#334](https://github.com/prey/prey-node-client/pull/334) ([javo](https://github.com/javo))
+- Over 10 MB files wipe error fix [\#335](https://github.com/prey/prey-node-client/pull/335) ([javo](https://github.com/javo))
+
+## [v1.7.1](https://github.com/prey/prey-node-client/tree/v1.7.1) (2017-09-06)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.7.0...v1.7.1)
+
+**Merged pull requests:**
+
+- Location watcher [\#321](https://github.com/prey/prey-node-client/pull/321) ([javo](https://github.com/javo))
+- Geo endpoint integration [\#323](https://github.com/prey/prey-node-client/pull/323) ([javo](https://github.com/javo))
+- Windows report picture retry [\#324](https://github.com/prey/prey-node-client/pull/324) ([javo](https://github.com/javo))
+- Ram size on windows fix [\#325](https://github.com/prey/prey-node-client/pull/325) ([javo](https://github.com/javo))
+- Ram size on windows fix [\#325](https://github.com/prey/prey-node-client/pull/325) ([javo](https://github.com/javo))
+- Location, webcam and wipe fixes [\#327](https://github.com/prey/prey-node-client/pull/327) ([javo](https://github.com/javo))
+
 ## [v1.6.9](https://github.com/prey/prey-node-client/tree/v1.6.9) (2017-07-10)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.6.8...v1.6.9)
 
