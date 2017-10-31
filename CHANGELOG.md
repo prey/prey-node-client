@@ -5,6 +5,7 @@
 
 **Merged pull requests:**
 
+- Device type fix for linux [\#338](https://github.com/prey/prey-node-client/pull/338) ([javo](https://github.com/javo))
 - Prey user watcher for mac [\#332](https://github.com/prey/prey-node-client/pull/332) ([javo](https://github.com/javo))
 - Ubuntu fixed hardware info [\#334](https://github.com/prey/prey-node-client/pull/334) ([javo](https://github.com/javo))
 - Over 10 MB files wipe error fix [\#335](https://github.com/prey/prey-node-client/pull/335) ([javo](https://github.com/javo))
