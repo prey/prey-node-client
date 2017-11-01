@@ -19,7 +19,6 @@ from AppKit import *
 script_path = sys.path[0]
 
 app_name = 'Alert'
-default_font = 'Helvetica Light'
 
 # pale blue
 blue = NSColor.colorWithCalibratedRed_green_blue_alpha_(33/255.0, 104/255.0, 198/255.0, 1.0)
@@ -29,7 +28,7 @@ background_color = blue
 
 # dark red
 
-close_icon = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAABZklEQVRYR+2VvW0CQRCFwWCTQQDGEg0Q0AWBK6EAZy7AfwVYwvwFxEADtitAuAHnNIDk2OI96UY6obvdmbngkkN60gI7+76dnZ2t10r+1Ev2r1UAVQZCGWijQP+g/4KF2kH8KW+NEMAjgobQpABEH7HfyRqHLIgQAP/7gG6cEGL+gviNJwOMIcQMujZC0PwLeg2Zi0HsiAkxh5pKCLW5FkDmaSDEnGnfxnZmAZC5CwwaOZm4TaVdZW4FkPlLDK4uIFzmHoAsiC5+/EwKbqdJe3qOtxUzbgXxio685t4MyAYGGPxCe+gecnVMbwbuYMgO9wSNoVZOYUZPxANAczYZmvPMucbUC2EFkPYq5rJDd9u2AEiTeU52fpleF4QWQO45O1zoqpnfDg0AzS333AQRA+glBcdXzdJk1A9YCIDm3Pmb0TxdmNEHLATwgJWOTvM0xDu+rKGfrKYQO4JoIyk6oQKoMlB6Bs6DNUoh5TlqhAAAAABJRU5ErkJggg=='
+close_icon = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAZAAAAGQCAMAAAC3Ycb+AAAACVBMVEX///8AAAAAAAB+UaldAAAAAnRSTlMAoKBFbtAAAASdSURBVHgB7d1BisMwEADBkf//6AwkNyfntKH0gmkKdoltSXO915m/Lut8IOYqifBYECIljwUhUvJYECIljwUhUvJYECIlj2sOkZLHGSIxDyI1DyI1DyI1DyI1DyI1DyI1DyI1DyI1DyI1DyI1DyI1DyI1DyI1DyI1DyI1DyI1DyI1DyI1DyI1DyI1DyI1DyI1DyI1DyIlDyIBDyIBDyIBDyIBDyItj5YIj5YIDyItDyItDyItDyItDyItDyItDyItDyItDyItDyItDyItDyItDyItDyItDyItDyItDyItDyItDyItDyItDyItDyItDyItDyItDyItDyItDyI8OiJFDyI8vo/CwzA8AuPwIBLIJxKIJxJIJxIIJxLIJtKIJtJLJtILJtLLJdKLJdJLJdILJdLLJNKLJNJLJNILJNLLI9KLI9JLI9ILI9LLItKLItJPInIPEiCHSC+GSC+FiBAZUvwzlCCHhx+4kqLDi+LhNQIRY3sVTcTI8nxgZlyJPHw0LpOHjUdEeDwyloft3UR4OCKECA/HTBExlnQeDvMkwsOB0ER4uFSACA8X0xDhkRHhQYSHCzKJ8HDJMhEeLuonwqMowqMnwqMnwqMnwqMnwqMnwqMnwqMnwqMnwqMnwqMnwqMnwqMnwqMnwqMnwqMnwqMnwqMnwqMnwqMlwqMlwqMlwqMlwqMlwqMlwqMlwqMlwqMlwqMlwqMlwqMlwqMlwqMlwqMlwqMlwqMlwqMlwqMlwiMgEvAgUvMgUvMgUvMgUvMgUvMgUvMgUvMgUvMgUvMgUvMgUvMgEvMgEvAgUvMgUvMgUvMgUvMgkvUg0vcAYvmTxaMmwoOIH4aWRyceLloev3tBZXmF6yMHy2dAPIj4lNTysbXtCJYNO7a0WTZ92hZtOTiAR1mEBxHHM/HoivDoi/Ag4phYHn0RHkQcxs+jLsKjL8KDiEvBePRFePRFeBBxOTEPIi6450Gk5UGk5UGk5UGk5UGk5UGk5UGk5UGk5UGk5UGk5UGk5UGk5UGk5UGk5UGk5UGk5UGk5UGk5UGk5UGk5UGk5UGk5UGk5UGk5UGk5UGER0ek50GEx69ReBiGR2AcHkQC+UQC8UQC6UQC4UQC2UQa0UR6yUR6wUR6uUR6sUR6qUR6oUR6mUR6kUR6iUR6gUR6eUR6cUR6aUR6YUR6WUR6UUT6SUTuQQLkEOnFEOmlEBEiQ4p/hhLk8PADV1J0eFE8vEYgYmyvookYWZ4PzIwrkYePxmXysPGICI8HxvKwvZsID0eEEOHhmCkixpLOw2GeRHg4EJoID5cKEOHhYhoiPEIiPIjwcEEmER4uWSbCw0X9RHgERHgkRHjURHjURHjURHjURHjURHjURHjURHjURHjURHjURHjURHjURHjURHjURHjURHjURHjURGoeRGoeRGoeRGoeRGoeRGoeRGoeRGoeRGoeRGoeRGoeRGoeRGoeRGoeRGoeRGoeRGoeRGoeRGoeRGoeRGoeRGoeRGoeRGoeRGoeRGoeRGoeRGoeRGoeRGoeRGoeRHIeRFoeRKblQWRaHkSm5UFkWh5EpuVBZFoeRF4C41X5yNDGiAAAAABJRU5ErkJggg=='
 
 def write(str):
   print str
@@ -122,13 +121,13 @@ class AlertView(NSView):
     self.exit()
 
   def add_close_button(self):
-    width = 48
-    height = 48
+    width = 32
+    height = 32
 
     image = NSImage.alloc().initWithContentsOfURL_(NSURL.URLWithString_(close_icon))
     rep   = image.representations()[0]
-    img_width  = rep.pixelsWide()
-    img_height = rep.pixelsHigh()
+    img_width  = width
+    img_height = height
 
     top = (self.bounds().size.height - img_height) - 20 # offset from top
 
@@ -171,7 +170,7 @@ class AlertView(NSView):
     field.setSelectable_(True)
     # field.setEnabled_(True)
 
-    font = NSFont.fontWithName_size_(default_font, 14)
+    font = NSFont.systemFontOfSize_(14)
     field.setFont_(font)
 
     field.setTarget_(self)
@@ -197,7 +196,7 @@ class AlertView(NSView):
     self.button = button
     self.addSubview_(button)
 
-  def add_label(self, text, font_name, font_size, x, y, width, height):
+  def add_label(self, text, font_size, x, y, width, height):
     label = NSTextField.alloc().initWithFrame_(NSMakeRect(x, y, width, height))
     label.setStringValue_(text)
     label.setBezeled_(False)
@@ -206,7 +205,7 @@ class AlertView(NSView):
     label.setSelectable_(False)
     label.setDrawsBackground_(False)
 
-    font = NSFont.fontWithName_size_(font_name, font_size)
+    font = NSFont.systemFontOfSize_(font_size)
     label.setFont_(font)
     label.setTextColor_(NSColor.whiteColor())
 
@@ -218,7 +217,7 @@ class AlertView(NSView):
 
     height = 30
     top = self.bounds().size.height - 50
-    self.add_label(title, default_font, 24, self.getLeftOffset(width) + 3, top, width, height)
+    self.add_label(title, 24, self.getLeftOffset(width) + 3, top, width, height)
 
     # width + 10 is to add padding
     height = self.bounds().size.height - 180
@@ -233,7 +232,7 @@ class AlertView(NSView):
     textview.setEditable_(False)
     textview.setBackgroundColor_(background_color)
 
-    font = NSFont.fontWithName_size_(default_font, 15)
+    font = NSFont.systemFontOfSize_(15)
     textview.setFont_(font)
     textview.setTextColor_(NSColor.whiteColor())
 
@@ -293,7 +292,7 @@ def main():
     rect,
     NSBorderlessWindowMask,
     NSBackingStoreBuffered,
-    True, 
+    True,
     screen)
 
   # render view and draw message and button
@@ -309,6 +308,7 @@ def main():
 
   # set window properties and display
   window.setBackgroundColor_(background_color)
+  window.setCollectionBehavior_(NSWindowCollectionBehaviorCanJoinAllSpaces)
   window.setTitle_(app_name)
   window.setContentView_(view)
   window.orderFrontRegardless()
