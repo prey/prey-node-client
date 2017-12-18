@@ -28,6 +28,10 @@
     "scan_hardware": {
       "message": "Whether to send hardware information on boot, to detect any changes.",
       "default": false
+    },
+    "location_aware": {
+      "message": "Allows to retrieve device location on any change and keep it updated.",
+      "default": false
     }
   }
 }
