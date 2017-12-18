@@ -30,7 +30,7 @@
       "default": false
     },
     "location_aware": {
-      "message": "Allows to retrieve device location on any change and keep it updated.",
+      "message": "Allows to keep location info updated, retrieving it on connection status changes.",
       "default": false
     }
   }

@@ -44,5 +44,5 @@ send_status_info = true
 # Whether to send hardware information on boot, to detect any changes.
 scan_hardware = false
 
-# Allows to retrieve device location on any connection change and keep it updated.
+# Allows to keep location info updated, retrieving it on connection status changes.
 location_aware = false
