@@ -5,8 +5,9 @@ var helpers = require('./../../../helpers'),
     os   = require('os'),
     join = require('path').join,
     exec = require('child_process').exec,
-    wipe_path = join(lib_path, 'agent', 'actions', 'wipe', 'windows'),
-    wipe_win = require(wipe_path);
+    wipe_path = join(lib_path, 'agent', 'actions', 'wipe'),
+    wipe = require(wipe_path),
+    wipe_win = require(wipe_path + '/windows');
 
 var outlook_versions = {
   old: {
@@ -27,6 +28,240 @@ var registryPath = {
   firefox:         join('HKEY_CLASSES_ROOT', 'FirefoxHTML', 'DefaultIcon'),
   thunderbird:     join('HKEY_CLASSES_ROOT', 'ThunderbirdEML', 'DefaultIcon')
 };
+
+var hash;
+
+describe('wipe valid types', function() {
+  before(function() {
+    hash = {
+      wipe_cloud: false,
+      wipe_directories: false,
+      wipe_documents: false,
+      wipe_passwords: false,
+      wipe_cookies: false,
+      wipe_emails: false
+    }
+  });
+
+  describe('when one type is selected', function() {
+
+    describe('and is not directories', function() {
+      before(function() {
+        hash.wipe_documents = true;
+      });
+      after(function() {
+        hash.wipe_documents = false;
+        wipe.directories = [];
+      });
+
+      it('should return documents', function(done) {
+        var out = wipe.valid_types(hash);
+        out.should.be.Array;
+        out.length.should.equal(1);
+        out[0].should.equal('documents');
+        done();
+      })
+    });
+
+    describe('and is directories', function() {
+
+      describe('and is only one path', function() {
+        describe('and the path is blank', function() {
+          before(function() {
+            hash.wipe_directories = '';
+          });
+          after(function() {
+            hash.wipe_directories = false;
+            wipe.directories = [];
+          });
+
+          it('should an empty array', function(done){
+            var out = wipe.valid_types(hash);
+            out.should.be.Array;
+            out.length.should.equal(0);
+            done();
+          })
+        })
+
+        describe('and the path is invalid', function() {
+          before(function() {
+            hash.wipe_directories = 'not a path';
+          });
+          after(function() {
+            hash.wipe_directories = false;
+            wipe.directories = [];
+          });
+
+          it('should an empty array', function(done){
+            var out = wipe.valid_types(hash);
+            out.should.be.Array;
+            out.length.should.equal(0);
+            done();
+          })
+        })
+
+        describe('and the path is valid', function() {
+          before(function() {
+            hash.wipe_directories = '/one/path/to/wipe';
+          });
+          after(function() {
+            hash.wipe_directories = false;
+            wipe.directories = [];
+          });
+
+          it('should return documents', function(done) {
+            var out = wipe.valid_types(hash);
+            out.should.be.Array;
+            out.length.should.equal(1);
+            out[0].should.equal('directories');
+            wipe.directories.length.should.equal(1);
+            wipe.directories[0].should.equal('/one/path/to/wipe');
+            done();
+          })
+        })
+      })
+
+      describe('and there are more than one path', function() {
+        describe('and one path is blank', function() {
+          before(function() {
+            hash.wipe_directories = '/one/path/to/wipe, ';
+          });
+          after(function() {
+            hash.wipe_directories = false;
+            wipe.directories = [];
+          });
+
+          it('should return documents', function(done) {
+            var out = wipe.valid_types(hash);
+            out.should.be.Array;
+            out.length.should.equal(1);
+            out[0].should.equal('directories');
+
+            wipe.directories.length.should.equal(1);
+            wipe.directories[0].should.equal('/one/path/to/wipe');
+            done();
+          })
+
+        })
+
+        describe('and one path is invalid', function() {
+          describe('and one path is blank', function() {
+            before(function() {
+              hash.wipe_directories = '/one/path/to/wipe, invalidpath, /another/valid/path';
+            });
+            after(function() {
+              hash.wipe_directories = false;
+              wipe.directories = [];
+            });
+
+            it('should return documents', function(done) {
+              var out = wipe.valid_types(hash);
+              out.should.be.Array;
+              out.length.should.equal(1);
+              out[0].should.equal('directories');
+              wipe.directories.length.should.equal(2);
+              wipe.directories[0].should.equal('/one/path/to/wipe');
+              wipe.directories[1].should.equal('/another/valid/path');
+              done();
+            })
+          })
+        })
+
+        describe('and all paths are valid', function() {
+          before(function() {
+            hash.wipe_directories = '/one/path/to/wipe,/another/valid/path,/lastvalid';
+          });
+          after(function() {
+            hash.wipe_directories = false;
+            wipe.directories = [];
+          });
+
+          it('should return documents', function(done) {
+            var out = wipe.valid_types(hash);
+            out.should.be.Array;
+            out.length.should.equal(1);
+            out[0].should.equal('directories');
+            wipe.directories.length.should.equal(3);
+            wipe.directories[0].should.equal('/one/path/to/wipe');
+            wipe.directories[1].should.equal('/another/valid/path');
+            wipe.directories[2].should.equal('/lastvalid');
+            done();
+          })
+        })
+      })
+    })
+  })
+
+  describe('when more than one type is selected', function() {
+    describe('and no includes directories', function() {
+      before(function() {
+        hash.wipe_documents = true;
+        hash.wipe_passwords = true;
+        hash.wipe_emails = true;
+      });
+      after(function() {
+        hash.wipe_documents = false;
+        hash.wipe_passwords = false;
+        hash.wipe_emails = false;
+        wipe.directories = [];
+      });
+
+      it('should return documents', function(done) {
+        var out = wipe.valid_types(hash);
+        out.should.be.Array;
+        out.length.should.equal(3);
+        out[0].should.equal('documents');
+        out[1].should.equal('passwords');
+        out[2].should.equal('emails');
+        done();
+      })
+    });
+
+    describe('and includes directories', function() {
+      describe('and the path is valid', function() {
+        before(function() {
+          hash.wipe_directories = '/valid/path';
+          hash.wipe_passwords = true;
+        });
+        after(function() {
+          hash.wipe_directories = false;
+          hash.wipe_passwords = false;
+          wipe.directories = [];
+        });
+
+        it('should return documents', function(done) {
+          var out = wipe.valid_types(hash);
+          out.should.be.Array;
+          out.length.should.equal(2);
+          out[0].should.equal('directories');
+          out[1].should.equal('passwords');
+          wipe.directories[0].should.equal('/valid/path');
+          done();
+        })
+      })
+      describe('and the path is invalid', function() {
+        before(function() {
+          hash.wipe_directories = 'invalidpath';
+          hash.wipe_passwords = true;
+        });
+        after(function() {
+          hash.wipe_directories = false;
+          hash.wipe_passwords = false;
+          wipe.directories = [];
+        });
+
+        it('should return documents', function(done) {
+          var out = wipe.valid_types(hash);
+          out.should.be.Array;
+          out.length.should.equal(1);
+          out[0].should.equal('passwords');
+          wipe.directories.length.should.equal(0);
+          done();
+        })
+      })
+    });
+  });
+});
 
 describe('in Windows OS', function() {
 
