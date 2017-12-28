@@ -71,7 +71,7 @@
   },
   "devDependencies": {
     "mkdirp": "",
-    "mocha": "",
+    "mocha": "3.5.1",
     "mock-spawn": "^0.2.6",
     "node-fs": "0.1.5",
     "node.extend": "",
