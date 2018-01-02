@@ -179,12 +179,12 @@ zip_file(){
   elif [ "$OS" = 'windows' ]; then
     zip -9 -r "$ZIP" "$FOLDER" -x \*.sh \*linux/* \*mac/* \*darwin/* 1> /dev/null
   elif [ "$OS" = 'mac' ]; then
-    if [ -n "$is_mac" ]; then
-      ditto -v -c -k --zlibCompressionLevel 9 --rsrc --extattr --noqtn --keepParent "$FOLDER" "$ZIP"
-    else
-      echo "Warning: Not creating OSX packages as files would lose their extended attributes."
-      # zip -9 -r "$ZIP" "$FOLDER" -x \*.cmd \*.exe \*.dll \*windows/* \*linux/* 1> /dev/null
-    fi
+    # if [ -n "$is_mac" ]; then
+    #   ditto -v -c -k --zlibCompressionLevel 9 --rsrc --extattr --noqtn --keepParent "$FOLDER" "$ZIP"
+    # else
+    #   echo "Warning: Not creating OSX packages as files would lose their extended attributes."
+    zip -9 -r "$ZIP" "$FOLDER" -x \*.cmd \*.exe \*.dll \*windows/* \*linux/* 1> /dev/null
+    # fi
   elif [ "$OS" = 'linux' ]; then
     zip -9 -r "$ZIP" "$FOLDER" -x \*.cmd \*.exe \*.dll \*windows/* \*mac/* \*darwin/* 1> /dev/null
   fi
