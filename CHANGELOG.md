@@ -1,5 +1,16 @@
 # Change Log
 
+## [v1.7.3](https://github.com/prey/prey-node-client/tree/v1.7.3) (2018-01-04)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.7.2...v1.7.3)
+
+**Merged pull requests:**
+
+- Location aware [\#342](https://github.com/prey/prey-node-client/pull/342) ([javo](https://github.com/javo))
+- Wipe for outlook on macOS [\#343](https://github.com/prey/prey-node-client/pull/343) ([javo](https://github.com/javo))
+- Custom directory Wipe [\#344](https://github.com/prey/prey-node-client/pull/344) ([javo](https://github.com/javo))
+- Node client 2018 [\#346](https://github.com/prey/prey-node-client/pull/346) ([javo](https://github.com/javo))
+- Signed wipe binaries [\#348](https://github.com/prey/prey-node-client/pull/485) ([javo](https://github.com/javo))
+
 ## [v1.7.2](https://github.com/prey/prey-node-client/tree/v1.7.2) (2017-10-30)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.7.1...v1.7.2)
 
