@@ -1,6 +1,6 @@
 {
   "name": "prey",
-  "version": "1.7.2",
+  "version": "1.7.3",
   "dependencies": {
     "async": {
       "version": "0.9.0",
@@ -542,8 +542,8 @@
     },
     "remover": {
       "version": "0.1.2",
-      "from": "git://github.com/javo/remover.git#29a0254e3e07358f151efcecaa94e7451be2e05c",
-      "resolved": "git://github.com/javo/remover.git#29a0254e3e07358f151efcecaa94e7451be2e05c"
+      "from": "git://github.com/javo/remover.git#e4f53b0cc0d997e958a45f774fe8732e6a22206",
+      "resolved": "git://github.com/javo/remover.git#e4f53b0cc0d997e958a45f774fe8732e6a22206"
     },
     "reply": {
       "version": "0.3.1",
@@ -619,8 +619,8 @@
     },
     "satan": {
       "version": "0.4.3",
-      "from": "git://github.com/javo/satan.git#91ea6abe690bb2f2e04a0f2945bbd414af3602a3",
-      "resolved": "git://github.com/javo/satan.git#91ea6abe690bb2f2e04a0f2945bbd414af3602a3",
+      "from": "git://github.com/javo/satan.git#c6076a3f239e448e399e786a26248c37b5aba426",
+      "resolved": "git://github.com/javo/satan.git#c6076a3f239e448e399e786a26248c37b5aba426",
       "dependencies": {
         "launchd": {
           "version": "0.0.5",
