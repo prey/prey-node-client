@@ -34,7 +34,7 @@ describe('storage', function() {
     describe('with nonexisting path', function() {
 
       before(function(done) {
-        storage.init('commands', '/bar', done);
+        storage.init('commands', tmpdir() + '/bar', done);
       })
 
       after(function() {
