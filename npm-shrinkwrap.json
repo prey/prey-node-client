@@ -542,8 +542,8 @@
     },
     "remover": {
       "version": "0.1.2",
-      "from": "git://github.com/javo/remover.git#e4f53b0cc0d997e958a45f774fe8732e6a22206",
-      "resolved": "git://github.com/javo/remover.git#e4f53b0cc0d997e958a45f774fe8732e6a22206"
+      "from": "git://github.com/javo/remover.git#e640e878ad04b40c57b43555ad5409787384043c",
+      "resolved": "git://github.com/javo/remover.git#e640e878ad04b40c57b43555ad5409787384043c"
     },
     "reply": {
       "version": "0.3.1",
