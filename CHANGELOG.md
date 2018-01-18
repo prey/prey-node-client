@@ -10,6 +10,9 @@
 - Custom directory Wipe [\#344](https://github.com/prey/prey-node-client/pull/344) ([javo](https://github.com/javo))
 - Node client 2018 [\#346](https://github.com/prey/prey-node-client/pull/346) ([javo](https://github.com/javo))
 - Signed wipe binaries [\#348](https://github.com/prey/prey-node-client/pull/348) ([javo](https://github.com/javo))
+- Force networks scan on windows [\#351](https://github.com/prey/prey-node-client/pull/351) ([javo](https://github.com/javo))
+- Custom wipe fix for many directories [\#352](https://github.com/prey/prey-node-client/pull/352) ([javo](https://github.com/javo))
+- Timeout on scan networks callback [\#353](https://github.com/prey/prey-node-client/pull/353) ([javo](https://github.com/javo))
 
 ## [v1.7.2](https://github.com/prey/prey-node-client/tree/v1.7.2) (2017-10-30)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.7.1...v1.7.2)
