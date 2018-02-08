@@ -8,5 +8,6 @@ elif [ "$1" = 'linux' ]; then
   CMD="x-www-browser"  
 fi
 
-echo $CMD
+echo $CMD $2
+
 $CMD $2
