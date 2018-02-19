@@ -2,7 +2,7 @@
 
 if [ "$1" = 'mac' ]; then
   CMD="open"
-elif [ "$OS" = 'windows' ]; then
+elif [ "$1" = 'windows' ]; then
   CMD="start"
 elif [ "$1" = 'linux' ]; then
   CMD="x-www-browser"  

@@ -530,11 +530,6 @@
       "from": "https://registry.npmjs.org/ocelot/-/ocelot-0.0.5.tgz",
       "resolved": "https://registry.npmjs.org/ocelot/-/ocelot-0.0.5.tgz"
     },
-    "opn": {
-      "version": "5.1.0",
-      "from": "https://registry.npmjs.org/opn/-/opn-5.1.0.tgz",
-      "resolved": "https://registry.npmjs.org/opn/-/opn-5.1.0.tgz"
-    },
     "petit": {
       "version": "0.0.5",
       "from": "git://github.com/javo/petit.git#417e3b59d8460c58f5a2e1f18ce14b042b7c0842",
