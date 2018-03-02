@@ -2,12 +2,13 @@
 
 if [ "$1" = 'mac' ]; then
   CMD="open"
+  DETACHED=""
 elif [ "$1" = 'windows' ]; then
   CMD="start"
+  DETACHED=""
 elif [ "$1" = 'linux' ]; then
-  CMD="x-www-browser"  
+  CMD="xdg-open"
+  DETACHED="</dev/null &>/dev/null &"
 fi
 
-echo $CMD $2
-
-$CMD $2
+$CMD $2 $DETACHED
