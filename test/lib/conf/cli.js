@@ -522,7 +522,7 @@ describe('config cli arguments', function() {
         })
 
         it('sends signup request', function(done) {
-          var attrs = ['--name', 'User', '--email', 'some@one.com', '--password', 'buenaonda'];
+          var attrs = ['--name', 'User', '--email', 'some@one.com', '--password', 'buenaonda', '--terms', 'yes', '--age', 'yes'];
 
           helpers.run_cli(['config', 'account', 'signup'].concat(attrs), function(code, out, err) {
             console.log(err);

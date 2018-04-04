@@ -263,7 +263,7 @@
                       </object>
                       <packing>
                         <property name="x">5</property>
-                        <property name="y">75</property>
+                        <property name="y">45</property>
                       </packing>
                     </child>
                     <child>
@@ -277,7 +277,7 @@
                       </object>
                       <packing>
                         <property name="x">150</property>
-                        <property name="y">75</property>
+                        <property name="y">45</property>
                       </packing>
                     </child>
                     <child>
@@ -293,7 +293,7 @@
                       </object>
                       <packing>
                         <property name="x">5</property>
-                        <property name="y">120</property>
+                        <property name="y">90</property>
                       </packing>
                     </child>
                     <child>
@@ -307,7 +307,7 @@
                       </object>
                       <packing>
                         <property name="x">150</property>
-                        <property name="y">120</property>
+                        <property name="y">90</property>
                       </packing>
                     </child>
                     <child>
@@ -323,7 +323,7 @@
                       </object>
                       <packing>
                         <property name="x">5</property>
-                        <property name="y">165</property>
+                        <property name="y">135</property>
                       </packing>
                     </child>
                     <child>
@@ -338,7 +338,7 @@
                       </object>
                       <packing>
                         <property name="x">150</property>
-                        <property name="y">165</property>
+                        <property name="y">135</property>
                       </packing>
                     </child>
                     <child>
@@ -354,7 +354,7 @@
                       </object>
                       <packing>
                         <property name="x">5</property>
-                        <property name="y">210</property>
+                        <property name="y">180</property>
                       </packing>
                     </child>
                     <child>
@@ -369,7 +369,42 @@
                       </object>
                       <packing>
                         <property name="x">150</property>
-                        <property name="y">210</property>
+                        <property name="y">180</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkCheckButton" id="check_terms_conds">
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="label">I agree to the</property>
+                      </object>
+                      <packing>
+                        <property name="x">150</property>
+                        <property name="y">220</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkCheckButton" id="check_age">
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="label">I confirm that I am over 16 years old</property>
+                      </object>
+                      <packing>
+                        <property name="x">150</property>
+                        <property name="y">240</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkLinkButton" id="terms_conds">
+                        <property name="width_request">163</property>
+                        <property name="height_request">30</property>
+                        <property name="visible">True</property>
+                        <property name="uri">https://www.preyproject.com/terms</property>
+                        <property name="label">Terms and Conditions</property>
+                      </object>
+                      <packing>
+                        <property name="x">262</property>
+                        <property name="y">217</property>
                       </packing>
                     </child>
                   </object>
