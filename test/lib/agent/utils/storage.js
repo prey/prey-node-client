@@ -16,15 +16,9 @@ describe('storage', function() {
         storage.init('commands', '', done);
       })
 
-      after(function() {
-        storage.close('commands');
-        storage.erase('');
-      })
-
       it('callsback an error', function(done) {
         storage.get('start-alarm', function(err) {
-          err.should.be.a.Error;
-          err.message.should.containEql('Invalid path');
+          should.not.exist(err);
           done();
         })
       })
@@ -37,8 +31,10 @@ describe('storage', function() {
         storage.init('commands', tmpdir() + '/bar', done);
       })
 
-      after(function() {
-        storage.close('commands');
+      after(function(done){
+        storage.close('commands', function() {
+          storage.erase(tmpdir() + '/bar', done);
+        });
       })
 
       it('does not callback an error', function(done) {
