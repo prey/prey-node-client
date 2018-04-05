@@ -109,6 +109,12 @@ class PreyConfigurator(object):
     elif self.text('password') != self.text('password_confirm'):
       self.show_alert(_("Passwords don't match"), _("Please make sure both passwords match."))
       return False
+    if not self.get('check_terms_conds').get_active():
+      self.show_alert(_("Error"), _("You need to accept the Terms & Conditions to continue"))
+      return False
+    if not self.get('check_age').get_active():
+      self.show_alert(_("Error"), _("You must be older than 16 years old to use Prey"))
+      return False
     return True
 
   ################################################
@@ -260,10 +266,21 @@ class PreyConfigurator(object):
     return self.result == 0
 
   def create_user(self):
-    name      = self.text('user_name')
-    email     = self.text('email')
-    password  = self.text('password')
-    self.call_prey_config('account signup', '-n "' + name + '" -e "' + email + '" -p "' + password + '"')
+    name        = self.text('user_name')
+    email       = self.text('email')
+    password    = self.text('password')
+    check_terms = self.get('check_terms_conds').get_active()
+    check_age   = self.get('check_age').get_active()
+    terms       = 'no'
+    age         = 'no'
+
+    if check_terms == True : terms = 'yes'
+    if check_age == True : age = 'yes'
+
+    print(terms)
+    print(age)
+
+    self.call_prey_config('account signup', '-n "' + name + '" -e "' + email + '" -p "' + password + '" -t "' + terms + '" -a "' + age +'"')
     self.error_or_exit()
 
   def get_existing_user(self, show_devices):
