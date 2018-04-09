@@ -110,7 +110,7 @@ class PreyConfigurator(object):
       self.show_alert(_("Passwords don't match"), _("Please make sure both passwords match."))
       return False
     if not self.get('check_terms_conds').get_active():
-      self.show_alert(_("Error"), _("You need to accept the Terms & Conditions to continue"))
+      self.show_alert(_("Error"), _("You need to accept the Terms & Conditions and Privacy Policy to continue"))
       return False
     if not self.get('check_age').get_active():
       self.show_alert(_("Error"), _("You must be older than 16 years old to use Prey"))
