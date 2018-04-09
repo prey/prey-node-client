@@ -1,10 +1,11 @@
 # Change Log
 
-## [v1.7.4](https://github.com/prey/prey-node-client/tree/v1.7.4) (2018-04-05)
+## [v1.7.4](https://github.com/prey/prey-node-client/tree/v1.7.4) (2018-04-10)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.7.3...v1.7.4)
 
 **Merged pull requests:**
 
+- Privacy policy on old gui's [\#362](https://github.com/prey/prey-node-client/pull/362) ([javo](https://github.com/javo))
 - Wifi location strategy retry [\#356](https://github.com/prey/prey-node-client/pull/356) ([javo](https://github.com/javo))
 - GDPR for client configuration [\#357](https://github.com/prey/prey-node-client/pull/357) ([javo](https://github.com/javo))
 - Storage improvements [\#358](https://github.com/prey/prey-node-client/pull/358) ([javo](https://github.com/javo))
