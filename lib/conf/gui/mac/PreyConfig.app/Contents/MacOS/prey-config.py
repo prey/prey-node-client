@@ -164,7 +164,7 @@ class ConfigDelegate(NSObject):
     return checkbox
 
   def drawCheckbox(self, id, title, width, height):
-    checkbox = NSButton.alloc().initWithFrame_(NSMakeRect(13, 0, width, height))
+    checkbox = NSButton.alloc().initWithFrame_(NSMakeRect(0, 0, width, height))
     checkbox.setButtonType_(NSSwitchButton)
     checkbox.setTitle_(title)
     self.inputs[id] = checkbox
@@ -400,7 +400,7 @@ class ConfigDelegate(NSObject):
       self.show_alert("Please make sure both passwords match.")
       return False
     if terms != 'yes':
-      self.show_alert("You need to accept the Terms & Conditions to continue.")
+      self.show_alert("You need to accept the Terms & Conditions and Privacy Policy to continue.")
       return False
     if age != 'yes':
       self.show_alert("You must be older than 16 years old to use Prey.")
@@ -453,9 +453,14 @@ class ConfigDelegate(NSObject):
     url = "https://panel.preyproject.com/forgot"
     res = NSWorkspace.sharedWorkspace().openURL_(NSURL.URLWithString_(url))
 
-  def open_pass_terms_url(self):
+  def open_terms_url(self):
     url = "https://www.preyproject.com/terms"
     res = NSWorkspace.sharedWorkspace().openURL_(NSURL.URLWithString_(url))
+
+  def open_privacy_url(self):
+    url = "https://www.preyproject.com/privacy"
+    res = NSWorkspace.sharedWorkspace().openURL_(NSURL.URLWithString_(url))
+
 
   ######################################################
   # tab clicks
@@ -494,8 +499,9 @@ class ConfigDelegate(NSObject):
     elements.append(self.drawTextInput('name', 'Your name', 15, 150))
     elements.append(self.drawTextInput('email', 'Email', 15, 105))
     elements.append(self.drawPasswordInput('pass', 'Password', 15, 60))
-    elements.append(self.drawLink(NSMakeRect(110, 0, 125, 69), 'Terms & Conditions', 'open_pass_terms_url'))
-    elements.append(self.drawCheckbox('check_terms', 'I agree to the', 100, 70))
+    elements.append(self.drawCheckbox('check_terms', 'I have read and agree to the                                       and', 335, 70))
+    elements.append(self.drawLink(NSMakeRect(181, 0, 124, 69), 'Terms & Conditions', 'open_terms_url'))
+    elements.append(self.drawLink(NSMakeRect(334, 0, 93, 69), 'Privacy Policy', 'open_privacy_url'))
     elements.append(self.drawCheckbox('check_age', 'I confirm that I am over 16 years old.', 230, 25))
 
     for element in flatten(elements):
