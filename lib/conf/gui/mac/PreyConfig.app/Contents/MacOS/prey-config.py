@@ -163,6 +163,13 @@ class ConfigDelegate(NSObject):
     checkbox.setTag_(tag)
     return checkbox
 
+  def drawCheckbox(self, id, title, width, height):
+    checkbox = NSButton.alloc().initWithFrame_(NSMakeRect(0, 0, width, height))
+    checkbox.setButtonType_(NSSwitchButton)
+    checkbox.setTitle_(title)
+    self.inputs[id] = checkbox
+    return checkbox
+
   def drawChooser(self):
     cell = NSButtonCell.alloc().init()
     cell.setTitle_('Choose your destiny')
@@ -201,6 +208,17 @@ class ConfigDelegate(NSObject):
     button.setEnabled_(True)
     button.setAction_(action)
     return button
+
+  def drawLink(self, rect, text, action):
+    link = NSButton.alloc().initWithFrame_(rect)
+    self.window.contentView().addSubview_(link)
+    link.backgroundColor()
+    link.setBezelStyle_(13)
+    link.setTitle_(text)
+    link.setTarget_(self)
+    link.setEnabled_(True)
+    link.setAction_(action)
+    return link
 
   def drawLabel(self, text, rect):
     field = NSTextField.alloc().initWithFrame_(rect)
@@ -370,7 +388,7 @@ class ConfigDelegate(NSObject):
 
     return True
 
-  def validate_new_user_fields(self, name, email, passwd, passwd2 = None):
+  def validate_new_user_fields(self, name, email, terms, age, passwd, passwd2 = None):
     if name == '':
       self.show_alert("Please type in your name.")
       return False
@@ -381,14 +399,24 @@ class ConfigDelegate(NSObject):
     elif passwd2 is not None and passwd != passwd2:
       self.show_alert("Please make sure both passwords match.")
       return False
+    if terms != 'yes':
+      self.show_alert("You need to accept the Terms & Conditions and Privacy Policy to continue.")
+      return False
+    if age != 'yes':
+      self.show_alert("You must be older than 16 years old to use Prey.")
+      return False
     return True
 
   def user_signup(self):
-    name, email, passwd = self.get_value('name'), self.get_value('email'), self.get_value('pass')
-    if not self.validate_new_user_fields(name, email, passwd):
+    name, email, passwd, check_terms, check_age = self.get_value('name'), self.get_value('email'), self.get_value('pass'), self.get_value('check_terms'), self.get_value('check_age')
+    terms, age = 'no', 'no'
+    if check_terms == '1' : terms = 'yes'
+    if check_age == '1' : age = 'yes'
+
+    if not self.validate_new_user_fields(name, email, terms, age, passwd):
       return
 
-    self.run_config("signup -n '" + name + "' -e '" + email + "' -p '" + passwd + "'")
+    self.run_config("signup -n '" + name + "' -e '" + email + "' -p '" + passwd + "' -t '" + terms + "' -a '" + age + "'")
     if self.code == 1:
       self.show_error(self.out)
     else:
@@ -425,6 +453,15 @@ class ConfigDelegate(NSObject):
     url = "https://panel.preyproject.com/forgot"
     res = NSWorkspace.sharedWorkspace().openURL_(NSURL.URLWithString_(url))
 
+  def open_terms_url(self):
+    url = "https://www.preyproject.com/terms"
+    res = NSWorkspace.sharedWorkspace().openURL_(NSURL.URLWithString_(url))
+
+  def open_privacy_url(self):
+    url = "https://www.preyproject.com/privacy"
+    res = NSWorkspace.sharedWorkspace().openURL_(NSURL.URLWithString_(url))
+
+
   ######################################################
   # tab clicks
 
@@ -459,9 +496,13 @@ class ConfigDelegate(NSObject):
 
   def drawNewUser(self, tab, name):
     elements = []
-    elements.append(self.drawTextInput('name', 'Your name', 15, 140))
-    elements.append(self.drawTextInput('email', 'Email', 15, 85))
-    elements.append(self.drawPasswordInput('pass', 'Password', 15, 30))
+    elements.append(self.drawTextInput('name', 'Your name', 15, 150))
+    elements.append(self.drawTextInput('email', 'Email', 15, 105))
+    elements.append(self.drawPasswordInput('pass', 'Password', 15, 60))
+    elements.append(self.drawCheckbox('check_terms', 'I have read and agree to the                                       and', 335, 70))
+    elements.append(self.drawLink(NSMakeRect(181, 0, 124, 69), 'Terms & Conditions', 'open_terms_url'))
+    elements.append(self.drawLink(NSMakeRect(334, 0, 93, 69), 'Privacy Policy', 'open_privacy_url'))
+    elements.append(self.drawCheckbox('check_age', 'I confirm that I am over 16 years old.', 230, 25))
 
     for element in flatten(elements):
       tab.view().addSubview_(element)
