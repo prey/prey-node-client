@@ -315,17 +315,14 @@ class ConfigDelegate(NSObject):
   def parse_error(self, line):
     if line is None or line == '':
       return 'Unexpected error. Please try again.'
-    elif line.find('been taken') != -1:
-      return 'Email has been taken. Seems you already signed up!'
     elif line.find('Unexpected status code: 401') != -1:
       return 'Invalid account credentials. Please try again.'
 
     return line
 
   def show_error(self, out):
-    lines      = out.strip().split("\n")
-    last_line = lines[len(lines)-1]
-    message   = self.parse_error(last_line)
+    lines      = out.strip()
+    message   = self.parse_error(lines)
     self.show_alert(message)
 
   def show_alert(self, message):
@@ -392,11 +389,13 @@ class ConfigDelegate(NSObject):
     if name == '':
       self.show_alert("Please type in your name.")
       return False
-    if not self.validate_email(email):
+    if email == '':
+      self.show_alert("Please type in your email.")
       return False
-    if not self.validate_password(passwd):
+    if passwd == '':
+      self.show_alert("Please type in your password.")
       return False
-    elif passwd2 is not None and passwd != passwd2:
+    if passwd2 is not None and passwd != passwd2:
       self.show_alert("Please make sure both passwords match.")
       return False
     if terms != 'yes':
@@ -496,13 +495,13 @@ class ConfigDelegate(NSObject):
 
   def drawNewUser(self, tab, name):
     elements = []
-    elements.append(self.drawTextInput('name', 'Your name', 15, 150))
-    elements.append(self.drawTextInput('email', 'Email', 15, 105))
-    elements.append(self.drawPasswordInput('pass', 'Password', 15, 60))
-    elements.append(self.drawCheckbox('check_terms', 'I have read and agree to the                                       and', 335, 70))
-    elements.append(self.drawLink(NSMakeRect(181, 0, 124, 69), 'Terms & Conditions', 'open_terms_url'))
-    elements.append(self.drawLink(NSMakeRect(334, 0, 93, 69), 'Privacy Policy', 'open_privacy_url'))
+    elements.append(self.drawTextInput('name', 'Your name', 15, 155))
+    elements.append(self.drawTextInput('email', 'Email', 15, 110))
+    elements.append(self.drawPasswordInput('pass', 'Password', 15, 65))
+    elements.append(self.drawCheckbox('check_terms', 'I have read and agree to the                                       and', 335, 67))
     elements.append(self.drawCheckbox('check_age', 'I confirm that I am over 16 years old.', 230, 25))
+    elements.append(self.drawLink(NSMakeRect(181, 23, 124, 21), 'Terms & Conditions', 'open_terms_url'))
+    elements.append(self.drawLink(NSMakeRect(334, 23, 93, 21), 'Privacy Policy', 'open_privacy_url'))
 
     for element in flatten(elements):
       tab.view().addSubview_(element)
