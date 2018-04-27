@@ -378,9 +378,11 @@ class ConfigDelegate(NSObject):
     return True
 
   def validate_existing_user_fields(self, email, passwd):
-    if not self.validate_email(email):
+    if email == '':
+      self.show_alert("Please type in your email.")
       return False
-    if not self.validate_password(passwd):
+    if passwd == '':
+      self.show_alert("Please type in your password.")
       return False
 
     return True
