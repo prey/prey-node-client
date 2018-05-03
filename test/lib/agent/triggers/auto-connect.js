@@ -75,8 +75,11 @@ describe('auto connect', function() {
         })
       })
 
-      after(function() {
-        ap_list_stub.restore();
+      after(function(done) {
+        reconnect.delete_profile('Unsecured Wifi', function() {
+          ap_list_stub.restore();
+          done();
+        })
       })
 
       it('not callback error', function(done) {
@@ -259,6 +262,12 @@ describe('auto connect', function() {
       })
 
       describe('when tryes to connect to another ap', function() {
+        after(function(done) {
+          reconnect.delete_profile('Unsecured Wifi', function() {
+            done();
+          })
+        })
+
         it('should keep saved the previous ap attempts', function(done) {
           reconnect.connect_to_access_point(ap_list[1], function() {
             Object.keys(reconnect.attempted_wifi).length.should.be.equal(2);
