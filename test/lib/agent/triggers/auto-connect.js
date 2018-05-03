@@ -288,7 +288,7 @@ describe('auto connect', function() {
       it('returns finished error', function(done) {
         reconnect.try_connecting_to(open_ap_list, function(err) {
           should.exist(err);
-          err.message.should.be.equal('TERMINO');
+          err.message.should.containEql('Connection attempted with all the open access points');
           done();
         })
       })
@@ -296,7 +296,8 @@ describe('auto connect', function() {
 
     describe('when device connects', function() {
       before(function() {
-        reconnect.connected({ ssid: 'Pery', mac_address: 'oa:oa:oa:oa:oa', signal_strength: -51, channel: 1,security: 'WP2' });
+        reconnect.attempted_wifi = {'oa:oa:oa:oa:oa:oa': 1};
+        reconnect.connected({ ssid: 'Pery', mac_address: 'oa:oa:oa:oa:oa:oa', signal_strength: -51, channel: 1,security: 'WP2' });
       })
 
       after(function() {
@@ -310,6 +311,12 @@ describe('auto connect', function() {
           done();
         })
       })
+
+      it('deletes the ap from the attempts list', function(done) {
+        Object.keys(reconnect.attempted_wifi).length.should.be.equal(0);
+        done();
+      })
+
     })
   })
 })
