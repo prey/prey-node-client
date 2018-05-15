@@ -372,7 +372,7 @@ describe('config cli arguments', function() {
           helpers.run_cli(['config', 'account', 'authorize', '--email', 'hola@test.com', '-p', 'abcdef'], function(code, out) {
             code.should.eql(1);
             out.should.containEql('panel.authorize called with opts');
-            out.should.containEql('{"email":"hola@test.com","password":"abcdef"}');
+            out.should.containEql('{"username":"hola@test.com","password":"abcdef"}');
             done()
           })
         })
@@ -381,7 +381,7 @@ describe('config cli arguments', function() {
           helpers.run_cli(['config', 'account', 'authorize', '--api-key', '123123123123'], function(code, out) {
             code.should.eql(1);
             out.should.containEql('panel.authorize called with opts');
-            out.should.containEql('{"email":"123123123123","password":"x"}');
+            out.should.containEql('{"username":"123123123123","password":"x"}');
             done()
           })
         })

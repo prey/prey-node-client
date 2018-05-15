@@ -323,7 +323,7 @@ class ConfigDelegate(NSObject):
   def show_error(self, out):
     lines      = out.strip()
     message   = self.parse_error(lines)
-    self.show_alert(message)
+    self.show_alert(message.decode('utf-8'))
 
   def show_alert(self, message):
    alert = NSAlert.alloc().init()
@@ -414,10 +414,11 @@ class ConfigDelegate(NSObject):
     if check_terms == '1' : terms = 'yes'
     if check_age == '1' : age = 'yes'
 
+    passwd = re.escape(passwd)
     if not self.validate_new_user_fields(name, email, terms, age, passwd):
       return
 
-    self.run_config("signup -n '" + name + "' -e '" + email + "' -p '" + passwd + "' -t '" + terms + "' -a '" + age + "'")
+    self.run_config("signup -n '" + name + "' -e '" + email + "' -p " + passwd + " -t '" + terms + "' -a '" + age + "'")
     if self.code == 1:
       self.show_error(self.out)
     else:
@@ -428,7 +429,9 @@ class ConfigDelegate(NSObject):
     if not self.validate_existing_user_fields(email, passwd):
       return
 
-    self.run_config("authorize --email '" + email + "' --password '" + passwd + "'")
+    passwd = re.escape(passwd)
+    self.run_config("authorize --email '" + email + "' --password " + passwd)
+
     if self.code == 1:
       self.show_error(self.out)
     else:
