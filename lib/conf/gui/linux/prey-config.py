@@ -325,7 +325,7 @@ class PreyConfigurator(object):
 #        self.show_alert('Error', 'Something went wrong while running Prey. Please check the logfile for details.')
     else:
       lines = self.out.strip()
-      message = self.parse_error(last_line)
+      message = self.parse_error(lines)
       self.show_error(message)
 
   def show_error(self, message):
