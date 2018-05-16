@@ -91,10 +91,10 @@ class PreyConfigurator(object):
     return True
 
   def validate_existing_user_fields(self):
-    if self.text('email') == '':
+    if self.text('existing_email') == '':
       self.show_alert(_("Empty email!"), _("Please type in your email."))
       return False
-    if self.text('password') == '':
+    if self.text('existing_password') == '':
       self.show_alert(_("Empty password!"), _("Please type in your password."))
       return False
 
@@ -325,7 +325,7 @@ class PreyConfigurator(object):
 #        self.show_alert('Error', 'Something went wrong while running Prey. Please check the logfile for details.')
     else:
       lines = self.out.strip()
-      message = self.parse_error(last_line)
+      message = self.parse_error(lines)
       self.show_error(message)
 
   def show_error(self, message):
