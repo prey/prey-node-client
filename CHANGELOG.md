@@ -1,5 +1,12 @@
 # Change Log
 
+## [v1.7.5](https://github.com/prey/prey-node-client/tree/v1.7.5) (2018-05-17)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.7.4...v1.7.5)
+
+**Merged pull requests:**
+
+- Sign error notifications [\#362](https://github.com/prey/prey-node-client/pull/364) ([javo](https://github.com/javo))
+
 ## [v1.7.4](https://github.com/prey/prey-node-client/tree/v1.7.4) (2018-04-10)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.7.3...v1.7.4)
 
