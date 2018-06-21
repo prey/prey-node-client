@@ -91,9 +91,11 @@ class PreyConfigurator(object):
     return True
 
   def validate_existing_user_fields(self):
-    if not self.validate_email('existing_email'):
+    if self.text('existing_email') == '':
+      self.show_alert(_("Empty email!"), _("Please type in your email."))
       return False
-    if not self.validate_password('existing_password'):
+    if self.text('existing_password') == '':
+      self.show_alert(_("Empty password!"), _("Please type in your password."))
       return False
 
     return True
@@ -102,9 +104,11 @@ class PreyConfigurator(object):
     if self.text('user_name') == '':
       self.show_alert(_("Empty name!"), _("Please type in your name."))
       return False
-    if not self.validate_email('email'):
+    if self.text('email') == '':
+      self.show_alert(_("Empty email!"), _("Please type in your email."))
       return False
-    if not self.validate_password('password'):
+    if self.text('password') == '':
+      self.show_alert(_("Empty password!"), _("Please type in your password."))
       return False
     elif self.text('password') != self.text('password_confirm'):
       self.show_alert(_("Passwords don't match"), _("Please make sure both passwords match."))
@@ -277,16 +281,17 @@ class PreyConfigurator(object):
     if check_terms == True : terms = 'yes'
     if check_age == True : age = 'yes'
 
-    print(terms)
-    print(age)
+    password = re.escape(password)
 
-    self.call_prey_config('account signup', '-n "' + name + '" -e "' + email + '" -p "' + password + '" -t "' + terms + '" -a "' + age +'"')
+    self.call_prey_config('account signup', '-n "' + name + '" -e "' + email + '" -p ' + password + ' -t "' + terms + '" -a "' + age +'"')
     self.error_or_exit()
 
   def get_existing_user(self, show_devices):
     email    = self.text('existing_email')
     password = self.text('existing_password')
-    self.call_prey_config('account authorize', '-e "' + email + '" -p "' + password + '"')
+    password = re.escape(password)
+
+    self.call_prey_config('account authorize', '-e "' + email + '" -p ' + password)
     self.error_or_exit()
 
   def call_prey_config(self, action, opts):
@@ -319,9 +324,8 @@ class PreyConfigurator(object):
 #      else:
 #        self.show_alert('Error', 'Something went wrong while running Prey. Please check the logfile for details.')
     else:
-      lines = self.out.strip().split("\n")
-      last_line = lines[len(lines)-1]
-      message = self.parse_error(last_line)
+      lines = self.out.strip()
+      message = self.parse_error(lines)
       self.show_error(message)
 
   def show_error(self, message):
