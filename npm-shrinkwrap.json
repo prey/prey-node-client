@@ -259,9 +259,9 @@
       }
     },
     "getset": {
-      "version": "0.6.3",
-      "from": "https://registry.npmjs.org/getset/-/getset-0.6.3.tgz",
-      "resolved": "https://registry.npmjs.org/getset/-/getset-0.6.3.tgz"
+      "version": "0.7.1",
+      "from": "git://github.com/javo/getset.git#0e1a82e851591f34af6c5a7491ce223eefa58a95",
+      "resolved": "git://github.com/javo/getset.git#0e1a82e851591f34af6c5a7491ce223eefa58a95"
     },
     "graceful-fs": {
       "version": "3.0.5",
@@ -342,6 +342,11 @@
           }
         }
       }
+    },
+    "node-jsencrypt": {
+      "version": "1.0.0",
+      "from": "https://registry.npmjs.org/node-jsencrypt/-/node-jsencrypt-1.0.0.tgz",
+      "resolved": "https://registry.npmjs.org/node-jsencrypt/-/node-jsencrypt-1.0.0.tgz"
     },
     "nodemailer": {
       "version": "1.3.0",
