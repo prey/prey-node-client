@@ -2,6 +2,7 @@ var fs            = require('fs'),
     join          = require('path').join,
     basename      = require('path').basename,
     needle        = require('needle'),
+    remove        = require('remover'),
     os            = require('os'),
     sinon         = require('sinon'),
     should        = require('should'),
@@ -483,3 +484,68 @@ describe('package.get_latest', function() {
 */
 
 })
+
+describe('on successful update', function() {
+
+  function delete_older_versions(old_ver, new_ver, versions_path) {
+    package.delete_older_versions(old_ver, new_ver, versions_path);
+  }
+
+  describe('when new version data exists', function() {
+
+    var dirs = ['1.3.5', '1.4.2', '1.4.8', '1.5.0' ];
+    before(function(done) {
+      fs.mkdir(join(tmpdir, 'versions'), function() {
+        dirs.forEach(function(version) {
+          fs.mkdir(join(tmpdir, 'versions', version));
+        })
+        done();
+      })
+    })
+
+    after(function(done) {
+      remove(join(tmpdir, 'versions'), done);
+    })
+
+    it('deletes older versions', function(done) {
+      delete_older_versions('1.4.8', dummy_version, join(tmpdir, 'versions'));
+
+      setTimeout(function() {
+        fs.readdir(join(tmpdir, 'versions'), function(err, versions) {
+          versions.length.should.be.equal(2);
+          versions[0].should.be.equal('1.4.8');
+          versions[1].should.be.equal('1.5.0');
+          done();
+        })
+      }, 20)
+    })
+  })
+
+  describe('when new version data does not exists or does not have version format', function() {
+    var dirs = ['1.3.5', '1.4.2', '1.4.8', '1.5.0' ];
+
+    before(function(done) {
+      fs.mkdir(join(tmpdir, 'versions'), function() {
+        dirs.forEach(function(version) {
+          fs.mkdir(join(tmpdir, 'versions', version));
+        })
+        done();
+      })
+    })
+
+    after(function(done) {
+      remove(join(tmpdir, 'versions'), done);
+    })
+
+    it('does not delete older versions', function(done) {
+      delete_older_versions('1.4.8', 'no-version-format', join(tmpdir, 'versions'));
+
+      setTimeout(function() {
+        fs.readdir(join(tmpdir, 'versions'), function(err, versions) {
+          versions.length.should.be.equal(4);
+          done();
+        })
+      }, 20)
+    })
+  })
+});
