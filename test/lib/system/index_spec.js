@@ -91,10 +91,6 @@ describe('system functions', function() {
     });
   });
 
-  describe('auto_connect()', function() {
-    // implementation pending
-  });
-
   describe('scan_networks()', function() {
 
     it('runs', function(done) {
