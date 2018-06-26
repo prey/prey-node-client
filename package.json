@@ -68,7 +68,8 @@
     "wink": "0.0.1",
     "winssh": "",
     "wmic": "0.0.7",
-    "winattr": "1.1.0"
+    "winattr": "1.1.0",
+    "xml2js": "0.4.19"
   },
   "devDependencies": {
     "mkdirp": "",
@@ -80,8 +81,7 @@
     "send": "",
     "shelljs": "",
     "should": "8.3.1",
-    "sinon": "1.17.2",
-    "winattr": "^1.1.0"
+    "sinon": "1.17.2"
   },
   "main": "./lib/common",
   "bin": {
