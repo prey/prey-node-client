@@ -39,6 +39,7 @@
     "folder": "0.0.4",
     "getset": "^0.7.1",
     "graceful-fs": "^3.0.5",
+    "internet-available": "1.0.0",
     "linus": "0.0.5",
     "memorize": "0.0.1",
     "mime": "https://registry.npmjs.org/mime/-/mime-1.2.5.tgz",
@@ -68,7 +69,8 @@
     "wink": "0.0.1",
     "winssh": "",
     "wmic": "0.0.7",
-    "winattr": "1.1.0"
+    "winattr": "1.1.0",
+    "xml2js": "0.4.19"
   },
   "devDependencies": {
     "mkdirp": "",
@@ -80,8 +82,7 @@
     "send": "",
     "shelljs": "",
     "should": "8.3.1",
-    "sinon": "1.17.2",
-    "winattr": "^1.1.0"
+    "sinon": "1.17.2"
   },
   "main": "./lib/common",
   "bin": {
