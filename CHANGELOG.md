@@ -1,5 +1,23 @@
 # Change Log
 
+## [v1.8.0](https://github.com/prey/prey-node-client/tree/v1.8.0) (2018-06-29)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.7.5...v1.8.0)
+
+**Merged pull requests:**
+
+- SSO Node client [\#341](https://github.com/prey/prey-node-client/pull/341) ([javo](https://github.com/javo))
+- Wipe as admin [\#371](https://github.com/prey/prey-node-client/pull/371) ([javo](https://github.com/javo))
+- Geofencing start event remove [\#372](https://github.com/prey/prey-node-client/pull/372) ([javo](https://github.com/javo))
+- Add device key to exceptions [\#373](https://github.com/prey/prey-node-client/pull/373) ([javo](https://github.com/javo))
+- Delete older prey versions [\#374](https://github.com/prey/prey-node-client/pull/374) ([javo](https://github.com/javo))
+- Unmute alarm fix [\#375](https://github.com/prey/prey-node-client/pull/375) ([javo](https://github.com/javo))
+- Post location only when it changes [\#376](https://github.com/prey/prey-node-client/pull/376) ([javo](https://github.com/javo))
+- Revert windows config changes [\#377](https://github.com/prey/prey-node-client/pull/377) ([javo](https://github.com/javo))
+- Device key fix for exceptions [\#379](https://github.com/prey/prey-node-client/pull/379) ([javo](https://github.com/javo))
+- Conection state fix [\#380](https://github.com/prey/prey-node-client/pull/380) ([javo](https://github.com/javo))
+- Force wifi on and exceptions post fix [\#381](https://github.com/prey/prey-node-client/pull/381) ([javo](https://github.com/javo))
+- Dont send device_client_updated event on empty info [\#382](https://github.com/prey/prey-node-client/pull/382) ([javo](https://github.com/javo))
+
 ## [v1.7.5](https://github.com/prey/prey-node-client/tree/v1.7.5) (2018-05-17)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.7.4...v1.7.5)
 
