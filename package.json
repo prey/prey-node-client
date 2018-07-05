@@ -45,7 +45,7 @@
     "mime": "https://registry.npmjs.org/mime/-/mime-1.2.5.tgz",
     "nat-pmp": "",
     "needle": "^0.8.1",
-    "network": "^0.1.3",
+    "network": "^0.3.3",
     "node-jsencrypt": "1.0.0",
     "nodemailer": "1.3.0",
     "ocelot": "0.0.5",
