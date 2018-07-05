@@ -1,6 +1,6 @@
 # Change Log
 
-## [v1.8.0](https://github.com/prey/prey-node-client/tree/v1.8.0) (2018-07-03)
+## [v1.8.0](https://github.com/prey/prey-node-client/tree/v1.8.0) (2018-07-05)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.7.5...v1.8.0)
 
 **Merged pull requests:**
@@ -18,6 +18,8 @@
 - Force wifi on and exceptions post fix [\#381](https://github.com/prey/prey-node-client/pull/381) ([javo](https://github.com/javo))
 - Dont send device_client_updated event on empty info [\#382](https://github.com/prey/prey-node-client/pull/382) ([javo](https://github.com/javo))
 - Improve check on connection and similar locations [\#384](https://github.com/prey/prey-node-client/pull/384) ([javo](https://github.com/javo))
+- Post request to api as json [\#385](https://github.com/prey/prey-node-client/pull/385) ([javo](https://github.com/javo))
+- Linux ssoa and multiple mac address fix [\#386](https://github.com/prey/prey-node-client/pull/386) ([javo](https://github.com/javo))
 
 ## [v1.7.5](https://github.com/prey/prey-node-client/tree/v1.7.5) (2018-05-17)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.7.4...v1.7.5)
