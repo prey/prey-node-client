@@ -20,6 +20,7 @@
 - Improve check on connection and similar locations [\#384](https://github.com/prey/prey-node-client/pull/384) ([javo](https://github.com/javo))
 - Post request to api as json [\#385](https://github.com/prey/prey-node-client/pull/385) ([javo](https://github.com/javo))
 - Linux ssoa and multiple mac address fix [\#386](https://github.com/prey/prey-node-client/pull/386) ([javo](https://github.com/javo))
+- SSO on invalid keys fix [\#387](https://github.com/prey/prey-node-client/pull/387) ([javo](https://github.com/javo))
 
 ## [v1.7.5](https://github.com/prey/prey-node-client/tree/v1.7.5) (2018-05-17)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.7.4...v1.7.5)
