@@ -331,8 +331,8 @@
     },
     "network": {
       "version": "0.1.3",
-      "from": "https://registry.npmjs.org/network/-/network-0.1.3.tgz",
-      "resolved": "https://registry.npmjs.org/network/-/network-0.1.3.tgz",
+      "from": "git://github.com/javo/network.git#5c1756b60633698ceef891a7ca7a033d2c720c90",
+      "resolved": "git://github.com/javo/network.git#5c1756b60633698ceef891a7ca7a033d2c720c90",
       "dependencies": {
         "needle": {
           "version": "0.7.11",
