@@ -12,13 +12,9 @@ describe('storage', function() {
 
     describe('with empty path', function() {
 
-      before(function(done) {
-        storage.init('commands', '', done);
-      })
-
-      it('callsback an error', function(done) {
-        storage.get('start-alarm', function(err) {
-          should.not.exist(err);
+      it('not callsback an error', function(done) {
+        storage.init('command', '', function(err) {
+          should(storage.store_path).not.be.null;
           done();
         })
       })
