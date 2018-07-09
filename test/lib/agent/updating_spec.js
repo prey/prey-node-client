@@ -67,18 +67,21 @@ describe('updating', function() {
           real_version,
           upstream_version;
 
-      before(function() {
+      before(function(done) {
         real_version = common.version;
         common.version = '1.2.3';
         upstream_version = '1.2.1'; // should not happen, but anyway
 
-        storage.init('versions', tmpdir() + '/version');
         stub = stub_get_stable_version(upstream_version);
+        storage.init('versions', tmpdir() + '/version', done);
       });
 
-      after(function() {
+      after(function(done) {
         common.version = real_version;
         stub.restore();
+        storage.close('versions', function() {
+          storage.erase(tmpdir() + '/version', done);
+        });
       });
 
       it('callsback with no errors', function(done) {
