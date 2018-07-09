@@ -9,7 +9,9 @@ var fs            = require('fs'),
     rmdir         = require('rimraf'),
     buckle        = require('buckle'),
     child_process = require('child_process'),
-    helpers       = require('../helpers');
+    helpers       = require('../helpers'),
+    shared        = require(helpers.lib_path('conf', 'shared')),
+    api           = require(helpers.lib_path('agent', 'plugins', 'control-panel', 'api'));
 
 var package       = require(helpers.lib_path('package'));
 
@@ -148,17 +150,34 @@ describe('package.get_latest', function() {
 
   describe('when a new version is available', function() {
 
-    var stub, new_version = '1.5.0';
+    var stub, device_stub, event_stub, event_data_stub, attempts_stub, shared_keys_stub;
+    var new_version = '1.5.0', old_ver = '1.2.3';
 
     before(function () {
       stub = sinon.stub(package, 'new_version_available', function(branch, current_version, cb) {
         cb(null, new_version);
       })
+      shared_keys_stub = sinon.stub(shared.keys, 'get', function() {
+        var keys = {
+          api    : 'aaaaaaaaaaa',
+          device : 'bbbbbb'
+        };
+        return keys;
+      });
+      event_stub = sinon.stub(api.push, 'event', function(keys, cb) { return cb(); });
+      device_stub = sinon.stub(api.keys, 'verify', function(keys, cb) { return cb(); });
+      attempts_stub = sinon.stub(package, 'update_attempts', function(old_ver, new_version, cb) { return cb(null, new_version); });
+      event_data_stub = sinon.stub(package, 'get_update_data', function(cb) { return true; });
     });
 
     after(function() {
       stub.restore();
-    })
+      device_stub.restore();
+      shared_keys_stub.restore();
+      event_stub.restore();
+      event_data_stub.restore();
+      attempts_stub.restore();
+    });
 
     it('requests the package', function (done) {
       var file_name = get_file_name(new_version),
