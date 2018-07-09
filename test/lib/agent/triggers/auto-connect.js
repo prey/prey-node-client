@@ -39,11 +39,39 @@ var open_ap_list = [ { ssid: 'Prey-test',
                       channel: 1,
                       security: false }];
 
+var da_profiles = [];
+
+
 describe('auto connect', function() {
   before(function(done) {
     reconnect.delete_profile('Prey-test', function() {
       done();
     })
+
+    create_profile = sinon.stub(reconnect, 'create_profile', function(ssid, cb) {
+      if (da_profiles.indexOf(ssid) > -1) return cb(new Error('profile already exists'));
+      da_profiles.push(ssid);
+      return cb(null);
+    });
+
+    delete_profile = sinon.stub(reconnect, 'delete_profile', function(ssid, cb) {
+      var index = da_profiles.indexOf(ssid);
+      if (index > -1) {
+        da_profiles.splice(index, 1);
+      } else return cb(new Error('Nothing to delete'));
+      return cb(null);
+    });
+
+    existing_profiles = sinon.stub(reconnect, 'get_existing_profiles', function(cb) {
+      cb(null, da_profiles);
+    });
+
+  })
+
+  after(function() {
+    create_profile.restore();
+    delete_profile.restore();
+    existing_profiles.restore();
   })
 
   describe('get open ap list', function() {
