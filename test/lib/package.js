@@ -317,14 +317,13 @@ describe('package.get_latest', function() {
             get_latest('1.2.3', dest, function(err, res) {
               should.exist(err);
               err.code.should.match(/(EACCES|EPERM)/);
-              fs.exists(join(dest, new_version), function(exists) {
-                exists.should.be.false;
-                done();
-              })
+              var exists = fs.existsSync(join(dest, new_version))
+              exists.should.be.equal(false);
+              done();
             })
           })
 
-          it('removes downloaded package', function (done) {
+          it('does not removes downloaded package', function (done) {
 
             var file_name = get_file_name(new_version);
             var out       = join(tmpdir, file_name);
@@ -332,10 +331,9 @@ describe('package.get_latest', function() {
             get_latest('1.2.3', dest, function (err) {
               should.exist(err);
               err.code.should.match(/(EACCES|EPERM)/);
-              fs.exists(out, function(exists) {
-                exists.should.be.false;
-                done();
-              })
+              var exists = fs.existsSync(out);
+              exists.should.be.equal(true);
+              done();
             });
           });
 
