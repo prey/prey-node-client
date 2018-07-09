@@ -43,18 +43,14 @@ var da_profiles = [];
 
 
 describe('auto connect', function() {
-  before(function(done) {
-    reconnect.delete_profile('Prey-test', function() {
-      done();
-    })
-
-    create_profile = sinon.stub(reconnect, 'create_profile', function(ssid, cb) {
+  before(function() {
+    create_profile = sinon.stub(os_functions, 'create_profile', function(ssid, cb) {
       if (da_profiles.indexOf(ssid) > -1) return cb(new Error('profile already exists'));
       da_profiles.push(ssid);
       return cb(null);
     });
 
-    delete_profile = sinon.stub(reconnect, 'delete_profile', function(ssid, cb) {
+    delete_profile = sinon.stub(os_functions, 'delete_profile', function(ssid, cb) {
       var index = da_profiles.indexOf(ssid);
       if (index > -1) {
         da_profiles.splice(index, 1);
@@ -62,8 +58,12 @@ describe('auto connect', function() {
       return cb(null);
     });
 
-    existing_profiles = sinon.stub(reconnect, 'get_existing_profiles', function(cb) {
-      cb(null, da_profiles);
+    existing_profiles = sinon.stub(os_functions, 'get_existing_profiles', function(cb) {
+      return cb(null, da_profiles);
+    });
+
+    enable_wifi = sinon.stub(os_functions, 'enable_wifi', function(cb) {
+      return cb();
     });
 
   })
@@ -72,6 +72,7 @@ describe('auto connect', function() {
     create_profile.restore();
     delete_profile.restore();
     existing_profiles.restore();
+    enable_wifi.restore();
   })
 
   describe('get open ap list', function() {
