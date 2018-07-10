@@ -1,12 +1,16 @@
-var join        = require('path').join,
-    should      = require('should'),
-    sinon       = require('sinon'),
-    helpers     = require('../../helpers'),
-    is_windows  = process.platform === 'win32';
+var join       = require('path').join,
+    should     = require('should'),
+    sinon      = require('sinon'),
+    needle     = require('needle'),
+    cp         = require('child_process'),
+    helpers    = require('../../helpers'),
+    sys_index  = helpers.lib_path('system'),
+    index      = require(sys_index),
+    sys_mac    = require(join(sys_index, 'mac')),
+    sys_win    = require(join(sys_index, 'windows')),
+    is_windows = process.platform === 'win32';
 
 describe('system functions', function() {
-
-  var index = require(helpers.lib_path('system'));
 
   describe('get_logged_user()', function() {
 
@@ -27,6 +31,145 @@ describe('system functions', function() {
 
     })
 
+  });
+
+  describe('get_admin_user()', function() {
+    var exec_stub;
+
+    before(function() {
+      exec_stub = sinon.stub(cp, 'exec', function(cmd, cb) {
+        return cb(null, 'GroupMembership: root admin admin2');
+      });
+    });
+
+    after(function() {
+      exec_stub.restore();
+    })
+
+    describe('when the logged user is admin', function() {
+      var logger_user_stub;
+
+      before(function() {
+        logger_user_stub = sinon.stub(sys_mac, 'find_logged_user', function(cb) {
+          return cb(null, 'admin2')
+        })
+      })
+
+      after(function() {
+        logger_user_stub.restore();
+      })
+
+      it('returns the logged user name', function(done) {
+        sys_mac.find_admin_user(function(err, user) {
+          should.not.exist(err);
+          should.exist(user);
+          user.should.not.be.equal('');
+          user.should.be.equal('admin2');
+          done();
+        });
+      });
+
+    })
+
+    describe('when the logged user is not admin', function() {
+      var logger_user_stub;
+
+      before(function() {
+        logger_user_stub = sinon.stub(sys_mac, 'find_logged_user', function(cb) {
+          return cb(null, 'noadmin')
+        })
+      })
+
+      after(function() {
+        logger_user_stub.restore();
+      })
+
+      it('returns the logged user name', function(done){
+        sys_mac.find_admin_user(function(err, user) {
+          should.not.exist(err);
+          should.exist(user);
+          user.should.not.be.equal('');
+          user.should.not.be.equal('noadmin');
+          user.should.be.equal('admin');
+          done();
+        });
+      });
+
+    })
+
+  });
+
+  describe('check_service_availability', function() {
+
+    describe('when is not available', function() {
+      var get_stub;
+      before(function() {
+        get_stub = sinon.stub(needle, 'get', function(host, cb) {
+          cb(new Error('ECONNREFUSED'));
+        })
+      })
+
+      after(function() {
+        get_stub.restore();
+      })
+
+      it ('returns error', function(done) {
+        sys_win.check_service({}, function(err) {
+          should.exist(err);
+          sys_win.monitoring_service_go.should.be.equal(false);
+          done();
+        })
+      })
+
+    })
+
+    describe('when is not available', function() {
+      var spy_get;
+
+      describe('when was available before', function() {
+
+        before(function() {
+          spy_get = sinon.spy(needle, 'get'),
+          sys_win.monitoring_service_go = true;
+        })
+
+        after(function() {
+          spy_get.restore();
+        })
+
+        it ('does not returns error', function(done) {
+          sys_win.check_service({}, function(err) {
+            should.not.exist(err);
+            spy_get.notCalled.should.equal(true);
+            done();
+          })
+        })
+      })
+
+      describe('when was not available before', function() {
+        var get_stub;
+
+        before(function() {
+          sys_win.monitoring_service_go = false;
+          get_stub = sinon.stub(needle, 'get', function(host, cb) {
+            cb(null);
+          });
+        })
+
+        after(function() {
+          get_stub.restore();
+        })
+
+        it ('does not returns error', function(done) {
+          sys_win.check_service({}, function(err) {
+            should.not.exist(err);
+            sys_win.monitoring_service_go.should.be.equal(true);
+            done();
+          })
+        })
+      })
+
+    })
   });
 
   describe('tempfile_path()', function() {
