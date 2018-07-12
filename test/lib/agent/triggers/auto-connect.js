@@ -39,11 +39,40 @@ var open_ap_list = [ { ssid: 'Prey-test',
                       channel: 1,
                       security: false }];
 
+var da_profiles = [];
+
+
 describe('auto connect', function() {
-  before(function(done) {
-    reconnect.delete_profile('Prey-test', function() {
-      done();
-    })
+  before(function() {
+    create_profile = sinon.stub(os_functions, 'create_profile', function(ssid, cb) {
+      if (da_profiles.indexOf(ssid) > -1) return cb(new Error('profile already exists'));
+      da_profiles.push(ssid);
+      return cb(null);
+    });
+
+    delete_profile = sinon.stub(os_functions, 'delete_profile', function(ssid, cb) {
+      var index = da_profiles.indexOf(ssid);
+      if (index > -1) {
+        da_profiles.splice(index, 1);
+      } else return cb(new Error('Nothing to delete'));
+      return cb(null);
+    });
+
+    existing_profiles = sinon.stub(os_functions, 'get_existing_profiles', function(cb) {
+      return cb(null, da_profiles);
+    });
+
+    enable_wifi = sinon.stub(os_functions, 'enable_wifi', function(cb) {
+      return cb();
+    });
+
+  })
+
+  after(function() {
+    create_profile.restore();
+    delete_profile.restore();
+    existing_profiles.restore();
+    enable_wifi.restore();
   })
 
   describe('get open ap list', function() {
@@ -206,21 +235,18 @@ describe('auto connect', function() {
 
   describe('try connect to access point', function() {
 
-    before(function(done) {
-      reconnect.delete_profile('Prey-test', function() {
-        done();
-      })
-    })
-
-    after(function(done) {
-      reconnect.delete_profile('Prey-test', function() {
-        done();
-      })
-    })
-
     describe('when network does not exists', function() {
+      before(function() {
+        connect_to_ap = sinon.stub(os_functions, 'connect_to_ap', function(ssid, cb) {
+          cb(null, 'Could not find network');
+        });
+      })
+
+      after(function() {
+        connect_to_ap.restore();
+      })
+
       it('returns an error output', function(done) {
-        this.timeout(8000); // response may take longer
         reconnect.connect_to_access_point(open_ap_list[0], function(err, out) {
           should.not.exist(err);
           out.should.containEql('Could not find network');
@@ -230,7 +256,7 @@ describe('auto connect', function() {
     })
 
     describe('when theres an attempt to connect to an ap', function() {
-      before(function(){
+      before(function() {
         reconnect.attempted_wifi = {};
         var ssid = 'Prey-test';
         ap_list_stub = sinon.stub(os_functions, 'connect_to_ap', function(ssid, cb) {

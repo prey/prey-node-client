@@ -1,13 +1,15 @@
-var join                = require('path').join,
-    sinon               = require('sinon'),
-    should              = require('should'),
-    child_process       = require('child_process'),
-    needle              = require('needle'),
-    helpers             = require(join('..', '..', 'helpers')),
-    common              = require(helpers.lib_path('common')),
-    system              = require(helpers.lib_path('system')),
-    package             = require(helpers.lib_path('package')),
-    updater             = require(helpers.lib_path('agent', 'updater'));
+var join          = require('path').join,
+    sinon         = require('sinon'),
+    should        = require('should'),
+    child_process = require('child_process'),
+    needle        = require('needle'),
+    tmpdir        = require('os').tmpdir,
+    helpers       = require(join('..', '..', 'helpers')),
+    common        = require(helpers.lib_path('common')),
+    system        = require(helpers.lib_path('system')),
+    package       = require(helpers.lib_path('package')),
+    storage       = require(helpers.lib_path('agent', 'utils', 'storage')),
+    updater       = require(helpers.lib_path('agent', 'updater'));
 
 var versions_path = system.paths.versions;
 
@@ -65,17 +67,21 @@ describe('updating', function() {
           real_version,
           upstream_version;
 
-      before(function() {
+      before(function(done) {
         real_version = common.version;
         common.version = '1.2.3';
         upstream_version = '1.2.1'; // should not happen, but anyway
 
         stub = stub_get_stable_version(upstream_version);
+        storage.init('versions', tmpdir() + '/version', done);
       });
 
-      after(function() {
+      after(function(done) {
         common.version = real_version;
         stub.restore();
+        storage.close('versions', function() {
+          storage.erase(tmpdir() + '/version', done);
+        });
       });
 
       it('callsback with no errors', function(done) {
