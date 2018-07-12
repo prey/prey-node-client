@@ -56,12 +56,16 @@ describe('location', function() {
       describe('and response is not valid', function() {
 
         before(function() {
-          helpers.stub_request('post', null, {}, 'Bad response');
+          helpers.stub_request('post', null, {}, 'Bad response', function(out) {
+            args = out;
+          });
         });
 
         it('returns error', function(done) {
 
           wifi_strat(function(err, data) {
+            should.exist(args.user_agent);
+            args.user_agent.should.containEql('Prey/')
             err.should.be.an.instanceof(Error);
             should.not.exist(data);
             done();
@@ -76,12 +80,15 @@ describe('location', function() {
         describe('and the body is a string', function() {
 
           beforeEach(function() {
-            helpers.stub_request('post', null, { statusCode: 200 }, location_response);
+            helpers.stub_request('post', null, { statusCode: 200 }, location_response, function(out) {
+              args = out;
+            });
           });
-
 
           it('callsback coordinates', function(done) {
             wifi_strat(function(err, data) {
+              should.exist(args.user_agent);
+              args.user_agent.should.containEql('Prey/')
               should.not.exist(err);
               data.should.have.keys(['lat', 'lng', 'accuracy', 'method']);
               done();
@@ -103,12 +110,16 @@ describe('location', function() {
         describe('and the body is an object', function() {
 
           beforeEach(function() {
-            helpers.stub_request('post', null, { statusCode: 200 }, JSON.parse(location_response));
+            helpers.stub_request('post', null, { statusCode: 200 }, JSON.parse(location_response), function(out) {
+              args = out;
+            });
           });
 
 
           it('callsback coordinates', function(done) {
             wifi_strat(function(err, data) {
+              should.exist(args.user_agent);
+              args.user_agent.should.containEql('Prey/')
               should.not.exist(err);
               data.should.have.keys(['lat', 'lng', 'accuracy', 'method']);
               done();
