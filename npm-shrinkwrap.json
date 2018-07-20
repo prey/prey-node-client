@@ -128,6 +128,11 @@
       "from": "https://registry.npmjs.org/commander/-/commander-2.6.0.tgz",
       "resolved": "https://registry.npmjs.org/commander/-/commander-2.6.0.tgz"
     },
+    "compare-versions": {
+      "version": "3.3.0",
+      "from": "https://registry.npmjs.org/compare-versions/-/compare-versions-3.3.0.tgz",
+      "resolved": "https://registry.npmjs.org/compare-versions/-/compare-versions-3.3.0.tgz"
+    },
     "connect": {
       "version": "3.3.4",
       "from": "https://registry.npmjs.org/connect/-/connect-3.3.4.tgz",

@@ -32,6 +32,7 @@
     "clean-exit": "0.0.3",
     "colors": "^0.6.2",
     "commander": "",
+    "compare-versions": "3.3.0",
     "connect": "",
     "dialog": "",
     "entry": "^0.3.6",
