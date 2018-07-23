@@ -279,7 +279,6 @@ describe('installing', function() {
             it('copy the newest service', function(done) {
               run('win32', 'install', '10.0.1', function(err) {
                 err.should.not.exist;
-                console.log(cp_service_2);
                 cp_service_2.should.containEql('wpxsvc.exe');
                 done();
               })
