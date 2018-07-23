@@ -8,7 +8,8 @@ var fs      = require('fs'),
     mkdirp  = require('mkdirp'),
     rimraf  = require('rimraf'),
     sandbox = require('sandboxed-module'),
-    helpers = require('./../../../helpers');
+    helpers = require('./../../../helpers'),
+    system  = require('./../../../../lib/system');
 
 var module_path = helpers.lib_path('conf', 'tasks', 'daemon');
 
@@ -25,7 +26,7 @@ describe('installing', function() {
   // toggable flag that defines whether cp works or not
   var writable = true;
 
-  var run = function(platform, method, cb) {
+  var run = function(platform, method, os_version, cb) {
     var opts = {
       singleOnly: true, // https://github.com/felixge/node-sandboxed-module/issues/36
       requires: {
@@ -43,6 +44,16 @@ describe('installing', function() {
         './../../system/paths': {
            current: current_dir,
            install: install_dir
+        },
+        './../../system': {
+          get_os_version: function(cb) {
+            if (os_version)
+              return cb(null, os_version);
+
+            system.get_os_version(function(err, ver){
+              return cb(err, ver);
+            });
+          }
         }
       },
       globals: {
@@ -86,9 +97,9 @@ describe('installing', function() {
     })
 
     describe('copying service bin', function() {
-
-      var source_bin = path.join(current_dir, 'lib/system/windows/bin/wpxsvc.exe');
-      var bin_path   = path.join(install_dir, 'wpxsvc.exe');
+      var source_bin     = path.join(current_dir, 'lib/system/windows/bin/wpxsvc.exe');
+      var source_bin_old = path.join(current_dir, 'lib/system/windows/bin/wpxsvc_old.exe');
+      var bin_path       = path.join(install_dir, 'wpxsvc.exe');
 
       before(function(done) {
         rimraf(install_dir, function() {
@@ -97,7 +108,9 @@ describe('installing', function() {
           mkdirp(path.dirname(source_bin), function(err) {
             if (err) return done(err);
 
-            fs.writeFile(source_bin, 'source file', done);
+            fs.writeFile(source_bin, 'source file', function() {
+              fs.writeFile(source_bin_old, 'source file old', done);
+            });
           })
         });
       })
@@ -118,7 +131,7 @@ describe('installing', function() {
           })
 
           it('returns an error', function(done) {
-            run('win32', 'install', function(err) {
+            run('win32', 'install', '10.10.2.2', function(err) {
               err.should.exist;
               err.code.should.eql('EACCES');
               done();
@@ -126,7 +139,7 @@ describe('installing', function() {
           })
 
           it('does not copy bin', function(done) {
-            run('win32', 'install', function(err) {
+            run('win32', 'install', '10.10.2.2', function(err) {
               fs.existsSync(bin_path).should.be.false;
               done();
             })
@@ -154,7 +167,7 @@ describe('installing', function() {
           })
 
           it('returns an error', function(done) {
-            run('win32', 'install', function(err) {
+            run('win32', 'install', '10.10.2.2', function(err) {
               err.should.exist;
               err.code.should.match(/EACCES|EPERM/);
 
@@ -204,7 +217,7 @@ describe('installing', function() {
               cb(new Error('satan.ensure_created called'));
             })
 
-            run('win32', 'install', function(err) {
+            run('win32', 'install', null,  function(err) {
               err.should.exist;
               err.message.should.eql('satan.ensure_created called');
               stub.restore();
@@ -222,6 +235,54 @@ describe('installing', function() {
 
           after(function(done) {
             fs.unlink(bin_path, done);
+          })
+
+          describe('if windows version is lower than 6.2', function() {
+            var cp_stub;
+            var cp_service;
+
+            before(function() {
+              cp_stub = sinon.stub(cp, 'cp', function(source, dest, cb) {
+                cp_service = source;
+                cb();
+              })
+            })
+
+            after(function() {
+              cp_stub.restore();
+            })
+
+            it('copy the older service', function(done) {
+              run('win32', 'install', '5.1', function(err) {
+                err.should.not.exist;
+                cp_service.should.containEql('wpxsvc_old.exe');
+                done();
+              })
+            })
+          })
+
+          describe('if windows version is greater than 6.2', function() {
+            var cp_stub_2;
+            var cp_service_2;
+
+            before(function() {
+              cp_stub_2 = sinon.stub(cp, 'cp', function(source, dest, cb) {
+                cp_service_2 = source;
+                cb();
+              })
+            })
+
+            after(function() {
+              cp_stub_2.restore();
+            })
+
+            it('copy the newest service', function(done) {
+              run('win32', 'install', '10.0.1', function(err) {
+                err.should.not.exist;
+                cp_service_2.should.containEql('wpxsvc.exe');
+                done();
+              })
+            })
           })
 
           describe('if copy returns a EBUSY error', function() {
@@ -245,7 +306,7 @@ describe('installing', function() {
                 cb(new Error('satan.ensure_created called'));
               })
 
-              run('win32', 'install', function(err) {
+              run('win32', 'install', null, function(err) {
                 err.should.exist;
                 err.message.should.eql('satan.ensure_created called');
                 stub.restore();
@@ -262,7 +323,7 @@ describe('installing', function() {
                 cb(new Error('satan.ensure_created called'));
               })
 
-              run('win32', 'install', function(err) {
+              run('win32', 'install', null, function(err) {
                 err.should.exist;
                 err.message.should.eql('satan.ensure_created called');
                 stub.restore();
@@ -301,7 +362,7 @@ describe('installing', function() {
       })
 
       it('returns an error', function(done) {
-        run(process.platform, 'install', function(err) {
+        run(process.platform, 'install', null, function(err) {
           err.should.exist;
           err.message.should.eql('Unable to create.');
           done();
@@ -311,7 +372,7 @@ describe('installing', function() {
       it('does not start the bugger', function(done) {
         var start_spy = sinon.spy(satan, 'start');
 
-        run(process.platform, 'install', function(err) {
+        run(process.platform, 'install', null, function(err) {
           start_spy.called.should.be.false;
           start_spy.restore();
           done();
@@ -335,7 +396,7 @@ describe('installing', function() {
           cb(new Error('satan.start called'));
         });
 
-        run(process.platform, 'install', function(err) {
+        run(process.platform, 'install', null, function(err) {
           err.should.exist;
           err.message.should.eql('satan.start called');
           start_stub.restore();
@@ -368,7 +429,7 @@ describe('installing', function() {
       })
 
       it('returns an error', function(done) {
-        run(process.platform, 'install', function(err) {
+        run(process.platform, 'install', null, function(err) {
           err.should.exist;
           err.message.should.eql('Unable to create.');
           done();
@@ -378,7 +439,7 @@ describe('installing', function() {
       it('does not start the bugger', function(done) {
         var start_spy = sinon.spy(satan, 'start');
 
-        run(process.platform, 'install', function(err) {
+        run(process.platform, 'install', null, function(err) {
           start_spy.called.should.be.false;
           start_spy.restore();
           done();
@@ -402,7 +463,7 @@ describe('installing', function() {
           cb(new Error('satan.start called'));
         });
 
-        run(process.platform, 'install', function(err) {
+        run(process.platform, 'install', null, function(err) {
           err.should.exist;
           err.message.should.eql('satan.start called');
           start_stub.restore();
@@ -439,7 +500,7 @@ describe('installing', function() {
       })
 
       it('returns no error', function(done) {
-        run(process.platform, 'install', function(err) {
+        run(process.platform, 'install', null, function(err) {
           should.not.exist(err);
           done();
         })
@@ -460,7 +521,7 @@ describe('installing', function() {
       })
 
       it('returns error', function(done) {
-        run(process.platform, 'install', function(err) {
+        run(process.platform, 'install', null, function(err) {
           err.should.exist;
           err.message.should.eql('Unable to start process.');
           done();
