@@ -1,5 +1,13 @@
 # Change Log
 
+## [v1.8.1](https://github.com/prey/prey-node-client/tree/v1.8.0) (2018-07-24)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.8.0...v1.8.1)
+
+**Merged pull requests:**
+
+- Install fix for older Windows [\#390](https://github.com/prey/prey-node-client/pull/390) ([javo](https://github.com/javo))
+- Revert push as json [\#391](https://github.com/prey/prey-node-client/pull/391) ([javo](https://github.com/javo))
+
 ## [v1.8.0](https://github.com/prey/prey-node-client/tree/v1.8.0) (2018-07-05)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.7.5...v1.8.0)
 
@@ -21,6 +29,7 @@
 - Post request to api as json [\#385](https://github.com/prey/prey-node-client/pull/385) ([javo](https://github.com/javo))
 - Linux ssoa and multiple mac address fix [\#386](https://github.com/prey/prey-node-client/pull/386) ([javo](https://github.com/javo))
 - SSO on invalid keys fix [\#387](https://github.com/prey/prey-node-client/pull/387) ([javo](https://github.com/javo))
+- Travis ci [\#388](https://github.com/prey/prey-node-client/pull/388) ([javo](https://github.com/javo))
 
 ## [v1.7.5](https://github.com/prey/prey-node-client/tree/v1.7.5) (2018-05-17)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.7.4...v1.7.5)
