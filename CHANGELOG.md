@@ -7,6 +7,7 @@
 
 - Install fix for older Windows [\#390](https://github.com/prey/prey-node-client/pull/390) ([javo](https://github.com/javo))
 - Revert push as json [\#391](https://github.com/prey/prey-node-client/pull/391) ([javo](https://github.com/javo))
+- Restore filtered geofencing start event [\#394](https://github.com/prey/prey-node-client/pull/394) ([javo](https://github.com/javo)
 
 ## [v1.8.0](https://github.com/prey/prey-node-client/tree/v1.8.0) (2018-07-05)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.7.5...v1.8.0)
