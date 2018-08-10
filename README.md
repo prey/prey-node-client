@@ -10,6 +10,10 @@ Prey is the most complete anti-theft application! It lets you track and locate y
 
 > Prey is a freemium web service for tracking and monitoring laptops, smartphones and other electronic devices, based on an open-source software agent that connects to a host computer, also referred to as the control panel. The host can signal the agent, prompting it to reply with information about its current location, and can trigger various other actions.
 
+## Installation
+
+Download the [appropiate installer](https://github.com/prey/prey-node-client/releases) from the releases section.
+
 ## Authors
 
 By Tomás Pollak, with the help of the following contributors:
@@ -27,6 +31,7 @@ By Tomás Pollak, with the help of the following contributors:
 
 ## Legal
 
-Copyright © 2011-2018 Prey, Inc.
+Copyright © 2011-2014 Fork, Ltd.
+Copyright © 2014-2018 Prey, Inc.
 Released under the GPLv3 license.
 For full details see the `license.txt` file included in this distribution.
