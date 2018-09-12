@@ -13,20 +13,21 @@ var helpers = require('./../../../helpers'),
     cypher = require(cypher_path);
 
 describe('cypher', () => {
-  var spawn_stub;
-
-  // before(() => {
-  //   spawn_stub = sinon.stub(system, 'spawn_as_logged_user', function(binary, opts, cb) {
-  //     var spawn = cp.spawn();
-  //     return cb(null, spawn);
-  //   });
-  // })
-
-  // after(() => {
-  //   spawn_stub.restore();
-  // })
 
   describe('on encrypt', () => {
+
+    var users_stub;
+    before(() => {
+      var users = 'users_list';
+      users_stub = sinon.stub(providers, 'get', (users, cb) => {
+        return cb(null, ['john', 'charles', 'yeiboss']);
+      });
+    })
+
+    after(() => {
+      users_stub.restore();
+    })
+
 
     describe('when options are invalid', () => {
 
@@ -38,7 +39,6 @@ describe('cypher', () => {
         }
 
         it('rejects with a mode error', (done) => {
-          // commands.perform(command);
           cypher.validateOpts(opts)
           .then(options => {
             done(new Error('Expected method to reject.'));
@@ -60,7 +60,6 @@ describe('cypher', () => {
         }
 
         it('rejects with a path error', (done) => {
-          // commands.perform(command);
           cypher.validateOpts(opts)
           .then(options => {
             done(new Error('Expected method to reject.'));
@@ -78,7 +77,6 @@ describe('cypher', () => {
         var opts = {
           mode: "encrypt",
           cypher_directories: "/Users/john/Desktop/directory"
-          // cypher_user_dirs: true
         }
 
         it('rejects with a path error', (done) => {
@@ -100,7 +98,6 @@ describe('cypher', () => {
 
     describe('when options are valid', () => {
       describe('when the users options is cypher_user_dirs', () => {
-
         var opts = {
           mode: 'encrypt',
           cypher_user_dirs: true,
@@ -112,7 +109,10 @@ describe('cypher', () => {
           .then(options => {
             options.mode.should.equal('encrypt');
             options.dirs.should.be.an.Array;
-            // options.cloud.should.be.equal('Dropbox,Google Drive,OneDrive');
+            options.to_kill.should.be.an.Array;
+            options.to_kill.length.should.be.equal(3);
+            options.to_erase.should.be.an.Array;
+            options.to_erase.length.should.be.equal(options.to_kill.length * 3);
             path.isAbsolute(options.dirs[0]).should.be.true;
             done();
           })
@@ -123,14 +123,36 @@ describe('cypher', () => {
       })
 
       describe('when the users options is cypher_directories', () => {
-        
+
+        var opts = {
+          mode: 'encrypt',
+          cypher_user_dirs: false,
+          cypher_directories: '/Users/john/Dropbox,/Users/yeiboss/Dropbox,/Users/charles/Google Drive,/Users/yeiboss/Google Drive',
+          extensions: ".xls, .xlsx, .doc, .docx, .pdf, .txt, .jpg, .jpeg, .png"
+        }
+  
+        it('returns correponding paths to delete', (done) => {
+          cypher.validateOpts(opts)
+          .then(options => {
+            options.mode.should.equal('encrypt');
+            options.dirs.should.be.an.Array;
+            options.to_kill.should.be.an.Array;
+            options.to_kill.length.should.be.equal(3);
+            options.to_erase.should.be.an.Array;
+            options.to_erase.length.should.be.equal(6);
+            path.isAbsolute(options.dirs[0]).should.be.true;
+            done();
+          })
+          .catch(err => {
+            done(new Error('Expected method to resolved.'));
+          })
+
+        })
+
       })
     })
 
   })
-
-
-
 
   describe('on decrypt', () => {
     var users_stub;
