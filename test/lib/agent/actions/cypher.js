@@ -10,19 +10,7 @@ var helpers = require('./../../../helpers'),
     commands = helpers.load('commands'),
     providers = require(join(lib_path, 'agent','providers')), 
     cypher_path = join(lib_path, 'agent', 'actions', 'cypher'),
-    runner_path = join(lib_path, 'agent', 'actions', 'cypher', 'runner'),
-    cypher = require(cypher_path),
-    runner = require(join(cypher_path, 'runner'));
-
-// var command = {
-//       "command": "start",
-//       "target": "cypher",
-// var options = {
-//   mode: "decrypt",
-//   cypher_directories: "/Users/javo/Desktop/oeoe",
-//   extensions: ".xls, .xlsx, .doc, .docx, .pdf, .txt, .jpg, .jpeg, .png"
-// }
-    // }
+    cypher = require(cypher_path);
 
 describe('cypher', () => {
   var spawn_stub;
@@ -75,7 +63,6 @@ describe('cypher', () => {
           // commands.perform(command);
           cypher.validateOpts(opts)
           .then(options => {
-            console.log("OPTIONS!!", options)
             done(new Error('Expected method to reject.'));
           })
           .catch(err => {
@@ -123,11 +110,9 @@ describe('cypher', () => {
         it('resolves and returns users dirs', (done) => {
           cypher.validateOpts(opts)
           .then(options => {
-            console.log("OPTIONS!!", options)
-
             options.mode.should.equal('encrypt');
             options.dirs.should.be.an.Array;
-            options.cloud.should.be.equal('Dropbox,Google Drive,OneDrive');
+            // options.cloud.should.be.equal('Dropbox,Google Drive,OneDrive');
             path.isAbsolute(options.dirs[0]).should.be.true;
             done();
           })
@@ -179,25 +164,5 @@ describe('cypher', () => {
     })
 
   })
-
-
-
-
-  // var command = {command: 'get', target: 'report', options: {interval: 5, exclude: ['picture']}},
-  // commands.perform(command);
-  
-  
-  // [ '--mode',
-  // 'decrypt',
-  // '--folders',
-  // '/Users/javo/Desktop/oeoe2',
-  // '--extensions',
-  // '.zip,.jpg,.png',
-  // '--pass',
-  // 'mikeql' ]
-
-
-  // var command = {command: 'start', target: 'cypher', options: {'mode': 'encrypt', 'cypher_directories': "/Users/javo/Desktop/oeoe", "extensions": ".xls, .xlsx, .doc, .docx, .pdf, .txt, .jpg, .jpeg, .png"}};
-  // commands.perform(command);
 
 })
