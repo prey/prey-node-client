@@ -66,7 +66,7 @@ describe('cypher', () => {
           })
           .catch(err => {
             err.should.exist;
-            err.message.should.containEql('Invalid or none directories');
+            err.message.should.containEql('No cypher option selected');
             done();
           })
           
@@ -88,10 +88,28 @@ describe('cypher', () => {
             err.should.exist;
             err.message.should.containEql('No files extensions available');
             done();
-          })
-          
+          })   
         })
+      })
 
+      describe('on cypher_directories when the custom paths are not absolute', () => {
+        var opts = {
+          mode: "encrypt",
+          cypher_directories: "Users/john/Desktop/directory,this\\is\\not\\a\\path",
+          extensions: ".xls, .xlsx, .doc, .docx, .pdf, .txt, .jpg, .jpeg, .png"
+        }
+
+        it ('returns error', (done) => {
+          cypher.validateOpts(opts)
+          .then(options => {
+            done(new Error('Expected method to reject.'));
+          })
+          .catch(err => {
+            err.should.exist;
+            err.message.should.containEql('Invalid or none directories');
+            done();
+          }) 
+        })
       })
 
     })
@@ -107,6 +125,7 @@ describe('cypher', () => {
         it('resolves and returns users dirs', (done) => {
           cypher.validateOpts(opts)
           .then(options => {
+            console.log("OPTIONS!", options)
             options.mode.should.equal('encrypt');
             options.dirs.should.be.an.Array;
             options.to_kill.should.be.an.Array;
@@ -127,19 +146,23 @@ describe('cypher', () => {
         var opts = {
           mode: 'encrypt',
           cypher_user_dirs: false,
-          cypher_directories: '/Users/john/Dropbox,/Users/yeiboss/Dropbox,/Users/charles/Google Drive,/Users/yeiboss/Google Drive',
+          cypher_directories: '/Users/john/Dropbox,/Users/yeiboss/Dropbox',
+          // cypher_directories: '/Users/john/Dropbox,/Users/yeiboss/Dropbox,/Users/charles/Google Drive,/Users/yeiboss/Google Drive',
           extensions: ".xls, .xlsx, .doc, .docx, .pdf, .txt, .jpg, .jpeg, .png"
         }
   
         it('returns correponding paths to delete', (done) => {
           cypher.validateOpts(opts)
           .then(options => {
+            console.log("OPTIONS!!", options)
             options.mode.should.equal('encrypt');
             options.dirs.should.be.an.Array;
             options.to_kill.should.be.an.Array;
-            options.to_kill.length.should.be.equal(3);
+            options.to_kill.length.should.be.equal(1);
+            // options.to_kill.length.should.be.equal(3);
             options.to_erase.should.be.an.Array;
-            options.to_erase.length.should.be.equal(6);
+            options.to_erase.length.should.be.equal(2);
+            // options.to_erase.length.should.be.equal(6);
             path.isAbsolute(options.dirs[0]).should.be.true;
             done();
           })
