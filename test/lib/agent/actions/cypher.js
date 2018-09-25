@@ -125,7 +125,6 @@ describe('cypher', () => {
         it('resolves and returns users dirs', (done) => {
           cypher.validateOpts(opts)
           .then(options => {
-            console.log("OPTIONS!", options)
             options.mode.should.equal('encrypt');
             options.dirs.should.be.an.Array;
             options.to_kill.should.be.an.Array;
