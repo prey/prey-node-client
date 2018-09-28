@@ -129,18 +129,19 @@ describe('system functions', function() {
       describe('when was available before', function() {
 
         before(function() {
-          spy_get = sinon.spy(needle, 'get'),
           sys_win.monitoring_service_go = true;
+          get_stub = sinon.stub(needle, 'get', function(host, cb) {
+            cb(null);
+          });
         })
 
         after(function() {
-          spy_get.restore();
+          get_stub.restore();
         })
 
         it ('does not returns error', function(done) {
           sys_win.check_service({}, function(err) {
             should.not.exist(err);
-            spy_get.notCalled.should.equal(true);
             done();
           })
         })

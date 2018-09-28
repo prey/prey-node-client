@@ -1,16 +1,12 @@
-var helpers = require('./../../../helpers'),
-    should = require('should'),
-    sinon = require('sinon'),
-    lib_path = helpers.lib_path(),
-    os   = require('os'),
-    path = require('path')
-    join = path.join,
-    cp = require('child_process'),
-    exec = cp.exec,
-    commands = helpers.load('commands'),
-    providers = require(join(lib_path, 'agent','providers')), 
+var fs          = require('fs'),
+    path        = require('path'),
+    join        = path.join,
+    should      = require('should'),
+    sinon       = require('sinon'),
+    helpers     = require('./../../../helpers'),
+    lib_path    = helpers.lib_path(),
     cypher_path = join(lib_path, 'agent', 'actions', 'cypher'),
-    cypher = require(cypher_path);
+    cypher      = require(cypher_path);
 
 describe('cypher', () => {
 
@@ -19,15 +15,14 @@ describe('cypher', () => {
     var users_stub;
     before(() => {
       var users = 'users_list';
-      users_stub = sinon.stub(providers, 'get', (users, cb) => {
-        return cb(null, ['john', 'charles', 'yeiboss']);
+      users_stub = sinon.stub(fs, 'readdirSync', (users, cb) => {
+        return ['john', 'charles', 'yeiboss'];
       });
     })
 
     after(() => {
       users_stub.restore();
     })
-
 
     describe('when options are invalid', () => {
 
@@ -153,7 +148,6 @@ describe('cypher', () => {
         it('returns correponding paths to delete', (done) => {
           cypher.validateOpts(opts)
           .then(options => {
-            console.log("OPTIONS!!", options)
             options.mode.should.equal('encrypt');
             options.dirs.should.be.an.Array;
             options.to_kill.should.be.an.Array;
@@ -185,8 +179,8 @@ describe('cypher', () => {
 
     before(() => {
       var users = 'users_list';
-      users_stub = sinon.stub(providers, 'get', (users, cb) => {
-        return cb(null, ['john', 'charles', 'yeiboss']);
+      users_stub = sinon.stub(fs, 'readdirSync', (users, cb) => {
+        return ['john', 'charles', 'yeiboss'];
       });
     })
 
