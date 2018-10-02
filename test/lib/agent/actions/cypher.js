@@ -81,7 +81,7 @@ describe('cypher', () => {
           })
           .catch(err => {
             err.should.exist;
-            err.message.should.containEql('No files extensions available');
+            err.message.should.containEql('No files extensions found');
             done();
           })   
         })
@@ -140,8 +140,7 @@ describe('cypher', () => {
         var opts = {
           mode: 'encrypt',
           cypher_user_dirs: false,
-          cypher_directories: '/Users/john/Dropbox,/Users/yeiboss/Dropbox',
-          // cypher_directories: '/Users/john/Dropbox,/Users/yeiboss/Dropbox,/Users/charles/Google Drive,/Users/yeiboss/Google Drive',
+          cypher_directories: '/Users/john/Dropbox,/Users/yeiboss/Dropbox,/Users/charles/Google Drive,/Users/yeiboss/Google Drive',
           extensions: ".xls, .xlsx, .doc, .docx, .pdf, .txt, .jpg, .jpeg, .png"
         }
   
@@ -151,11 +150,9 @@ describe('cypher', () => {
             options.mode.should.equal('encrypt');
             options.dirs.should.be.an.Array;
             options.to_kill.should.be.an.Array;
-            options.to_kill.length.should.be.equal(1);
-            // options.to_kill.length.should.be.equal(3);
+            options.to_kill.length.should.be.equal(3);
             options.to_erase.should.be.an.Array;
-            options.to_erase.length.should.be.equal(2);
-            // options.to_erase.length.should.be.equal(6);
+            options.to_erase.length.should.be.equal(6);
             path.isAbsolute(options.dirs[0]).should.be.true;
             done();
           })
@@ -174,7 +171,8 @@ describe('cypher', () => {
     var users_stub;
 
     var opts = {
-      mode: 'decrypt'
+      mode: 'decrypt',
+      extensions: ".xls, .xlsx, .doc, .docx, .pdf, .txt, .jpg, .jpeg, .png"
     }
 
     before(() => {
