@@ -9,7 +9,7 @@ var should   = require('should'),
     api_path = join(lib_path, 'agent', 'plugins', 'control-panel', 'api');
     api      = require(api_path),
     storage  = require(helpers.lib_path('agent', 'utils', 'storage'));
-    toaster = require(helpers.lib_path('agent', 'utils', 'toaster'));
+    // toaster = require(helpers.lib_path('agent', 'utils', 'toaster'));
 
 var opts = {};
 
@@ -45,14 +45,15 @@ describe('hostame', () => {
       storage.all('keys', function(err, out) {
         Object.keys(out).length.should.eql(0);
         
-        hostname.start(opts, () => {
+        hostname.start(opts, () => {});
+        setTimeout(() => {
           storage.all('keys', (err, out) => {
             should.not.exist(err);
             out['hostname-key'].should.exist
             out['hostname-key'].value.should.be.equal('John PC');
             done();
           })
-        })
+        }, 1000)
       })
     })
 
@@ -92,33 +93,35 @@ describe('hostame', () => {
     describe('And hostname changes', () => {
       var spy_push;
       var exec_stub;
-      var toast_stub;
+      // var toast_stub;
 
       before(() => {
         spy_push = sinon.stub(api.push, 'event', function(keys, cb) { return cb(); });
         exec_stub = sinon.stub(cp, 'exec', (cmd, cb) => {
           return cb(null, 'John PC 2');
         });
-        toast_stub = sinon.stub(toaster, 'notify', () => { return; });
+        // toast_stub = sinon.stub(toaster, 'notify', () => { return; });
       })
 
       after(() => {
         spy_push.restore();
         exec_stub.restore();
-        toast_stub.restore();
+        // toast_stub.restore();
         hostname.stop();
       })
 
       it('sends hostname changed event', (done) => {
-        hostname.start(opts, () => {
-          spy_push.notCalled.should.be.equal(true);
+        hostname.start(opts, () => {})
+        spy_push.notCalled.should.be.equal(true);
+        
+        setTimeout(() => {
           storage.all('keys', (err, out) => {
             should.not.exist(err);
             out['hostname-key'].should.exist
             out['hostname-key'].value.should.be.equal('John PC 2');
             done();
           })  
-        })
+        }, 1000)
       })
     })
   })

@@ -546,9 +546,9 @@
       "resolved": "https://registry.npmjs.org/ocelot/-/ocelot-0.0.5.tgz"
     },
     "os-triggers": {
-      "version": "0.1.1",
-      "from": "https://registry.npmjs.org/os-triggers/-/os-triggers-0.1.1.tgz",
-      "resolved": "https://registry.npmjs.org/os-triggers/-/os-triggers-0.1.1.tgz"
+      "version": "0.1.2",
+      "from": "https://registry.npmjs.org/os-triggers/-/os-triggers-0.1.2.tgz",
+      "resolved": "https://registry.npmjs.org/os-triggers/-/os-triggers-0.1.2.tgz"
     },
     "petit": {
       "version": "0.0.5",
