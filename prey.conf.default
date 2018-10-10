@@ -27,7 +27,7 @@ device_key =
 [control-panel]
 
 # Host to connect to.
-host = panel1.preyhq.com
+host = solid.preyproject.com
 
 # Protocol to use. Either http or https.
 protocol = https
