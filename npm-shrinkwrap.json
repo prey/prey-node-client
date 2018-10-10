@@ -358,11 +358,6 @@
       "from": "https://registry.npmjs.org/node-jsencrypt/-/node-jsencrypt-1.0.0.tgz",
       "resolved": "https://registry.npmjs.org/node-jsencrypt/-/node-jsencrypt-1.0.0.tgz"
     },
-    "node-notifier": {
-      "version": "5.2.1",
-      "from": "https://registry.npmjs.org/node-notifier/-/node-notifier-5.2.1.tgz",
-      "resolved": "https://registry.npmjs.org/node-notifier/-/node-notifier-5.2.1.tgz"
-    },
     "nodemailer": {
       "version": "1.3.0",
       "from": "https://registry.npmjs.org/nodemailer/-/nodemailer-1.3.0.tgz",
