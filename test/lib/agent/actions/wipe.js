@@ -102,20 +102,20 @@ describe('wipe valid types', function() {
 
         describe('and the path is valid', function() {
           before(function() {
-            hash.wipe_directories = '/one/path/to/wipe';
+            hash.wipe_directories = '/Users/one/path/to/wipe';
           });
           after(function() {
             hash.wipe_directories = false;
             wipe.directories = [];
           });
 
-          it('should return documents', function(done) {
+          it('should return directories', function(done) {
             var out = wipe.valid_types(hash);
             out.should.be.Array;
             out.length.should.equal(1);
             out[0].should.equal('directories');
             wipe.directories.length.should.equal(1);
-            wipe.directories[0].should.equal('/one/path/to/wipe');
+            wipe.directories[0].should.equal('/Users/one/path/to/wipe');
             done();
           })
         })
@@ -124,7 +124,7 @@ describe('wipe valid types', function() {
       describe('and there are more than one path', function() {
         describe('and one path is blank', function() {
           before(function() {
-            hash.wipe_directories = '/one/path/to/wipe, ';
+            hash.wipe_directories = '/Users/one/path/to/wipe, ';
           });
           after(function() {
             hash.wipe_directories = false;
@@ -138,7 +138,7 @@ describe('wipe valid types', function() {
             out[0].should.equal('directories');
 
             wipe.directories.length.should.equal(1);
-            wipe.directories[0].should.equal('/one/path/to/wipe');
+            wipe.directories[0].should.equal('/Users/one/path/to/wipe');
             done();
           })
 
@@ -147,7 +147,7 @@ describe('wipe valid types', function() {
         describe('and one path is invalid', function() {
           describe('and one path is blank', function() {
             before(function() {
-              hash.wipe_directories = '/one/path/to/wipe, invalidpath, /another/valid/path';
+              hash.wipe_directories = '/Users/one/path/to/wipe, invalidpath, /Users/another/valid/path';
             });
             after(function() {
               hash.wipe_directories = false;
@@ -160,8 +160,8 @@ describe('wipe valid types', function() {
               out.length.should.equal(1);
               out[0].should.equal('directories');
               wipe.directories.length.should.equal(2);
-              wipe.directories[0].should.equal('/one/path/to/wipe');
-              wipe.directories[1].should.equal('/another/valid/path');
+              wipe.directories[0].should.equal('/Users/one/path/to/wipe');
+              wipe.directories[1].should.equal('/Users/another/valid/path');
               done();
             })
           })
@@ -169,7 +169,7 @@ describe('wipe valid types', function() {
 
         describe('and all paths are valid', function() {
           before(function() {
-            hash.wipe_directories = '/one/path/to/wipe,/another/valid/path,/lastvalid';
+            hash.wipe_directories = '/Users/one/path/to/wipe,/Users/another/valid/path,/Users/lastvalid';
           });
           after(function() {
             hash.wipe_directories = false;
@@ -182,9 +182,9 @@ describe('wipe valid types', function() {
             out.length.should.equal(1);
             out[0].should.equal('directories');
             wipe.directories.length.should.equal(3);
-            wipe.directories[0].should.equal('/one/path/to/wipe');
-            wipe.directories[1].should.equal('/another/valid/path');
-            wipe.directories[2].should.equal('/lastvalid');
+            wipe.directories[0].should.equal('/Users/one/path/to/wipe');
+            wipe.directories[1].should.equal('/Users/another/valid/path');
+            wipe.directories[2].should.equal('/Users/lastvalid');
             done();
           })
         })
@@ -220,7 +220,7 @@ describe('wipe valid types', function() {
     describe('and includes directories', function() {
       describe('and the path is valid', function() {
         before(function() {
-          hash.wipe_directories = '/valid/path';
+          hash.wipe_directories = '/Users/valid/path';
           hash.wipe_passwords = true;
         });
         after(function() {
@@ -235,7 +235,7 @@ describe('wipe valid types', function() {
           out.length.should.equal(2);
           out[0].should.equal('directories');
           out[1].should.equal('passwords');
-          wipe.directories[0].should.equal('/valid/path');
+          wipe.directories[0].should.equal('/Users/valid/path');
           done();
         })
       })

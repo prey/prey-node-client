@@ -540,6 +540,11 @@
       "from": "https://registry.npmjs.org/ocelot/-/ocelot-0.0.5.tgz",
       "resolved": "https://registry.npmjs.org/ocelot/-/ocelot-0.0.5.tgz"
     },
+    "os-triggers": {
+      "version": "0.1.2",
+      "from": "https://registry.npmjs.org/os-triggers/-/os-triggers-0.1.2.tgz",
+      "resolved": "https://registry.npmjs.org/os-triggers/-/os-triggers-0.1.2.tgz"
+    },
     "petit": {
       "version": "0.0.5",
       "from": "git://github.com/javo/petit.git#417e3b59d8460c58f5a2e1f18ce14b042b7c0842",
@@ -797,11 +802,6 @@
       "version": "0.1.1",
       "from": "git://github.com/javo/sudoer.git#8d5619a1acdd7d37fa688a7ea5c041cb5e3cb697",
       "resolved": "git://github.com/javo/sudoer.git#8d5619a1acdd7d37fa688a7ea5c041cb5e3cb697"
-    },
-    "triggers": {
-      "version": "0.3.0",
-      "from": "https://registry.npmjs.org/triggers/-/triggers-0.3.0.tgz",
-      "resolved": "https://registry.npmjs.org/triggers/-/triggers-0.3.0.tgz"
     },
     "tuna": {
       "version": "0.0.2",
