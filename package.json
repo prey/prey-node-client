@@ -40,7 +40,6 @@
     "folder": "0.0.4",
     "getset": "^0.7.1",
     "graceful-fs": "^3.0.5",
-    "internet-available": "1.0.0",
     "linus": "0.0.5",
     "memorize": "0.0.1",
     "mime": "https://registry.npmjs.org/mime/-/mime-1.2.5.tgz",
