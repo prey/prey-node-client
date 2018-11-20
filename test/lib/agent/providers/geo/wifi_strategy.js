@@ -1,7 +1,12 @@
-var helpers = require('./../../../../helpers'),
-    should = require('should'),
-    wifi_strat = helpers.load('providers/geo/strategies').wifi,
+var join        = require('path').join,
+    sinon       = require('sinon'),
+    helpers     = require('./../../../../helpers'),
+    should      = require('should'),
+    wifi_strat  = helpers.load('providers/geo/strategies').wifi,
     location_response = require('../fixtures/wifi_location_response'),
+    lib_path    = helpers.lib_path(),
+    api_path    = join(lib_path, 'agent', 'plugins', 'control-panel', 'api'),
+    keys        = require(join(api_path, 'keys')),
     link_response = require('../fixtures/location_link_response');
 
 describe('location', function() {
@@ -132,6 +137,16 @@ describe('location', function() {
       });
 
       describe('real endpoint', function() {
+
+        before(function() {
+          keys_get_stub = sinon.stub(keys, 'get', function() {
+            return { api: 'aaaaaaaaaa', device: 'bbbbbb' }
+          })
+        });
+
+        after(function() {
+          keys_get_stub.restore();
+        })
 
         it('works', function(done) {
           provider_stub.restore();
