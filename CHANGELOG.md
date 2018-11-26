@@ -1,6 +1,18 @@
 # Change Log
 
-## [v1.8.1](https://github.com/prey/prey-node-client/tree/v1.8.0) (2018-07-24)
+## [v1.8.2](https://github.com/prey/prey-node-client/tree/v1.8.2) (2018-11-22)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.8.1...v1.8.2)
+
+**Merged pull requests:**
+
+- Device renamed event [\#397](https://github.com/prey/prey-node-client/pull/397) ([javo](https://github.com/javo))
+- MacOS Mojave support [\#402](https://github.com/prey/prey-node-client/pull/402) ([javo](https://github.com/javo))
+- Location service proxy and keys on request [\#403](https://github.com/prey/prey-node-client/pull/403) ([javo](https://github.com/javo)
+- Binaries signatures renewal for windows [\#404](https://github.com/prey/prey-node-client/pull/404) ([javo](https://github.com/javo)
+- Connection trigger improvements [\#405](https://github.com/prey/prey-node-client/pull/405) ([javo](https://github.com/javo)
+- Authorize client restart and wipe fixes [\#408](https://github.com/prey/prey-node-client/pull/408) ([javo](https://github.com/javo)
+
+## [v1.8.1](https://github.com/prey/prey-node-client/tree/v1.8.1) (2018-07-24)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.8.0...v1.8.1)
 
 **Merged pull requests:**
