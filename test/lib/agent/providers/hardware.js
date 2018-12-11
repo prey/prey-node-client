@@ -31,8 +31,10 @@ describe('hardware', function(){
           keys = keys.concat(['vendor', 'model']);
 
         var nic = nics[0];
-        nic.should.have.keys(keys);
-        done();
+        keys.forEach((key, index) => {
+          nic.should.have.key(key);
+          if (index == keys.length - 1) done();
+        })
       });
     });
   });
@@ -60,7 +62,7 @@ describe('hardware', function(){
 
       provider.get_processor_info(function(err, obj) {
         should.not.exist(err);
-        obj.should.have.keys(['speed', 'model', 'cores']);
+        obj.should.have.keys('speed', 'model', 'cores');
         done();
       });
 

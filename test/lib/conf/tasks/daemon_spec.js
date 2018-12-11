@@ -70,7 +70,7 @@ describe('installing', function() {
   var satan_create_stub;
 
   var stub_create = function(res) {
-    satan_create_stub = sinon.stub(satan, 'ensure_created', function(opts, cb) {
+    satan_create_stub = sinon.stub(satan, 'ensure_created').callsFake((opts, cb) => {
       return cb(res);
     })
   }
@@ -78,7 +78,7 @@ describe('installing', function() {
   var satan_exists_stub;
 
   var stub_exists = function(bool) {
-    satan_exists_stub = sinon.stub(satan, 'exists', function(key, cb) {
+    satan_exists_stub = sinon.stub(satan, 'exists').callsFake((key, cb) => {
       return cb(null, bool);
     })
   }
@@ -213,7 +213,7 @@ describe('installing', function() {
           })
 
           it('calls satan.ensure_created', function(done) {
-            stub = sinon.stub(satan, 'ensure_created', function(opts, cb) {
+            stub = sinon.stub(satan, 'ensure_created').callsFake((opts, cb) => {
               cb(new Error('satan.ensure_created called'));
             })
 
@@ -242,7 +242,7 @@ describe('installing', function() {
             var cp_service;
 
             before(function() {
-              cp_stub = sinon.stub(cp, 'cp', function(source, dest, cb) {
+              cp_stub = sinon.stub(cp, 'cp').callsFake((source, dest, cb) => {
                 cp_service = source;
                 cb();
               })
@@ -266,7 +266,7 @@ describe('installing', function() {
             var cp_service_2;
 
             before(function() {
-              cp_stub_2 = sinon.stub(cp, 'cp', function(source, dest, cb) {
+              cp_stub_2 = sinon.stub(cp, 'cp').callsFake((source, dest, cb) => {
                 cp_service_2 = source;
                 cb();
               })
@@ -290,7 +290,7 @@ describe('installing', function() {
             var cp_stub;
 
             before(function() {
-              cp_stub = sinon.stub(cp, 'cp', function(source, dest, cb) {
+              cp_stub = sinon.stub(cp, 'cp').callsFake((source, dest, cb) => {
                 var err = new Error('Busy doing something');
                 err.code = 'EBUSY';
                 cb(err);
@@ -302,7 +302,7 @@ describe('installing', function() {
             })
 
             it('continues calls satan.ensure_created', function(done) {
-              stub = sinon.stub(satan, 'ensure_created', function(opts, cb) {
+              stub = sinon.stub(satan, 'ensure_created').callsFake((opts, cb) => {
                 cb(new Error('satan.ensure_created called'));
               })
 
@@ -319,7 +319,7 @@ describe('installing', function() {
           describe('if copy returns no error', function() {
 
             it('calls satan.ensure_created', function(done) {
-              stub = sinon.stub(satan, 'ensure_created', function(opts, cb) {
+              stub = sinon.stub(satan, 'ensure_created').callsFake((opts, cb) => {
                 cb(new Error('satan.ensure_created called'));
               })
 
@@ -392,7 +392,7 @@ describe('installing', function() {
       })
 
       it('starts the little bugger', function(done) {
-        var start_stub = sinon.stub(satan, 'start', function(key, cb) {
+        var start_stub = sinon.stub(satan, 'start').callsFake((key, cb) => {
           cb(new Error('satan.start called'));
         });
 
@@ -459,7 +459,7 @@ describe('installing', function() {
       })
 
       it('starts the little bugger', function(done) {
-        var start_stub = sinon.stub(satan, 'start', function(key, cb) {
+        var start_stub = sinon.stub(satan, 'start').callsFake((key, cb) => {
           cb(new Error('satan.start called'));
         });
 
@@ -490,7 +490,7 @@ describe('installing', function() {
     describe('if able to', function() {
 
       before(function() {
-        start_stub = sinon.stub(satan, 'start', function(key, cb) {
+        start_stub = sinon.stub(satan, 'start').callsFake((key, cb) => {
           cb();
         });
       })
@@ -511,7 +511,7 @@ describe('installing', function() {
     describe('if unable to', function() {
 
       before(function() {
-        start_stub = sinon.stub(satan, 'start', function(key, cb) {
+        start_stub = sinon.stub(satan, 'start').callsFake((key, cb) => {
           cb(new Error('Unable to start process.'));
         });
       })

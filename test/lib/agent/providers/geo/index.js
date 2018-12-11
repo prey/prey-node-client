@@ -18,9 +18,9 @@ describe('geoloc fallback', function() {
 
       ['native', 'wifi', 'geoip'].forEach(function(strat, i) {
         if (cbs_len === 1) {
-          stubs[strat] = sinon.stub(strats, strat, cbs[0]);
+          stubs[strat] = sinon.stub(strats, strat).callsFake(cbs[0]);
         } else if (cbs[i] && typeof cbs[i] === 'function') {
-          stubs[strat] = sinon.stub(strats, strat, cbs[i]);
+          stubs[strat] = sinon.stub(strats, strat).callsFake(cbs[i]);
         }
       });
 

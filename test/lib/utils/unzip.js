@@ -7,7 +7,7 @@ var fs                = require('fs'),
     rmdir             = require('rimraf');
 
 var is_windows        = process.platform === 'win32',
-    tmpdir            = require('os').tmpDir(),
+    tmpdir            = require('os').tmpdir(),
     valid_zip_path    = join(__dirname, '..', '..', 'utils', 'valid_zip_file.zip'),
     invalid_zip_path  = join(tmpdir, '18fpic9501e85c73505139071209e5333fb.zip');
 

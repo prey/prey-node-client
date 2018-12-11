@@ -13,7 +13,7 @@ var get_location_stub,
     };
 
 function stub_get_location(location) {
-  get_location_stub = sinon.stub(geo, 'get_location', function(cb) {
+  get_location_stub = sinon.stub(geo, 'get_location').callsFake(cb => {
     var res = {
       lat: location.lat,
       lng: location.lng,

@@ -14,8 +14,8 @@ describe('check_and_show()', function() {
     var config_stub, device_stub;
 
     before(function() {
-      config_stub = sinon.stub(secure, 'open_config', function() { return true; });
-      device_stub = sinon.stub(shared.keys, 'verify_current', function(cb) {
+      config_stub = sinon.stub(secure, 'open_config').callsFake(() => { return true; });
+      device_stub = sinon.stub(shared.keys, 'verify_current').callsFake(cb => {
         return cb(new Error('API Key not found!'));
       });
     })
@@ -47,9 +47,9 @@ describe('check_and_show()', function() {
         var config_stub, device_stub, shared_keys_stub;
 
         before(function() {
-          config_stub = sinon.stub(secure, 'open_config', function() { return true; });
-          device_stub = sinon.stub(shared.keys, 'verify_current', function(cb) { return cb(null); });
-          shared_keys_stub = sinon.stub(shared.keys, 'get', function() {
+          config_stub = sinon.stub(secure, 'open_config').callsFake(() => { return true; });
+          device_stub = sinon.stub(shared.keys, 'verify_current').callsFake(cb => { return cb(null); });
+          shared_keys_stub = sinon.stub(shared.keys, 'get').callsFake(() => {
             var keys = {
               api    : 'aaaaaaaaaaa',
               device : 'bbbbbb'
@@ -81,9 +81,9 @@ describe('check_and_show()', function() {
         var config_stub, device_stub, shared_keys_stub;
 
         before(function() {
-          config_stub = sinon.stub(secure, 'open_config', function() { return true; });
-          device_stub = sinon.stub(shared.keys, 'verify_current', function(cb) { return cb(null); });
-          shared_keys_stub = sinon.stub(shared.keys, 'get', function() {
+          config_stub = sinon.stub(secure, 'open_config').callsFake(() => { return true; });
+          device_stub = sinon.stub(shared.keys, 'verify_current').callsFake(cb => { return cb(null); });
+          shared_keys_stub = sinon.stub(shared.keys, 'get').callsFake(() => {
             var keys = {
               api    : 'aaaaaaaaaaa',
               device : 'bbbbbb'
@@ -117,8 +117,8 @@ describe('check_and_show()', function() {
       var config_stub, device_stub;
 
       before(function() {
-        config_stub = sinon.stub(secure, 'open_config', function() { return true; });
-        device_stub = sinon.stub(shared.keys, 'verify_current', function(cb) {
+        config_stub = sinon.stub(secure, 'open_config').callsFake(() => { return true; });
+        device_stub = sinon.stub(shared.keys, 'verify_current').callsFake(cb => {
           var error = {
             message: 'Device not found in database. Please reconfigure.',
             code: 'INVALID_DEVICE_KEY'
@@ -153,9 +153,9 @@ describe('check_and_show()', function() {
     var config_stub, device_stub, reset_stub;
 
     before(function() {
-      reset_stub = sinon.stub(secure, 'reset_keys', function(cb) { return cb(null); });
-      config_stub = sinon.stub(secure, 'open_config', function() { return true; });
-      device_stub = sinon.stub(shared.keys, 'verify_current', function(cb) { return cb(null); });
+      reset_stub = sinon.stub(secure, 'reset_keys').callsFake(cb => { return cb(null); });
+      config_stub = sinon.stub(secure, 'open_config').callsFake(() => { return true; });
+      device_stub = sinon.stub(shared.keys, 'verify_current').callsFake(cb => { return cb(null); });
     })
 
     after(function() {

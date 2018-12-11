@@ -21,7 +21,7 @@ describe('updating', function() {
     common.logger.pause();
 
     // ensure the config.get('download_edge') call returns false
-    branch_stub = sinon.stub(common.config, 'get', function(key) {
+    branch_stub = sinon.stub(common.config, 'get').callsFake(key => {
       return false;
     })
   })
@@ -123,7 +123,7 @@ describe('updating', function() {
         var fake_spawn;
 
         before(function() {
-          fake_spawn = sinon.stub(child_process, 'spawn', function(cmd, args, opts) {
+          fake_spawn = sinon.stub(child_process, 'spawn').callsFake((cmd, args, opts) => {
             var child = helpers.fake_spawn_child();
 
             setTimeout(function(){
@@ -165,7 +165,7 @@ describe('updating', function() {
             unreffed = false;
 
         before(function() {
-          fake_spawn = sinon.stub(child_process, 'spawn', function(cmd, args, opts) {
+          fake_spawn = sinon.stub(child_process, 'spawn').callsFake((cmd, args, opts) => {
             var child = helpers.fake_spawn_child();
 
             child.unref = function() {
@@ -180,7 +180,7 @@ describe('updating', function() {
             return child;
           });
 
-          fake_exit = sinon.stub(process, 'exit', function(code) {
+          fake_exit = sinon.stub(process, 'exit').callsFake(code => {
             exit_code = code;
           });
 
@@ -225,7 +225,7 @@ describe('updating', function() {
       }
     };
 
-    return sinon.stub(needle, 'get', fn);
+    return sinon.stub(needle, 'get').callsFake(fn);
   }
 
 });

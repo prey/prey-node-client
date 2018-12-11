@@ -54,10 +54,10 @@ describe('geofencing', function() {
   describe('start', function() {
 
     before(function() {
-      keys_present_stub = sinon.stub(keys, 'present', function() {
+      keys_present_stub = sinon.stub(keys, 'present').callsFake(() => {
         return true;
       })
-      keys_get_stub = sinon.stub(keys, 'get', function() {
+      keys_get_stub = sinon.stub(keys, 'get').callsFake(() => {
         return { api: 'aaaaaaaaaa', device: 'bbbbbb' }
       })
     })
@@ -70,7 +70,7 @@ describe('geofencing', function() {
     describe('when the request does not return the fences', function() {
       before(function() {
         spy_sync = sinon.spy(geofencing, 'sync');
-        get_stub = sinon.stub(request, 'get', function(uri, opts, cb) {
+        get_stub = sinon.stub(request, 'get').callsFake((uri, opts, cb) => {
           return cb(null, []);
         })
       })
@@ -95,10 +95,10 @@ describe('geofencing', function() {
         before(function() {
           spy_sync = sinon.spy(geofencing, 'sync');
           spy_clear = sinon.spy(geo_storage, 'clear_geo');
-          clear_stub = sinon.stub(storage, 'clear', function(type, cb) {
+          clear_stub = sinon.stub(storage, 'clear').callsFake((type, cb) => {
             return cb();
           })
-          get_stub = sinon.stub(request, 'get', function(uri, opts, cb) {
+          get_stub = sinon.stub(request, 'get').callsFake((uri, opts, cb) => {
             return cb(null, {body: []});
           })
         })
@@ -123,10 +123,10 @@ describe('geofencing', function() {
       describe('and theres one or more fences', function() {
         var push_data;
         before(function() {
-          get_stub = sinon.stub(request, 'get', function(uri, opts, cb) {
+          get_stub = sinon.stub(request, 'get').callsFake((uri, opts, cb) => {
             return cb(null, {body: fences});
           });
-          store_stub = sinon.stub(storage, 'set', function(key, opts, cb) {
+          store_stub = sinon.stub(storage, 'set').callsFake((key, opts, cb) => {
             return cb();
           })
         })
@@ -138,13 +138,13 @@ describe('geofencing', function() {
 
         describe('and theres new fences compared with the stored', function() {
           before(function() {
-            push_stub = sinon.stub(push, 'response', function(data, opts, cb) {
+            push_stub = sinon.stub(push, 'response').callsFake((data, opts, cb) => {
               push_data = data
               return true;
             });
 
             spy_sync = sinon.spy(geofencing, 'sync');
-            local_stub = sinon.stub(geo_storage, 'get_geofences', function(cb) {
+            local_stub = sinon.stub(geo_storage, 'get_geofences').callsFake(cb => {
               return cb(null, local_fences)
             });
           })
@@ -173,7 +173,7 @@ describe('geofencing', function() {
           before(function() {
             spy_push = sinon.spy(push, 'response');
             spy_sync = sinon.spy(geofencing, 'sync');
-            local_stub = sinon.stub(geo_storage, 'get_geofences', function(cb) {
+            local_stub = sinon.stub(geo_storage, 'get_geofences').callsFake(cb => {
               return cb(null, local_fences_2)
             });
           })
