@@ -11,12 +11,12 @@ var ap_list = [ { ssid: 'Prey-Guest',
                   signal_strength: -51,
                   channel: 1,
                   security: false },
-                  { ssid: 'Unsecured Wifi',
+                { ssid: 'Unsecured Wifi',
                   mac_address: 'ab:cd:ef:gh:ij:kl',
                   signal_strength: -66,
                   channel: 1,
                   security: false },
-                  { ssid: 'Secured wifi',
+                { ssid: 'Secured wifi',
                   mac_address: '12:34:56:78:ab:cd',
                   signal_strength: -66,
                   channel: 1,
@@ -75,6 +75,16 @@ describe('auto connect', function() {
     enable_wifi.restore();
   })
 
+  describe('get existing profiles', function() {
+    it('not callsback error', function(done) {
+      reconnect.get_existing_profiles(function(err, profiles) {
+        should.not.exist(err);
+        profiles.should.be.an.Array;
+        done();
+      })
+    })
+  })
+
   describe('get open ap list', function() {
 
     describe('on empty list', function() {
@@ -89,7 +99,7 @@ describe('auto connect', function() {
       })
 
       it('callback an error', function(done) {
-        reconnect.get_open_ap_list(function(err, list) {
+        reconnect.get_ap_lists(function(err, list) {
           should.exist(err);
           err.message.should.containEql('No open access points found');
           done();
@@ -111,49 +121,127 @@ describe('auto connect', function() {
         })
       })
 
-      it('not callback error', function(done) {
-        reconnect.get_open_ap_list(function(err, list) {
-          should.not.exist(err);
-          should.exist(list)
-          done();
+      describe('when in the secured list there a profile in the current list', () => {
+        before(() => {
+          profiles_stub = sinon.stub(reconnect, 'get_existing_profiles', function(cb) {
+            cb(null, ['Pery', 'Secured wifi']);
+          })
         })
+
+        after(() => {
+          profiles_stub.restore();
+        })
+
+        describe('the first time', () => {
+          it('waits for the autoconnection to the secured wifi', (done) => {
+            reconnect.get_ap_lists(function(err, list) {
+              should.not.exist(list);
+              should.exist(err);
+              err.message.should.containEql('There is a secured known network');
+              done();
+            })
+          })
+        })
+
+        describe('the second time', () => {
+          it('waits for the autoconnection to the secured wifi', (done) => {
+            reconnect.get_ap_lists(function(err, list) {
+              should.exist(list);
+              should.not.exist(err);
+              done();
+            })
+          })
+        })
+
+        describe('the third time', () => {
+          before(() => {
+            ap_list_stub.restore();
+            profiles_stub.restore();
+
+            var ap_list2 = ap_list
+            ap_list2.push({
+              ssid: 'holi',
+              mac_address: '12:34:56:78:ab:cd',
+              signal_strength: -66,
+              channel: 1,
+              security: 'WP2'
+            })
+
+            ap_list_stub = sinon.stub(network, 'get_access_points_list', function(cb) {
+              cb(null, ap_list2);
+            })
+
+            profiles_stub = sinon.stub(reconnect, 'get_existing_profiles', function(cb) {
+              cb(null, ['Pery', 'Secured wifi', 'holi']);
+            })
+          })
+
+          after(() => {
+            profiles_stub.restore();
+            ap_list_stub.restore();
+          })
+
+          it('waits for the autoconnection to the secured wifi', (done) => {
+            reconnect.get_ap_lists(function(err, list) {
+              should.not.exist(list);
+              should.exist(err);
+              err.message.should.containEql('There is a secured known network');
+              done();
+            })
+          })
+        })
+
       })
 
-      it('returns a list only of open access points', function(done) {
-        reconnect.get_open_ap_list(function(err, list) {
-          list.length.should.be.equal(2);
-          list[0].ssid.should.be.equal('Prey-Guest');
-          list[0].security.should.be.equal(false);
-          list[1].ssid.should.be.equal('Unsecured Wifi');
-          list[1].security.should.be.equal(false);
-          done();
-        })
-      })
-
-      describe('when an access has been attempted 3 times', function() {
-        before(function() {
-          reconnect.attempted_wifi = {'ab:cd:ef:gh:ij:kl': 3}
+      describe('when in the secured list there a profile in the current list', () => {
+        before(() => {
+          profiles_stub = sinon.stub(reconnect, 'get_existing_profiles', function(cb) {
+            cb(null, []);
+          })
+          ap_list_stub = sinon.stub(network, 'get_access_points_list', function(cb) {
+            cb(null, ap_list);
+          })
         })
 
-        it('shouldnt return that ap in the final list', function(done) {
-          reconnect.get_open_ap_list(function(err, list) {
+        after(() => {
+          profiles_stub.restore();
+          ap_list_stub.restore();
+        })
+
+        it('not callback error', function(done) {
+          reconnect.get_ap_lists(function(err, list) {
             should.not.exist(err);
-            should.exist(list);
-            list.length.should.be.equal(1);
-            list[0].ssid.should.be.equal('Prey-Guest');
+            should.exist(list)
             done();
           })
         })
-      })
-    })
-  })
 
-  describe('get existing profiles', function() {
-    it('not callsback error', function(done) {
-      reconnect.get_existing_profiles(function(err, profiles) {
-        should.not.exist(err);
-        profiles.should.be.an.Array;
-        done();
+        it('returns a list only of open access points', function(done) {
+          reconnect.get_ap_lists(function(err, list) {
+            list.length.should.be.equal(2);
+            list[0].ssid.should.be.equal('Prey-Guest');
+            list[0].security.should.be.equal(false);
+            list[1].ssid.should.be.equal('Unsecured Wifi');
+            list[1].security.should.be.equal(false);
+            done();
+          })
+        })
+
+        describe('when an open access has been attempted 3 times', function() {
+          before(function() {
+            reconnect.attempted_wifi = {'ab:cd:ef:gh:ij:kl': 3}
+          })
+
+          it('shouldnt return that ap in the final list', function(done) {
+            reconnect.get_ap_lists(function(err, list) {
+              should.not.exist(err);
+              should.exist(list);
+              list.length.should.be.equal(1);
+              list[0].ssid.should.be.equal('Prey-Guest');
+              done();
+            })
+          })
+        })
       })
     })
   })
