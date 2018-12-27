@@ -89,6 +89,7 @@ describe('auto connect', function() {
 
     describe('on empty list', function() {
       before(function() {
+        reconnect.is_connected(false);
         ap_list_stub = sinon.stub(network, 'get_access_points_list', function(cb) {
           cb(null, close_ap_list);
         })
@@ -132,65 +133,15 @@ describe('auto connect', function() {
           profiles_stub.restore();
         })
 
-        describe('the first time', () => {
-          it('waits for the autoconnection to the secured wifi', (done) => {
-            reconnect.get_ap_lists(function(err, list) {
-              should.not.exist(list);
-              should.exist(err);
-              err.message.should.containEql('There is a secured known network');
-              done();
-            })
+        it('gonna try to connect to the secured wifi first', (done) => {
+          reconnect.get_ap_lists(function(err, list) {
+            should.not.exist(err);
+            should.exist(list);
+            list[0].ssid.should.be.equal('Secured wifi');
+            list[1].ssid.should.be.equal('Prey-Guest');
+            done();
           })
         })
-
-        describe('the second time', () => {
-          it('waits for the autoconnection to the secured wifi', (done) => {
-            reconnect.get_ap_lists(function(err, list) {
-              should.exist(list);
-              should.not.exist(err);
-              done();
-            })
-          })
-        })
-
-        describe('the third time', () => {
-          before(() => {
-            ap_list_stub.restore();
-            profiles_stub.restore();
-
-            var ap_list2 = ap_list
-            ap_list2.push({
-              ssid: 'holi',
-              mac_address: '12:34:56:78:ab:cd',
-              signal_strength: -66,
-              channel: 1,
-              security: 'WP2'
-            })
-
-            ap_list_stub = sinon.stub(network, 'get_access_points_list', function(cb) {
-              cb(null, ap_list2);
-            })
-
-            profiles_stub = sinon.stub(reconnect, 'get_existing_profiles', function(cb) {
-              cb(null, ['Pery', 'Secured wifi', 'holi']);
-            })
-          })
-
-          after(() => {
-            profiles_stub.restore();
-            ap_list_stub.restore();
-          })
-
-          it('waits for the autoconnection to the secured wifi', (done) => {
-            reconnect.get_ap_lists(function(err, list) {
-              should.not.exist(list);
-              should.exist(err);
-              err.message.should.containEql('There is a secured known network');
-              done();
-            })
-          })
-        })
-
       })
 
       describe('when in the secured list there a profile in the current list', () => {
@@ -198,14 +149,10 @@ describe('auto connect', function() {
           profiles_stub = sinon.stub(reconnect, 'get_existing_profiles', function(cb) {
             cb(null, []);
           })
-          ap_list_stub = sinon.stub(network, 'get_access_points_list', function(cb) {
-            cb(null, ap_list);
-          })
         })
 
         after(() => {
           profiles_stub.restore();
-          ap_list_stub.restore();
         })
 
         it('not callback error', function(done) {
@@ -229,7 +176,7 @@ describe('auto connect', function() {
 
         describe('when an open access has been attempted 3 times', function() {
           before(function() {
-            reconnect.attempted_wifi = {'ab:cd:ef:gh:ij:kl': 3}
+            reconnect.attempted_wifi = { 'Unsecured Wifi': 3 }
           })
 
           it('shouldnt return that ap in the final list', function(done) {
@@ -362,7 +309,7 @@ describe('auto connect', function() {
       it('will add the ap to the attempts list', function(done) {
         reconnect.connect_to_access_point(open_ap_list[0], function() {
           Object.keys(reconnect.attempted_wifi).length.should.be.equal(1);
-          reconnect.attempted_wifi[open_ap_list[0].mac_address].should.be.equal(1);
+          reconnect.attempted_wifi[open_ap_list[0].ssid].should.be.equal(1);
           done();
         })
       })
@@ -370,7 +317,7 @@ describe('auto connect', function() {
       it('will increment the attempt number for that ap', function(done) {
         reconnect.connect_to_access_point(open_ap_list[0], function() {
           Object.keys(reconnect.attempted_wifi).length.should.be.equal(1);
-          reconnect.attempted_wifi[open_ap_list[0].mac_address].should.be.equal(2);
+          reconnect.attempted_wifi[open_ap_list[0].ssid].should.be.equal(2);
           done();
         })
       })
@@ -385,8 +332,8 @@ describe('auto connect', function() {
         it('should keep saved the previous ap attempts', function(done) {
           reconnect.connect_to_access_point(ap_list[1], function() {
             Object.keys(reconnect.attempted_wifi).length.should.be.equal(2);
-            reconnect.attempted_wifi[open_ap_list[0].mac_address].should.be.equal(2);
-            reconnect.attempted_wifi[ap_list[1].mac_address].should.be.equal(1);
+            reconnect.attempted_wifi[open_ap_list[0].ssid].should.be.equal(2);
+            reconnect.attempted_wifi[ap_list[1].ssid].should.be.equal(1);
             done();
           })
         })
@@ -419,8 +366,9 @@ describe('auto connect', function() {
 
     describe('when device connects', function() {
       before(function() {
-        reconnect.attempted_wifi = {'oa:oa:oa:oa:oa:oa': 1};
-        reconnect.connected({ ssid: 'Pery', mac_address: 'oa:oa:oa:oa:oa:oa', signal_strength: -51, channel: 1,security: 'WP2' });
+        reconnect.attempted_wifi = {'Pery': 1};
+        reconnect.is_connected(true);
+        reconnect.is_connected_to({ ssid: 'Pery', mac_address: 'oa:oa:oa:oa:oa:oa', signal_strength: -51, channel: 1,security: 'WP2' });
       })
 
       after(function() {
