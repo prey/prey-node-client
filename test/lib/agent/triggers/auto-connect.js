@@ -197,19 +197,19 @@ describe('auto connect', function() {
 
     before(function(done) {
       reconnect.init_profiles = [];
-      reconnect.delete_profile('Prey-test', function() {
+      reconnect.delete_profile(open_ap_list[0], function() {
         done();
       })
     })
 
     after(function(done) {
-      reconnect.delete_profile('Prey-test', function(err) {
+      reconnect.delete_profile(open_ap_list[0], function(err) {
         done();
       })
     })
 
     it('not callsback error', function(done) {
-      reconnect.create_profile('Prey-test', function(err) {
+      reconnect.create_profile(open_ap_list[0], function(err) {
         should.not.exist(err);
         done();
       })
@@ -224,7 +224,7 @@ describe('auto connect', function() {
     })
 
     it('returns errors when profile already exists', function(done){
-      reconnect.create_profile('Prey-test', function(err) {
+      reconnect.create_profile(open_ap_list[0], function(err) {
         should.exist(err);
         err.message.should.containEql('already exists');
         done();
@@ -236,7 +236,7 @@ describe('auto connect', function() {
 
     describe('when profile does not exists', function() {
       it('callbacks an error', function(done) {
-        reconnect.delete_profile('Prey-test', function(err) {
+        reconnect.delete_profile(open_ap_list[0], function(err) {
           should.exist(err);
           err.message.should.containEql('Nothing to delete');
           done();
@@ -246,13 +246,13 @@ describe('auto connect', function() {
 
     describe('when profile exists', function() {
       before(function(done) {
-        reconnect.create_profile('Prey-test', function() {
+        reconnect.create_profile(open_ap_list[0], function() {
           done();
         })
       })
 
       it('not callsback an error', function(done) {
-        reconnect.delete_profile('Prey-test', function(err) {
+        reconnect.delete_profile(open_ap_list[0], function(err) {
           should.not.exist(err);
           done();
         })
@@ -293,7 +293,6 @@ describe('auto connect', function() {
     describe('when theres an attempt to connect to an ap', function() {
       before(function() {
         reconnect.attempted_wifi = {};
-        var ssid = 'Prey-test';
         ap_list_stub = sinon.stub(os_functions, 'connect_to_ap', function(ssid, cb) {
           cb(null, 'not connected!');
         })
@@ -301,7 +300,7 @@ describe('auto connect', function() {
 
       after(function(done) {
         ap_list_stub.restore();
-        reconnect.delete_profile('Prey-test', function() {
+        reconnect.delete_profile(open_ap_list[0], function() {
           done();
         })
       })
@@ -324,7 +323,7 @@ describe('auto connect', function() {
 
       describe('when tryes to connect to another ap', function() {
         after(function(done) {
-          reconnect.delete_profile('Unsecured Wifi', function() {
+          reconnect.delete_profile(ap_list[1], function() {
             done();
           })
         })
@@ -366,7 +365,7 @@ describe('auto connect', function() {
 
     describe('when device connects', function() {
       before(function() {
-        reconnect.attempted_wifi = {'Pery': 1};
+        reconnect.attempted_wifi = { 'Pery': 1 };
         reconnect.is_connected(true);
         reconnect.is_connected_to({ ssid: 'Pery', mac_address: 'oa:oa:oa:oa:oa:oa', signal_strength: -51, channel: 1,security: 'WP2' });
       })
