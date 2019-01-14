@@ -8,7 +8,7 @@ fi
 file="/var/lib/polkit-1/localauthority/50-local.d/10-network-manager.pkla"
 
 askAutorization () {
-  read -p "Prey needs autorization to modify network parameters for the autoconnection feature (y/n)" answer </dev/tty
+  read -p "Prey needs autorization to modify network parameters for the autoconnect feature (this is no mandatory for prey to work) (y/n)" answer </dev/tty
   case ${answer:0:1} in
     y|Y )
       authorized=true
@@ -73,23 +73,52 @@ check () {
   if [ ${ready[2]} == 0 ]; then setResults "ResultActive" "yes"; fi
 }
 
+grant_permissions () {
 # Verify if the files exists
-if [ -f $file ]; then
-  authorized=false
-  ready=(0 0 0)
+  if [ -f $file ]; then
+    authorized=false
+    ready=(0 0 0)
 
-  # Back up information and clear original file
-  cp $file "$file.old"
-  > $file
+    # Back up information and clear original file
+    cp $file "$file.old"
+    > $file
 
-  while read -r line; do
-    processLine $line
-  done < "$file.old"
+    while read -r line; do
+      processLine $line
+    done < "$file.old"
 
-  check
+    check
+    exit
+  else
+    # Create the file
+    su -c `printf "[Grant network permissions to Prey user]\nIdentity=unix-user:prey\nAction=org.freedesktop.NetworkManager.*\nResultAny=yes\nResultInactive=no\nResultActive=yes\n" >  ${file}`
+    exit
+  fi
+}
+
+restore_permissions () {
+  if [ -f $file ] && [ -f "$file.old" ]; then
+    cp "$file.old" $file
+    rm "$file.old"
+    exit
+  elif [ -f $file ]; then
+    rm $file
+    exit
+  else
+    exit
+  fi
+}
+
+if [ -z "$1" ]; then
+  echo 'Grant (--grant) or Restore (--restore) arguments necessary'
   exit
 else
-  # Create the file
-  su -c `printf "[Give Permissions to Prey user]\nIdentity=unix-user:prey\nAction=org.freedesktop.NetworkManager.*\nResultAny=yes\nResultInactive=no\nResultActive=yes\n" >  ${file}`
-  exit
+  if [[ $1 == "--grant" ]] || [[ $1 == "-g" ]]; then
+    grant_permissions
+  elif [[ $1 == "--restore" ]] || [[ $1 == "-r" ]]; then
+    restore_permissions
+  else
+    echo 'Invalid argument'
+    exit
+  fi
 fi
