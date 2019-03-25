@@ -32,6 +32,6 @@ By Tomás Pollak, with the help of the following contributors:
 ## Legal
 
 Copyright © 2011-2014 Fork, Ltd.
-Copyright © 2014-2018 Prey, Inc.
+Copyright © 2014-2019 Prey, Inc.
 Released under the GPLv3 license.
 For full details see the `license.txt` file included in this distribution.
