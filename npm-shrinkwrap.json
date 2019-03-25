@@ -790,8 +790,8 @@
     },
     "sqlite3": {
       "version": "3.1.4",
-      "from": "https://github.com/mapbox/node-sqlite3/tarball/master",
-      "resolved": "https://github.com/mapbox/node-sqlite3/tarball/master"
+      "from": "git://github.com/javo/node-sqlite3.git#fb3937c41704808260ed831692bafb0bbf8c2945",
+      "resolved": "git://github.com/javo/node-sqlite3.git#fb3937c41704808260ed831692bafb0bbf8c2945"
     },
     "sudoer": {
       "version": "0.1.1",
