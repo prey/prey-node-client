@@ -789,9 +789,9 @@
       }
     },
     "sqlite3": {
-      "version": "3.1.4",
-      "from": "git://github.com/javo/node-sqlite3.git#fb3937c41704808260ed831692bafb0bbf8c2945",
-      "resolved": "git://github.com/javo/node-sqlite3.git#fb3937c41704808260ed831692bafb0bbf8c2945"
+      "version": "4.0.4",
+      "from": "https://registry.npmjs.org/sqlite3/-/sqlite3-4.0.4.tgz",
+      "resolved": "https://registry.npmjs.org/sqlite3/-/sqlite3-4.0.4.tgz"
     },
     "sudoer": {
       "version": "0.1.1",
