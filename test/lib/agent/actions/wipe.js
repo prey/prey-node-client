@@ -2,9 +2,7 @@ var helpers = require('./../../../helpers'),
     should = require('should'),
     sinon = require('sinon'),
     lib_path = helpers.lib_path(),
-    os   = require('os'),
     join = require('path').join,
-    exec = require('child_process').exec,
     wipe_path = join(lib_path, 'agent', 'actions', 'wipe'),
     wipe = require(wipe_path),
     wipe_win = require(wipe_path + '/windows');
@@ -21,6 +19,9 @@ var outlook_versions = {
     '2016': '16',
   }
 };
+
+var OUTLOOK_NEW = 15,
+    OUTLOOK_OLD = 10;
 
 var registryPath = {
   outlook_version: join('HKEY_CLASSES_ROOT', 'Outlook.Application', 'CurVEr'),
@@ -273,7 +274,6 @@ describe('in Windows OS', function() {
     wipe_win.registryManager.add.toString().should.containEql('reg add');
     wipe_win.registryManager.delete.toString().should.containEql('reg delete');
     wipe_win.registryManager.killtask.toString().should.containEql('taskkill');
-    wipe_win.registryManager.createProfile.toString().should.containEql('-CreateProfile default');
   })
 
   describe('when running in old Outlook version', function() {
@@ -292,29 +292,36 @@ describe('in Windows OS', function() {
 
   function get_outlook_path(version) {
     if (parseInt(version) >= 15) {
-      return join(registryPath.profileRegistry, 'Office', version + '.0', 'Outlook', 'Profiles');
+      return join('HKEY_USERS', 'User1', 'Software', 'Microsoft', 'Office', `${version}.0`, 'Outlook', 'Profiles');
+    } else if (parseInt(version) < OUTLOOK_NEW && parseInt(version) >= OUTLOOK_OLD) {
+      return join('HKEY_USERS', 'Software', 'Microsoft', 'User1', 'Windows NT', 'CurrentVersion', 'Windows Messaging Subsystem', 'Profiles');
     } else {
-      return join(registryPath.profileRegistry, 'Windows NT', 'CurrentVersion', 'Windows Messaging Subsystem', 'Profiles');
+      return join('HKEY_USERS', 'Software', 'Microsoft', `User1`, 'Windows Messaging Subsystem', 'Profiles');
     }
   }
 
   function test_outlook_version(version_type, version) {
     var stub_path;
+    var stub_registry;
     
     describe(version_type, function() {
       before(function() {
         stub_path = sinon.stub(wipe_win, 'getOutlookVersion', function(cb){
           cb(null, version);
         })
+        stub_registry = sinon.stub(wipe_win.registryManager, 'query', (query, cb) => {
+          return cb(null, '\r\nUser1\r\n')
+        })
       });
 
       after(function() {
+        stub_registry.restore();
         stub_path.restore();
       });
 
       it('returns path', function(done) {
         wipe_win.getProfileRegistry(function(err, out) {
-          out.should.equal(get_outlook_path(version));
+          out[0].should.equal(get_outlook_path(version));
           done();
         });
       });
