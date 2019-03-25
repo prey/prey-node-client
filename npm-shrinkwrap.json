@@ -789,9 +789,9 @@
       }
     },
     "sqlite3": {
-      "version": "3.1.4",
-      "from": "https://github.com/mapbox/node-sqlite3/tarball/master",
-      "resolved": "https://github.com/mapbox/node-sqlite3/tarball/master"
+      "version": "4.0.4",
+      "from": "https://registry.npmjs.org/sqlite3/-/sqlite3-4.0.4.tgz",
+      "resolved": "https://registry.npmjs.org/sqlite3/-/sqlite3-4.0.4.tgz"
     },
     "sudoer": {
       "version": "0.1.1",
