@@ -1,11 +1,12 @@
-var fs                  = require('fs'),
-    join                = require('path').join,
-    should              = require('should'),
-    getset              = require('getset'),
-    is_windows          = process.platform === 'win32',
-    base_dir            = join(__dirname, '..'),
-    package_obj         = JSON.parse(fs.readFileSync(join(base_dir, 'package.json'), 'utf8')),
-    shrinkwrap          = JSON.parse(fs.readFileSync(join(base_dir, 'npm-shrinkwrap.json'), 'utf8'));
+var fs          = require('fs'),
+    join        = require('path').join,
+    should      = require('should'),
+    getset      = require('getset'),
+    _           = require('underscore'),
+    is_windows  = process.platform === 'win32',
+    base_dir    = join(__dirname, '..'),
+    package_obj = JSON.parse(fs.readFileSync(join(base_dir, 'package.json'), 'utf8')),
+    shrinkwrap  = JSON.parse(fs.readFileSync(join(base_dir, 'npm-shrinkwrap.json'), 'utf8'));
 
 function get_deps(obj) {
   return JSON.stringify(Object.keys(obj.dependencies).sort());
@@ -73,8 +74,9 @@ describe('npm-shrinkwrap and package.json', function () {
 
       shrinkwrap_str = get_deps(shrinkwrap);
       package_str = get_deps(package_obj);
+      intersection = _.intersection(JSON.parse(shrinkwrap_str), JSON.parse(package_str))
 
-      shrinkwrap_str.should.equal(package_str);
+      JSON.stringify(intersection).should.equal(package_str);
     });
 
   });

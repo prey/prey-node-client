@@ -20,8 +20,6 @@ describe('lib/agent/cli_spec', function(){
       var fake_config = { present: function() { return false; } };
       var fake_process_on = function(signal, cb){ signals.push(signal); }
 
-      console.log("FAKE!", fake_config,fake_process_on )
-
       result = cli_sandbox.run({
         common:  { config: fake_config },
         process: { on: fake_process_on }
@@ -29,7 +27,6 @@ describe('lib/agent/cli_spec', function(){
     });
 
     it('exits the process with status 1', function(){
-      console.log("RESULT", result)
       result.code.should.equal(1);
     });
 
