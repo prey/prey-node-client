@@ -1,6 +1,11 @@
-var helpers    = require('./../../../helpers'),
-    should     = require('should'),
-    provider   = helpers.load('providers/hardware');
+var join        = require('path').join,
+    helpers     = require('./../../../helpers'),
+    sinon       = require('sinon'),
+    should      = require('should'),
+    lib_path    = helpers.lib_path(),
+    device_keys = require(join(lib_path, 'agent', 'utils', 'keys-storage')),
+    storage     = require(join(lib_path, 'agent', 'utils', 'storage')),
+    provider    = helpers.load('providers/hardware');
 
 describe('hardware', function(){
 
@@ -68,4 +73,224 @@ describe('hardware', function(){
 
   });
 
+  describe('hardware_changes', () => {
+
+    var stored_data = [{
+      processor_info: {
+      model: 'Intel(R) Core(TM) i5 CPU @ 1.80GHz', speed: 1800, cores: 4 },
+      network_interfaces_list: [
+        { name: 'en0', type: 'Wireless', ip_address: '10.10.0.00', mac_address: 'aa:11:1a:ab:ba:ee' },
+        { name: 'en2', type: 'Other', ip_address: null, mac_address: 'dd:77:7a:ab:ba:ff' }
+      ],
+      ram_module_list: [
+        { bank: 'Bank 0/DIMM0:', size: 4096, speed: 1600, vendor: 'Samsung Electronics, Inc.', memory_type: 'DDR3', serial_number: '-' },
+        { bank: 'Bank 1/DIMM0:', size: 4096, speed: 1600, vendor: 'Samsung Electronics, Inc.', memory_type: 'DDR3', serial_number: '-' } ],
+      firmware_info: {
+        device_type: 'Laptop', model_name: 'MacBook Air', vendor_name: 'Apple', bios_vendor: 'Apple', bios_version: '184.0.0.0.0',
+        mb_version: '2.27f2', serial_number: 'XXXXXXXXXXX', uuid: 'XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX'
+      }
+    }]
+
+    var dummy_data1 = {
+      processor_info: {
+      model: 'Intel(R) Core(TM) i5 CPU @ 1.80GHz', speed: 1800, cores: 4 },
+      network_interfaces_list: [
+        { name: 'en2', type: 'Other', ip_address: null, mac_address: 'dd:77:7a:ab:ba:ff' },
+        { name: 'en0', type: 'Wireless', ip_address: '10.10.0.00', mac_address: 'aa:11:1a:ab:ba:ee' }
+      ],
+      ram_module_list: [
+        { bank: 'Bank 1/DIMM0:', size: 4096, speed: 1600, vendor: 'Samsung Electronics, Inc.', memory_type: 'DDR3', serial_number: '-' },
+        { bank: 'Bank 0/DIMM0:', size: 4096, speed: 1600, vendor: 'Samsung Electronics, Inc.', memory_type: 'DDR3', serial_number: '-' }],
+      firmware_info: {
+        device_type: 'Laptop', model_name: 'MacBook Air', vendor_name: 'Apple', bios_vendor: 'Apple', bios_version: '184.0.0.0.0',
+        mb_version: '2.27f2', serial_number: 'XXXXXXXXXXX', uuid: 'XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX'
+      }
+    }
+
+    var dummy_data = {
+      processor_info: {
+      model: 'Intel(R) Core(TM) i5 CPU @ 1.80GHz', speed: 1800, cores: 4 },
+      network_interfaces_list: [
+        { name: 'en0', type: 'Wireless', ip_address: '10.10.0.00', mac_address: 'aa:11:1a:ab:ba:ee' },
+        { name: 'en2', type: 'Other', ip_address: null, mac_address: 'dd:77:7a:ab:ba:ff' },
+        { name: 'en1', type: 'Another', ip_address: null, mac_address: 'aa:bb:cc::dd:ee:ff' },
+      ],
+      ram_module_list: [
+        { bank: 'Bank 0/DIMM0:', size: 4096, speed: 1600, vendor: 'Samsung Electronics, Inc.', memory_type: 'DDR3', serial_number: '-' },
+        { bank: 'Bank 1/DIMM0:', size: 4096, speed: 1600, vendor: 'Samsung Electronics, Inc.', memory_type: 'DDR3', serial_number: '-' } ],
+      firmware_info: {
+        device_type: 'Laptop', model_name: 'MacBook Air', vendor_name: 'Apple', bios_vendor: 'Apple', bios_version: '184.0.0.0.0',
+        mb_version: '2.27f2', serial_number: 'XXXXXXXXXXX', uuid: 'XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX'
+      }
+    }
+
+    var dummy_data2 = {
+      processor_info: {
+      model: 'Intel(R) Core(TM) i5 CPU @ 1.80GHz', speed: 1800, cores: 4 },
+      network_interfaces_list: [
+        { name: 'en0', type: 'Wireless', ip_address: '10.10.0.00', mac_address: 'aa:11:1a:ab:ba:ee' }
+      ],
+      ram_module_list: [
+        { bank: 'Bank 0/DIMM0:', size: 4096, speed: 1600, vendor: 'Samsung Electronics, Inc.', memory_type: 'DDR3', serial_number: '-' },
+        { bank: 'Bank 1/DIMM0:', size: 4096, speed: 1600, vendor: 'Samsung Electronics, Inc.', memory_type: 'DDR3', serial_number: '-' } ],
+      firmware_info: {
+        device_type: 'Laptop', model_name: 'MacBook Air', vendor_name: 'Apple', bios_vendor: 'Apple', bios_version: '184.0.0.0.0',
+        mb_version: '2.27f2', serial_number: 'XXXXXXXXXXX', uuid: 'XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX'
+      }
+    }
+
+    var dummy_data3 = {
+      processor_info: {
+      model: 'Intel(R) Core(TM) i5 CPU @ 1.80GHz', speed: 1800, cores: 4 },
+      network_interfaces_list: [
+        { name: 'en0', type: 'Wireless', ip_address: '10.10.0.00', mac_address: 'aa:11:1a:ab:ba:ee' },
+        { name: 'en2', type: 'No Other', ip_address: null, mac_address: 'dd:77:7a:ab:ba:ff' }
+      ],
+      ram_module_list: [
+        { bank: 'Bank 0/DIMM0:', size: 4096, speed: 1600, vendor: 'Samsung Electronics, Inc.', memory_type: 'DDR3', serial_number: '-' },
+        { bank: 'Bank 1/DIMM0:', size: 4096, speed: 1600, vendor: 'Samsung Electronics, Inc.', memory_type: 'DDR3', serial_number: '-' } ],
+      firmware_info: {
+        device_type: 'Laptop', model_name: 'MacBook Air', vendor_name: 'Apple', bios_vendor: 'Apple', bios_version: '184.0.0.0.0',
+        mb_version: '2.27f2', serial_number: 'YYYYYYYYYYYY', uuid: 'XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX'
+      }
+    }
+
+    describe('when doesnt exists stored hardware', () => {
+      var storage_stub,
+          stored_stub,
+          spy_del,
+          spy_store;
+
+      before(() => {
+        storage_stub = sinon.stub(storage, 'set', (key, data, cb) => { return cb(null); })
+        spy_store = sinon.spy(device_keys, 'store');
+        spy_del = sinon.spy(device_keys, 'del');
+        stored_stub = sinon.stub(device_keys, 'exist', (field, cb) => { return cb(null, null); })
+      })
+
+      after(() => {
+        storage_stub.restore();
+        spy_del.restore();
+        stored_stub.restore();
+        spy_store.restore();
+      })
+
+      it('stores the data', (done) => {
+        provider.track_hardware_changes(dummy_data1);
+        spy_store.calledOnce.should.be.true;
+        spy_del.notCalled.should.be.true;
+        done();
+      })
+    })
+
+    describe('when exists stored hardware', () => {
+      var storage_stub,
+          stored_stub,
+          spy_del,
+          spy_store;
+
+      describe('and the data is the same', () => {
+
+        before(() => {
+          storage_stub = sinon.stub(storage, 'set', (key, data, cb) => { return cb(null); })
+          spy_store = sinon.spy(device_keys, 'store');
+          spy_del = sinon.spy(device_keys, 'del');
+          stored_stub = sinon.stub(device_keys, 'exist', (field, cb) => {return cb(null, stored_data)})
+        })
+
+        after(() => {
+          storage_stub.restore();
+          spy_store.restore();
+          spy_del.restore();
+          stored_stub.restore();
+        })
+
+        it('shouldnt edit the local database', (done) => {
+          provider.track_hardware_changes(stored_data[0]);
+          spy_store.notCalled.should.be.true;
+          spy_del.notCalled.should.be.true;
+          done();
+        })
+
+      });
+
+
+      describe('and the data is different', () => {
+        var storage_stub,
+          stored_stub,
+          spy_del,
+          spy_store;
+
+        describe('when theres a new field', () => {
+          before(() => {
+            storage_stub = sinon.stub(storage, 'set', (key, data, cb) => { return cb(null); })
+            spy_store = sinon.spy(device_keys, 'store');
+            spy_del = sinon.spy(device_keys, 'del');
+            stored_stub = sinon.stub(device_keys, 'exist', (field, cb) => {return cb(null, stored_data)})
+          })
+
+          after(() => {
+            storage_stub.restore();
+            spy_store.restore();
+            spy_del.restore();
+            stored_stub.restore();
+          })
+
+          it('replace the stored data', (done) => {
+            provider.track_hardware_changes(dummy_data);
+            spy_store.calledOnce.should.be.true;
+            spy_del.calledOnce.should.be.true;
+            done();
+          })
+        })
+
+        describe('when a field is missing', () => {
+          before(() => {
+            storage_stub = sinon.stub(storage, 'set', (key, data, cb) => { return cb(null); })
+            spy_store = sinon.spy(device_keys, 'store');
+            spy_del = sinon.spy(device_keys, 'del');
+            stored_stub = sinon.stub(device_keys, 'exist', (field, cb) => {return cb(null, stored_data)})
+          })
+
+          after(() => {
+            storage_stub.restore();
+            spy_store.restore();
+            spy_del.restore();
+            stored_stub.restore();
+          })
+
+          it('replace the stored data', (done) => {
+            provider.track_hardware_changes(dummy_data2);
+            spy_store.calledOnce.should.be.true;
+            spy_del.calledOnce.should.be.true;
+            done();
+          })
+        })
+
+        describe('when a field changed', () => {
+          before(() => {
+            storage_stub = sinon.stub(storage, 'set', (key, data, cb) => { return cb(null); })
+            spy_store = sinon.spy(device_keys, 'store');
+            spy_del = sinon.spy(device_keys, 'del');
+            stored_stub = sinon.stub(device_keys, 'exist', (field, cb) => {return cb(null, stored_data)})
+          })
+
+          after(() => {
+            storage_stub.restore();
+            spy_store.restore();
+            spy_del.restore();
+            stored_stub.restore();
+          })
+
+          it('replace the stored data', (done) => {
+            provider.track_hardware_changes(dummy_data3);
+            spy_store.calledOnce.should.be.true;
+            spy_del.calledOnce.should.be.true;
+            done();
+          })
+        })
+
+      })
+    })
+  })
 });
