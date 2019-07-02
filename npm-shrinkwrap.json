@@ -353,6 +353,11 @@
       "from": "https://registry.npmjs.org/node-jsencrypt/-/node-jsencrypt-1.0.0.tgz",
       "resolved": "https://registry.npmjs.org/node-jsencrypt/-/node-jsencrypt-1.0.0.tgz"
     },
+    "node-schedule": {
+      "version": "1.3.2",
+      "from": "https://registry.npmjs.org/node-schedule/-/node-jsencrypt-1.3.2.tgz",
+      "resolved": "https://registry.npmjs.org/node-schedule/-/node-jsencrypt-1.3.2.tgz"
+    },
     "nodemailer": {
       "version": "1.3.0",
       "from": "https://registry.npmjs.org/nodemailer/-/nodemailer-1.3.0.tgz",
