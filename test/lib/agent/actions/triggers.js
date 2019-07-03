@@ -1,25 +1,22 @@
-var helpers     = require('./../../../helpers'),
-    tmpdir      = require('os').tmpdir,
-    should      = require('should'),
-    sinon       = require('sinon'),
-    join        = require('path').join,
-    hooks       = helpers.load('hooks');
-    lib_path    = helpers.lib_path(),
-    triggers_path = join(lib_path, 'agent', 'actions', 'triggers'),
-    commands_path = join(lib_path, 'agent', 'commands'),
-    actions_path  = join(lib_path, 'agent', 'actions'),
-    api_path    = join(lib_path, 'agent', 'plugins', 'control-panel', 'api');
-    triggers    = require(triggers_path),
-    api = require(api_path);
-    request     = require(join(api_path, 'request')),
-    push        = require(join(api_path, 'push')),
-    keys        = require(join(api_path, 'keys')),
-    commands    = require(commands_path),
-    actions     = require(actions_path),
+var helpers          = require('./../../../helpers'),
+    tmpdir           = require('os').tmpdir,
+    should           = require('should'),
+    sinon            = require('sinon'),
+    join             = require('path').join,
+    hooks            = helpers.load('hooks');
+    lib_path         = helpers.lib_path(),
+    triggers_path    = join(lib_path, 'agent', 'actions', 'triggers'),
+    triggers         = require(triggers_path),
+    api_path         = join(lib_path, 'agent', 'plugins', 'control-panel', 'api');
+    api              = require(api_path);
+    request          = require(join(api_path, 'request')),
+    push             = require(join(api_path, 'push')),
+    keys             = require(join(api_path, 'keys')),
+    commands         = require(join(lib_path, 'agent', 'commands')),
+    actions          = require(join(lib_path, 'agent', 'actions')),
     triggers_storage = require(join(triggers_path, 'storage')),
-    storage = require(join(lib_path, 'agent', 'utils', 'storage'));
-
-var dummy = require('./fixtures/triggers_responses');
+    storage          = require(join(lib_path, 'agent', 'utils', 'storage')),
+    dummy            = require('./fixtures/triggers_responses');
 
 describe('triggers', () => {
   var keys_present_stub,
@@ -71,7 +68,6 @@ describe('triggers', () => {
           spy_sync = sinon.spy(triggers, 'sync');
           spy_get_local = sinon.spy(triggers_storage, 'get_triggers');
           triggers.start({}, done)
-          // setTimeout(done, 200);
         })
   
         after(() => {
@@ -95,8 +91,7 @@ describe('triggers', () => {
             spy_sync = sinon.spy(triggers, 'sync');
             spy_get_local = sinon.spy(triggers_storage, 'get_triggers');
             spy_clear_local = sinon.spy(triggers_storage, 'clear_triggers');
-            triggers.start({}, done);
-            // setTimeout(done, 200);
+            setTimeout(() => { triggers.start({}, done) }, 500)
           })
 
           after(() => {
@@ -119,7 +114,6 @@ describe('triggers', () => {
             triggers_storage.store(dummy.exact_triggers[0], () => {
               triggers_storage.store(dummy.repeat_triggers[0], () => {
                 triggers.start({}, done);
-                // setTimeout(done, 200);
               });
             })
           })
@@ -153,7 +147,6 @@ describe('triggers', () => {
           get_stub = sinon.stub(request, 'get', (uri, opts, cb) => { return cb(null, {body: []}); })
           triggers_storage.store(dummy.exact_triggers[0], () => {
             triggers.start({}, done);
-            // setTimeout(done, 200);
           });
         })
 
@@ -172,32 +165,17 @@ describe('triggers', () => {
 
       describe('and has one or more trigger', () => {
 
-        /*
-        it('stores the triggers in the local database', (done) => {
-          // storage.get('trigger-105', function(err, res) {
-          storage.all('triggers', (err, obj) => {
-            console.log("RES WEA!!!!!", obj)
-
-          // storage.get('trigger-105', function(err, res) {
-            should.not.exist(err);
-            obj['trigger-105'].name.should.eql('trigger 105')
-            // res[0].name.should.eql('trigger 105');
-            
-            done();
-          })
-        })
-        */
-
-
         describe('and it has exact_time triggers', () => {
           var clock;
-          //1564081445000
           before((done) => {
             get_stub = sinon.stub(request, 'get', (uri, opts, cb) => { return cb(null, { body: dummy.exact_triggers }); })
             spy_sync = sinon.spy(triggers, 'sync');
             spy_perform = sinon.spy(commands, 'perform');
-            clock = sinon.useFakeTimers(1564081445000);
-            triggers.start({}, done)
+            date = new Date(),
+            year = date.getFullYear() + 1,   // Always next year
+            new_date = new Date(year, 6, 25, 15, 04, 05),
+            setTimeout(() => { triggers.start({}, done) }, 500)
+            clock = sinon.useFakeTimers(new_date.getTime());
           })
 
           after(() => {
@@ -232,8 +210,8 @@ describe('triggers', () => {
             spy_sync = sinon.spy(triggers, 'sync');
             spy_perform = sinon.spy(commands, 'perform');
             test_time = 1560795900000;
+            setTimeout(() => { triggers.start({}, done) }, 500)
             clock = sinon.useFakeTimers(test_time);
-            triggers.start({}, done)
           })
 
           after(() => {
@@ -267,8 +245,8 @@ describe('triggers', () => {
             get_stub = sinon.stub(request, 'get', (uri, opts, cb) => { return cb(null, { body: dummy.event_triggers }); })
             spy_sync = sinon.spy(triggers, 'sync');
             spy_perform = sinon.spy(commands, 'perform');
+            setTimeout(() => { triggers.start({}, done) }, 500)
             clock = sinon.useFakeTimers(1561381200000);     // Monday 24/06/2019 13:00:00
-            triggers.start({}, done)
           })
 
           after(() => {
@@ -278,7 +256,6 @@ describe('triggers', () => {
             clock.restore();
           })
 
-          
           it('execute the actions when the event is triggered and not into the range', (done) => {
             hooks.trigger('new_location');
             hooks.trigger('disconnected');
@@ -296,7 +273,6 @@ describe('triggers', () => {
             spy_perform.getCall(2).args[0].target.should.be.equal('alert');
             spy_perform.getCall(3).args[0].target.should.be.equal('alarm');
             spy_perform.callCount.should.be.equal(4);
-            
             done();
           });
 
@@ -307,12 +283,11 @@ describe('triggers', () => {
             clock.tick(500)
             spy_perform.getCall(4).args[0].target.should.be.equal('alarm');
             spy_perform.getCall(5).args[0].target.should.be.equal('lock');
-            spy_perform.callCount.should.be.equal(6);
-            
+            spy_perform.callCount.should.be.equal(6); 
             done();
           });
 
-          it('doesnt activate a trigger event not known by the client', (done) => {
+          it('doesnt activate an unknown trigger event', (done) => {
             hooks.trigger('power_changed');
             spy_perform.callCount.should.be.equal(6);
             done();
@@ -325,10 +300,6 @@ describe('triggers', () => {
               done();
             })
           })
-        })
-
-        describe('and it has all type of triggers', () => {
-
         })
 
       })

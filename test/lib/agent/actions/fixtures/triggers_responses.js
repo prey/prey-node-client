@@ -6,7 +6,7 @@ var exact_triggers = [
       {
         "type": "exact_time",
         "info": {
-          "date" : "20190725150406"   // CREAR FUNCION PARA GENERAR FECHAS SIEMPRE EN EL FUTURO
+          "date": "" + (new Date().getFullYear() +1) + "0725150406"     // "20200725150406" Always next year
         }
       }
     ],
@@ -41,7 +41,7 @@ var exact_triggers = [
       {
         "type": "exact_time",
         "info": {
-          "date" : "2019-07-25T15:04:07Z-04:00"    // ACA TB
+          "date": "" + (new Date().getFullYear()+1) + "-07-25T15:04:07Z-04:00" // "2020-07-25T15:04:07Z-04:00"
         }
       }
     ],
@@ -146,8 +146,8 @@ var event_triggers = [
         "type":"repeat_range_time", 
         "info": {
           "days_of_week": [6, 0],    // Saturday and Sunday
-          "hour_from": "080000",
-          "hour_until": "165959",
+          "hour_from": "090000",
+          "hour_until": "090159",
           "until":null
         }
       }
@@ -237,9 +237,4 @@ var event_triggers = [
 
 ]
 
-var mixed_triggers = [];
-
-var empty_triggers = [];
-
-
-module.exports = {exact_triggers, repeat_triggers, event_triggers, mixed_triggers, empty_triggers};
+module.exports = {exact_triggers, repeat_triggers, event_triggers};
