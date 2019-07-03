@@ -63,13 +63,13 @@ helpers.fake_spawn_child = function() {
 
 // TODO @lemavri DRY stub creation
 
-helpers.stub_request = function(type, err, resp, body, callback){
-  var args,
+helpers.stub_request = function(type, err, resp, body, callback) {
+  var args2,
       cb,
-      stub = sinon.stub(needle, type, function() {
-        cb = helpers.callback_from_args(arguments);
-        args = arguments['2'];
-        if (callback) callback(args);
+      stub = sinon.stub(needle, type).callsFake((...args) => {
+        cb = helpers.callback_from_args(args);
+        args2 = args[2];
+        if (callback) callback(args2);
         cb(err, resp, body);
         stub.restore();
       });
@@ -80,8 +80,8 @@ helpers.stub_request = function(type, err, resp, body, callback){
 
 helpers.stub_provider = function(name, err, return_value) {
   var cb,
-      stub = sinon.stub(providers, 'get', function() {
-        cb = helpers.callback_from_args(arguments);
+      stub = sinon.stub(providers, 'get').callsFake((...args) => {
+        cb = helpers.callback_from_args(args);
         cb(err, return_value);
       });
 

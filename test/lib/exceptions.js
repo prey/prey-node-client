@@ -64,7 +64,7 @@ describe('exceptions.send', function() {
   describe('with no callback', function() {
 
     it('sends request', function() {
-      var stub = sinon.stub(needle, 'post', function() { /* noop */ });
+      var stub = sinon.stub(needle, 'post').callsFake(() => { /* noop */ });
       exceptions.send(new Error('Foobar'));
       stub.called.should.be.true;
       stub.restore()
@@ -73,7 +73,7 @@ describe('exceptions.send', function() {
 
     it('does not fail', function() {
       (function() {
-        var stub = sinon.stub(needle, 'post', function() { /* noop */ });
+        var stub = sinon.stub(needle, 'post').callsFake(() => { /* noop */ });
         exceptions.send(new Error('Foobar'));
         stub.restore()
       }).should.not.throw();

@@ -69,7 +69,7 @@ describe('prey_user', function() {
 
     before(function() {
       // stub the exec() call to create_user.sh
-      stub = sinon.stub(child_p, 'exec', function(cmd, cb) {
+      stub = sinon.stub(child_p, 'exec').callsFake((cmd, cb) => {
         var err = new Error('Not today, Josephine.');
         err.code = 1;
         cb(err);
@@ -106,7 +106,7 @@ describe('prey_user', function() {
 
     before(function() {
       // stub the exec() call to create_user.sh
-      stub = sinon.stub(child_p, 'exec', function(cmd, cb) {
+      stub = sinon.stub(child_p, 'exec').callsFake((cmd, cb) => {
         cb();
       })
     })
@@ -120,7 +120,7 @@ describe('prey_user', function() {
       var mkdir_stub;
 
       before(function() {
-        mkdir_stub = sinon.stub(fs, 'mkdir', function(path, cb) {
+        mkdir_stub = sinon.stub(fs, 'mkdir').callsFake((path, cb) => {
           var err = new Error('Unable to create dir');
           err.code = 'EACCES';
           cb(err);
@@ -156,7 +156,7 @@ describe('prey_user', function() {
       var mkdir_stub;
 
       before(function() {
-        mkdir_stub = sinon.stub(fs, 'mkdir', function(path, cb) {
+        mkdir_stub = sinon.stub(fs, 'mkdir').callsFake((path, cb) => {
           cb();
         })
       })
@@ -170,7 +170,7 @@ describe('prey_user', function() {
         var writefile_stub;
 
         before(function() {
-          writefile_stub = sinon.stub(fs, 'writeFile', function(path, data, cb) {
+          writefile_stub = sinon.stub(fs, 'writeFile').callsFake((path, data, cb) => {
             var err = new Error('Big trouble');
             err.code = 'EACCES';
             cb(err);
@@ -209,11 +209,11 @@ describe('prey_user', function() {
         var writefile_stub, chown_stub;
 
         before(function() {
-          writefile_stub = sinon.stub(fs, 'writeFile', function(path, data, cb) {
+          writefile_stub = sinon.stub(fs, 'writeFile').callsFake((path, data, cb) => {
             cb();
           })
 
-          chown_stub = sinon.stub(fs, 'chown', function(file, uid, gid, cb) {
+          chown_stub = sinon.stub(fs, 'chown').callsFake((file, uid, gid, cb) => {
             cb();
           })
         })

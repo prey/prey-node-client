@@ -306,10 +306,10 @@ describe('in Windows OS', function() {
     
     describe(version_type, function() {
       before(function() {
-        stub_path = sinon.stub(wipe_win, 'getOutlookVersion', function(cb){
+        stub_path = sinon.stub(wipe_win, 'getOutlookVersion').callsFake(cb => {
           cb(null, version);
         })
-        stub_registry = sinon.stub(wipe_win.registryManager, 'query', (query, cb) => {
+        stub_registry = sinon.stub(wipe_win.registryManager, 'query').callsFake((query, cb) => {
           return cb(null, '\r\nUser1\r\n')
         })
       });

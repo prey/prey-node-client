@@ -23,7 +23,7 @@ describe('location', () => {
     describe('when location is asked by control panel', () => { 
       var spy_post;
       before(() => {
-        spy_post = sinon.stub(devices, 'post_location', (keys, cb) => { return cb(); });
+        spy_post = sinon.stub(devices, 'post_location').callsFake((keys, cb) => { return cb(); });
       })
       after(() => {
         spy_post.restore();
@@ -44,7 +44,7 @@ describe('location', () => {
           stub_request;
 
       before(() => {
-        shared_keys_stub = sinon.stub(keys, 'get', () => {
+        shared_keys_stub = sinon.stub(keys, 'get').callsFake(() => {
           var keys = {
             api    : 'aaaaaaaaaaa',
             device : 'bbbbbb'
@@ -61,7 +61,7 @@ describe('location', () => {
         var resp = { statusCode: 201 };
 
         before(() => {
-          stub_request = sinon.stub(request, 'post', (path, data, opts, cb) => { 
+          stub_request = sinon.stub(request, 'post').callsFake((path, data, opts, cb) => { 
             return cb(null, resp); 
           });
         })
@@ -72,8 +72,8 @@ describe('location', () => {
 
         describe('and local config is on', () => {
           before(() => {
-            stub_aware = sinon.stub(control_panel, 'get_setting', (data, cb) => { return true; });
-            stub_update = sinon.stub(control_panel, 'update_setting', (data, cb) =>{ return; });
+            stub_aware = sinon.stub(control_panel, 'get_setting').callsFake((data, cb) => { return true; });
+            stub_update = sinon.stub(control_panel, 'update_setting').callsFake((data, cb) =>{ return; });
           })
           after(() => {
             stub_aware.restore();
@@ -89,9 +89,9 @@ describe('location', () => {
 
         describe('and local config is off', () => {
           before(() => {
-            stub_aware = sinon.stub(control_panel, 'get_setting', (data, cb) => { return false; });
-            stub_update = sinon.stub(control_panel, 'update_setting', (data, cb) =>{ return; });
-            spy_status = sinon.stub(devices.get, 'status', (cb) =>{ return location.post_it(dummy); });
+            stub_aware = sinon.stub(control_panel, 'get_setting').callsFake((data, cb) => { return false; });
+            stub_update = sinon.stub(control_panel, 'update_setting').callsFake((data, cb) =>{ return; });
+            spy_status = sinon.stub(devices.get, 'status').callsFake((cb) =>{ return location.post_it(dummy); });
           })
           after(() => {
             stub_aware.restore();
@@ -114,7 +114,7 @@ describe('location', () => {
         var resp = {statusCode: 200}
 
         before(() => {
-          stub_request = sinon.stub(request, 'post', (path, data, opts, cb) => { 
+          stub_request = sinon.stub(request, 'post').callsFake((path, data, opts, cb) => { 
             return cb(null, resp); 
           });
         })
@@ -125,8 +125,8 @@ describe('location', () => {
 
         describe('and local config is on', () => {
           before(() => {
-            stub_aware = sinon.stub(control_panel, 'get_setting', (data, cb) => { return true; });
-            stub_update = sinon.stub(control_panel, 'update_setting', (data, cb) =>{ return; });
+            stub_aware = sinon.stub(control_panel, 'get_setting').callsFake((data, cb) => { return true; });
+            stub_update = sinon.stub(control_panel, 'update_setting').callsFake((data, cb) =>{ return; });
           })
           after(() => {
             stub_aware.restore();
@@ -142,9 +142,9 @@ describe('location', () => {
 
         describe('and local config is off', () => {
           before(() => {
-            stub_aware = sinon.stub(control_panel, 'get_setting', (data, cb) => { return false; });
-            stub_update = sinon.stub(control_panel, 'update_setting', (data, cb) =>{ return; });
-            spy_status = sinon.stub(devices.get, 'status', (cb) =>{ return location.post_it(dummy); });
+            stub_aware = sinon.stub(control_panel, 'get_setting').callsFake((data, cb) => { return false; });
+            stub_update = sinon.stub(control_panel, 'update_setting').callsFake((data, cb) =>{ return; });
+            spy_status = sinon.stub(devices.get, 'status').callsFake((cb) =>{ return location.post_it(dummy); });
           })
           after(() => {
             stub_aware.restore();
@@ -166,7 +166,7 @@ describe('location', () => {
         var resp = {statusCode: 400}
 
         before(() => {
-          stub_request = sinon.stub(request, 'post', (path, data, opts, cb) => { 
+          stub_request = sinon.stub(request, 'post').callsFake((path, data, opts, cb) => { 
             return cb(null, resp); 
           });
         })
@@ -177,7 +177,7 @@ describe('location', () => {
 
         describe('and local config is off', () => {
           before(() => {
-            stub_update = sinon.stub(control_panel, 'update_setting', (data, cb) =>{ return; });
+            stub_update = sinon.stub(control_panel, 'update_setting').callsFake((data, cb) =>{ return; });
           })
           after(() => {
             stub_update.restore();

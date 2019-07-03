@@ -37,7 +37,7 @@ describe('system functions', function() {
     var exec_stub;
 
     before(function() {
-      exec_stub = sinon.stub(cp, 'exec', function(cmd, cb) {
+      exec_stub = sinon.stub(cp, 'exec').callsFake((cmd, cb) => {
         return cb(null, 'GroupMembership: root admin admin2');
       });
     });
@@ -50,7 +50,7 @@ describe('system functions', function() {
       var logger_user_stub;
 
       before(function() {
-        logger_user_stub = sinon.stub(sys_mac, 'find_logged_user', function(cb) {
+        logger_user_stub = sinon.stub(sys_mac, 'find_logged_user').callsFake(cb => {
           return cb(null, 'admin2')
         })
       })
@@ -75,7 +75,7 @@ describe('system functions', function() {
       var logger_user_stub;
 
       before(function() {
-        logger_user_stub = sinon.stub(sys_mac, 'find_logged_user', function(cb) {
+        logger_user_stub = sinon.stub(sys_mac, 'find_logged_user').callsFake(cb => {
           return cb(null, 'noadmin')
         })
       })
@@ -104,7 +104,7 @@ describe('system functions', function() {
     describe('when is not available', function() {
       var get_stub;
       before(function() {
-        get_stub = sinon.stub(needle, 'get', function(host, cb) {
+        get_stub = sinon.stub(needle, 'get').callsFake((host, cb) => {
           cb(new Error('ECONNREFUSED'));
         })
       })
@@ -130,7 +130,7 @@ describe('system functions', function() {
 
         before(function() {
           sys_win.monitoring_service_go = true;
-          get_stub = sinon.stub(needle, 'get', function(host, cb) {
+          get_stub = sinon.stub(needle, 'get').callsFake((host, cb) => {
             cb(null);
           });
         })
@@ -152,7 +152,7 @@ describe('system functions', function() {
 
         before(function() {
           sys_win.monitoring_service_go = false;
-          get_stub = sinon.stub(needle, 'get', function(host, cb) {
+          get_stub = sinon.stub(needle, 'get').callsFake((host, cb) => {
             cb(null);
           });
         })

@@ -26,11 +26,11 @@ describe('triggers', () => {
       actions_start_stub;
 
   before((done) => {
-    keys_present_stub = sinon.stub(keys, 'present', () => { return true; })
-    keys_get_stub = sinon.stub(keys, 'get', () => { return { api: 'aaaaaaaaaa', device: 'bbbbbb' } })
-    push_stub = sinon.stub(push, 'response', () => { return; })
-    post_stub = sinon.stub(request, 'post', () => { return; })
-    actions_start_stub = sinon.stub(actions, 'start', () => { return true; })
+    keys_present_stub = sinon.stub(keys, 'present').callsFake(() => { return true; })
+    keys_get_stub = sinon.stub(keys, 'get').callsFake(() => { return { api: 'aaaaaaaaaa', device: 'bbbbbb' } })
+    push_stub = sinon.stub(push, 'response').callsFake(() => { return; })
+    post_stub = sinon.stub(request, 'post').callsFake(() => { return; })
+    actions_start_stub = sinon.stub(actions, 'start').callsFake(() => { return true; })
     storage.init('triggers', tmpdir() + '/test.db', done)
   })
 
@@ -54,7 +54,7 @@ describe('triggers', () => {
           spy_activate;
 
       before(() => {
-        get_stub = sinon.stub(request, 'get', (uri, opts, cb) => {
+        get_stub = sinon.stub(request, 'get').callsFake((uri, opts, cb) => {
           return cb(new Error('Trigger request error'));
         })
       })
@@ -144,7 +144,7 @@ describe('triggers', () => {
       
       describe('and the it has 0 triggers', () => {
         before((done) => {
-          get_stub = sinon.stub(request, 'get', (uri, opts, cb) => { return cb(null, {body: []}); })
+          get_stub = sinon.stub(request, 'get').callsFake((uri, opts, cb) => { return cb(null, {body: []}); })
           triggers_storage.store(dummy.exact_triggers[0], () => {
             triggers.start({}, done);
           });
@@ -168,7 +168,7 @@ describe('triggers', () => {
         describe('and it has exact_time triggers', () => {
           var clock;
           before((done) => {
-            get_stub = sinon.stub(request, 'get', (uri, opts, cb) => { return cb(null, { body: dummy.exact_triggers }); })
+            get_stub = sinon.stub(request, 'get').callsFake((uri, opts, cb) => { return cb(null, { body: dummy.exact_triggers }); })
             spy_sync = sinon.spy(triggers, 'sync');
             spy_perform = sinon.spy(commands, 'perform');
             date = new Date(),
@@ -206,7 +206,7 @@ describe('triggers', () => {
           var clock;
 
           before((done) => {
-            get_stub = sinon.stub(request, 'get', (uri, opts, cb) => { return cb(null, { body: dummy.repeat_triggers }); })
+            get_stub = sinon.stub(request, 'get').callsFake((uri, opts, cb) => { return cb(null, { body: dummy.repeat_triggers }); })
             spy_sync = sinon.spy(triggers, 'sync');
             spy_perform = sinon.spy(commands, 'perform');
             test_time = 1560795900000;
@@ -242,7 +242,7 @@ describe('triggers', () => {
           var clock;
 
           before((done) => {
-            get_stub = sinon.stub(request, 'get', (uri, opts, cb) => { return cb(null, { body: dummy.event_triggers }); })
+            get_stub = sinon.stub(request, 'get').callsFake((uri, opts, cb) => { return cb(null, { body: dummy.event_triggers }); })
             spy_sync = sinon.spy(triggers, 'sync');
             spy_perform = sinon.spy(commands, 'perform');
             setTimeout(() => { triggers.start({}, done) }, 500)

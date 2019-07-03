@@ -19,6 +19,7 @@ describe('lib/agent/cli_spec', function(){
     before(function(){
       var fake_config = { present: function() { return false; } };
       var fake_process_on = function(signal, cb){ signals.push(signal); }
+
       result = cli_sandbox.run({
         common:  { config: fake_config },
         process: { on: fake_process_on }
