@@ -164,10 +164,10 @@ describe('hardware', function(){
           spy_store;
 
       before(() => {
-        storage_stub = sinon.stub(storage, 'set', (key, data, cb) => { return cb(null); })
+        storage_stub = sinon.stub(storage, 'set').callsFake((key, data, cb) => { return cb(null); })
         spy_store = sinon.spy(device_keys, 'store');
         spy_del = sinon.spy(device_keys, 'del');
-        stored_stub = sinon.stub(device_keys, 'exist', (field, cb) => { return cb(null, null); })
+        stored_stub = sinon.stub(device_keys, 'exist').callsFake((field, cb) => { return cb(null, null); })
       })
 
       after(() => {
@@ -194,10 +194,10 @@ describe('hardware', function(){
       describe('and the data is the same', () => {
 
         before(() => {
-          storage_stub = sinon.stub(storage, 'set', (key, data, cb) => { return cb(null); })
+          storage_stub = sinon.stub(storage, 'set').callsFake((key, data, cb) => { return cb(null); })
           spy_store = sinon.spy(device_keys, 'store');
           spy_del = sinon.spy(device_keys, 'del');
-          stored_stub = sinon.stub(device_keys, 'exist', (field, cb) => {return cb(null, stored_data)})
+          stored_stub = sinon.stub(device_keys, 'exist').callsFake((field, cb) => {return cb(null, stored_data)})
         })
 
         after(() => {
@@ -225,10 +225,10 @@ describe('hardware', function(){
 
         describe('when theres a new field', () => {
           before(() => {
-            storage_stub = sinon.stub(storage, 'set', (key, data, cb) => { return cb(null); })
+            storage_stub = sinon.stub(storage, 'set').callsFake((key, data, cb) => { return cb(null); })
             spy_store = sinon.spy(device_keys, 'store');
             spy_del = sinon.spy(device_keys, 'del');
-            stored_stub = sinon.stub(device_keys, 'exist', (field, cb) => {return cb(null, stored_data)})
+            stored_stub = sinon.stub(device_keys, 'exist').callsFake((field, cb) => {return cb(null, stored_data)})
           })
 
           after(() => {
@@ -248,10 +248,10 @@ describe('hardware', function(){
 
         describe('when a field is missing', () => {
           before(() => {
-            storage_stub = sinon.stub(storage, 'set', (key, data, cb) => { return cb(null); })
+            storage_stub = sinon.stub(storage, 'set').callsFake((key, data, cb) => { return cb(null); })
             spy_store = sinon.spy(device_keys, 'store');
             spy_del = sinon.spy(device_keys, 'del');
-            stored_stub = sinon.stub(device_keys, 'exist', (field, cb) => {return cb(null, stored_data)})
+            stored_stub = sinon.stub(device_keys, 'exist').callsFake((field, cb) => {return cb(null, stored_data)})
           })
 
           after(() => {
@@ -271,10 +271,10 @@ describe('hardware', function(){
 
         describe('when a field changed', () => {
           before(() => {
-            storage_stub = sinon.stub(storage, 'set', (key, data, cb) => { return cb(null); })
+            storage_stub = sinon.stub(storage, 'set').callsFake((key, data, cb) => { return cb(null); })
             spy_store = sinon.spy(device_keys, 'store');
             spy_del = sinon.spy(device_keys, 'del');
-            stored_stub = sinon.stub(device_keys, 'exist', (field, cb) => {return cb(null, stored_data)})
+            stored_stub = sinon.stub(device_keys, 'exist').callsFake((field, cb) => {return cb(null, stored_data)})
           })
 
           after(() => {
