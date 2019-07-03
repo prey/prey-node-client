@@ -30,7 +30,7 @@ describe('hostame', () => {
   describe('When there is no stored hostname', () => {
     var exec_stub;
     before(() => {
-      exec_stub = sinon.stub(cp, 'exec', (cmd, cb) => {
+      exec_stub = sinon.stub(cp, 'exec').callsFake((cmd, cb) => {
         return cb(null, 'John PC');
       });
     })
@@ -64,8 +64,8 @@ describe('hostame', () => {
       var exec_stub;
 
       before(() => {
-        spy_push = sinon.stub(api.push, 'event', function(keys, cb) { return cb(); });
-        exec_stub = sinon.stub(cp, 'exec', (cmd, cb) => {
+        spy_push = sinon.stub(api.push, 'event').callsFake((keys, cb) => { return cb(); });
+        exec_stub = sinon.stub(cp, 'exec').callsFake((cmd, cb) => {
           return cb(null, 'John PC');
         });
       })
@@ -94,8 +94,8 @@ describe('hostame', () => {
       var exec_stub;
 
       before(() => {
-        spy_push = sinon.stub(api.push, 'event', function(keys, cb) { return cb(); });
-        exec_stub = sinon.stub(cp, 'exec', (cmd, cb) => {
+        spy_push = sinon.stub(api.push, 'event').callsFake((keys, cb) => { return cb(); });
+        exec_stub = sinon.stub(cp, 'exec').callsFake((cmd, cb) => {
           return cb(null, 'John PC 2');
         });
       })

@@ -13,7 +13,7 @@ describe('Bandwidth', function() {
       provider.get_bandwidth_usage(function(err, obj) {
         should.not.exist(err);
         obj.should.be.an.instanceof(Object);
-        obj.should.have.keys(['in', 'out']);
+        obj.should.have.keys('in', 'out');
         done();
       });
 

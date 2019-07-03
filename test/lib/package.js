@@ -51,7 +51,7 @@ var stable_version = function(ver) {
     }
   };
 
-  return sinon.stub(needle, 'get', fn);
+  return sinon.stub(needle, 'get').callsFake(fn);
 }
 
 var emulate_download = function(file) {
@@ -74,15 +74,16 @@ var emulate_download = function(file) {
     })
   }
 
-  return sinon.stub(needle, 'get', fn);
+  return sinon.stub(needle, 'get').callsFake(fn);
 }
 
 var stub_unpacker = function(fn) {
 
+  if (!fn) fn = (cmd, opts, cb) => { cb(new Error('Unpack called!')) };
   if (process.platform == 'darwin')
-    return sinon.stub(child_process, 'exec', fn || function(cmd, opts, cb) { cb(new Error('Unpack called!')) } );
+    return sinon.stub(child_process, 'exec').callsFake(fn);
   else
-    return sinon.stub(buckle, 'open', fn || function(from, dest, cb) { cb(new Error('Unpack called!')) });
+    return sinon.stub(buckle, 'open').callsFake(fn);
 }
 
 //////////////////////////////////////////////////////
@@ -105,7 +106,7 @@ describe('package.get_latest', function() {
   it('checks if a new version is available', function (done) {
     var spy = sinon.spy(needle, 'get');
 
-    var cut = sinon.stub(package, 'get_version', function(ver, dest, cb) {
+    var cut = sinon.stub(package, 'get_version').callsFake((ver, dest, cb) => {
       cb(new Error('Stopping here.'))
     })
 
@@ -154,20 +155,20 @@ describe('package.get_latest', function() {
     var new_version = '1.5.0', old_ver = '1.2.3';
 
     before(function () {
-      stub = sinon.stub(package, 'new_version_available', function(branch, current_version, cb) {
+      stub = sinon.stub(package, 'new_version_available').callsFake((branch, current_version, cb) => {
         cb(null, new_version);
       })
-      shared_keys_stub = sinon.stub(shared.keys, 'get', function() {
+      shared_keys_stub = sinon.stub(shared.keys, 'get').callsFake(() => {
         var keys = {
           api    : 'aaaaaaaaaaa',
           device : 'bbbbbb'
         };
         return keys;
       });
-      event_stub = sinon.stub(api.push, 'event', function(keys, cb) { return cb(); });
-      device_stub = sinon.stub(api.keys, 'verify', function(keys, cb) { return cb(); });
-      attempts_stub = sinon.stub(package, 'update_attempts', function(old_ver, new_version, cb) { return cb(null, new_version); });
-      event_data_stub = sinon.stub(package, 'get_update_data', function(cb) { return true; });
+      event_stub = sinon.stub(api.push, 'event').callsFake((keys, cb) => { return cb(); });
+      device_stub = sinon.stub(api.keys, 'verify').callsFake((keys, cb) => { return cb(); });
+      attempts_stub = sinon.stub(package, 'update_attempts').callsFake((old_ver, new_version, cb) =>  { return cb(null, new_version); });
+      event_data_stub = sinon.stub(package, 'get_update_data').callsFake(cb => { return true; });
     });
 
     after(function() {
@@ -184,7 +185,7 @@ describe('package.get_latest', function() {
           url       = 'https://downloads.preyproject.com/prey-client-releases/node-client/' + new_version + '/' + file_name,
           outfile   = join(tmpdir, file_name);
 
-      var getter    = sinon.stub(needle, 'get', function(requested_url, opts, cb) {
+      var getter    = sinon.stub(needle, 'get').callsFake((requested_url, opts, cb) => {
         requested_url.should.equal(url);
         opts.output.should.equal(outfile);
         getter.restore();
@@ -201,7 +202,7 @@ describe('package.get_latest', function() {
       var fail_down;
 
       before(function() {
-        fail_down = sinon.stub(needle, 'get', function(url, opts, cb) {
+        fail_down = sinon.stub(needle, 'get').callsFake((url, opts, cb) => {
           cb(new Error('Unable to download because I dont feel like it.'))
         })
       })
@@ -316,7 +317,7 @@ describe('package.get_latest', function() {
           it('does not create folder', function(done) {
             get_latest('1.2.3', dest, function(err, res) {
               should.exist(err);
-              err.code.should.match(/(EACCES|EPERM)/);
+              err.message.match(/Permission denied/g);
               var exists = fs.existsSync(join(dest, new_version))
               exists.should.be.equal(false);
               done();
@@ -330,7 +331,7 @@ describe('package.get_latest', function() {
 
             get_latest('1.2.3', dest, function (err) {
               should.exist(err);
-              err.code.should.match(/(EACCES|EPERM)/);
+              err.message.match(/Permission denied/g);
               var exists = fs.existsSync(out);
               exists.should.be.equal(true);
               done();
@@ -423,7 +424,7 @@ describe('package.get_latest', function() {
               var failer;
 
               before(function() {
-                failer = sinon.stub(fs, 'rename', function(from, to, cb) {
+                failer = sinon.stub(fs, 'rename').callsFake((from, to, cb) => {
 
                   fs.mkdirSync(to);
                   fs.writeFileSync(join(to, 'package.json'), 'just testing');
@@ -514,7 +515,7 @@ describe('on successful update', function() {
     before(function(done) {
       fs.mkdir(join(tmpdir, 'versions'), function() {
         dirs.forEach(function(version) {
-          fs.mkdir(join(tmpdir, 'versions', version));
+          fs.mkdirSync(join(tmpdir, 'versions', version));
         })
         done();
       })
@@ -544,7 +545,7 @@ describe('on successful update', function() {
     before(function(done) {
       fs.mkdir(join(tmpdir, 'versions'), function() {
         dirs.forEach(function(version) {
-          fs.mkdir(join(tmpdir, 'versions', version));
+          fs.mkdirSync(join(tmpdir, 'versions', version));
         })
         done();
       })

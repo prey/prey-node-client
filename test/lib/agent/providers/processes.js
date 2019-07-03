@@ -9,7 +9,10 @@ else
 
 var check_process = function(val) {
   var obj = val[0];
-  obj.should.have.keys(process_keys);
+
+  process_keys.forEach((key) => {
+    obj.should.have.key(key);
+  })
 };
 
 describe('processes', function(){

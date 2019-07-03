@@ -44,13 +44,13 @@ var da_profiles = [];
 
 describe('auto connect', function() {
   before(function() {
-    create_profile = sinon.stub(os_functions, 'create_profile', function(ssid, cb) {
+    create_profile = sinon.stub(os_functions, 'create_profile').callsFake((ssid, cb) => {
       if (da_profiles.indexOf(ssid) > -1) return cb(new Error('profile already exists'));
       da_profiles.push(ssid);
       return cb(null);
     });
 
-    delete_profile = sinon.stub(os_functions, 'delete_profile', function(ssid, cb) {
+    delete_profile = sinon.stub(os_functions, 'delete_profile').callsFake((ssid, cb) => {
       var index = da_profiles.indexOf(ssid);
       if (index > -1) {
         da_profiles.splice(index, 1);
@@ -58,11 +58,11 @@ describe('auto connect', function() {
       return cb(null);
     });
 
-    existing_profiles = sinon.stub(os_functions, 'get_existing_profiles', function(cb) {
+    existing_profiles = sinon.stub(os_functions, 'get_existing_profiles').callsFake(cb => {
       return cb(null, da_profiles);
     });
 
-    enable_wifi = sinon.stub(os_functions, 'enable_wifi', function(cb) {
+    enable_wifi = sinon.stub(os_functions, 'enable_wifi').callsFake(cb => {
       return cb();
     });
 
@@ -79,7 +79,7 @@ describe('auto connect', function() {
 
     describe('on empty list', function() {
       before(function() {
-        ap_list_stub = sinon.stub(network, 'get_access_points_list', function(cb) {
+        ap_list_stub = sinon.stub(network, 'get_access_points_list').callsFake(cb => {
           cb(null, close_ap_list);
         })
       })
@@ -99,7 +99,7 @@ describe('auto connect', function() {
 
     describe('on non empty list', function() {
       before(function() {
-        ap_list_stub = sinon.stub(network, 'get_access_points_list', function(cb) {
+        ap_list_stub = sinon.stub(network, 'get_access_points_list').callsFake(cb => {
           cb(null, ap_list);
         })
       })
@@ -237,7 +237,7 @@ describe('auto connect', function() {
 
     describe('when network does not exists', function() {
       before(function() {
-        connect_to_ap = sinon.stub(os_functions, 'connect_to_ap', function(ssid, cb) {
+        connect_to_ap = sinon.stub(os_functions, 'connect_to_ap').callsFake((ssid, cb) => {
           cb(null, 'Could not find network');
         });
       })
@@ -259,7 +259,7 @@ describe('auto connect', function() {
       before(function() {
         reconnect.attempted_wifi = {};
         var ssid = 'Prey-test';
-        ap_list_stub = sinon.stub(os_functions, 'connect_to_ap', function(ssid, cb) {
+        ap_list_stub = sinon.stub(os_functions, 'connect_to_ap').callsFake((ssid, cb) => {
           cb(null, 'not connected!');
         })
       })
@@ -311,7 +311,7 @@ describe('auto connect', function() {
     describe('when go through the entire list', function() {
       before(function() {
         reconnect.time_between = 0;
-        ap_list_stub = sinon.stub(os_functions, 'connect_to_ap', function(ssid, cb) {
+        ap_list_stub = sinon.stub(os_functions, 'connect_to_ap').callsFake((ssid, cb) => {
           cb(null, 'not connected!');
         })
       })

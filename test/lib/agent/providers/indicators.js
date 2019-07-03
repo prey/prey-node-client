@@ -51,7 +51,7 @@ describe('indicators', function(){
 
     it('returns an object', function(done) {
       provider.get_cpu_load(function(err, load) {
-        load.should.have.keys(['last_min', 'last_five', 'last_fifteen']);
+        load.should.have.keys('last_min', 'last_five', 'last_fifteen');
         load.last_five.should.be.a.Number;
         done();
       });
@@ -67,7 +67,7 @@ describe('indicators', function(){
 
       provider.get_memory_usage(function(err, usage) {
         // Object.keys(usage).should.have.lengthOf(3);
-        usage.should.have.keys(['used', 'free_bytes', 'total_bytes']);
+        usage.should.have.keys('used', 'free_bytes', 'total_bytes');
         usage.free_bytes.should.be.a.Number;
         done();
       });
@@ -89,7 +89,7 @@ describe('indicators', function(){
       it('returns an object', function(done){
 
         provider.get_remaining_storage(function(err, storage) {
-          storage.should.have.keys(['total_gb','free_gb','used']);
+          storage.should.have.keys('total_gb','free_gb','used');
           done();
         });
 

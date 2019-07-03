@@ -10,6 +10,15 @@ var join        = require('path').join,
     link_response = require('../fixtures/location_link_response');
 
 describe('location', function() {
+  before(function() {
+    keys_get_stub = sinon.stub(keys, 'get').callsFake(() => {
+      return { api: 'aaaaaaaaaa', device: 'bbbbbb' }
+    })
+  });
+
+  after(function() {
+    keys_get_stub.restore();
+  })
 
   describe('when access points list return error', function() {
 
@@ -95,7 +104,7 @@ describe('location', function() {
               should.exist(args.user_agent);
               args.user_agent.should.containEql('Prey/')
               should.not.exist(err);
-              data.should.have.keys(['lat', 'lng', 'accuracy', 'method']);
+              data.should.have.keys('lat', 'lng', 'accuracy', 'method');
               done();
             });
 
@@ -126,7 +135,7 @@ describe('location', function() {
               should.exist(args.user_agent);
               args.user_agent.should.containEql('Prey/')
               should.not.exist(err);
-              data.should.have.keys(['lat', 'lng', 'accuracy', 'method']);
+              data.should.have.keys('lat', 'lng', 'accuracy', 'method');
               done();
             });
 
@@ -137,16 +146,6 @@ describe('location', function() {
       });
 
       describe('real endpoint', function() {
-
-        before(function() {
-          keys_get_stub = sinon.stub(keys, 'get', function() {
-            return { api: 'aaaaaaaaaa', device: 'bbbbbb' }
-          })
-        });
-
-        after(function() {
-          keys_get_stub.restore();
-        })
 
         it('works', function(done) {
           provider_stub.restore();

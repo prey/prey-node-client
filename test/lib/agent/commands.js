@@ -15,7 +15,7 @@ describe('perform', function() {
 
     beforeEach(function() {
       // stub reports.get so it doesn't gather a report when triggering the command
-      report_stub = sinon.stub(reports, 'get', function(report_name, options, callback) {
+      report_stub = sinon.stub(reports, 'get').callsFake((report_name, options, callback) => {
         return true;
       });
     });
@@ -42,7 +42,7 @@ describe('perform', function() {
 
     it('persist the command', function(done) {
 
-      var stub = sinon.stub(storage, 'set', function(key, data, cb) {
+      var stub = sinon.stub(storage, 'set').callsFake((key, data, cb) => {
         key.should.equal("report-stolen");
         data.should.eql(command);
         stub.restore();

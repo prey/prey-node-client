@@ -52,7 +52,7 @@ describe('tasks', function() {
 
     function stub_chmod() {
       // stub out chela.mod so we don't accidentally chmod the source dir
-      chmod_stub = sinon.stub(chela, 'mod', function(path, octal, cb) { cb() });
+      chmod_stub = sinon.stub(chela, 'mod').callsFake((path, octal, cb) => { cb() });
     }
 
     if (os_name == 'windows') {
@@ -105,7 +105,7 @@ describe('tasks', function() {
 
           it('returns a EACCES error', function(done) {
 
-            var stub_mkdir = sinon.stub(fs, 'mkdir', function(dir, cb) {
+            var stub_mkdir = sinon.stub(fs, 'mkdir').callsFake((dir, cb) => {
               var err = new Error('EACCES: ' + dir);
               err.code = 'EACCES';
               cb(err)
@@ -195,7 +195,7 @@ describe('tasks', function() {
             var stub_write;
 
             before(function() {
-              stub_write = sinon.stub(fs, 'writeFile', function(file, data, cb) {
+              stub_write = sinon.stub(fs, 'writeFile').callsFake((file, data, cb) => {
                 var err = new Error('EACCES: ' + dir);
                 err.code = 'EACCES';
                 cb(err)
@@ -241,7 +241,7 @@ describe('tasks', function() {
             var stub_write;
 
             before(function() {
-              stub_write = sinon.stub(fs, 'writeFile', function(file, data, cb) {
+              stub_write = sinon.stub(fs, 'writeFile').callsFake((file, data, cb) => {
                 var err = new Error('EACCES: ' + dir);
                 err.code = 'EACCES';
                 cb(err)
@@ -286,7 +286,7 @@ describe('tasks', function() {
       var sync;
 
       before(function() {
-        sync = sinon.stub(common.config, 'sync', function(other_file, method, cb) { cb() } )
+        sync = sinon.stub(common.config, 'sync').callsFake((other_file, method, cb) => { cb() } )
       })
 
       after(function() {
@@ -435,7 +435,7 @@ describe('tasks', function() {
           var this_stub;
 
           before(function() {
-            this_stub = sinon.stub(vm, 'this', function() { return '2.3.4' })
+            this_stub = sinon.stub(vm, 'this').callsFake(() => { return '2.3.4' })
           })
 
           after(function() {
@@ -554,17 +554,6 @@ describe('tasks', function() {
                   rimraf(install_dir, done);
                 })
 
-                it('creates a new current dir', function(done) {
-
-                  // ok, now go
-                  tasks.activate({}, function(err) {
-                    should.not.exist(err);
-                    fs.existsSync(current_dir);
-                    done();
-                  })
-
-                })
-
                 it('chmods files to 100755 (0755)', function(done) {
 
                   chmod_stub.restore();
@@ -579,6 +568,18 @@ describe('tasks', function() {
                   });
 
                 })
+
+                it('creates a new current dir', function(done) {
+
+                  // ok, now go
+                  tasks.activate({}, function(err) {
+                    should.not.exist(err);
+                    fs.existsSync(current_dir);
+                    done();
+                  })
+
+                })
+
 
               })
 
@@ -610,7 +611,7 @@ describe('tasks', function() {
         old_versions_path = common.system.paths.versions;
         common.system.paths.versions = join(tmpdir, 'versions');
 
-        sync_stub = sinon.stub(common.config, 'sync', function(other_file, method, cb) { cb() } )
+        sync_stub = sinon.stub(common.config, 'sync').callsFake((other_file, method, cb) => { cb() } )
       })
 
       after(function() {
@@ -638,7 +639,7 @@ describe('tasks', function() {
           describe('and error is "already set as current"', function() {
 
             before(function() {
-              stub = sinon.stub(vm, 'set_current', function(version, cb) {
+              stub = sinon.stub(vm, 'set_current').callsFake((version, cb) => {
                 var err = new Error('Already current');
                 err.code = 'ALREADY_CURRENT';
                 cb(err);
@@ -650,7 +651,7 @@ describe('tasks', function() {
             })
 
             it('advances to stage two', function(done) {
-              var async_stub = sinon.stub(async, 'series', function(fx_arr, cb) {
+              var async_stub = sinon.stub(async, 'series').callsFake((fx_arr, cb) => {
                 return cb(new Error('async.series called.'));
               })
 
@@ -667,7 +668,7 @@ describe('tasks', function() {
           describe('and error is something else', function() {
 
             before(function() {
-              stub = sinon.stub(vm, 'set_current', function(version, cb) {
+              stub = sinon.stub(vm, 'set_current').callsFake((version, cb) => {
                 var err = new Error('Foobar.');
                 cb(err);
               })
@@ -693,7 +694,7 @@ describe('tasks', function() {
         describe('if activation succeeds', function() {
 
           before(function() {
-            stub = sinon.stub(vm, 'set_current', function(version, cb) { cb() });
+            stub = sinon.stub(vm, 'set_current').callsFake((version, cb) => { cb() });
           })
 
           after(function() {
@@ -701,7 +702,7 @@ describe('tasks', function() {
           })
 
           it('advances to stage two', function(done) {
-            var async_stub = sinon.stub(async, 'series', function(fx_arr, cb) {
+            var async_stub = sinon.stub(async, 'series').callsFake((fx_arr, cb) => {
               return cb(new Error('async.series called.'));
             })
 
@@ -735,7 +736,7 @@ describe('tasks', function() {
         describe('if prey_user.create fails', function() {
 
           before(function() {
-            stub = sinon.stub(prey_user, 'create', function(cb) { cb(new Error('Gave up')) });
+            stub = sinon.stub(prey_user, 'create').callsFake(cb => { cb(new Error('Gave up')) });
           })
 
           after(function() {
@@ -757,7 +758,7 @@ describe('tasks', function() {
         describe('if prey_user.create succeeds', function() {
 
           before(function() {
-            stub = sinon.stub(prey_user, 'create', function(cb) { cb() });
+            stub = sinon.stub(prey_user, 'create').callsFake(cb => { cb() });
           })
 
           after(function() {
@@ -765,7 +766,7 @@ describe('tasks', function() {
           })
 
           it('advances to stage two', function(done) {
-            var async_stub = sinon.stub(async, 'series', function(fx_arr, cb) {
+            var async_stub = sinon.stub(async, 'series').callsFake((fx_arr, cb) => {
               return cb(new Error('async.series called.'));
             })
 
@@ -790,10 +791,10 @@ describe('tasks', function() {
       before(function() {
         // if running under win32, skip the set_up_version logic
         if (process.platform == 'win32') {
-          stage_one_stub = sinon.stub(vm, 'set_current', function(ver, cb) { cb() });
+          stage_one_stub = sinon.stub(vm, 'set_current').callsFake((ver, cb) => { cb() });
         } else {
           // if running not on windows, skip create user part
-          stage_one_stub = sinon.stub(prey_user, 'create', function(cb) { cb() });
+          stage_one_stub = sinon.stub(prey_user, 'create').callsFake(cb => { cb() });
         }
       })
 
@@ -804,7 +805,7 @@ describe('tasks', function() {
       describe('if daemon.install fails', function() {
 
         before(function() {
-          stub = sinon.stub(daemon, 'install', function(cb) { cb(new Error('No daemons around.')) })
+          stub = sinon.stub(daemon, 'install').callsFake(cb => { cb(new Error('No daemons around.')) })
         })
 
         after(function() {
@@ -834,7 +835,7 @@ describe('tasks', function() {
       describe('if daemon.install works', function() {
 
         before(function() {
-          stub = sinon.stub(daemon, 'install', function(cb) { cb() })
+          stub = sinon.stub(daemon, 'install').callsFake(cb => { cb() })
         })
 
         after(function() {
@@ -846,7 +847,7 @@ describe('tasks', function() {
           var hooks_stub;
 
           before(function() {
-            hooks_stub = sinon.stub(hooks, 'post_install', function(cb) { cb(new Error('Not today')) })
+            hooks_stub = sinon.stub(hooks, 'post_install').callsFake(cb => { cb(new Error('Not today')) })
           })
 
           after(function() {
@@ -868,7 +869,7 @@ describe('tasks', function() {
           var hooks_stub;
 
           before(function() {
-            hooks_stub = sinon.stub(hooks, 'post_install', function(cb) { cb() })
+            hooks_stub = sinon.stub(hooks, 'post_install').callsFake(cb =>{ cb() })
           })
 
           after(function() {
@@ -889,7 +890,7 @@ describe('tasks', function() {
       describe('if hooks.post_install fails', function() {
 
         before(function() {
-          stub = sinon.stub(hooks, 'post_install', function(cb) { cb() })
+          stub = sinon.stub(hooks, 'post_install').callsFake(cb => { cb() })
         })
 
         after(function() {
@@ -923,8 +924,8 @@ describe('tasks', function() {
           var stub, watcher_stub;
 
           before(function() {
-            stub = sinon.stub(daemon, 'install', function(cb) { cb() })
-            watcher_stub = sinon.stub(daemon, 'set_watcher', function(cb) { cb() })
+            stub = sinon.stub(daemon, 'install').callsFake(cb => { cb() })
+            watcher_stub = sinon.stub(daemon, 'set_watcher').callsFake(cb => { cb() })
           })
 
           after(function() {
@@ -971,7 +972,7 @@ describe('tasks', function() {
           var stub;
 
           before(function() {
-            stub = sinon.stub(vm, 'list', function() { return [] })
+            stub = sinon.stub(vm, 'list').callsFake(() => { return [] })
           })
 
           after(function() {
@@ -992,7 +993,7 @@ describe('tasks', function() {
           var stub;
 
           before(function() {
-            stub = sinon.stub(firewall, 'add_rule', function(obj, cb) {
+            stub = sinon.stub(firewall, 'add_rule').callsFake((obj, cb) => {
               cb(new Error('Windows Firewall is taking a nap.'))
             })
           })

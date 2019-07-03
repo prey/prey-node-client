@@ -12,8 +12,7 @@ describe('get_outbound_connections_list', function(){
       var conn = arr[0];
       Object.keys(conn).should.have.lengthOf(8);
       
-      var keys = 'protocol recv send local_address remote_address state program_pid program_name'.split(' ');
-      conn.should.have.keys(keys);
+      conn.should.have.keys('protocol', 'recv', 'send', 'local_address', 'remote_address', 'state', 'program_pid', 'program_name');
       done();
 
     });

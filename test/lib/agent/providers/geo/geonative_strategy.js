@@ -17,8 +17,8 @@ describe('native geoloc', function () {
 
   var stub_get_location = function (platform, err, return_value) {
     var cb,
-        stub = sinon.stub(geo[platform], 'get_location', function() {
-          cb = helpers.callback_from_args(arguments);
+        stub = sinon.stub(geo[platform], 'get_location').callsFake((...args) => {
+          cb = helpers.callback_from_args(args);
           cb(err, return_value);
         });
 
@@ -155,7 +155,7 @@ describe('native geoloc', function () {
           os_version = "10.5.0";
 
       before(function() {
-        os_version_stub = sinon.stub(system, 'get_os_version', function(cb) {
+        os_version_stub = sinon.stub(system, 'get_os_version').callsFake(cb => {
           cb(null, os_version);
         });
       });
@@ -180,11 +180,11 @@ describe('native geoloc', function () {
           os_version_stub; // needed when running specs on OS other than Mac OS X
 
       before(function() {
-        exec_stub = sinon.stub(child_process, 'exec', function(bin, cb) {
+        exec_stub = sinon.stub(child_process, 'exec').callsFake((bin, cb) => {
           return cb(null, {});
         });
 
-        os_version_stub = sinon.stub(system, 'get_os_version', function(cb) {
+        os_version_stub = sinon.stub(system, 'get_os_version').callsFake(cb =>{
           cb(null, "10.10.0");
         });
       });
