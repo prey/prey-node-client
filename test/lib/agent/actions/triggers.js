@@ -293,13 +293,6 @@ describe('triggers', () => {
             done();
           });
 
-          it('stores the triggers into the local database', (done) => {
-            clock.tick(2000)
-            storage.all('triggers', (err, obj) => {
-              Object.keys(obj).length.should.be.equal(5)
-              done();
-            })
-          })
         })
 
       })
