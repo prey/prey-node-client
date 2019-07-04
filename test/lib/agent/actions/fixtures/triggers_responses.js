@@ -6,7 +6,7 @@ var exact_triggers = [
       {
         "type": "exact_time",
         "info": {
-          "date": "" + (new Date().getFullYear() +1) + "0725150406"     // "20200725150406" Always next year
+          "date": "" + (new Date().getFullYear() +1) + "0725150006"     // "20200725150406" Always next year
         }
       }
     ],
@@ -41,7 +41,8 @@ var exact_triggers = [
       {
         "type": "exact_time",
         "info": {
-          "date": "" + (new Date().getFullYear()+1) + "-07-25T15:04:07Z-04:00" // "2020-07-25T15:04:07Z-04:00"
+          //"date": "" + (new Date().getFullYear()+1) + "-07-25T15:04:07Z-04:00" // "2020-07-25T15:04:07Z-04:00"
+          "date": "" + (new Date().getFullYear() +1) + "0725150007"
         }
       }
     ],
@@ -70,7 +71,7 @@ var repeat_triggers = [
         "type" : "repeat_time",
         "info" : {
           "days_of_week" : [1, 4],  // Mondays and Thursdays
-          "hour" : 14,
+          "hour" : 20,
           "minute" : 25,
           "second" : 10,
           "until" : "20190626"

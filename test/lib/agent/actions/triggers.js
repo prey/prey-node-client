@@ -173,10 +173,9 @@ describe('triggers', () => {
             spy_perform = sinon.spy(commands, 'perform');
             date = new Date(),
             year = date.getFullYear() + 1,   // Always next year
-            new_date = new Date(year, 6, 25, 15, 04, 05),
+            new_date = new Date(Date.UTC(year, 6, 25, 15, 00, 05));
             setTimeout(() => { triggers.start({}, done) }, 500)
             clock = sinon.useFakeTimers(new_date.getTime());
-            console.log("BEFORE TIME", new Date().getTime())
           })
 
           after(() => {
@@ -188,17 +187,13 @@ describe('triggers', () => {
 
           it('executes the action at the right time', (done) => {
             clock.tick(1500);
-            console.log("TIME", new Date().getTime())
-
             spy_perform.getCall(0).args[0].target.should.be.equal('alert');
             spy_perform.calledOnce.should.be.equal(true);
             done();
           })
 
-          it('and waits for the delay and executes the action at the right time', (done) => {    //---> ESTE!!! 1ero    (AssertionError: expected 'alarm' to be 'lock')
+          it('and waits for the delay and executes the action at the right time', (done) => {
             clock.tick(10000);
-
-            console.log("TIME1", new Date().getTime())
             spy_perform.getCall(1).args[0].target.should.be.equal('lock');
             spy_perform.getCall(2).args[0].target.should.be.equal('alarm');
             spy_perform.calledThrice.should.be.equal(true);
@@ -226,7 +221,7 @@ describe('triggers', () => {
             get_stub.restore();
           })
 
-          it('execute the trigger weekly', (done) => {        // ---> ESTE 2do     (expected false to be true)
+          it('execute the trigger weekly', (done) => {
             // Test trigger set to be executed Mondays and Thursdays at 14:25:10, until next Wednesday.
             // it should run this monday and thursday, and then next monday, stoppping on wednesday.
             var time = test_time;
@@ -235,8 +230,6 @@ describe('triggers', () => {
               time += 1000;
               clock.tick(1000);
             }
-
-            console.log("WEEKLY CALLCOUNT!", spy_perform.callCount)
             spy_perform.calledThrice.should.be.equal(true);
 
             done();
@@ -254,7 +247,6 @@ describe('triggers', () => {
             spy_perform = sinon.spy(commands, 'perform');
             setTimeout(() => { triggers.start({}, done) }, 500)
             clock = sinon.useFakeTimers(1561381200000);     // Monday 24/06/2019 13:00:00
-            console.log("BEFORE TIME 2", new Date().getTime())
           })
 
           after(() => {
@@ -274,9 +266,8 @@ describe('triggers', () => {
             done();
           })
 
-          it('execute the actions when the event is triggered and into the range', (done) => {     // ----> ESTE TB 3ero (TypeError: Cannot read property 'args' of null)
+          it('execute the actions when the event is triggered and into the range', (done) => {
             clock.tick(1000 * 60 * 60 * 24 * 5) // Moving to Saturday
-            console.log("TIME AFTER DAYS JUMP", new Date().getTime())
             hooks.trigger('new_location');
             clock.tick(1000)
             spy_perform.getCall(2).args[0].target.should.be.equal('alert');
@@ -285,27 +276,24 @@ describe('triggers', () => {
             done();
           });
 
-          it('execute the actions on events with id', (done) => {            // ----> ESTE TB 4to ( AssertionError: expected 'lock' to be 'alarm')
+          it('execute the actions on events with id', (done) => {
             hooks.trigger('geofencing_in', {id: 666});
             clock.tick(500)
             hooks.trigger('geofencing_in', {id: 667});
             clock.tick(500)
-
-            console.log("GEOFENCING!", new Date().getTime());
-
             spy_perform.getCall(4).args[0].target.should.be.equal('alarm');
             spy_perform.getCall(5).args[0].target.should.be.equal('lock');
             spy_perform.callCount.should.be.equal(6); 
             done();
           });
 
-          it('doesnt activate an unknown trigger event', (done) => {        // ----> ESTE TB 5to ( AssertionError: expected 5 to be 6)
+          it('doesnt activate an unknown trigger event', (done) => {
             hooks.trigger('power_changed');
             spy_perform.callCount.should.be.equal(6);
             done();
           });
 
-          it('stores the triggers into the local database', (done) => {      // ----> ESTE TB 6to ( Uncaught AssertionError: expected 0 to be 5)
+          it('stores the triggers into the local database', (done) => {
             clock.tick(2000)
             storage.all('triggers', (err, obj) => {
               Object.keys(obj).length.should.be.equal(5)
