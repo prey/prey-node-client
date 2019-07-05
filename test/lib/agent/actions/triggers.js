@@ -287,9 +287,25 @@ describe('triggers', () => {
             done();
           });
 
+          it('execute the actions when the event is triggered and into days the range', (done) => {
+            clock.tick(1000 * 60 * 60 * 24) // One more Day
+            hooks.trigger('stopped_charging');
+            clock.tick(1000)
+            spy_perform.getCall(6).args[0].target.should.be.equal('alert');
+            done();
+          });
+
+          it('execute with days and hours ranges', (done) => {
+            clock.tick(1000 * 60 * 60 * 24) // One more Day
+            hooks.trigger('mac_address_changed');
+            clock.tick(1000)
+            spy_perform.getCall(7).args[0].target.should.be.equal('lock');
+            done();
+          });
+
           it('doesnt activate an unknown trigger event', (done) => {
             hooks.trigger('power_changed');
-            spy_perform.callCount.should.be.equal(6);
+            spy_perform.callCount.should.be.equal(8);
             done();
           });
 

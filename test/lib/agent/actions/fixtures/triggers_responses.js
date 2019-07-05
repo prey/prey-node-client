@@ -53,7 +53,7 @@ var exact_triggers = [
           "command": "start",
           "target": "lock",
           "options": {
-            "password": "preyrocks"
+            "unlock_pass": "preyrocks"
           }
         }
       }
@@ -130,7 +130,7 @@ var event_triggers = [
           "command": "start",
           "target": "lock",
           "options":{
-            "password":"preyrocks"
+            "unlock_pass":"preyrocks"
           }
         }
       },
@@ -192,7 +192,7 @@ var event_triggers = [
   },
   {
     "id": 112,
-    "name": "trigger 111",
+    "name": "trigger 112",
     "events":[
       {
         "type" : "geofencing_in",
@@ -208,7 +208,7 @@ var event_triggers = [
           "command": "start",
           "target": "lock",
           "options": {
-            "password":"dapassword"
+            "unlock_pass":"dapassword"
           }
         }
       },
@@ -216,7 +216,7 @@ var event_triggers = [
   },
   {
     "id": 113,
-    "name": "trigger 111",
+    "name": "trigger 113",
     "events":[
       {
         "type" : "power_changed",
@@ -229,12 +229,77 @@ var event_triggers = [
           "command": "start",
           "target": "lock",
           "options": {
-            "password":"dapassword2"
+            "unlock_pass":"dapassword2"
           }
         }
       },
     ]
-  }
+  },
+  {
+    "id": 114,
+    "name": "trigger 114",
+    "events":[
+      {
+        "type" : "stopped_charging",
+      },
+      {
+        "type" : "range_time",
+        "info" : {
+          "from" : '20190630120000',
+          "until" : '20190701150000'
+        }
+      }
+    ],
+    "actions":[
+      {
+        "delay": 0,
+        "action": {
+          "command": "start",
+          "target": "alert",
+          "options": {
+            "alert_message":"alo"
+          }
+        }
+      },
+    ]
+  },
+  {
+    "id": 115,
+    "name": "trigger 115",
+    "events":[
+      {
+        "type" : "mac_address_changed",
+      },
+      {
+        "type" : "range_time",
+        "info" : {
+          "from" : '20190130120000',
+          "until" : '20190801150000'
+        }
+      },
+      {
+        "type":"repeat_range_time",
+        "info": {
+          "days_of_week": [1, 2],    // Saturday and Sunday
+          "hour_from": "120000",
+          "hour_until": "133000",
+          "until":null
+        }
+      }
+    ],
+    "actions":[
+      {
+        "delay": 0,
+        "action": {
+          "command": "start",
+          "target": "lock",
+          "options": {
+            "unlock_pass":"oeoe"
+          }
+        }
+      }
+    ]
+  },
 
 ]
 
