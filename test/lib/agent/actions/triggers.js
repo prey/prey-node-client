@@ -113,7 +113,9 @@ describe('triggers', () => {
             spy_activate = sinon.spy(triggers, 'activate');
             triggers_storage.store(dummy.exact_triggers[0], () => {
               triggers_storage.store(dummy.repeat_triggers[0], () => {
-                triggers.start({}, done);
+                setTimeout(() => {
+                  triggers.start({}, done);
+                }, 2000)
               });
             })
           })
@@ -136,10 +138,12 @@ describe('triggers', () => {
 
       before(() => {
         spy_clear_local = sinon.spy(triggers_storage, 'clear_triggers');
+        spy_logger = sinon.spy(triggers.logger, 'warn');
       })
 
       after(() => {
         spy_clear_local.restore();
+        spy_logger.restore();
       })
       
       describe('and the it has 0 triggers', () => {
@@ -173,9 +177,10 @@ describe('triggers', () => {
             spy_perform = sinon.spy(commands, 'perform');
             date = new Date(),
             year = date.getFullYear() + 1,   // Always next year
-            new_date = new Date(Date.UTC(year, 6, 25, 15, 00, 05));
+            timezone_offset = new Date().getTimezoneOffset() * 60 * 1000,
+            new_date = new Date(Date.UTC(year, 6, 25, 15, 00, 05)).getTime() + timezone_offset;
             setTimeout(() => { triggers.start({}, done) }, 500)
-            clock = sinon.useFakeTimers(new_date.getTime());
+            clock = sinon.useFakeTimers(new_date);
           })
 
           after(() => {
@@ -185,9 +190,19 @@ describe('triggers', () => {
             get_stub.restore();
           })
 
+          it('does not set up the trigger in the past', (done) => {
+            clock.tick(500);
+            spy_perform.notCalled.should.be.equal(true);
+            spy_logger.calledOnce.should.be.equal(true);
+            spy_logger.getCall(0).args[0].should.containEql('Cant set trigger into the past!');
+            done();
+          })
+
           it('executes the action at the right time', (done) => {
-            clock.tick(1500);
+            clock.tick(1000);
             spy_perform.getCall(0).args[0].target.should.be.equal('alert');
+            spy_perform.getCall(0).args[0].options.trigger_id.should.exists;
+            spy_perform.getCall(0).args[0].options.trigger_id.should.be.equal(105);
             spy_perform.calledOnce.should.be.equal(true);
             done();
           })
@@ -195,11 +210,14 @@ describe('triggers', () => {
           it('and waits for the delay and executes the action at the right time', (done) => {
             clock.tick(10000);
             spy_perform.getCall(1).args[0].target.should.be.equal('lock');
+            spy_perform.getCall(1).args[0].options.trigger_id.should.exists;
+            spy_perform.getCall(1).args[0].options.trigger_id.should.be.equal(106);
             spy_perform.getCall(2).args[0].target.should.be.equal('alarm');
+            spy_perform.getCall(2).args[0].options.trigger_id.should.exists;
+            spy_perform.getCall(2).args[0].options.trigger_id.should.be.equal(105);
             spy_perform.calledThrice.should.be.equal(true);
             done();
           })
-
         })
 
         describe('and it has repeat_time triggers', () => {
@@ -231,29 +249,39 @@ describe('triggers', () => {
               clock.tick(1000);
             }
             spy_perform.calledThrice.should.be.equal(true);
+            spy_perform.getCall(0).args[0].options.trigger_id.should.exists;
+            spy_perform.getCall(0).args[0].options.trigger_id.should.be.equal(107);
+            spy_perform.getCall(1).args[0].options.trigger_id.should.be.equal(107);
+            spy_perform.getCall(2).args[0].options.trigger_id.should.be.equal(107);
 
+            spy_logger.calledTwice.should.be.equal(true);
+            spy_logger.getCall(1).args[0].should.containEql("Invalid trigger format");
             done();
-
           });
 
         })
 
         describe('and it has event triggers', () => {
-          var clock;
+          var clock,
+              timezone_offset;
 
           before((done) => {
             get_stub = sinon.stub(request, 'get').callsFake((uri, opts, cb) => { return cb(null, { body: dummy.event_triggers }); })
             spy_sync = sinon.spy(triggers, 'sync');
             spy_perform = sinon.spy(commands, 'perform');
+            timezone_offset = new Date().getTimezoneOffset() * 60 * 1000;
             setTimeout(() => { triggers.start({}, done) }, 500)
-            clock = sinon.useFakeTimers(1561381200000);     // Monday 24/06/2019 13:00:00
+            clock = sinon.useFakeTimers(1561366800000 + timezone_offset);     // Monday 24/06/2019 9:00:00
           })
 
-          after(() => {
+          after((done) => {
             spy_sync.restore();
             spy_perform.restore(); 
             get_stub.restore();
             clock.restore();
+            setTimeout(() => {
+              done();
+            }, 2000);
           })
 
           it('execute the actions when the event is triggered and not into the range', (done) => {
@@ -261,7 +289,9 @@ describe('triggers', () => {
             hooks.trigger('disconnected');
             clock.tick(1000)
             spy_perform.getCall(0).args[0].target.should.be.equal('lock');
+            spy_perform.getCall(0).args[0].options.trigger_id.should.be.equal(109);
             spy_perform.getCall(1).args[0].target.should.be.equal('alert');
+            spy_perform.getCall(1).args[0].options.trigger_id.should.be.equal(108);
             spy_perform.calledTwice.should.be.equal(true);
             done();
           })
@@ -271,7 +301,9 @@ describe('triggers', () => {
             hooks.trigger('new_location');
             clock.tick(1000)
             spy_perform.getCall(2).args[0].target.should.be.equal('alert');
+            spy_perform.getCall(2).args[0].options.trigger_id.should.be.equal(108);
             spy_perform.getCall(3).args[0].target.should.be.equal('alarm');
+            spy_perform.getCall(3).args[0].options.trigger_id.should.be.equal(110);
             spy_perform.callCount.should.be.equal(4);
             done();
           });
@@ -282,7 +314,9 @@ describe('triggers', () => {
             hooks.trigger('geofencing_in', {id: 667});
             clock.tick(500)
             spy_perform.getCall(4).args[0].target.should.be.equal('alarm');
+            spy_perform.getCall(4).args[0].options.trigger_id.should.be.equal(111);
             spy_perform.getCall(5).args[0].target.should.be.equal('lock');
+            spy_perform.getCall(5).args[0].options.trigger_id.should.be.equal(112);
             spy_perform.callCount.should.be.equal(6); 
             done();
           });
@@ -290,8 +324,9 @@ describe('triggers', () => {
           it('execute the actions when the event is triggered and into days the range', (done) => {
             clock.tick(1000 * 60 * 60 * 24) // One more Day
             hooks.trigger('stopped_charging');
-            clock.tick(1000)
+            clock.tick(1000);
             spy_perform.getCall(6).args[0].target.should.be.equal('alert');
+            spy_perform.getCall(6).args[0].options.trigger_id.should.be.equal(114);
             done();
           });
 
@@ -300,11 +335,14 @@ describe('triggers', () => {
             hooks.trigger('mac_address_changed');
             clock.tick(1000)
             spy_perform.getCall(7).args[0].target.should.be.equal('lock');
+            spy_perform.getCall(7).args[0].options.trigger_id.should.be.equal(115);
             done();
           });
 
           it('doesnt activate an unknown trigger event', (done) => {
             hooks.trigger('power_changed');
+            spy_logger.calledThrice.should.be.equal(true);
+            spy_logger.getCall(2).args[0].should.containEql("Unavailable event for Node Client.");
             spy_perform.callCount.should.be.equal(8);
             done();
           });

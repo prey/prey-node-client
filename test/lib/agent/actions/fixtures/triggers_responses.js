@@ -1,8 +1,32 @@
 var exact_triggers = [
   {
+    "id":104,
+    "name":"trigger 104",
+    "automation_events":[
+      {
+        "type": "exact_time",
+        "info": {
+          "date": "20190501120000"     // In the past
+        }
+      }
+    ],
+    "automation_actions":[
+      {
+        "delay": 0,
+        "action":{
+          "command": "start",
+          "target": "lock",
+          "options": {
+            "unlock_pass": "yeahitrocks"
+          }
+        }
+      }
+    ]
+  },
+  {
     "id":105,
     "name":"trigger 105",
-    "events":[
+    "automation_events":[
       {
         "type": "exact_time",
         "info": {
@@ -10,7 +34,7 @@ var exact_triggers = [
         }
       }
     ],
-    "actions":[
+    "automation_actions":[
       {
         "delay": 0,
         "action":{
@@ -32,21 +56,20 @@ var exact_triggers = [
         }
       }
     ]
-   },
+  },
    
-   {
+  {
     "id":106,
     "name":"trigger 106",
-    "events":[
+    "automation_events":[
       {
         "type": "exact_time",
         "info": {
-          //"date": "" + (new Date().getFullYear()+1) + "-07-25T15:04:07Z-04:00" // "2020-07-25T15:04:07Z-04:00"
           "date": "" + (new Date().getFullYear() +1) + "0725150007"
         }
       }
     ],
-    "actions":[
+    "automation_actions":[
       {
         "delay": 1000,
         "action":{
@@ -59,26 +82,26 @@ var exact_triggers = [
       }
     ]
 
-   }
+  }
 ]
 
 var repeat_triggers = [
   {
     "id": 107,
     "name": "trigger 107",
-    "events":[
+    "automation_events":[
       {
         "type" : "repeat_time",
         "info" : {
-          "days_of_week" : [1, 4],  // Mondays and Thursdays
-          "hour" : 20,
-          "minute" : 25,
-          "second" : 10,
+          "days_of_week" : '[1, 4]',  // Mondays and Thursdays
+          "hour" : '20',
+          "minute" : '25',
+          "second" : '10',
           "until" : "20190626"
         }
       }
     ],
-    "actions":[
+    "automation_actions":[
       {
         "delay": 0,
         "action": {
@@ -90,6 +113,33 @@ var repeat_triggers = [
         }
       },
     ]
+  },
+  {
+    "id": 116,
+    "name": "trigger 116",
+    "automation_events":[
+      {
+        "type" : "repeat_time",
+        "info" : {
+          "days_of_week" : '[8, 4]',  // Mondays and Thursdays
+          "hour" : '25',
+          "minute" : '25',
+          "second" : '10'
+        }
+      }
+    ],
+    "automation_actions":[
+      {
+        "delay": 0,
+        "action": {
+          "command": "start",
+          "target": "alarm",
+          "options": {
+            "sound": "alarm"
+          }
+        }
+      },
+    ]
   }
 ]
 
@@ -97,12 +147,12 @@ var event_triggers = [
   {
     "id": 108,
     "name": "trigger 108",
-    "events":[
+    "automation_events":[
       {
         "type" : "new_location"
       }
     ],
-    "actions":[
+    "automation_actions":[
       {
         "delay": 100,
         "action":{
@@ -118,12 +168,12 @@ var event_triggers = [
   {
     "id": 109,
     "name": "trigger 109",
-    "events":[
+    "automation_events":[
       {
         "type" : "disconnected"
       }
     ],
-    "actions":[
+    "automation_actions":[
       {
         "delay": 0,
         "action":{
@@ -139,21 +189,21 @@ var event_triggers = [
   {
     "id": 110,
     "name": "trigger 110",
-    "events":[
+    "automation_events":[
       {
         "type" : "new_location"
       },
       { 
         "type":"repeat_range_time", 
         "info": {
-          "days_of_week": [6, 0],    // Saturday and Sunday
+          "days_of_week": '[6, 0]',    // Saturday and Sunday
           "hour_from": "090000",
           "hour_until": "090159",
           "until":null
         }
       }
     ],
-    "actions":[
+    "automation_actions":[
       {
         "delay": 500,
         "action": {
@@ -169,7 +219,7 @@ var event_triggers = [
   {
     "id": 111,
     "name": "trigger 111",
-    "events":[
+    "automation_events":[
       {
         "type" : "geofencing_in",
         "info" : {
@@ -177,7 +227,7 @@ var event_triggers = [
         }
       }
     ],
-    "actions":[
+    "automation_actions":[
       {
         "delay": 0,
         "action": {
@@ -193,7 +243,7 @@ var event_triggers = [
   {
     "id": 112,
     "name": "trigger 112",
-    "events":[
+    "automation_events":[
       {
         "type" : "geofencing_in",
         "info" : {
@@ -201,7 +251,7 @@ var event_triggers = [
         }
       }
     ],
-    "actions":[
+    "automation_actions":[
       {
         "delay": 0,
         "action": {
@@ -217,12 +267,12 @@ var event_triggers = [
   {
     "id": 113,
     "name": "trigger 113",
-    "events":[
+    "automation_events":[
       {
         "type" : "power_changed",
       }
     ],
-    "actions":[
+    "automation_actions":[
       {
         "delay": 0,
         "action": {
@@ -238,19 +288,19 @@ var event_triggers = [
   {
     "id": 114,
     "name": "trigger 114",
-    "events":[
+    "automation_events":[
       {
         "type" : "stopped_charging",
       },
       {
         "type" : "range_time",
         "info" : {
-          "from" : '20190630120000',
+          "from" :  '2019063000000',
           "until" : '20190701150000'
         }
       }
     ],
-    "actions":[
+    "automation_actions":[
       {
         "delay": 0,
         "action": {
@@ -266,7 +316,7 @@ var event_triggers = [
   {
     "id": 115,
     "name": "trigger 115",
-    "events":[
+    "automation_events":[
       {
         "type" : "mac_address_changed",
       },
@@ -280,14 +330,14 @@ var event_triggers = [
       {
         "type":"repeat_range_time",
         "info": {
-          "days_of_week": [1, 2],    // Saturday and Sunday
-          "hour_from": "120000",
+          "days_of_week": '[1, 2]',    // Saturday and Sunday
+          "hour_from": "080000",
           "hour_until": "133000",
           "until":null
         }
       }
     ],
-    "actions":[
+    "automation_actions":[
       {
         "delay": 0,
         "action": {
