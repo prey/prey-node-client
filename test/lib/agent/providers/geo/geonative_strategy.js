@@ -164,10 +164,10 @@ describe('native geoloc', function () {
         os_version_stub.restore();
       });
 
-      it('returns error with "CoreLocation not supported" message', function(done) {
+      it('returns error with "Not yet supported" message', function(done) {
         geo.darwin.get_location(function(err, res) {
           err.should.exist;
-          err.message.should.equal("CoreLocation not suppored in OSX " + os_version);
+          err.message.should.equal('Not yet supported');
           done();
         });
       });
@@ -180,7 +180,7 @@ describe('native geoloc', function () {
           os_version_stub; // needed when running specs on OS other than Mac OS X
 
       before(function() {
-        exec_stub = sinon.stub(child_process, 'exec').callsFake((bin, cb) => {
+        exec_stub = sinon.stub(system, 'run_as_user').callsFake((bin, cb) => {
           return cb(null, {});
         });
 
@@ -196,8 +196,8 @@ describe('native geoloc', function () {
 
       it('returns error', function(done) {
         geo.darwin.get_location(function(err, res) {
-          err.should.exist;
-          err.message.should.equal('Not yet supported');
+          err.should.not.exist;
+          err.message.should.equal('Unable to get native location');
           // Replace above with the following once native geoloc is enabled again for Mac
           //err.message.should.equal("Unable to get geoposition data using CoreLocation.");
           done();
