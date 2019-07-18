@@ -67,7 +67,7 @@ describe('native geoloc', function () {
           res.should.exist;
           res.lat.should.exist;
           res.lng.should.exist;
-          res.method.should.equal('geonative');
+          res.method.should.equal('native');
           done();
         });
       });
