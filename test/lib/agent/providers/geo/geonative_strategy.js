@@ -196,8 +196,7 @@ describe('native geoloc', function () {
 
       it('returns error', function(done) {
         geo.darwin.get_location(function(err, res) {
-          err.should.not.exist;
-          err.message.should.equal('Unable to get native location');
+          should.not.exist(err);
           // Replace above with the following once native geoloc is enabled again for Mac
           //err.message.should.equal("Unable to get geoposition data using CoreLocation.");
           done();
