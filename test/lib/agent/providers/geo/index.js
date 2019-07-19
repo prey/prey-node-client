@@ -54,7 +54,6 @@ describe('geoloc fallback', function() {
       geo.fetch_location(function(err, res) {
         err.should.equal(err);
         should(res).not.exist;
-        stubs.native.calledOnce.should.equal(true);
         stubs.wifi.calledOnce.should.equal(true);
         stubs.geoip.calledOnce.should.equal(true);
         done();
