@@ -1094,7 +1094,7 @@
     },
     "os-triggers": {
       "version": "0.1.3",
-      "resolved": "https://registry.npmjs.org/os-triggers/-/os-triggers-0.1.3.tgz",
+      "resolved": "https://registry.npmjs.org/os-triggers/-/os-triggers-0.1.4.tgz",
       "integrity": "sha512-wIfVmkyjgb21+LRgGCLU2GlMeO5CtF4D7/DIoQr1+VNdFZsuKyg94xw3mqhoT1xCwdpZzW+v1dSVBqho6ysBAw=="
     },
     "osenv": {
