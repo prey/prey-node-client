@@ -4,40 +4,82 @@
 <dict>
 	<key>files</key>
 	<dict>
+		<key>Resources/AlertIcon.png</key>
+		<data>
+		H7QTXumrVW3Ne2kwqf9vwuRy2e4=
+		</data>
+		<key>Resources/AlertIcon@2x.png</key>
+		<data>
+		ar3f79j/wQ1aM64KyLffvkm2gAA=
+		</data>
+		<key>Resources/AppIcon.icns</key>
+		<data>
+		f8MsCIwFE0C7OIitvMsuTlthVRs=
+		</data>
 		<key>Resources/Assets.car</key>
 		<data>
-		yyqAgmH+YPwzpxCwmsig5bbbAkI=
+		xD5V2s3oCFUl7sH9gWudTLhfHNo=
 		</data>
-		<key>Resources/Base.lproj/Main.storyboardc/Info.plist</key>
+		<key>Resources/MainView.nib</key>
 		<data>
-		M1rS+Tcas1ZdM4/iibTlduTJ22M=
-		</data>
-		<key>Resources/Base.lproj/Main.storyboardc/MainMenu.nib</key>
-		<data>
-		I+rfNGHpTuRW36bD6l2oJB1vBdE=
+		TCfPfk1F7OO4ASidWrpdCNepxO0=
 		</data>
 	</dict>
 	<key>files2</key>
 	<dict>
+		<key>Resources/AlertIcon.png</key>
+		<dict>
+			<key>hash</key>
+			<data>
+			H7QTXumrVW3Ne2kwqf9vwuRy2e4=
+			</data>
+			<key>hash2</key>
+			<data>
+			2udLYrBPS+24rBvGo9sq6l058N3Ol5Hko1xJr5aTHWY=
+			</data>
+		</dict>
+		<key>Resources/AlertIcon@2x.png</key>
+		<dict>
+			<key>hash</key>
+			<data>
+			ar3f79j/wQ1aM64KyLffvkm2gAA=
+			</data>
+			<key>hash2</key>
+			<data>
+			JnBAel+bPvfCUjMTQewMC5SIIcC51+NaUhRzxAqJQAQ=
+			</data>
+		</dict>
+		<key>Resources/AppIcon.icns</key>
+		<dict>
+			<key>hash</key>
+			<data>
+			f8MsCIwFE0C7OIitvMsuTlthVRs=
+			</data>
+			<key>hash2</key>
+			<data>
+			NSeWo4o0gUTxMnqb9yMtmJd/ktkw0Lz/2lT4WBocvcY=
+			</data>
+		</dict>
 		<key>Resources/Assets.car</key>
 		<dict>
+			<key>hash</key>
+			<data>
+			xD5V2s3oCFUl7sH9gWudTLhfHNo=
+			</data>
 			<key>hash2</key>
 			<data>
-			5CSo/0Q1y+D1hjDjrIsl3SQqPpU+/x2G/eUVv3Bm0nQ=
+			zRAIaT7PZVfaN2W+S3jFEpYyBSaHzM7KteDxzlE82Jg=
 			</data>
 		</dict>
-		<key>Resources/Base.lproj/Main.storyboardc/Info.plist</key>
+		<key>Resources/MainView.nib</key>
 		<dict>
-			<key>hash2</key>
+			<key>hash</key>
 			<data>
-			6/2HagpKuzGhxFgQU55Lc/bxgR30qm5eqHSV+p9e4/4=
+			TCfPfk1F7OO4ASidWrpdCNepxO0=
 			</data>
-		</dict>
-		<key>Resources/Base.lproj/Main.storyboardc/MainMenu.nib</key>
-		<dict>
 			<key>hash2</key>
 			<data>
-			vwlMCPcAXJVfn7tnGLgouhkjtteTHERt6NrbESEmY4M=
+			CGTfvz91BFwN64CrFJTcB2dTAwa9vgz12lLUtoyqZyo=
 			</data>
 		</dict>
 	</dict>
