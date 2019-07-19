@@ -52,7 +52,7 @@ describe('hostame', () => {
             out['hostname-key'].value.should.be.equal('John PC');
             done();
           })
-        }, 1000)
+        }, 2000)
       })
     })
 
