@@ -149,7 +149,7 @@ describe('location', function() {
 
         it('works', function(done) {
           provider_stub.restore();
-          this.timeout(6000); // response may take longer
+          this.timeout(7000); // response may take longer
 
           wifi_strat(function(err, data) {
             if (err) {
