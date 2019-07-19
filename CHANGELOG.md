@@ -1,5 +1,13 @@
 # Change Log
 
+## [v1.9.0](https://github.com/prey/prey-node-client/tree/v1.8.3) (2019-07-19)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.8.3...v1.9.0)
+
+**Merged pull requests:**
+- Action triggers for node client [\#427] (https://github.com/prey/prey-node-client/pull/427) ([javo](https://github.com/javo))
+- Allow native location on mac [\#428] (https://github.com/prey/prey-node-client/pull/428) ([javo](https://github.com/javo))
+- Device status improvements [\#429] (https://github.com/prey/prey-node-client/pull/429) ([javo](https://github.com/javo))
+
 ## [v1.8.3](https://github.com/prey/prey-node-client/tree/v1.8.3) (2019-03-25)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.8.2...v1.8.3)
 
