@@ -107,17 +107,16 @@ describe('hostame', () => {
       })
 
       it('sends hostname changed event', (done) => {
-        hostname.start(opts, () => {})
-        spy_push.notCalled.should.be.equal(true);
-        
+        hostname.start(opts, () => {});
         setTimeout(() => {
+          spy_push.notCalled.should.be.equal(true);
           storage.all('keys', (err, out) => {
             should.not.exist(err);
             out['hostname-key'].should.exist
             out['hostname-key'].value.should.be.equal('John PC 2');
             done();
           })
-        }, 1000)
+        }, 1500)
       })
     })
   })

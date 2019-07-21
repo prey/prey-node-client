@@ -174,37 +174,6 @@ describe('native geoloc', function () {
 
     });
 
-    describe('when whereami output does not have latitue', function() {
-
-      var exec_stub,
-          os_version_stub; // needed when running specs on OS other than Mac OS X
-
-      before(function() {
-        exec_stub = sinon.stub(system, 'run_as_user').callsFake((bin, cb) => {
-          return cb(null, {});
-        });
-
-        os_version_stub = sinon.stub(system, 'get_os_version').callsFake(cb =>{
-          cb(null, "10.10.0");
-        });
-      });
-
-      after(function() {
-        exec_stub.restore();
-        os_version_stub.restore();
-      });
-
-      it('returns error', function(done) {
-        geo.darwin.get_location(function(err, res) {
-          should.not.exist(err);
-          // Replace above with the following once native geoloc is enabled again for Mac
-          //err.message.should.equal("Unable to get geoposition data using CoreLocation.");
-          done();
-        });
-      });
-
-    });
-
   });
 
 });
