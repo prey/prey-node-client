@@ -1,6 +1,12 @@
 # Change Log
 
-## [v1.9.0](https://github.com/prey/prey-node-client/tree/v1.8.3) (2019-07-19)
+## [v1.9.1](https://github.com/prey/prey-node-client/tree/v1.9.1) (2019-07-23)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.9.0...v1.9.1)
+
+**Merged pull requests:**
+- Status on no logged user fix [\#435] (https://github.com/prey/prey-node-client/pull/435) ([javo](https://github.com/javo))
+
+## [v1.9.0](https://github.com/prey/prey-node-client/tree/v1.9.0) (2019-07-19)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.8.3...v1.9.0)
 
 **Merged pull requests:**
