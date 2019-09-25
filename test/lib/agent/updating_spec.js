@@ -121,35 +121,87 @@ describe('updating', function() {
       describe('when upgrading fails', function() {
 
         var fake_spawn;
+        describe('by emits an exit', () => {
 
-        before(function() {
-          fake_spawn = sinon.stub(child_process, 'spawn').callsFake((cmd, args, opts) => {
-            var child = helpers.fake_spawn_child();
+          before(function() {
+            fake_spawn = sinon.stub(child_process, 'spawn').callsFake((cmd, args, opts) => {
+              var child = helpers.fake_spawn_child();
 
-            setTimeout(function(){
-              child.stdout.emit('data', new Buffer('Downloading file...'));
-              child.stdout.emit('data', new Buffer('Launching rockets'));
-              child.stdout.emit('data', new Buffer('SHOOT!!'));
-              child.emit('exit');
-            }, 10);
+              setTimeout(function(){
+                child.stdout.emit('data', new Buffer('Downloading file...'));
+                child.stdout.emit('data', new Buffer('Launching rockets'));
+                child.stdout.emit('data', new Buffer('SHOOT!!'));
+                child.emit('exit');
+              }, 10);
 
-            return child;
+              return child;
+            });
+          })
+
+          after(function() {
+            fake_spawn.restore();
           });
-        })
 
-        after(function() {
-          fake_spawn.restore();
+          it('callbacks an error', function (done){
+
+            updater.check(function(err) {
+              should.exist(err);
+              err.message.should.equal('Upgrade to 1.2.5 failed. Exit code: undefined');
+              err.stack.should.containEql('Launching rockets\nSHOOT!!');
+              done();
+            });
+
+          });
         });
 
-        it('callbacks an error', function (done){
+        describe('data contains error', () => {
+          before(function() {
+            updater.check_enabled = true;
+            updater.upgrading = false;
+            fake_spawn = sinon.stub(child_process, 'spawn').callsFake((cmd, args, opts) => {
+              var child = helpers.fake_spawn_child();
 
-          updater.check(function(err) {
-            should.exist(err);
-            err.message.should.equal('Upgrade to 1.2.5 failed. Exit code: undefined');
-            err.stack.should.containEql('Launching rockets\nSHOOT!!');
-            done();
+              setTimeout(function(){
+                child.stdout.emit('data', new Buffer('Downloading file...'));
+                child.stdout.emit('data', new Buffer('Launching rockets'));
+                child.stdout.emit('data', new Buffer('Error! No, cant do'));
+              }, 10);
+
+              post_event_stub = sinon.spy(package, 'post_event');
+              post_spy = sinon.stub(needle, 'post').callsFake((url, data, opts, cb) => {
+                return cb();
+              });
+
+              return child;
+            });
+          })
+
+          after(function(done) {
+            fake_spawn.restore();
+            post_event_stub.restore();
+            post_spy.restore();
+            storage.close('versions', function() {
+              storage.erase(tmpdir() + '/versions', done);
+            });
           });
 
+          it('callbacks an error and notifies it', function (done){
+
+            storage.init('versions', tmpdir() + '/versions', (err) => {
+
+              storage.set('version-1.2.5', {from: '1.2.3', to: '1.2.5', attempts: 3, notified: false}, (err) => {
+
+                updater.check_for_update(function(err) {
+                  should.exist(err);
+                  err.should.containEql('No, cant do');
+                  post_spy.calledOnce.should.equal(true);
+                  done();
+                });
+
+              });
+            });
+
+          });
         });
 
       });
@@ -162,9 +214,13 @@ describe('updating', function() {
         var fake_spawn,
             fake_exit,
             exit_code,
+            post_event_stub,
+            post_spy,
             unreffed = false;
 
-        before(function() {
+        before(function(done) {
+          updater.check_enabled = true;
+          updater.upgrading = false;
           fake_spawn = sinon.stub(child_process, 'spawn').callsFake((cmd, args, opts) => {
             var child = helpers.fake_spawn_child();
 
@@ -184,15 +240,26 @@ describe('updating', function() {
             exit_code = code;
           });
 
+          post_event_stub = sinon.spy(package, 'post_event');
+          post_spy = sinon.stub(needle, 'post').callsFake((url, data, opts, cb) => {
+            return cb();
+          });
+
+          storage.init('versions', tmpdir() + '/versions', done);
         });
 
-        after(function() {
+        after(function(done) {
           fake_spawn.restore();
           fake_exit.restore();
+          post_event_stub.restore();
+          post_spy.restore();
+          storage.close('versions', function() {
+            storage.erase(tmpdir() + '/versions', done);
+          });
         });
 
         it('process exits with status code(0)', function (done){
-
+          this.timeout(16000);
           updater.check(function(err) {
             exit_code.should.equal(0);
             unreffed.should.be.true;
@@ -200,6 +267,23 @@ describe('updating', function() {
           });
 
         });
+
+        it('notifies update success when the client restarts after upgrade', (done) => {
+          updater.check_enabled = true;
+          updater.upgrading = false;
+          common.version = '1.2.5';
+          storage.set('version-1.2.5', {from: '1.2.3', to: '1.2.5', attempts: 5, notified: false}, () => {
+            updater.check_for_update(function(err, ver) {
+              should.not.exist(err);
+              should.not.exist(ver);
+              post_spy.calledOnce.should.equal(true);
+              storage.all('versions', (err, out) => {
+                Object.keys(out).length.should.be.equal(0)
+                done();
+              })
+            });
+          });
+        })
 
       });
 

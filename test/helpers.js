@@ -44,6 +44,7 @@ helpers.fake_spawn_child = function() {
   var child = new Emitter();
   child.stdout = new Emitter();
   child.stderr = new Emitter();
+  child.unref = function() {}
   return child;
 }
 
