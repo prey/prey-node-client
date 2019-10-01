@@ -4,14 +4,18 @@ var fs            = require('fs'),
     needle        = require('needle'),
     remove        = require('remover'),
     os            = require('os'),
+    tmp           = require('os').tmpdir,
     sinon         = require('sinon'),
     should        = require('should'),
     rmdir         = require('rimraf'),
     buckle        = require('buckle'),
+    needle        = require('needle'),
     child_process = require('child_process'),
     helpers       = require('../helpers'),
     shared        = require(helpers.lib_path('conf', 'shared')),
-    api           = require(helpers.lib_path('agent', 'plugins', 'control-panel', 'api'));
+    api           = require(helpers.lib_path('agent', 'plugins', 'control-panel', 'api')),
+    common        = require(helpers.lib_path('common')),
+    storage       = require(helpers.lib_path('agent', 'utils', 'storage'));
 
 var package       = require(helpers.lib_path('package'));
 
@@ -154,33 +158,43 @@ describe('package.get_latest', function() {
     var stub, device_stub, event_stub, event_data_stub, attempts_stub, shared_keys_stub;
     var new_version = '1.5.0', old_ver = '1.2.3';
 
-    before(function () {
+    before(function (done) {
+      common.version = old_ver;
       stub = sinon.stub(package, 'new_version_available').callsFake((branch, current_version, cb) => {
         cb(null, new_version);
       })
-      shared_keys_stub = sinon.stub(shared.keys, 'get').callsFake(() => {
-        var keys = {
-          api    : 'aaaaaaaaaaa',
-          device : 'bbbbbb'
-        };
-        return keys;
-      });
+      var update_data = {
+        location: {
+          lat: -33,
+          lng: -77
+        },
+        ip: "000.00.00.000",
+        country: "US",
+      }
       event_stub = sinon.stub(api.push, 'event').callsFake((keys, cb) => { return cb(); });
       device_stub = sinon.stub(api.keys, 'verify').callsFake((keys, cb) => { return cb(); });
-      attempts_stub = sinon.stub(package, 'update_attempts').callsFake((old_ver, new_version, cb) =>  { return cb(null, new_version); });
-      event_data_stub = sinon.stub(package, 'get_update_data').callsFake(cb => { return true; });
+      event_data_stub = sinon.stub(package, 'get_update_data').callsFake((cb) => { return cb(update_data); });
+      post_event_stub = sinon.spy(package, 'post_event');
+
+      post_spy = sinon.stub(needle, 'post').callsFake((url, data, opts, cb) => {
+        return cb();
+      });
+      storage.init('versions', tmp() + '/versions', done);
     });
 
-    after(function() {
+    after(function(done) {
       stub.restore();
       device_stub.restore();
-      shared_keys_stub.restore();
       event_stub.restore();
       event_data_stub.restore();
-      attempts_stub.restore();
+      post_spy.restore();
+      post_event_stub.restore();
+      storage.close('versions', () => {
+        storage.erase(tmp() + '/versions', done);
+      });
     });
 
-    it('requests the package', function (done) {
+    it('requests the package and create version registry', function (done) {
       var file_name = get_file_name(new_version),
           url       = 'https://downloads.preyproject.com/prey-client-releases/node-client/' + new_version + '/' + file_name,
           outfile   = join(tmpdir, file_name);
@@ -189,7 +203,17 @@ describe('package.get_latest', function() {
         requested_url.should.equal(url);
         opts.output.should.equal(outfile);
         getter.restore();
-        done();
+        storage.all('versions', function(err, out) {
+          should.not.exist(err);
+          Object.keys(out).length.should.be.equal(1);
+          Object.keys(out)[0].should.be.equal('version-1.5.0');
+          out['version-1.5.0'].from.should.be.equal('1.2.3');
+          out['version-1.5.0'].to.should.be.equal('1.5.0');
+          out['version-1.5.0'].attempts.should.be.equal(1);
+          out['version-1.5.0'].notified.should.be.equal(false);
+          post_event_stub.notCalled.should.equal(true);
+          done();
+        })
       });
 
       fs.unlink(outfile, function() {
@@ -214,6 +238,12 @@ describe('package.get_latest', function() {
       it('returns an error', function(done) {
 
         get_latest('1.2.3', tmpdir, function(err) {
+          storage.all('versions', function(err, out) {
+            post_event_stub.calledOnce.should.equal(true)
+            should.not.exist(err);
+            out['version-1.5.0'].attempts.should.be.equal(2);
+            out['version-1.5.0'].notified.should.be.equal(false);
+          })
           err.should.be.a.Error;
           err.message.should.match('Unable to download because I dont feel like it.');
           done()
@@ -226,6 +256,12 @@ describe('package.get_latest', function() {
         var spy = sinon.spy(fs, 'ReadStream');
 
         get_latest('1.2.3', tmpdir, function(err) {
+          storage.all('versions', function(err, out) {
+            post_event_stub.calledTwice.should.equal(true);
+            should.not.exist(err);
+            out['version-1.5.0'].attempts.should.be.equal(3);
+            out['version-1.5.0'].notified.should.be.equal(false);
+          })
           spy.called.should.be.false;
           spy.restore();
           done()
