@@ -1,26 +1,39 @@
 # Change Log
 
+## [v1.9.2](https://github.com/prey/prey-node-client/tree/v1.9.2) (2019-10-03)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.9.1...v1.9.2)
+
+**Merged pull requests:**
+
+- Improvements on providers posible errors [\#444](https://github.com/prey/prey-node-client/pull/444) ([javo](https://github.com/javo))
+- Active access point scan modifications [\#441](https://github.com/prey/prey-node-client/pull/441) ([javo](https://github.com/javo))
+- Missing and Recover commands for automations [\#440](https://github.com/prey/prey-node-client/pull/440) ([javo](https://github.com/javo))
+- Autoupdate improvements [\#439](https://github.com/prey/prey-node-client/pull/439) ([javo](https://github.com/javo))
+- File scannig for windows fix [\#437](https://github.com/prey/prey-node-client/pull/437) ([javo](https://github.com/javo))
+
 ## [v1.9.1](https://github.com/prey/prey-node-client/tree/v1.9.1) (2019-07-23)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.9.0...v1.9.1)
 
 **Merged pull requests:**
-- Status on no logged user fix [\#435] (https://github.com/prey/prey-node-client/pull/435) ([javo](https://github.com/javo))
+
+- Status on no logged user fix [\#435](https://github.com/prey/prey-node-client/pull/435) ([javo](https://github.com/javo))
 
 ## [v1.9.0](https://github.com/prey/prey-node-client/tree/v1.9.0) (2019-07-19)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.8.3...v1.9.0)
 
 **Merged pull requests:**
-- Action triggers for node client [\#427] (https://github.com/prey/prey-node-client/pull/427) ([javo](https://github.com/javo))
-- Allow native location on mac [\#428] (https://github.com/prey/prey-node-client/pull/428) ([javo](https://github.com/javo))
-- Device status improvements [\#429] (https://github.com/prey/prey-node-client/pull/429) ([javo](https://github.com/javo))
+
+- Action triggers for node client [\#427](https://github.com/prey/prey-node-client/pull/427) ([javo](https://github.com/javo))
+- Allow native location on mac [\#428](https://github.com/prey/prey-node-client/pull/428) ([javo](https://github.com/javo))
+- Device status improvements [\#429](https://github.com/prey/prey-node-client/pull/429) ([javo](https://github.com/javo))
 
 ## [v1.8.3](https://github.com/prey/prey-node-client/tree/v1.8.3) (2019-03-25)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.8.2...v1.8.3)
 
 **Merged pull requests:**
 
-- Check location setting through status.json endpoint [\#417] (https://github.com/prey/prey-node-client/pull/417) ([javo](https://github.com/javo))
-- Wipe fixes update [\#419] (https://github.com/prey/prey-node-client/pull/419) ([javo](https://github.com/javo))
+- Check location setting through status.json endpoint [\#417](https://github.com/prey/prey-node-client/pull/417) ([javo](https://github.com/javo))
+- Wipe fixes update [\#419](https://github.com/prey/prey-node-client/pull/419) ([javo](https://github.com/javo))
 
 ## [v1.8.2](https://github.com/prey/prey-node-client/tree/v1.8.2) (2018-11-22)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.8.1...v1.8.2)
@@ -29,10 +42,10 @@
 
 - Device renamed event [\#397](https://github.com/prey/prey-node-client/pull/397) ([javo](https://github.com/javo))
 - MacOS Mojave support [\#402](https://github.com/prey/prey-node-client/pull/402) ([javo](https://github.com/javo))
-- Location service proxy and keys on request [\#403](https://github.com/prey/prey-node-client/pull/403) ([javo](https://github.com/javo)
-- Binaries signatures renewal for windows [\#404](https://github.com/prey/prey-node-client/pull/404) ([javo](https://github.com/javo)
-- Connection trigger improvements [\#405](https://github.com/prey/prey-node-client/pull/405) ([javo](https://github.com/javo)
-- Authorize client restart and wipe fixes [\#408](https://github.com/prey/prey-node-client/pull/408) ([javo](https://github.com/javo)
+- Location service proxy and keys on request [\#403](https://github.com/prey/prey-node-client/pull/403) ([javo](https://github.com/javo))
+- Binaries signatures renewal for windows [\#404](https://github.com/prey/prey-node-client/pull/404) ([javo](https://github.com/javo))
+- Connection trigger improvements [\#405](https://github.com/prey/prey-node-client/pull/405) ([javo](https://github.com/javo))
+- Authorize client restart and wipe fixes [\#408](https://github.com/prey/prey-node-client/pull/408) ([javo](https://github.com/javo))
 
 ## [v1.8.1](https://github.com/prey/prey-node-client/tree/v1.8.0) (2018-07-24)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.8.0...v1.8.1)
@@ -41,7 +54,7 @@
 
 - Install fix for older Windows [\#390](https://github.com/prey/prey-node-client/pull/390) ([javo](https://github.com/javo))
 - Revert push as json [\#391](https://github.com/prey/prey-node-client/pull/391) ([javo](https://github.com/javo))
-- Restore filtered geofencing start event [\#394](https://github.com/prey/prey-node-client/pull/394) ([javo](https://github.com/javo)
+- Restore filtered geofencing start event [\#394](https://github.com/prey/prey-node-client/pull/394) ([javo](https://github.com/javo))
 
 ## [v1.8.0](https://github.com/prey/prey-node-client/tree/v1.8.0) (2018-07-05)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.7.5...v1.8.0)
