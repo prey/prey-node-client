@@ -166,10 +166,10 @@ describe('package.get_latest', function() {
       var update_data = {
         location: {
           lat: -33,
-          lng: -77
+          lon: -77
         },
         ip: "000.00.00.000",
-        country: "US",
+        country: "US"
       }
       event_stub = sinon.stub(api.push, 'event').callsFake((keys, cb) => { return cb(); });
       device_stub = sinon.stub(api.keys, 'verify').callsFake((keys, cb) => { return cb(); });
