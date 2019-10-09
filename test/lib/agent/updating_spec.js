@@ -8,6 +8,7 @@ var join          = require('path').join,
     common        = require(helpers.lib_path('common')),
     system        = require(helpers.lib_path('system')),
     package       = require(helpers.lib_path('package')),
+    geo           = require(helpers.lib_path('agent', 'providers', 'geo')),
     storage       = require(helpers.lib_path('agent', 'utils', 'storage')),
     updater       = require(helpers.lib_path('agent', 'updater'));
 
@@ -87,8 +88,8 @@ describe('updating', function() {
       it('callsback with no errors', function(done) {
 
         updater.check(function(err, ver) {
-          should.not.exist(err);
-          should.not.exist(ver);
+          should.exist(err);
+          err.message.should.containEql('Theres no new version available');
           done();
         });
 
@@ -168,6 +169,9 @@ describe('updating', function() {
               }, 10);
 
               post_event_stub = sinon.spy(package, 'post_event');
+              geo_loc_stub = sinon.stub(geo, 'fetch_location').callsFake((cb) => {
+                return cb(null, {location: {lat: null, lng: null}})
+              });
               post_spy = sinon.stub(needle, 'post').callsFake((url, data, opts, cb) => {
                 return cb();
               });
@@ -180,6 +184,7 @@ describe('updating', function() {
             fake_spawn.restore();
             post_event_stub.restore();
             post_spy.restore();
+            geo_loc_stub.restore();
             storage.close('versions', function() {
               storage.erase(tmpdir() + '/versions', done);
             });
@@ -191,12 +196,11 @@ describe('updating', function() {
 
               storage.set('version-1.2.5', {from: '1.2.3', to: '1.2.5', attempts: 3, notified: false}, (err) => {
 
-                updater.check_for_update(function(err) {
-                  should.exist(err);
-                  err.should.containEql('No, cant do');
+                updater.check_for_update();
+                setTimeout(() => {
                   post_spy.calledOnce.should.equal(true);
                   done();
-                });
+                }, 2500)
 
               });
             });
@@ -241,6 +245,9 @@ describe('updating', function() {
           });
 
           post_event_stub = sinon.spy(package, 'post_event');
+          geo_loc_stub = sinon.stub(geo, 'fetch_location').callsFake((cb) => {
+            return cb(null, {location: {lat: null, lng: null}})
+          });
           post_spy = sinon.stub(needle, 'post').callsFake((url, data, opts, cb) => {
             return cb();
           });
@@ -252,6 +259,7 @@ describe('updating', function() {
           fake_spawn.restore();
           fake_exit.restore();
           post_event_stub.restore();
+          geo_loc_stub.restore();
           post_spy.restore();
           storage.close('versions', function() {
             storage.erase(tmpdir() + '/versions', done);
@@ -273,9 +281,9 @@ describe('updating', function() {
           updater.upgrading = false;
           common.version = '1.2.5';
           storage.set('version-1.2.5', {from: '1.2.3', to: '1.2.5', attempts: 5, notified: false}, () => {
-            updater.check_for_update(function(err, ver) {
-              should.not.exist(err);
-              should.not.exist(ver);
+            updater.check_for_update(function(err) {
+              should.exist(err);
+              err.message.should.containEql('Theres no new version available');
               post_spy.calledOnce.should.equal(true);
               storage.all('versions', (err, out) => {
                 Object.keys(out).length.should.be.equal(0)
