@@ -1,9 +1,9 @@
 #!/bin/sh
-""":'
+''':'
 ':'; python=$(command -v python)
-':'; [ -z "$python" ] || [ -n "${python##*usr*}" ] && python="/usr/bin/python"
+':'; [ -z "$python" ] || [ -n "${python##*usr*}" ] && python="/usr/bin/python3"
 ':'; exec "$python" "$0" "$@"
-"""
+'''
 
 # coding: utf8
 
@@ -16,12 +16,18 @@
 
 import os
 import sys
-import gtk
-import pango
 import argparse
 import base64
-import gobject
 import math
+
+import gi
+
+gi.require_version("Gtk", "3.0")
+from gi.repository import Gtk
+from gi.repository import Pango
+from gi.repository import Gdk
+from gi.repository import GdkPixbuf
+from gi.repository import GLib
 
 FONT = "Liberation Sans"
 
@@ -48,7 +54,7 @@ class Alert:
     def update_button_and_exit(self):
         self.button.set_label("Message Sent!")
         self.button.set_sensitive(True)
-        gobject.timeout_add(1000, self.exit)
+        GLib.timeout_add(1000, self.exit)
 
     def enter_pressed(self, widget):
         # print("Enter pressed")
@@ -60,7 +66,7 @@ class Alert:
         write("User input: " + str)
         self.button.set_label("Submitting...")
         self.button.set_sensitive(False)
-        gobject.timeout_add(2000, self.update_button_and_exit)
+        GLib.timeout_add(2000, self.update_button_and_exit)
 
     def button_clicked(self, widget):
         if self.entry:
@@ -76,13 +82,14 @@ class Alert:
         self.exit()
 
     def put(self, container, child, x, y):
-        fixed = gtk.Fixed()
+        fixed = Gtk.Fixed()
         fixed.put(child, x, y)
         container.pack_start(fixed, False, False, 0)
 
     def add_input(self):
 
-        entry = gtk.Entry(max=0)
+        entry = Gtk.Entry()
+        entry.set_max_length(0)
         # entry.set_max_length(40)
         entry.set_inner_border(None)
         entry.set_width_chars(24)
@@ -91,32 +98,35 @@ class Alert:
         entry.set_editable(True)
 
         entry.set_size_request(self.input_width, self.input_height * self.scale)
-        entry.modify_base(gtk.STATE_NORMAL, gtk.gdk.color_parse("#FFFFFF"))
-        entry.modify_font(pango.FontDescription(FONT + " 11"))
+        entry.override_color(
+            Gtk.StateType.NORMAL, Gdk.RGBA(red=0, green=0, blue=0, alpha=1)
+        )
+        entry.override_font(Pango.FontDescription(FONT + " 11"))
 
         entry.connect("activate", self.enter_pressed)
         entry.show()
         self.entry = entry
 
-        fixed = gtk.Fixed()
+        fixed = Gtk.Fixed()
         fixed.put(self.entry, self.left_offset, -80 * self.scale)
         fixed.show()
         self.box.pack_start(fixed, False, False, 0)
 
     def new_label(self, text, font_size):
-        label = gtk.Label()
+        label = Gtk.Label()
         label.set_markup('<span foreground="#ffffff">' + text + "</span>")
-        label.modify_font(pango.FontDescription(FONT + " " + str(font_size)))
-        # label.set_alignment(0.01, 0)
-        label.set_alignment(0, 0)
+        label.override_font(Pango.FontDescription(FONT + " " + str(font_size)))
+        # label.set_xalign(0.01)
+        label.set_xalign(0)
+        label.set_yalign(0)
         label.set_line_wrap(True)
         return label
 
     def create_window(self, bg_color):
-        self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
+        self.window = Gtk.Window.new(Gtk.WindowType.TOPLEVEL)
 
         self.window.set_title("Prey Alert")
-        self.window.modify_bg(gtk.STATE_NORMAL, bg_color)
+        self.window.override_background_color(Gtk.StateType.NORMAL, bg_color)
 
         self.window.stick()
         self.window.set_deletable(False)
@@ -134,8 +144,10 @@ class Alert:
             self.respondable = args.entry
             button_text = "Send Reply"
 
-        red = gtk.gdk.color_parse("#B22222")
-        blue = gtk.gdk.color_parse("#2168C6")
+        red = Gdk.RGBA()
+        red.parse("#B22222")
+        blue = Gdk.RGBA()
+        blue.parse("#2168C6")
 
         if args.level == "warning" or args.level == "warn":
             bg_color = red
@@ -150,8 +162,9 @@ class Alert:
 
         self.create_window(bg_color)  # sets self.window
 
-        main_screen_width = self.window.get_screen().get_monitor_geometry(0).width
-        main_screen_height = self.window.get_screen().get_monitor_geometry(0).height
+        _monitor = self.window.get_display().get_primary_monitor()
+        main_screen_width = _monitor.get_geometry().width
+        main_screen_height = _monitor.get_geometry().height
 
         if main_screen_width > 2000:
             self.scale = 2
@@ -179,7 +192,8 @@ class Alert:
         # print "Right offset: %d" % right_offset
 
         # set vbox position and move main window
-        vbox = gtk.VBox(False, 0)
+        vbox = Gtk.Box.new(Gtk.Orientation.VERTICAL, 0)
+        vbox.set_homogeneous(False)
         top_offset = (main_screen_height - window_height) / 2
         vbox.set_size_request(main_screen_width, window_height)
         self.window.move(0, top_offset)
@@ -195,44 +209,46 @@ class Alert:
         self.put(self.box, title, self.left_offset, 20 * self.scale)
 
         # load image from data
-        image = gtk.Image()
-        loader = gtk.gdk.PixbufLoader()
+        image = Gtk.Image()
+        loader = GdkPixbuf.PixbufLoader()
         loader.set_size(32, 32)
         loader.write(base64.standard_b64decode(data))
         loader.close()
         image.set_from_pixbuf(loader.get_pixbuf())
 
         # add image and render close button
-        close_button = gtk.Button()
+        close_button = Gtk.Button()
         # close_button.set_size_request(42, 42)
-        close_button.set_relief(gtk.RELIEF_NONE)
+        close_button.set_relief(Gtk.ReliefStyle.NONE)
         close_button.set_image(image)
         close_button.connect("clicked", self.close_button_clicked)
 
-        fixed = gtk.Fixed()
+        fixed = Gtk.Fixed()
         fixed.put(close_button, 0, 0)
         fixed.set_size_request(40 * self.scale, 40 * self.scale)
         # minus the width and height of itself for x/y coords
         self.put(self.box, fixed, right_offset - 30, -40 * self.scale)
 
         # text area
-        text = gtk.TextBuffer()
+        text = Gtk.TextBuffer()
         text.set_text(args.message)
-        textview = gtk.TextView(text)
+        textview = Gtk.TextView.new_with_buffer(text)
         textview.set_size_request(elements_width, text_height)
-        textview.set_wrap_mode(gtk.WRAP_WORD)
+        textview.set_wrap_mode(Gtk.WrapMode.WORD)
         textview.set_editable(False)
-        textview.modify_base(gtk.STATE_NORMAL, bg_color)
-        textview.modify_text(gtk.STATE_NORMAL, gtk.gdk.color_parse("white"))
-        textview.modify_font(pango.FontDescription(FONT + " 11"))
+        textview.override_background_color(Gtk.StateType.NORMAL, bg_color)
+        textview.override_color(
+            Gtk.StateType.NORMAL, Gdk.RGBA(red=1, green=1, blue=1, alpha=1)
+        )
+        textview.override_font(Pango.FontDescription(FONT + " 11"))
         textview.set_pixels_inside_wrap(3)
         self.put(vbox, textview, self.left_offset, 20)
 
         # close/reply button
-        button = gtk.Button(button_text)
-        # button.set_relief(gtk.RELIEF_NONE)
+        button = Gtk.Button.new_with_label(button_text)
+        # button.set_relief(Gtk.ReliefStyle.NONE)
         button.set_size_request(120 * self.scale, 30 * self.scale)
-        button.modify_font(pango.FontDescription(FONT + " 16"))
+        button.override_font(Pango.FontDescription(FONT + " 16"))
         button.connect("clicked", self.button_clicked)
         self.button = button
         bottom = 20
@@ -262,4 +278,4 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     alert = Alert()
-    gtk.main()
+    Gtk.main()
