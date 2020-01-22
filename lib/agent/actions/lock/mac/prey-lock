@@ -20,6 +20,7 @@ from Quartz import CGCaptureAllDisplays, CGShieldingWindowLevel
 app_name = 'Lock'
 font_name = 'Helvetica Light'
 error_color = NSColor.redColor()
+white_color = NSColor.whiteColor()
 
 script_path = sys.path[0]
 bg_path = script_path + "/../lib/bg-lock.png"
@@ -91,6 +92,7 @@ class LockView(NSView):
     field.setAction_("enter_pressed")
     self.field = field
     self.addSubview_(field)
+    self.show_lower(message)
     return field
 
   def focus_field(self):
@@ -129,6 +131,23 @@ class LockView(NSView):
     self.message_view = msg
 
     NSTimer.scheduledTimerWithTimeInterval_target_selector_userInfo_repeats_(3.0, self, 'hide_message', '', False)
+
+  def show_lower(self, message):
+    width = 500
+    height = 100
+    msg = NSTextField.alloc().initWithFrame_(NSMakeRect(self.getLeftOffset(width), self.getTopOffset(height) - 150, width, height))
+    msg.setStringValue_(message)
+    msg.setBezeled_(False)
+    msg.setBordered_(False)
+    msg.setDrawsBackground_(False)
+    msg.setEditable_(False)
+    msg.setAlignment_(NSCenterTextAlignment)
+    font = NSFont.fontWithName_size_(font_name, 14)
+    msg.setFont_(font)
+    msg.setTextColor_(white_color)
+
+    self.addSubview_(msg)
+    self.message_view = msg
 
   def hide_message(self):
     self.message_view.removeFromSuperview()
@@ -199,8 +218,11 @@ if __name__ == '__main__':
   if len(sys.argv) < 2 or len(sys.argv[1]) != 32:
     print "You need to pass an MD5 hexdigested string."
     sys.exit(67)
+  elif len(sys.argv) == 2:
+    passwd = sys.argv[1]
   else:
     passwd = sys.argv[1]
+    message = sys.argv[2]
 
   write("Process PID: %d" % os.getpid())
   main()

@@ -211,6 +211,25 @@ class Lock:
 		fixed2.put(self.label, x_position + 20, y_position + (46 * scale))
 		vbox.pack_start(fixed2, False, False, 0)
 
+		###################################
+		# optional message
+		###################################
+
+		if msgtext != "":
+			self.label2 = gtk.Label()
+			self.label2.set_line_wrap(True)
+			self.label2.set_justify(gtk.JUSTIFY_CENTER)
+			self.label2.set_markup('<span foreground="#FFFFFF">'+msgtext+'</span>');
+			self.label2.modify_font(pango.FontDescription("sans " + str(error_font)))
+			label_width = self.label2.size_request()[0]
+
+			fixed3 = gtk.Fixed()
+			fixed3.put(self.label2, main_screen_width/2 - label_width/2, y_position + (100 * scale))
+			fixed3.show()
+			vbox.pack_start(fixed3, False, False, 0)
+
+		##############################################
+
 		disable_XF86Switch()
 
 		self.window.show_all()
@@ -266,11 +285,14 @@ def disable_XF86Switch():
 
 if __name__ == "__main__":
 
+	msgtext = ""
 	if len(sys.argv) < 2 or len(sys.argv[1]) != 32:
 		print "You need to pass an MD5 hexdigested string."
 		sys.exit(67)
 	else:
 		passwd = sys.argv[1]
+		if len(sys.argv) > 2:
+			msgtext = sys.argv[2]
 
 	write("Process PID: %d" % os.getpid())
 	lock = Lock()
