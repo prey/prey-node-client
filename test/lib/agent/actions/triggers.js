@@ -75,7 +75,7 @@ describe('triggers', () => {
           spy_get_local.restore();
         });
 
-        it('chacks in the local db and the actions stops', (done) => {
+        it('checks in the local db and the actions stops', (done) => {
           spy_get_local.calledOnce.should.be.true;
           spy_sync.called.should.be.false;
           done();
@@ -199,11 +199,11 @@ describe('triggers', () => {
           })
 
           it('executes the action at the right time', (done) => {
-            clock.tick(1000);
+            clock.tick(1001);
+            spy_perform.calledOnce.should.be.equal(true);
             spy_perform.getCall(0).args[0].target.should.be.equal('alert');
             spy_perform.getCall(0).args[0].options.trigger_id.should.exists;
             spy_perform.getCall(0).args[0].options.trigger_id.should.be.equal(105);
-            spy_perform.calledOnce.should.be.equal(true);
             done();
           })
 
@@ -279,9 +279,8 @@ describe('triggers', () => {
             spy_perform.restore(); 
             get_stub.restore();
             clock.restore();
-            setTimeout(() => {
-              done();
-            }, 2000);
+            spy_logger.restore();
+            done();
           })
 
           it('execute the actions when the event is triggered and not into the range', (done) => {
@@ -351,6 +350,50 @@ describe('triggers', () => {
 
       })
 
+      describe('when the action triggers are persistent', () => {
+
+        describe('and its an exact_time trigger', () => {
+          var clock;
+          before((done) => {
+            get_stub = sinon.stub(request, 'get').callsFake((uri, opts, cb) => { return cb(null, { body: dummy.persistent_triggers }); })
+            spy_sync = sinon.spy(triggers, 'sync');
+            spy_perform = sinon.spy(commands, 'perform');
+            spy_logger = sinon.spy(triggers.logger, 'warn');
+            timezone_offset = new Date().getTimezoneOffset() * 60 * 1000,
+            new_date = new Date(Date.UTC(2019, 11, 20, 11, 55, 05)).getTime() + timezone_offset;
+            setTimeout(() => { triggers.start({}, done) }, 500)
+            clock = sinon.useFakeTimers(new_date);
+          })
+
+          after((done) => {
+            clock.restore();
+            spy_sync.restore();
+            spy_perform.restore();
+            get_stub.restore();
+            spy_logger.restore();
+            setTimeout(() => {
+              done();
+            }, 2000);
+          })
+
+          it('executes the trigger for the past', (done) => {
+            clock.tick(501);
+            spy_perform.calledOnce.should.be.equal(true);
+            spy_logger.calledOnce.should.be.equal(true);
+            spy_logger.getCall(0).args[0].should.containEql('Persisting action!');
+            done();
+          })
+
+          it('does not executes again', (done) => {
+            clock.tick(2000);
+            triggers.start({}, () => {
+              clock.tick(500);
+              spy_perform.calledOnce.should.be.equal(true);
+              done();
+            })
+          })
+        })
+      })
     });
 
   });

@@ -46,7 +46,7 @@ var exact_triggers = [
         }
       },
       {
-        "delay": 5000,
+        "delay": 10000,
         "action":{
           "command": "start",
           "target": "alarm",
@@ -353,4 +353,66 @@ var event_triggers = [
 
 ]
 
-module.exports = {exact_triggers, repeat_triggers, event_triggers};
+var persistent_triggers = [
+  {
+    "id": 117,
+    "name": "trigger 117",
+    "options": {
+      "persist": true
+    },
+    "automation_events":[
+      {
+        "type": "exact_time",
+        "info": {
+          "date": "20191120120000"
+        }
+      }
+    ],
+    "automation_actions":[
+      {
+        "delay": 0,
+        "action":{
+          "command": "start",
+          "target": "alert",
+          "options": {
+            "alert_message": "persistent trigger"
+          }
+        }
+      }
+    ]
+  },
+]
+
+var persistent_triggers_2 = [
+  {
+    "id": 118,
+    "name": "trigger 118",
+    // "options""persist": true,
+    "automation_events":[
+      {
+        "type" : "repeat_time",
+        "info" : {
+          "days_of_week" : '[2, 4]',  // Tuesdays and Thursdays
+          "hour" : '18',
+          "minute" : '00',
+          "second" : '00',
+          "until" : null      // Testear tb con until
+        }
+      }
+    ],
+    "automation_actions":[
+      {
+        "delay": 0,
+        "action": {
+          "command": "start",
+          "target": "alert",
+          "options": {
+            "alert_message": "repeat persistent"
+          }
+        }
+      },
+    ]
+  },
+]
+
+module.exports = {exact_triggers, repeat_triggers, event_triggers, persistent_triggers, persistent_triggers_2};
