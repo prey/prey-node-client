@@ -1,5 +1,12 @@
 # Change Log
 
+## [v1.9.3](https://github.com/prey/prey-node-client/tree/v1.9.3) (2020-01-23)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.9.2...v1.9.3)
+
+**Merged pull requests:**
+
+- Persist automation action, lock with message and network improvements [\#455](https://github.com/prey/prey-node-client/pull/455) ([javo](https://github.com/javo))
+
 ## [v1.9.2](https://github.com/prey/prey-node-client/tree/v1.9.2) (2019-10-03)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.9.1...v1.9.2)
 
