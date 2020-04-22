@@ -12,7 +12,8 @@ var join          = require('path').join,
     storage       = require(helpers.lib_path('agent', 'utils', 'storage')),
     updater       = require(helpers.lib_path('agent', 'updater'));
 
-var versions_path = system.paths.versions;
+var versions_path = system.paths.versions,
+    spy_logger;
 
 describe('updating', function() {
 
@@ -32,22 +33,90 @@ describe('updating', function() {
     branch_stub.restore();
   });
 
-  describe('when there is NO versions support', function() {
+  describe('when there is NO target', function() {
 
     before(function(){
-      system.paths.versions = undefined;
+      spy_logger = sinon.spy(updater.logger, 'warn');
     });
 
     after(function() {
-      system.paths.versions = versions_path;
+      spy_logger.restore();
     })
 
-    it('callbacks with error', function(done) {
-      updater.check(function(err) {
-        should.exist(err);
-        err.message.should.equal("No versions support.");
+    it('logs an error and returns', function(done) {
+      updater.check();
+      spy_logger.calledOnce.should.be.equal(true);
+      spy_logger.getCall(0).args[0].should.containEql('No target for upgrade command found');
+      done();
+    });
+
+  });
+
+  describe('when there is a target', function() {
+
+    describe('and there is NO versions support', function() {
+
+      before(function(){
+        system.paths.versions = undefined;
+        spy_logger = sinon.spy(updater.logger, 'warn');
+      });
+  
+      after(function() {
+        system.paths.versions = versions_path;
+        spy_logger.restore();
+      })
+  
+      it('logs an error and returns', function(done) {
+        updater.check("yeah");
+        spy_logger.calledOnce.should.be.equal(true);
+        spy_logger.getCall(0).args[0].should.containEql('No versions support.');
         done();
       });
+  
+    });
+
+    describe('there is versions support', function() {
+      before(function() {
+        system.paths.versions = "/preypath/versions";
+      });
+
+      describe('and the target is invalid', function() {
+        before(function() {
+          spy_logger = sinon.spy(updater.logger, 'warn');
+        });
+    
+        after(function() {
+          spy_logger.restore();
+        })
+
+        it('logs an invalidad target error', function(done) {
+          updater.check("im not valid");
+          spy_logger.calledOnce.should.be.equal(true);
+          spy_logger.getCall(0).args[0].should.containEql('Invalid target for upgrade command');
+          done();
+        });
+
+      });
+
+      describe('and the target is valid', function() {
+        before(function() {
+          spy_logger = sinon.spy(updater.logger, 'warn');
+          system.paths.versions = "/preypath/versions";
+        });
+
+        after(() => {
+          spy_logger.restore();
+        })
+          
+        it('returns activation error', (done) => {
+          updater.check("activate")
+          spy_logger.calledOnce.should.be.equal(true);
+          spy_logger.getCall(0).args[0].should.containEql('Missing client version to activate');
+          done();
+        })
+
+      });
+
     });
 
   });
@@ -87,7 +156,7 @@ describe('updating', function() {
 
       it('callsback with no errors', function(done) {
 
-        updater.check(function(err, ver) {
+        updater.check('reset', {}, function(err, ver) {
           should.exist(err);
           err.message.should.containEql('Theres no new version available');
           done();
@@ -145,7 +214,7 @@ describe('updating', function() {
 
           it('callbacks an error', function (done){
 
-            updater.check(function(err) {
+            updater.check('reset', {}, function(err, ver) {
               should.exist(err);
               err.message.should.equal('Upgrade to 1.2.5 failed. Exit code: undefined');
               err.stack.should.containEql('Launching rockets\nSHOOT!!');
@@ -268,7 +337,7 @@ describe('updating', function() {
 
         it('process exits with status code(0)', function (done){
           this.timeout(16000);
-          updater.check(function(err) {
+          updater.check('reset', {}, function(err, ver) {
             exit_code.should.equal(0);
             unreffed.should.be.true;
             done();
