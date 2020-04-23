@@ -8,6 +8,7 @@ var join       = require('path').join,
     index      = require(sys_index),
     sys_mac    = require(join(sys_index, 'mac')),
     sys_win    = require(join(sys_index, 'windows')),
+    sys_linux  = require(join(sys_index, 'linux')),
     is_windows = process.platform === 'win32';
 
 describe('system functions', function() {
@@ -245,4 +246,61 @@ describe('system functions', function() {
 
   });
 
+  describe('get_python_version()', function() {
+
+    describe('when os is windows or an error occurs', () => {
+
+      it('keeps value as null', (done) => {
+        sys_win.get_python_version((err, ver) => {
+          should(err).be.null;
+          should(ver).be.null;
+          done();
+        });
+      })
+    })
+
+    describe('when os is mac or linux', () => {
+      
+      describe('when the cmd succeed', () => {
+        before(function() {
+          exec_stub = sinon.stub(cp, 'exec').callsFake((cmd, cb) => {
+            return cb(null, "2.7.16");
+          });
+        });
+    
+        after(function() {
+          exec_stub.restore();
+        })
+
+        it('saves the python version', (done) => {
+          sys_linux.get_python_version((err, ver) => {
+            should(err).be.null;
+            should(ver).not.be.null;
+            done();
+          });
+        })
+      });
+
+      describe('when the cmd fail', () => {
+        before(function() {
+          exec_stub = sinon.stub(cp, 'exec').callsFake((cmd, cb) => {
+            return cb(new Error("Nope!"));
+          });
+        });
+    
+        after(function() {
+          exec_stub.restore();
+        })
+
+        it('saves the python version', (done) => {
+          sys_linux.get_python_version((err, ver) => {
+            should(err).not.be.null;
+            should(ver).be.null;
+            done();
+          });
+        })
+      });
+    })
+
+  });
 });
