@@ -114,4 +114,86 @@ describe('Lock', () => {
     }
 
   });
+
+  describe('in Linux OS', () => {
+    var spawn_stub,
+        platform_stub,
+        lock_path,
+        lock;
+
+    function check_python_binary(name, done) {
+      spawn_stub.calledOnce.should.be.true;
+      get_binary(spawn_stub.firstCall.args[0]).should.eql(name);
+      done();
+    }
+
+    function get_binary(path) {
+      var regex = /[^\/]+$/;
+      return regex.exec(path)[0];
+    }
+
+    before(() => {
+      lock_path = join(lib_path, 'agent', 'actions', 'lock');
+      child_process.spawn = mocked_spawn;
+      mocked_spawn.setDefault(mocked_spawn.simple(66, 'completed'));
+      platform_stub = sinon.stub(os, 'platform').callsFake(() => { return 'linux'; });
+      
+      spawn_stub = sinon.stub(system, 'spawn_as_logged_user').callsFake((binary, args, opts, cb) => {
+        var spawn = child_process.spawn();
+        return cb(null, spawn);
+      });
+    });
+
+    beforeEach(function() {
+      spawn_stub.resetHistory();
+    });
+
+    after(() => {
+      spawn_stub.restore();
+      platform_stub.restore();
+    })
+
+    describe('when unable to get python version', () => {
+      before(() => {
+        system.python_version = null;
+        delete require.cache[require.resolve(lock_path)];
+        lock = require(lock_path);
+      })
+
+      it('calls prey-lock binary file', (done) => {
+        lock.start(null, function(err, lock) {
+          check_python_binary('prey-lock', done);
+        });
+      })
+    });
+
+    describe('when using python 2', () => {
+      before(() => {
+        system.python_version = "2.7.16";
+        delete require.cache[require.resolve(lock_path)];
+        lock = require(lock_path);
+      })
+
+      it('calls prey-lock binary file', (done) => {
+        lock.start(null, function(err, lock) {
+          check_python_binary('prey-lock', done);
+        });
+      })
+    });
+
+    describe('when using python 3', () => {
+      before(() => {
+        system.python_version = "3.8.2";
+        delete require.cache[require.resolve(lock_path)];
+        lock = require(lock_path);
+      })
+
+      it('calls prey-lock binary file', (done) => {
+        lock.start(null, function(err, lock) {
+          check_python_binary('prey-lock3', done);
+        });
+      })
+    });
+
+  })
 });
