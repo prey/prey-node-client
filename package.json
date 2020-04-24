@@ -34,7 +34,7 @@
     "firewall": "0.0.5",
     "getset": "git://github.com/javo/getset.git#0e1a82e851591f34af6c5a7491ce223eefa58a95",
     "graceful-fs": "4.1.15",
-    "linus": "0.0.5",
+    "linus": "git://github.com/javo/linus.git#ebf4e2ba2e84364acb190c33a548591b9bfc666c",
     "memorize": "0.0.1",
     "mime": "https://registry.npmjs.org/mime/-/mime-1.2.5.tgz",
     "needle": "^0.8.1",
