@@ -8,6 +8,7 @@
 - Ubuntu python3 integration and SSO restored [\#459](https://github.com/prey/prey-node-client/pull/459) ([javo](https://github.com/javo))
 - Connection status check retry [\#460](https://github.com/prey/prey-node-client/pull/460) ([javo](https://github.com/javo))
 - Upgrade command improvements [\#461](https://github.com/prey/prey-node-client/pull/461) ([javo](https://github.com/javo))
+- Node version upgrade and mac binaries re-signed [\#464](https://github.com/prey/prey-node-client/pull/464) ([javo](https://github.com/javo))
 
 ## [v1.9.3](https://github.com/prey/prey-node-client/tree/v1.9.3) (2020-01-23)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.9.2...v1.9.3)

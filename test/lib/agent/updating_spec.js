@@ -198,9 +198,9 @@ describe('updating', function() {
               var child = helpers.fake_spawn_child();
 
               setTimeout(function(){
-                child.stdout.emit('data', new Buffer('Downloading file...'));
-                child.stdout.emit('data', new Buffer('Launching rockets'));
-                child.stdout.emit('data', new Buffer('SHOOT!!'));
+                child.stdout.emit('data', Buffer.from('Downloading file...'));
+                child.stdout.emit('data', Buffer.from('Launching rockets'));
+                child.stdout.emit('data', Buffer.from('SHOOT!!'));
                 child.emit('exit');
               }, 10);
 
@@ -232,9 +232,9 @@ describe('updating', function() {
               var child = helpers.fake_spawn_child();
 
               setTimeout(function(){
-                child.stdout.emit('data', new Buffer('Downloading file...'));
-                child.stdout.emit('data', new Buffer('Launching rockets'));
-                child.stdout.emit('data', new Buffer('Error! No, cant do'));
+                child.stdout.emit('data', Buffer.from('Downloading file...'));
+                child.stdout.emit('data', Buffer.from('Launching rockets'));
+                child.stdout.emit('data', Buffer.from('Error! No, cant do'));
               }, 10);
 
               post_event_stub = sinon.spy(package, 'post_event');
@@ -303,7 +303,7 @@ describe('updating', function() {
             }
 
             setTimeout(function() {
-              child.stdout.emit('data', new Buffer('YOUARENOTMYFATHER'));
+              child.stdout.emit('data', Buffer.from('YOUARENOTMYFATHER'));
             }, 100);
 
             return child;
