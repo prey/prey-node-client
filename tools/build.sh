@@ -52,7 +52,7 @@ git_modified_files() {
 }
 
 check_node_version() {
-  EXPECTED_NODE_VER="8.9.1"
+  EXPECTED_NODE_VER="10.20.1"
   CURRENT_NODE_VER="$(./bin/node --version)"
   
   if [ "v${EXPECTED_NODE_VER}" != "$CURRENT_NODE_VER" ]; then
