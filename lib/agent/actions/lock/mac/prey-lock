@@ -17,6 +17,9 @@ import hashlib
 from AppKit import *
 from Quartz import CGCaptureAllDisplays, CGShieldingWindowLevel
 
+reload(sys)
+sys.setdefaultencoding('utf-8')
+
 app_name = 'Lock'
 font_name = 'Helvetica Light'
 error_color = NSColor.redColor()
