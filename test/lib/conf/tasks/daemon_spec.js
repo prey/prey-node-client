@@ -14,7 +14,6 @@ var fs      = require('fs'),
 var module_path = helpers.lib_path('conf', 'tasks', 'daemon');
 
 var common = require(helpers.lib_path('common'));
-var cp     = require(helpers.lib_path('conf', 'utils', 'cp'));
 
 var install_dir = path.join(tmpdir, 'daemon-spec');
 var current_dir = path.join(install_dir, 'current');
@@ -242,7 +241,7 @@ describe('installing', function() {
             var cp_service;
 
             before(function() {
-              cp_stub = sinon.stub(cp, 'cp').callsFake((source, dest, cb) => {
+              cp_stub = sinon.stub(fs, 'copyFile').callsFake((source, dest, cb) => {
                 cp_service = source;
                 cb();
               })
@@ -266,7 +265,7 @@ describe('installing', function() {
             var cp_service_2;
 
             before(function() {
-              cp_stub_2 = sinon.stub(cp, 'cp').callsFake((source, dest, cb) => {
+              cp_stub_2 = sinon.stub(fs, 'copyFile').callsFake((source, dest, cb) => {
                 cp_service_2 = source;
                 cb();
               })
@@ -290,7 +289,7 @@ describe('installing', function() {
             var cp_stub;
 
             before(function() {
-              cp_stub = sinon.stub(cp, 'cp').callsFake((source, dest, cb) => {
+              cp_stub = sinon.stub(fs, 'copyFile').callsFake((source, dest, cb) => {
                 var err = new Error('Busy doing something');
                 err.code = 'EBUSY';
                 cb(err);
