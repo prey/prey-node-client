@@ -172,7 +172,7 @@ describe('package.get_latest', function() {
         country: "US"
       }
       event_stub = sinon.stub(api.push, 'event').callsFake((keys, cb) => { return cb(); });
-      device_stub = sinon.stub(api.keys, 'verify').callsFake((keys, cb) => { return cb(); });
+      device_stub = sinon.stub(shared.keys, 'verify_current').callsFake((cb) => { return cb(); });
       event_data_stub = sinon.stub(package, 'get_update_data').callsFake((cb) => { return cb(update_data); });
       post_event_stub = sinon.spy(package, 'post_event');
 

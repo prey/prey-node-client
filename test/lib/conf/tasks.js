@@ -7,7 +7,11 @@ var fs      = require('fs'),
     rimraf  = require('rimraf'),
     helpers = require('./../../helpers'),
     chela   = require('chela'),
-    tmpdir  = require('os').tmpdir();
+    api_path = join(helpers.lib_path('agent', 'plugins', 'control-panel', 'api')),
+    api      = require(api_path),
+    request  = require(join(api_path, 'request')),
+    shared   = require(helpers.lib_path('conf', 'shared')),
+    tmpdir   = require('os').tmpdir();
 
 var os_name = process.platform.replace('win32', 'windows').replace('darwin', 'mac');
 
@@ -1018,11 +1022,74 @@ describe('tasks', function() {
       })
 
       describe('pre_uninstall', function() {
+        var keys_get_stub,
+            request_stub,
+            api_push_spy;
 
+        after(() => {
+          api.keys.unset('api');
+        })
+
+        describe('when the device is configured', () => {
+          before(() => {
+            keys_get_stub = sinon.stub(shared.keys, 'get').callsFake(() => {
+              return { api: 'aaaaaaaaaaaa', device: 'bbbbbb' }
+            });
+            request_stub = sinon.stub(request, 'post').callsFake((url, data, opts, cb) => {
+              return;
+            });
+            api_push_spy = sinon.spy(api.push, 'event');
+          });
+
+          after(() => {
+            keys_get_stub.restore();
+            api_push_spy.restore();
+            request_stub.restore();
+          });
+
+          describe('and is updating', () => {
+            it('does not send the event', (done) => {
+              tasks.pre_uninstall({'-u': true, positional: [1]}, (err) => {
+                api_push_spy.notCalled.should.be.equal(true);
+                done();
+              });
+            })
+          });
+
+          describe('when is not updating', () => {
+            it('send the event', (done) => {
+              tasks.pre_uninstall({}, function(err) {
+                api_push_spy.calledOnce.should.be.equal(true);
+                done();
+              });
+            });
+          })
+        })
+
+        describe('when is not configured is not updating', () => {
+
+          before(() => {
+            keys_get_stub = sinon.stub(shared.keys, 'get').callsFake(() => {
+              return { api: '', device: '' }
+            });
+            request_stub = sinon.stub(request, 'post').callsFake((url, data, opts, cb) => {
+              return;
+            });
+            api_push_spy = sinon.spy(api.push, 'event');
+          });
+
+          after(() => {
+            keys_get_stub.restore();
+            api_push_spy.restore();
+            request_stub.restore();
+          });
+
+          it('doesnt send anything', (done) => {
+            api_push_spy.notCalled.should.be.equal(true);
+            done();
+          })
+        })
       })
-
     })
-
   })
-
 })

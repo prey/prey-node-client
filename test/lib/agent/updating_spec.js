@@ -9,6 +9,7 @@ var join          = require('path').join,
     system        = require(helpers.lib_path('system')),
     package       = require(helpers.lib_path('package')),
     geo           = require(helpers.lib_path('agent', 'providers', 'geo')),
+    shared        = require(helpers.lib_path('conf', 'shared')),
     storage       = require(helpers.lib_path('agent', 'utils', 'storage')),
     updater       = require(helpers.lib_path('agent', 'updater'));
 
@@ -228,6 +229,7 @@ describe('updating', function() {
           before(function() {
             updater.check_enabled = true;
             updater.upgrading = false;
+            device_stub = sinon.stub(shared.keys, 'verify_current').callsFake(cb => { return cb(null); });
             fake_spawn = sinon.stub(child_process, 'spawn').callsFake((cmd, args, opts) => {
               var child = helpers.fake_spawn_child();
 
@@ -254,6 +256,7 @@ describe('updating', function() {
             post_event_stub.restore();
             post_spy.restore();
             geo_loc_stub.restore();
+            device_stub.restore();
             storage.close('versions', function() {
               storage.erase(tmpdir() + '/versions', done);
             });
@@ -294,6 +297,7 @@ describe('updating', function() {
         before(function(done) {
           updater.check_enabled = true;
           updater.upgrading = false;
+          device_stub = sinon.stub(shared.keys, 'verify_current').callsFake(cb => { return cb(null); });
           fake_spawn = sinon.stub(child_process, 'spawn').callsFake((cmd, args, opts) => {
             var child = helpers.fake_spawn_child();
 
@@ -330,6 +334,7 @@ describe('updating', function() {
           post_event_stub.restore();
           geo_loc_stub.restore();
           post_spy.restore();
+          device_stub.restore();
           storage.close('versions', function() {
             storage.erase(tmpdir() + '/versions', done);
           });
