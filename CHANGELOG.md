@@ -1,5 +1,14 @@
 # Change Log
 
+## [v1.9.5](https://github.com/prey/prey-node-client/tree/v1.9.5) (2020-08-11)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.9.4...v1.9.5)
+
+**Merged pull requests:**
+
+- Logretrieval action [\#467](https://github.com/prey/prey-node-client/pull/467) ([javo](https://github.com/javo))
+- Camera and Screenshot fixes and improvements [\#468](https://github.com/prey/prey-node-client/pull/468) ([javo](https://github.com/javo))
+- General improvements [\#469](https://github.com/prey/prey-node-client/pull/469) ([javo](https://github.com/javo))
+
 ## [v1.9.4](https://github.com/prey/prey-node-client/tree/v1.9.4) (2020-04-23)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.9.3...v1.9.4)
 
