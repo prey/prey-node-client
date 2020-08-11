@@ -1022,11 +1022,18 @@ describe('tasks', function() {
       })
 
       describe('pre_uninstall', function() {
+        var keys_get_stub,
+            request_stub,
+            api_push_spy;
+
+        after(() => {
+          api.keys.unset('api');
+        })
 
         describe('when the device is configured', () => {
           before(() => {
             keys_get_stub = sinon.stub(shared.keys, 'get').callsFake(() => {
-              return { api: 'aaaaaaaaaa', device: 'bbbbbb' }
+              return { api: 'aaaaaaaaaaaa', device: 'bbbbbb' }
             });
             request_stub = sinon.stub(request, 'post').callsFake((url, data, opts, cb) => {
               return;
