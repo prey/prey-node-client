@@ -8,7 +8,9 @@ var should   = require('should'),
     lib_path = helpers.lib_path(),
     api_path = join(lib_path, 'agent', 'plugins', 'control-panel', 'api');
     api      = require(api_path),
-    storage  = require(helpers.lib_path('agent', 'utils', 'storage'));
+    request  = require(join(api_path, 'request')),
+    storage  = require(helpers.lib_path('agent', 'utils', 'storage')),
+    hooks    = helpers.load('hooks');
 
 var opts = {};
 
@@ -26,7 +28,7 @@ describe('hostame', () => {
       });
     });
   })
-  
+
   describe('When there is no stored hostname', () => {
     var exec_stub;
     before(() => {
@@ -93,31 +95,58 @@ describe('hostame', () => {
       var spy_push;
       var exec_stub;
 
-      before(() => {
-        spy_push = sinon.stub(api.push, 'event').callsFake((keys, cb) => { return cb(); });
-        exec_stub = sinon.stub(cp, 'exec').callsFake((cmd, cb) => {
-          return cb(null, 'John PC 2');
-        });
-      })
+      describe('and the client was connected', () => {
 
-      after(() => {
-        spy_push.restore();
-        exec_stub.restore();
-        hostname.stop();
-      })
+        before(() => {
+          exec_stub = sinon.stub(cp, 'exec').callsFake((cmd, cb) => {
+            return cb(null, 'John PC 2');
+          });
+        })
 
-      it('sends hostname changed event', (done) => {
-        hostname.start(opts, () => {});
-        setTimeout(() => {
-          spy_push.notCalled.should.be.equal(true);
-          storage.all('keys', (err, out) => {
-            should.not.exist(err);
-            out['hostname-key'].should.exist
-            out['hostname-key'].value.should.be.equal('John PC 2');
-            done();
+        after(() => {
+          exec_stub.restore();
+          hostname.stop();
+        })
+
+        it('sends hostname changed event', (done) => {
+          hostname.start(opts, (err, em) => {
+            hooks.trigger('connected');
+            em.on('device_renamed', (e) => {
+              setTimeout(() => {
+                // If goes through here means it worked!
+                done();
+              }, 1500)
+            })
           })
-        }, 1500)
-      })
+        })
+      });
+
+      describe('and the client was disconnected and then connected', () => {
+
+        before(() => {
+          exec_stub = sinon.stub(cp, 'exec').callsFake((cmd, cb) => {
+            return cb(null, 'John PC 3');
+          });
+        })
+
+        after(() => {
+          exec_stub.restore();
+          hostname.stop();
+        })
+
+        it('sends the event after is connected', function(done) {
+          this.timeout(5000);
+          hostname.start(opts, (err, em) => {
+            em.on('device_renamed', (e) => {
+              done();
+            })
+            hooks.trigger('disconnected');
+            setTimeout(() => {
+              hooks.trigger('connected');
+            }, 2000)
+          });
+        })
+      });
     })
   })
 })
