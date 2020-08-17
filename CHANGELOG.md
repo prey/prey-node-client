@@ -5,6 +5,7 @@
 
 **Merged pull requests:**
 
+- Rename device event fix [\#472](https://github.com/prey/prey-node-client/pull/472) ([javo](https://github.com/javo))
 - Logretrieval action [\#467](https://github.com/prey/prey-node-client/pull/467) ([javo](https://github.com/javo))
 - Camera and Screenshot fixes and improvements [\#468](https://github.com/prey/prey-node-client/pull/468) ([javo](https://github.com/javo))
 - General improvements [\#469](https://github.com/prey/prey-node-client/pull/469) ([javo](https://github.com/javo))
