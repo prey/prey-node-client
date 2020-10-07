@@ -1,5 +1,14 @@
 # Change Log
 
+## [v1.9.6](https://github.com/prey/prey-node-client/tree/v1.9.6) (2020-10-07)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.9.5...v1.9.6)
+
+**Merged pull requests:**
+
+- macOS Big Sur integration [\#476](https://github.com/prey/prey-node-client/pull/476) ([javo](https://github.com/javo))
+- Fix picture and logged user retry for windows [\#477](https://github.com/prey/prey-node-client/pull/477) ([javo](https://github.com/javo))
+- Update with corresponding arch [\#478](https://github.com/prey/prey-node-client/pull/478) ([javo](https://github.com/javo))
+
 ## [v1.9.5](https://github.com/prey/prey-node-client/tree/v1.9.5) (2020-08-11)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.9.4...v1.9.5)
 
