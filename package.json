@@ -25,6 +25,7 @@
     "url": "https://github.com/prey/prey-node-client.git"
   },
   "dependencies": {
+    "arch": "^2.1.2",
     "archiver": "^4.0.2",
     "async": "^2.6.1",
     "buckle": "0.0.3",
