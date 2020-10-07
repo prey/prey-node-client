@@ -25,7 +25,7 @@ var etc_dir   = join(tmpdir(), 'etc'),
     log_file  = join(log_dir, 'prey.log'),
     conf_file = join(prey_dir, 'prey.conf'),
     comm_file = join(prey_dir, 'commands.db'),
-    rotated_log_file = join(prey_dir, 'prey.log.1.zip');
+    rotated_log_file = join(prey_dir, 'prey.log.1.gz');
 
 describe('Logretrieval', () => {
 
@@ -94,7 +94,7 @@ describe('Logretrieval', () => {
 
             unzip(logs_zip, () => {
               fs.existsSync(logs_dir).should.be.equal(true);
-              fs.existsSync(join(logs_dir, 'prey.log.1.zip')).should.be.equal(true);
+              fs.existsSync(join(logs_dir, 'prey.log.1.gz')).should.be.equal(true);
               fs.existsSync(join(logs_dir, 'prey.log')).should.be.equal(true);
               fs.existsSync(join(logs_dir, 'prey.conf')).should.be.equal(true);
               fs.existsSync(join(logs_dir, 'commands.db')).should.be.equal(true);
