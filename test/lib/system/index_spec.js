@@ -105,6 +105,7 @@ describe('system functions', function() {
     describe('when is not available', function() {
       var get_stub;
       before(function() {
+        sys_win.monitoring_service_go = false;
         get_stub = sinon.stub(needle, 'get').callsFake((host, cb) => {
           cb(new Error('ECONNREFUSED'));
         })
