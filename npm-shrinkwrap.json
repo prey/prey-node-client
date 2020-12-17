@@ -710,8 +710,8 @@
       }
     },
     "iconv-lite": {
-      "version": "0.4.24",
-      "resolved": "https://registry.npmjs.org/iconv-lite/-/iconv-lite-0.4.24.tgz",
+      "version": "0.6.2",
+      "resolved": "https://registry.npmjs.org/iconv-lite/-/iconv-lite-0.6.2.tgz",
       "integrity": "sha512-v3MXnZAcvnywkTUEZomIActle7RXXeedOR31wwl7VlyoXO4Qi9arvSenNQWne1TcRwhCL1HwLI21bEqdpj8/rA==",
       "requires": {
         "safer-buffer": ">= 2.1.2 < 3"
