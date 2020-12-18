@@ -11,6 +11,7 @@
 import os
 import sys
 import hashlib
+import base64
 # import objc
 # import signal
 # from Foundation import *
@@ -104,7 +105,8 @@ class LockView(NSView):
 
   def enter_pressed(self):
     value = self.field.stringValue()
-    hashed = hashlib.md5(value).hexdigest()
+    hashb64 = base64.b64encode(value)
+    hashed = hashlib.md5(hashb64).hexdigest()
     # print("Enter pressed. Got: " + value)
     if hashed == passwd:
       # app.performSelector_withObject_afterDelay_("shutdown", self, 0.0)
