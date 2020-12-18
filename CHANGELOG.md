@@ -1,5 +1,14 @@
 # Change Log
 
+## [v1.9.7](https://github.com/prey/prey-node-client/tree/v1.9.7) (2020-12-18)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.9.6..v1.9.7)
+
+**Merged pull requests:**
+
+- Bitlocker integration[\#481](https://github.com/prey/prey-node-client/pull/481) ([javo](https://github.com/javo))
+- Location schedule and dependency update [\#482](https://github.com/prey/prey-node-client/pull/482) ([javo](https://github.com/javo))
+- Special characters on lock fix [\#483](https://github.com/prey/prey-node-client/pull/483) ([javo](https://github.com/javo))
+
 ## [v1.9.6](https://github.com/prey/prey-node-client/tree/v1.9.6) (2020-10-07)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.9.5...v1.9.6)
 
