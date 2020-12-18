@@ -12,7 +12,7 @@
 # GPLv3 License
 #############################################
 
-import os, sys, gtk, pango
+import os, sys, gtk, pango, base64
 from gobject import timeout_add
 from hashlib import md5
 
@@ -24,7 +24,8 @@ def write(text):
 
 class Lock:
 	def get_md5(self, string):
-		return md5(string).hexdigest()
+		hashb64 = base64.b64encode(string.encode("utf-8"))
+        return md5(hashb64).hexdigest()
 
 	def hide_error(self):
 		self.label.hide()

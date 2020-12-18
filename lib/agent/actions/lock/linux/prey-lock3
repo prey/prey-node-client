@@ -14,6 +14,7 @@
 
 import os
 import sys
+import base64
 from hashlib import md5
 
 import gi
@@ -35,7 +36,8 @@ def write(text):
 
 class Lock:
     def get_md5(self, string):
-        return md5(string.encode("utf-8")).hexdigest()
+        hashb64 = base64.b64encode(string.encode("utf-8"))
+        return md5(hashb64).hexdigest()
 
     def hide_error(self):
         self.label.hide()
