@@ -31,7 +31,6 @@ describe('Encryption keys', () => {
     })
 
     it('returns error', (done) => {
-      console.log("PROVIDER2!", provider_keys)
       provider_keys.get_encryption_keys((err, obj) => {
         should.exist(err);
         err.message.should.containEql('Admin service not available');
