@@ -1,5 +1,19 @@
 # Change Log
 
+## [v1.9.9](https://github.com/prey/prey-node-client/tree/v1.9.9) (2021-01-25)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.9.8..v1.9.9)
+
+**Merged pull requests:**
+
+- Fix unlock for macOS BigSur and Windows 7[\#489](https://github.com/prey/prey-node-client/pull/489) ([javo](https://github.com/javo))
+
+## [v1.9.8](https://github.com/prey/prey-node-client/tree/v1.9.8) (2020-12-22)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.9.7..v1.9.8)
+
+**Merged pull requests:**
+
+- Remove client check server[\#486](https://github.com/prey/prey-node-client/pull/486) ([javo](https://github.com/javo))
+
 ## [v1.9.7](https://github.com/prey/prey-node-client/tree/v1.9.7) (2020-12-18)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.9.6..v1.9.7)
 
