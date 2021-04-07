@@ -246,13 +246,12 @@ class Lock:
 
         if msgtext != "":
             self.label2 = Gtk.Label()
-            self.label2.set_line_wrap(True)
             self.label2.set_justify(2)
-            self.label2.set_markup('<span foreground="#FFFFFF">'+msgtext+'</span>');
-            label_width = len(msgtext) * 7
+            newtext, label_width = setLineBreaks(msgtext, findOccurrences(msgtext, " "), 100)
 
+            self.label2.set_markup('<span foreground="#FFFFFF">'+newtext+'</span>')
             fixed3 = Gtk.Fixed.new()
-            fixed3.put(self.label2, main_screen_width/2 - label_width/2, y_position + (100 * scale))
+            fixed3.put(self.label2, main_screen_width/2 -(label_width*6.5)/2, y_position + (100 * scale))
             fixed3.show()
             vbox.pack_start(fixed3, False, False, 0)
 
@@ -325,6 +324,33 @@ def disable_XF86Switch():
         # do nothing if xmodmap is not found or return an error
         return
 
+def findOccurrences(str, ch):
+    return [i for i, letter in enumerate(str) if letter == ch]
+
+def setLineBreaks(string, arr, maxLength):
+    lineLength = maxLength
+    longerLine = 0
+    output = ""
+
+    if (len(string) < maxLength):
+        longerLine = len(string)
+        return string, longerLine
+
+    value0 = 0
+    for index, value in enumerate(arr):
+        diff = maxLength - value
+
+        if index == len(arr) - 1:
+            output += string[value0:]
+
+        if (diff >= 0 and diff < 10) or diff < 0:
+            if len(string[value0:value]) > longerLine:
+                longerLine = len(string[value0:value])
+            output += string[value0:value] + "\n"
+            value0 = value
+            maxLength += lineLength
+
+    return " " + output, longerLine
 
 if __name__ == "__main__":
 
