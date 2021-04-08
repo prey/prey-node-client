@@ -1,5 +1,13 @@
 # Change Log
 
+## [v1.9.10](https://github.com/prey/prey-node-client/tree/v1.9.10) (2021-01-25)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.9.9..v1.9.10)
+
+**Merged pull requests:**
+
+- Fix for wipe on win7 and service updater on bin dir[\#493](https://github.com/prey/prey-node-client/pull/493) ([javo](https://github.com/javo))
+- Lock with long message[\#494](https://github.com/prey/prey-node-client/pull/494) ([javo](https://github.com/javo))
+
 ## [v1.9.9](https://github.com/prey/prey-node-client/tree/v1.9.9) (2021-01-25)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.9.8..v1.9.9)
 
