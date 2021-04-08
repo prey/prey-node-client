@@ -138,8 +138,8 @@ class LockView(NSView):
     NSTimer.scheduledTimerWithTimeInterval_target_selector_userInfo_repeats_(3.0, self, 'hide_message', '', False)
 
   def show_lower(self, message):
-    width = 500
-    height = 100
+    width = 800
+    height = 150
     msg = NSTextField.alloc().initWithFrame_(NSMakeRect(self.getLeftOffset(width), self.getTopOffset(height) - 150, width, height))
     msg.setStringValue_(message)
     msg.setBezeled_(False)
