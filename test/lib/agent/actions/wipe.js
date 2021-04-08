@@ -1,11 +1,20 @@
-var helpers = require('./../../../helpers'),
-    should = require('should'),
-    sinon = require('sinon'),
-    lib_path = helpers.lib_path(),
-    join = require('path').join,
-    wipe_path = join(lib_path, 'agent', 'actions', 'wipe'),
-    wipe = require(wipe_path),
-    wipe_win = require(wipe_path + '/windows');
+var helpers        = require('./../../../helpers'),
+    path           = require('path'),
+    os             = require('os'),
+    should         = require('should'),
+    sinon          = require('sinon'),
+    lib_path       = helpers.lib_path(),
+    join           = require('path').join,
+    custom_dirs    = require(join(lib_path, 'agent', 'utils', 'custom-dirs'))
+    wipe_path      = join(lib_path, 'agent', 'actions', 'wipe'),
+    wipe2          = require(join(lib_path, 'agent', 'actions', 'wipe', 'wipe')),
+    wipe           = require(wipe_path),
+    wipe_win       = require(wipe_path + '/windows'),
+    sys_index_path = helpers.lib_path('system'),
+    sys_index      = require(sys_index_path),
+    sys_win        = require(join(sys_index_path, 'windows'))
+    api_path       = join(lib_path, 'agent', 'plugins', 'control-panel', 'api'),
+    keys           = require(join(api_path, 'keys'));
 
 var outlook_versions = {
   old: {
@@ -267,7 +276,26 @@ describe('wipe valid types', function() {
 describe('in Windows OS', function() {
 
   var platform_stub,
-      outlook_version;
+      outlook_version,
+      spy_fetch_dirs;
+
+  var opts = { "wipe_directories": "/Users/user/Desktop/file.txt" };
+
+  before(() => {
+    wipe.node_bin = '/usr/local/bin/node';
+    sys_index.os_name = "windows";
+    sys_index.check_service = sys_win.check_service;
+    sys_index.run_as_admin = sys_win.run_as_admin;
+    platform_stub = sinon.stub(os, 'platform').callsFake(() => { return 'win32'; });
+    keys_get_stub = sinon.stub(keys, 'get').callsFake(() => {
+      return { api: 'aaaaaaaaaa', device: 'bbbbbb' }
+    });
+  })
+
+  after(() => {
+    platform_stub.restore();
+    keys_get_stub.restore();
+  })
 
   describe('on registry commands', function() {
     wipe_win.registryManager.query.toString().should.containEql('reg query');
@@ -283,6 +311,42 @@ describe('in Windows OS', function() {
   describe('when running in new Outlook version', function() {
     iterate_versions(outlook_versions.new);
   });
+
+  describe('when service is available', () => {
+    before(() => {
+      spy_fetch_dirs = sinon.spy(wipe2, 'fetch_dirs');
+      sys_win.monitoring_service_go = true;
+    });
+
+    after(() => {
+      spy_fetch_dirs.restore();
+    })
+
+    it('should wipe through the service', (done) => {
+      wipe.start(opts, (err, em) => {
+        em.on('end', (err, out) => {
+          spy_fetch_dirs.calledOnce.should.equal(true);
+          done();
+        })
+      })
+    })
+  })
+
+  describe('when service is not available', () => {
+    before(() => {
+      sys_win.monitoring_service_go = false;
+    })
+
+    it('should not wipe through the service', (done) => {
+      wipe.start(opts, (err, em) => {
+        em.on('end', (err, out) => {
+          should.exist(err);
+          err.message.should.containEql("Wipe command failed.")
+          done();
+        })
+      })
+    })
+  })
 
   function iterate_versions(versions) {
     Object.keys(versions).forEach(function(k) {
