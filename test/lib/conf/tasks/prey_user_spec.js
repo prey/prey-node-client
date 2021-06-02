@@ -23,10 +23,8 @@ describe('prey_user', function() {
       singleOnly: true, // https://github.com/felixge/node-sandboxed-module/issues/36
       requires: {
         // let's assume that this guy will do his job.
-        chela: {
-          own: function(path, user, cb) {
-            cb();
-          }
+        chownr: function(path, uid, gid, cb) {
+          cb();
         }
       },
       globals:  {
