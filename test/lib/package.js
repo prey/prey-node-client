@@ -253,7 +253,7 @@ describe('package.get_latest', function() {
 
       it('does not verify checksum of anything', function(done) {
 
-        var spy = sinon.spy(fs, 'ReadStream');
+        var spy = sinon.spy(fs, 'createReadStream');
 
         get_latest('1.2.3', tmpdir, function(err) {
           storage.all('versions', function(err, out) {
@@ -285,7 +285,7 @@ describe('package.get_latest', function() {
 
       it('verifies the checksum', function(done) {
 
-        var spy = sinon.spy(fs, 'ReadStream');
+        var spy = sinon.spy(fs, 'createReadStream');
 
         get_latest('1.2.3', tmpdir, function(err) {
           spy.called.should.be.true;
