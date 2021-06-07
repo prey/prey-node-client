@@ -28,7 +28,7 @@
     "arch": "^2.1.2",
     "archiver": "^4.0.2",
     "async": "^2.6.1",
-    "buckle": "0.0.3",
+    "buckle": "git://github.com/javo/buckle.git#4c3d6e0e35d19f73ab0f3e585a1217cdd15938fb",
     "chmodr": "1.2.0",
     "chownr": "1.1.4",
     "clean-exit": "0.0.3",

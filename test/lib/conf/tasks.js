@@ -57,6 +57,7 @@ describe('tasks', function() {
 
       // restore chmodr function
       tasks.chmodr = chmodr_original;
+      chmod_counter = 0;
     })
 
     function stub_chmod() {
@@ -362,7 +363,7 @@ describe('tasks', function() {
           })
         })
 
-        it('calls chela.mod', function(done) {
+        it('calls chownr', function(done) {
           tasks.activate({}, function(err) {
             chmod_counter.should.be.not.eql(0);
             done();
