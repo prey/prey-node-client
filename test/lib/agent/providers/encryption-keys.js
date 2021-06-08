@@ -97,6 +97,28 @@ describe('Encryption keys', () => {
         });
       })
     })
+
+    describe('when the output is invalid', () => {
+      var wrong_keys = '{"err": null, "output": false}'
+
+      before(() => {
+        invalid_keys_stub = sinon.stub(needle, 'post').callsFake((url, data, opts, cb) => {
+          cb(null, null, wrong_keys)
+        });
+      })
+
+      after(() => {
+        invalid_keys_stub.restore();
+      })
+
+      it('returns an error', (done) => {
+        provider_keys.get_encryption_keys(function(err, obj) {
+          should.exist(err);
+          err.message.should.containEql('Invalid encryption keys information');
+          done();
+        });
+      })
+    })
   })
 })
 

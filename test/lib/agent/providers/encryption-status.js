@@ -98,6 +98,28 @@ describe('Encryption status', () => {
         });
       })
     })
+
+    describe('when the output is invalid', () => {
+      var wrong_status = '{"err": null, "output": false}'
+
+      before(() => {
+        invalid_status_stub = sinon.stub(needle, 'post').callsFake((url, data, opts, cb) => {
+          cb(null, null, wrong_status)
+        });
+      })
+
+      after(() => {
+        invalid_status_stub.restore();
+      })
+
+      it('returns an error', (done) => {
+        provider.get_encryption_status(function(err, obj) {
+          should.exist(err);
+          err.message.should.containEql('Invalid encryption status information');
+          done();
+        });
+      })
+    })
   })
 })
 
