@@ -6,7 +6,6 @@ var fs      = require('fs'),
     getset  = require('getset'),
     rimraf  = require('rimraf'),
     helpers = require('./../../helpers'),
-    chela   = require('chela'),
     api_path = join(helpers.lib_path('agent', 'plugins', 'control-panel', 'api')),
     api      = require(api_path),
     request  = require(join(api_path, 'request')),
@@ -24,6 +23,12 @@ var prey_user = require(helpers.lib_path('conf', 'tasks', 'prey_user')),
     daemon  = require(helpers.lib_path('conf', 'tasks', 'daemon'));
 
 var firewall  = require('firewall');
+
+var chmod_counter = 0;
+
+// save original chmordr function
+chmodr_original = tasks.chmodr;
+chmodr = chmodr_original;
 
 describe('tasks', function() {
 
@@ -50,13 +55,16 @@ describe('tasks', function() {
       common.config = old_config;
       common.system.paths.versions = old_versions_path;
 
-      // release the chela.mod stub
-      chmod_stub.restore();
+      // restore chmodr function
+      tasks.chmodr = chmodr_original;
+      chmod_counter = 0;
     })
 
     function stub_chmod() {
-      // stub out chela.mod so we don't accidentally chmod the source dir
-      chmod_stub = sinon.stub(chela, 'mod').callsFake((path, octal, cb) => { cb() });
+      tasks.chmodr = function(path, code, cb) {
+        chmod_counter++;
+        cb();
+      }
     }
 
     if (os_name == 'windows') {
@@ -355,9 +363,9 @@ describe('tasks', function() {
           })
         })
 
-        it('calls chela.mod', function(done) {
+        it('calls chownr', function(done) {
           tasks.activate({}, function(err) {
-            chmod_stub.called.should.be.true;
+            chmod_counter.should.be.not.eql(0);
             done();
           });
         })
@@ -365,7 +373,7 @@ describe('tasks', function() {
         describe('with write access to paths.current', function() {
 
           before(function(done) {
-            chmod_stub.restore();
+            tasks.chmodr = chmodr_original;
             fs.chmod(common.system.paths.current, '0755', function () {
               fs.chmod(join(common.system.paths.current, "bin", "prey"), '0644', done);
             });
@@ -389,7 +397,7 @@ describe('tasks', function() {
         describe('with NO write access to paths.current', function() {
 
           before(function(done) {
-            chmod_stub.restore();
+            tasks.chmodr = chmodr_original;
             fs.chmod(common.system.paths.current, '0200', done);
           })
 
@@ -507,6 +515,8 @@ describe('tasks', function() {
               describe('and no write access to install path', function() {
 
                 before(function(done) {
+                  // Reset counter
+                  chmod_counter = 0
                   common.system.paths.install = install_dir;
 
                   if (!fs.existsSync(install_dir))
@@ -531,9 +541,9 @@ describe('tasks', function() {
                 })
 
                 it('does not chmod anything', function(done) {
-                  chmod_stub.reset();
+                  tasks.chmodr = chmodr_original;
                   tasks.activate({}, function(err) {
-                    chmod_stub.called.should.be.false;
+                    chmod_counter.should.be.eql(0);
                     done();
                   })
                 })
@@ -560,8 +570,7 @@ describe('tasks', function() {
 
                 it('chmods files to 100755 (0755)', function(done) {
 
-                  chmod_stub.restore();
-
+                  tasks.chmodr = chmodr_original;
                   tasks.activate({}, function(err) {
                     should.not.exist(err);
                     var stat  = fs.lstatSync(join(common.system.paths.current, "package.json"));
