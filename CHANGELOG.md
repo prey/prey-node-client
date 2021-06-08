@@ -1,6 +1,16 @@
 # Change Log
 
-## [v1.9.10](https://github.com/prey/prey-node-client/tree/v1.9.10) (2021-01-25)
+## [v1.9.11](https://github.com/prey/prey-node-client/tree/v1.9.11) (2021-06-10)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.9.10..v1.9.11)
+
+**Merged pull requests:**
+
+- battery check when writing to log[\#496](https://github.com/prey/prey-node-client/pull/496) ([javo](https://github.com/JohaoRosasRosillo))
+- Update node version and sqlite3 library on macOS[\#497](https://github.com/prey/prey-node-client/pull/497) ([javo](https://github.com/javo))
+- Manage encryption status info error[\#500](https://github.com/prey/prey-node-client/pull/500) ([javo](https://github.com/javo))
+
+
+## [v1.9.10](https://github.com/prey/prey-node-client/tree/v1.9.10) (2021-04-12)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.9.9..v1.9.10)
 
 **Merged pull requests:**
