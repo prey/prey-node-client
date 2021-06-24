@@ -1,5 +1,15 @@
 # Change Log
 
+## [v1.9.12](https://github.com/prey/prey-node-client/tree/v1.9.12) (2021-06-25)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.9.11..v1.9.12)
+
+**Merged pull requests:**
+
+- Include messageID on stopped action response[\#502](https://github.com/prey/prey-node-client/pull/502) ([javo](https://github.com/JohaoRosasRosillo))
+- Add unseen trigger and long polling enhancements[\#504](https://github.com/prey/prey-node-client/pull/504) ([javo](https://github.com/javo))
+- Update admin service for client support[\#505](https://github.com/prey/prey-node-client/pull/505) ([javo](https://github.com/javo))
+
+
 ## [v1.9.11](https://github.com/prey/prey-node-client/tree/v1.9.11) (2021-06-10)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.9.10..v1.9.11)
 
