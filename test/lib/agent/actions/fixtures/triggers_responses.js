@@ -350,7 +350,33 @@ var event_triggers = [
       }
     ]
   },
-
+  {
+    "id": 119,
+    "name": "trigger 119",
+    "automation_events":[
+      {
+        "type" : "device_unseen"
+      },
+      {
+        "type" : "after_time",
+        "info" : {
+          "seconds": 10
+        }
+      }
+    ],
+    "automation_actions":[
+      {
+        "delay": 0,
+        "action": {
+          "command": "start",
+          "target": "lock",
+          "options": {
+            "unlock_pass":"oeoe"
+          }
+        }
+      }
+    ]
+  }
 ]
 
 var persistent_triggers = [
