@@ -16,6 +16,7 @@ var helpers          = require('./../../../helpers'),
     actions          = require(join(lib_path, 'agent', 'actions')),
     triggers_storage = require(join(triggers_path, 'storage')),
     storage          = require(join(lib_path, 'agent', 'utils', 'storage')),
+    lp               = require(join(lib_path, 'agent', 'plugins', 'control-panel', 'long-polling')),
     dummy            = require('./fixtures/triggers_responses');
 
 describe('triggers', () => {
@@ -272,6 +273,9 @@ describe('triggers', () => {
             timezone_offset = new Date().getTimezoneOffset() * 60 * 1000;
             setTimeout(() => { triggers.start({}, done) }, 500)
             clock = sinon.useFakeTimers(1561366800000 + timezone_offset);     // Monday 24/06/2019 9:00:00
+            last_stub = sinon.stub(lp, 'last_connection').callsFake(() => {
+              return 1461381200;  // unix time in seconds
+            });
           })
 
           after((done) => {
@@ -338,11 +342,20 @@ describe('triggers', () => {
             done();
           });
 
+          it('execute the actions on events with time', (done) => {
+            hooks.trigger('device_unseen');
+            clock.tick(500)
+            spy_perform.getCall(8).args[0].target.should.be.equal('lock');
+            spy_perform.getCall(8).args[0].options.trigger_id.should.be.equal(119);
+            spy_perform.callCount.should.be.equal(9);
+            done();
+          });
+
           it('doesnt activate an unknown trigger event', (done) => {
             hooks.trigger('power_changed');
             spy_logger.calledThrice.should.be.equal(true);
             spy_logger.getCall(2).args[0].should.containEql("Unavailable event for Node Client.");
-            spy_perform.callCount.should.be.equal(8);
+            spy_perform.callCount.should.be.equal(9);
             done();
           });
 
