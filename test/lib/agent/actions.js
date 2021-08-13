@@ -1,4 +1,76 @@
+var helpers = require('./../../helpers'),
+    should    = require('should'),
+    sinon     = require('sinon'),
+    actions = helpers.load('actions');
+    // hooks   = helpers.load('hooks');
+    // hooks   = require('./../../../lib/agent/hooks');
+
 describe('actions', function(){
+
+  describe('action start and stop', () => {
+    
+    it('runs the action and then stop it', (done) => {
+      // actions.start('1234-5678', 'alert', {message: 'hi!'})
+      actions.start('1234-5678', 'alarm', {sound: 'modem'})
+      
+      setTimeout(() => {
+        actions.stop('1234-5678')
+        done();
+      }, 1000)
+      
+    })
+
+    describe('when an action with same id arrives', () => {
+      it('throws an error', (done) => {
+        // actions.start('9876-5432', 'alert', {message: 'hey!'})
+        actions.start('9876-5432', 'alarm', {sound: 'modem'})
+
+        setTimeout(() => {
+          // testear q no se llama el start alert!
+
+          // actions.start('9876-5432', 'alert', {message: 'hey!'}, (err) => {
+          actions.start('9876-5432', 'alarm', {sound: 'modem'}, (err) => {
+            console.log("ERROR OE!!", err.message)
+            should.exist(err);
+            
+            err.message.should.containEql('Already running');
+            
+            actions.stop('9876-5432')
+            done();
+          })
+
+
+          // hooks.on('error', (err) => {
+          //   console.log("ERROR OE!!", err)
+          //   done();
+          // })
+          
+        }, 2000)
+      })
+    })
+
+    describe('when an action with different id but same name arrives', () => {
+
+      it('stops current action and run the new one', (done) => {
+        this.timeout(700);
+        // actions.start('1234-5678', 'alert', {message: 'hi!'})
+        actions.start('1234-5678', 'alarm', {sound: 'modem'})
+        
+        setTimeout(() => {
+    
+          // actions.start('9876-5432', 'alert', {message: 'hey!'})
+          actions.start('9876-5432', 'alarm', {sound: 'alarm'})
+    
+          setTimeout(() => {
+            actions.stop('9876-5432');
+            done();
+          }, 3000)
+          
+        }, 3000)
+      })
+    })
+
+  })
 
   describe('when multiple actions are started', function(){
 
