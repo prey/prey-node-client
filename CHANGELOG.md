@@ -1,11 +1,22 @@
 # Change Log
 
+## [v1.9.13](https://github.com/prey/prey-node-client/tree/v1.9.13) (2021-08-16)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.9.12..v1.9.13)
+
+**Merged pull requests:**
+
+- Unit tests in long polling for server creation and restart [\#507](https://github.com/prey/prey-node-client/pull/507) ([JohaoRosasRosillo](https://github.com/JohaoRosasRosillo))
+- Fix documents wipe and keeping root folders[\#510](https://github.com/prey/prey-node-client/pull/510) ([JohaoRosasRosillo](https://github.com/JohaoRosasRosillo))
+- Fix when starting node client[\#511](https://github.com/prey/prey-node-client/pull/511) ([JohaoRosasRosillo](https://github.com/JohaoRosasRosillo))
+- Fix edition for Workstations and capture tpm error[\#512](https://github.com/prey/prey-node-client/pull/512) ([javo](https://github.com/javo))
+
+
 ## [v1.9.12](https://github.com/prey/prey-node-client/tree/v1.9.12) (2021-06-25)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.9.11..v1.9.12)
 
 **Merged pull requests:**
 
-- Include messageID on stopped action response[\#502](https://github.com/prey/prey-node-client/pull/502) ([javo](https://github.com/JohaoRosasRosillo))
+- Include messageID on stopped action response[\#502](https://github.com/prey/prey-node-client/pull/502) ([JohaoRosasRosillo](https://github.com/JohaoRosasRosillo))
 - Add unseen trigger and long polling enhancements[\#504](https://github.com/prey/prey-node-client/pull/504) ([javo](https://github.com/javo))
 - Update admin service for client support[\#505](https://github.com/prey/prey-node-client/pull/505) ([javo](https://github.com/javo))
 
