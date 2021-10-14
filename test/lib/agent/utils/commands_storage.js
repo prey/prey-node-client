@@ -248,7 +248,45 @@ describe('storage', () => {
 
   })
 
+  describe('verify', () => {
 
+    describe('validate if exist id', () => {
+      var id, data;
+
+      before((done) => {
+        id = uuidv4();
+        // encryption.status[tmpdir() + '/commands.db'] = null;
+        storage.init('commands', tmpdir() + '/commands_new.db', done);
+      })
+
+      after((done) => {
+        storage.erase( tmpdir() + '/commands_new.db', done)
+        // done();
+      })
+
+
+      it('return empty', (done) => {
+        storage.do('query', {type: 'commands',column : "id", data: id }, (err, data) => {
+          should.not.exist(err);
+          data.length.should.be.equal(0);
+          done();
+        })
+      })
+
+
+      it('not return empty', (done) => {
+        storage.do('query', {type: 'commands',column : "id", data: '2bf54e80-20b0-4fcf-9218-5c8e5c328a6d'}, (err, data) => {
+          console.log(err)
+          console.log(data)
+          should.not.exist(err);
+          data.length.should.be.equal(1);
+          done();
+        })
+      })
+
+    })
+
+  })
 //   {
 //     "trigger-2005":{
 //        "id":2005,
