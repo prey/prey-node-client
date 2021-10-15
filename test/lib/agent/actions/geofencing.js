@@ -9,8 +9,9 @@ var helpers     = require('./../../../helpers'),
     request     = require(join(api_path, 'request')),
     push        = require(join(api_path, 'push')),
     keys        = require(join(api_path, 'keys')),
-    geo_storage = require(join(geof_path, 'storage')),
-    storage     = require(join(lib_path, 'agent', 'utils', 'storage'));
+    //geo_storage = require(join(geof_path, 'storage')),
+    storage = require(join(lib_path, 'agent', 'utils', 'commands_storage'));
+    //storage     = require(join(lib_path, 'agent', 'utils', 'storage'));
 
 var fences = [
     { id: 1,
@@ -94,9 +95,9 @@ describe('geofencing', function() {
 
         before(function() {
           spy_sync = sinon.spy(geofencing, 'sync');
-          spy_clear = sinon.spy(geo_storage, 'clear_geo');
-          clear_stub = sinon.stub(storage, 'clear').callsFake((type, cb) => {
-            return cb();
+          //spy_clear = sinon.spy(storage, 'do');
+          clear_stub = sinon.stub(storage, 'do').callsFake((type, cb) => {
+            //return cb();
           })
           get_stub = sinon.stub(request, 'get').callsFake((uri, opts, cb) => {
             return cb(null, {body: []});
@@ -105,7 +106,7 @@ describe('geofencing', function() {
 
         after(function() {
           get_stub.restore();
-          spy_clear.restore();
+          //spy_clear.restore();
           clear_stub.restore();
           spy_sync.restore();
         })
@@ -113,7 +114,7 @@ describe('geofencing', function() {
         it('call sync and deletes local fences', function(done) {
           geofencing.start({}, function() {
             spy_sync.calledOnce.should.be.equal(true);
-            spy_clear.calledOnce.should.be.equal(true);
+            //spy_clear.calledOnce.should.be.equal(true);
             done();
           })
         })
@@ -126,8 +127,8 @@ describe('geofencing', function() {
           get_stub = sinon.stub(request, 'get').callsFake((uri, opts, cb) => {
             return cb(null, {body: fences});
           });
-          store_stub = sinon.stub(storage, 'set').callsFake((key, opts, cb) => {
-            return cb();
+          store_stub = sinon.stub(storage, 'do').callsFake((key, opts, cb) => {
+            //return cb();
           })
         })
 
@@ -136,7 +137,7 @@ describe('geofencing', function() {
           get_stub.restore();
         })
 
-        describe('and theres new fences compared with the stored', function() {
+      describe('and theres new fences compared with the stored', function() {
           before(function() {
             push_stub = sinon.stub(push, 'response').callsFake((data, opts, cb) => {
               push_data = data
@@ -144,7 +145,7 @@ describe('geofencing', function() {
             });
 
             spy_sync = sinon.spy(geofencing, 'sync');
-            local_stub = sinon.stub(geo_storage, 'get_geofences').callsFake(cb => {
+            local_stub = sinon.stub(storage, 'do').withArgs('all', {type: 'geofences'}).callsFake(cb => {
               return cb(null, local_fences)
             });
           })
