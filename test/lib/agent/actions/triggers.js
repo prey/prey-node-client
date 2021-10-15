@@ -15,7 +15,8 @@ var helpers          = require('./../../../helpers'),
     commands         = require(join(lib_path, 'agent', 'commands')),
     actions          = require(join(lib_path, 'agent', 'actions')),
     triggers_storage = require(join(triggers_path, 'storage')),
-    storage          = require(join(lib_path, 'agent', 'utils', 'storage')),
+    // storage          = require(join(lib_path, 'agent', 'utils', 'storage')),
+    storage2         = require(join(lib_path, 'agent', 'utils', 'commands_storage')),
     lp               = require(join(lib_path, 'agent', 'plugins', 'control-panel', 'long-polling')),
     dummy            = require('./fixtures/triggers_responses');
 
@@ -32,7 +33,7 @@ describe('triggers', () => {
     push_stub = sinon.stub(push, 'response').callsFake(() => { return; })
     post_stub = sinon.stub(request, 'post').callsFake(() => { return; })
     actions_start_stub = sinon.stub(actions, 'start').callsFake(() => { return true; })
-    storage.init('triggers', tmpdir() + '/test.db', done)
+    storage2.init('triggers', tmpdir() + '/test.db', done)
   })
 
   after((done) => {
@@ -41,8 +42,8 @@ describe('triggers', () => {
     post_stub.restore();
     push_stub.restore();
     actions_start_stub.restore();
-    storage.close('triggers', () => {
-      storage.erase(tmpdir() + '/test.db', done);
+    storage2.do('clear', {type: 'triggers'}, () => {
+      storage2.erase(tmpdir() + '/test.db', done);
     });
   })
 
@@ -138,7 +139,7 @@ describe('triggers', () => {
           spy_clear_local;
 
       before(() => {
-        spy_clear_local = sinon.spy(triggers_storage, 'clear_triggers');
+        spy_clear_local = sinon.spy(triggers, 'clear_triggers');
         spy_logger = sinon.spy(triggers.logger, 'warn');
       })
 
@@ -161,7 +162,7 @@ describe('triggers', () => {
 
         it('call sync and deletes and cancel local triggers', (done) => {
           spy_clear_local.calledOnce.should.be.true;
-          storage.all('triggers', (err, obj) => {
+          storage2.do('all', {type: 'triggers'}, (err, obj) => {
             Object.keys(obj).length.should.be.equal(0)
             done();
           })
@@ -176,10 +177,14 @@ describe('triggers', () => {
             get_stub = sinon.stub(request, 'get').callsFake((uri, opts, cb) => { return cb(null, { body: dummy.exact_triggers }); })
             spy_sync = sinon.spy(triggers, 'sync');
             spy_perform = sinon.spy(commands, 'perform');
-            date = new Date(),
-            year = date.getFullYear() + 1,   // Always next year
-            timezone_offset = new Date().getTimezoneOffset() * 60 * 1000,
-            new_date = new Date(Date.UTC(year, 6, 25, 15, 00, 05)).getTime() + timezone_offset;
+            // device date
+            // date = new Date(),
+            // year = date.getFullYear() + 1,   // Always next year
+            // console.log("YEAR!!", year)
+            // timezone_offset = new Date().getTimezoneOffset() * 60 * 1000,
+            // new_date = new Date(Date.UTC(year, 6, 25, 15, 00, 05)).getTime() + timezone_offset;
+            new_date = 1918330449000;
+            console.log("NEW DATE!", new_date)
             setTimeout(() => { triggers.start({}, done) }, 500)
             clock = sinon.useFakeTimers(new_date);
           })
@@ -192,7 +197,8 @@ describe('triggers', () => {
           })
 
           it('does not set up the trigger in the past', (done) => {
-            clock.tick(500);
+            console.log("TEST1!!!")
+            clock.tick(300);
             spy_perform.notCalled.should.be.equal(true);
             spy_logger.calledOnce.should.be.equal(true);
             spy_logger.getCall(0).args[0].should.containEql('Cant set trigger into the past!');
@@ -200,7 +206,9 @@ describe('triggers', () => {
           })
 
           it('executes the action at the right time', (done) => {
+            console.log("TEST2!!!")
             clock.tick(1001);
+            console.log("NEW DATE!", new Date().getTime())
             spy_perform.calledOnce.should.be.equal(true);
             spy_perform.getCall(0).args[0].target.should.be.equal('alert');
             spy_perform.getCall(0).args[0].options.trigger_id.should.exists;
