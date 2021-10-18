@@ -113,7 +113,7 @@ describe('storage', () => {
       })
 
       after((done) => {
-        storage.erase( tmpdir() + '/commands.db', done)
+        storage.erase(tmpdir() + '/commands.db', done)
       })
 
       it('store the command', (done) => {
@@ -340,8 +340,6 @@ describe('storage', () => {
 
   })
 
-
-
   describe('recover data from old db', () => {
     var path, db;
     before((done) => {
@@ -364,16 +362,14 @@ describe('storage', () => {
       });
     })
     
-    after(() => {
-
+    after((done) => {
+      storage.erase(tmpdir() + '/old_commands.db', done)
     })
 
     it('recovers the data and saves it in the new format', (done) => {
-      console.log("DB!!", db)
       storage.recover_db(db, () => {
         done();
       })
-      
     });
   });
 
