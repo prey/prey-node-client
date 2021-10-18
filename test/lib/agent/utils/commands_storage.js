@@ -5,10 +5,8 @@ var fs      = require('fs'),
     helpers = require('../../../helpers'),
     rmdir    = require('rimraf'),
     storage = require(helpers.lib_path('agent', 'utils', 'commands_storage'));
-    // encryption = require(helpers.lib_path('agent', 'utils', 'encryption'));
 
 const { v4: uuidv4 } = require('uuid');
-// const { storage } = require('../../../../lib/agent/utils/commands_storage');
 
 var singular = function(type) {
   return type.substring(0, type.length - 1);
@@ -110,22 +108,18 @@ describe('storage', () => {
 
       before((done) => {
         id = uuidv4();
-        // encryption.status[tmpdir() + '/commands.db'] = null;
+        data = {command: 'start', target: 'alert', options: {message: 'hey!'}};
         storage.init('commands', tmpdir() + '/commands.db', done);
       })
 
       after((done) => {
         storage.erase( tmpdir() + '/commands.db', done)
-        // done();
       })
 
       it('store the command', (done) => {
-        data = {command: 'start', target: 'alert', options: {message: 'hey!'}};
-            
         storage.do('set', {type: 'commands', id: id, data: data}, (err) => {
           should.not.exist(err);
           storage.do('all', {type: 'commands'}, (err, out) => {
-            console.log("OUT!!", out)
             should.not.exist(err);
             out.length.should.be.equal(1);
             out[0].id.should.be.equal(id);
@@ -136,7 +130,6 @@ describe('storage', () => {
       })
 
       it('can read the data by id', (done) => {
-        // storage.query('commands', 'id', id, (err, data) => {
         storage.do('query', { type: 'commands', column: 'id', data: id}, (err, data) => {
           should.not.exist(err);
           data.length.should.be.equal(1);
@@ -147,20 +140,16 @@ describe('storage', () => {
 
       it('cant insert data with same id', (done) => {
         storage.do('set', { type: 'commands', id: id, data: data}, (err) => {
-          console.log("ERR!!", err.message)
           should.exist(err);
-
+          err.message.should.be.containEql('Already registered');
           done();
         });
       })
 
       it('modify started status when update', (done) => {
-        // storage.update('commands', id, 'started', 1, (err) => {
         storage.do('update', { type: 'commands', id: id, columns: 'started', values: 1 }, (err) => {
-
           should.not.exist(err);
           storage.do('query', { type: 'commands', column: 'id', data: id}, (err, data) => {
-          // storage.query('commands', 'id', id, (err, data) => {
             should.not.exist(err);
             data.length.should.be.equal(1);
             data[0].id.should.be.equal(id);
@@ -176,7 +165,6 @@ describe('storage', () => {
         
         // first inserts another command
         storage.do('set', { type: 'commands', id: id2, data: data2}, (err) => {
-        // storage.set('commands', id2, data2, () => {
           storage.do('all', { type: 'commands' }, (err, data) => {
             data.length.should.be.equal(2);
 
@@ -204,13 +192,7 @@ describe('storage', () => {
           }); 
         })
       })
-
-      it('drops the table', (done) => {
-        done();
-      })
-
     })
-
   })
 
   describe('store geofencing', () => {
@@ -395,175 +377,6 @@ describe('storage', () => {
     });
   });
 
-  // describe('encrypt commands file', () => {
-  //   var crypto = require('crypto');
-
-  //   // const { privateKey, publicKey } = crypto.generateKeyPairSync('rsa', {
-  //   //   modulusLength: 4096,
-  //   //   publicKeyEncoding: {
-  //   //     type: 'pkcs1',
-  //   //     format: 'pem',
-  //   //   },
-  //   //   privateKeyEncoding: {
-  //   //     type: 'pkcs1',
-  //   //     format: 'pem',
-  //   //     cipher: 'aes-256-cbc',
-  //   //     passphrase: '',
-  //   //   },
-  //   // })
-  
-  //   // fs.writeFileSync(join(tmpdir(), 'private.pem'), privateKey)
-  //   // fs.writeFileSync(join(tmpdir(), 'public.pem'), publicKey)
-
-  //   before(function(done) {
-  //     let id3   = uuidv4(),
-  //         data3 = {command: 'start', target: 'alarm', options: {sound: 'modem'}};
-
-  //     storage.init('commands', tmpdir() + '/cypher.db', () => {
-  //       storage.do('set', { type: 'commands', id: id3, data: data3 }, () => {
-  //       // storage.set('commands', id3, data3, () => {
-
-
-  //         done();
-
-  //       });
-  //     });
-  //     // done();
-  //   })
-
-  //   it('coso', function(done) {
-  //     let key = 'MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCcoWlqtsJIZ9Ed4KSDhsVXJc8P';
-  //     const algorithm = 'aes-256-ctr';
-  //     key = crypto.createHash('sha256').update(String(key)).digest('base64').substr(0, 32);
-
-
-  //     const encrypt = (file, cb) => {
-  //       let buffer = fs.readFileSync(file);
-
-  //       // if tiene esos caractares, nada q hacer
-
-  //       const oe = buffer.slice(-9);
-  //       if (oe == key.substring(0, 9)) {
-  //         // ya está cifrado!!!
-  //         return cb(new Error("YA ESTA CIFRADO, se supone"))
-  //       }
-
-  //       // Create an initialization vector
-  //       const iv = crypto.randomBytes(16);
-  //       // Create a new cipher using the algorithm, key, and iv
-  //       const cipher = crypto.createCipheriv(algorithm, key, iv);
-
-  //       // console.log("FINAL!", key.substring(0, 9))
-
-  //       // Create the new (encrypted) buffer
-  //       const result = Buffer.concat([iv, cipher.update(buffer), cipher.final(), Buffer.from(key.substring(0, 9))]);
-  //       // const result = Buffer.concat([iv, cipher.update(buffer), cipher.final()]);
-
-  //       // result = result.concat(key.substring(0, 9))
-  //       // console.log("RESULT!!", result.toString())
-  //       // a result añadir chars
-  //       // fs.writeFileSync(join(tmpdir(), 'cypher.db'), result);
-  //       fs.writeFile(file, result, cb);
-
-  //       // return;
-  //     };
-      
-  //     const decrypt = (file, cb) => {
-  //       let encrypted = fs.readFileSync(file);
-
-  //       // if NO tiene esos caractares, nada q hacer
-
-  //       // Get key fragment to compare
-  //       const oe = encrypted.slice(-9);
-  //       if (oe != key.substring(0, 9)) {
-  //         // las llaves no coinciden!!! o está descrifrado ya (?)
-  //         return cb(new Error("WEA"))
-  //       } 
-
-  //       // Get the rest
-  //       encrypted = encrypted.slice(0, -9);
-        
-  //       // Get the iv: the first 16 bytes
-  //       const iv = encrypted.slice(0, 16);
-  //       // Get the rest
-  //       encrypted = encrypted.slice(16);
-  //       // Create a decipher
-
-
-  //       const decipher = crypto.createDecipheriv(algorithm, key, iv);
-  //       // Actually decrypt it
-  //       const result = Buffer.concat([decipher.update(encrypted), decipher.final()]);
-
-  //       // fs.writeFileSync(join(tmpdir(), 'cypher.db'), result);
-  //       fs.writeFile(file, result, cb);
-  //       // return;
-  //     };
-
-  //     // let comm_file = fs.readFileSync(join(tmpdir(), 'cypher.db'));
-  //     // console.log("FILE ORIGINAL!", comm_file.toString(), '\n\n')
-
-  //     var date = new Date();
-  //     encrypt(join(tmpdir(), 'cypher.db'), (err) => {
-  //       console.log("DONE ENCRYPT!!")
-  //       var date2 = new Date();
-  //       console.log("ENCRYPT TIME!!", date2 - date)
-
-  //       var date3 = new Date();
-  //       decrypt(join(tmpdir(), 'cypher.db'), (err) => {
-  //         if (err) {
-  //           console.log("ERROR!!");
-  //           return done();
-  //         }
-
-  //         var date4 = new Date();
-  //         console.log("DECRYPT TIME!!", date4 - date3)
-  //         done();
-  //       });
-
-  //     });
-
-  //     // encrypt(join(tmpdir(), 'cypher.db'));
-  //     // console.log("Encrypted:", encrypted.toString(), '\n\n');
-
-  //     // fs.writeFileSync(join(tmpdir(), 'cypher.db'), encrypted);
-  //     // var date3 = new Date();
-  //     // decrypt(join(tmpdir(), 'cypher.db'));
-  //     // var date4 = new Date();
-
-  //     // console.log("DECRYPT TIME!!", date4 - date3)
-  //     // decrypt(join(tmpdir(), 'cypher.db'));
-  //     // console.log('Decrypted:', decrypted.toString());
-
-
-  //     // fs.writeFileSync(join(tmpdir(), 'cypher2.db'), decrypted);
-
-
-  //     // let hola = crypto.publicEncrypt({key: publicKey, padding: crypto.constants.RSA_NO_PADDING}, comm_file);
-  //     // console.log("CYPHER CONTENT!", hola.toString());
-
-  //     // fs.writeFileSync(join(tmpdir(), 'cypher.db'), hola);
-      
-  //     // let oe = fs.readFileSync(join(tmpdir(), 'cypher.db'));
-  //     // console.log("New CONTENT!", oe.toString());
-
-
-
-
-  //     // console.log(comm_file, typeof comm_file)
-      
-  //     // var hola = crypto.publicEncrypt(publicKey, plain);
-  //     // console.log(hola.toString())
-
-  //     // var chao = crypto.privateDecrypt(privateKey, hola);
-
-  //     // console.log(chao.toString())
-
-
-  //     // done();
-  //   })
-  // })
-
-
   describe('otros tests', () => {
 
     let id3   = uuidv4(),
@@ -588,69 +401,4 @@ describe('storage', () => {
 
   })
 
-  // describe('storage file encryption', () => {
-
-    
-
-  //   describe('when actions arrive', () => {
-      
-
-  //     describe('when file is decrypted', () => {
-
-  //       let id   = uuidv4(),
-  //           data = {command: 'start', target: 'alarm', options: {sound: 'modem'}};
-
-  //       before(done => {
-  //         storage.init('commands', tmpdir() + '/cipher.db', done)
-  //       })
-
-  //       it('stores the command and encrypt the file after x seconds', (done) => {
-  //         storage.do('set', { type: 'commands', id: id, data: data }, () => {console.log("TERMINÓ EL SET1")});
-  //         done();
-  //       })
-
-  //     })
-
-  //     describe('when file is encrypted', () => {
-  //       let id   = uuidv4(),
-  //           id2  = uuidv4(),
-  //           data = {command: 'start', target: 'alarm', options: {sound: 'modem'}},
-  //           data2 = {command: 'start', target: 'alert', options: {message: 'hi'}};
-
-  //       before(done => {
-  //         storage.init('commands', tmpdir() + '/cipher2.db', () => {
-  //           storage.do('set', { type: 'commands', id: id, data: data }, () => {
-  //             encryption.encrypt(tmpdir() + '/cipher2.db', done);
-  //           });
-  //         })
-  //       })
-
-  //       it('stores the command and encrypt the file after x seconds', function(done) {
-  //         this.timeout(10000)
-  //         storage.do('set', { type: 'commands', id: id2, data: data2 }, () => {console.log("TERMINÓ EL SET1")});
-  //         setTimeout(() => {
-  //           // desencriptar y revisar comandos guardados
-  //           encryption.decrypt(tmpdir() + '/cipher2.db', done);
-  //         }, 6000);
-  //       })
-
-  //       describe('and the client doesnt know', () => {
-
-  //       })
-
-
-        
-  //     })
-
-  //     describe('when file is decrypting', () => {
-        
-  //     })
-
-  //     describe('when file is encrypting', () => {
-        
-  //     })
-
-  //   })
-
-  // })
 });
