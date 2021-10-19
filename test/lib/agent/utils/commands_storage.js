@@ -348,12 +348,14 @@ describe('storage', () => {
       
       storage.init(null, path, (err, old_db) => {
         db = old_db;
-        add_to_db(old_db, 'commands', 'eyJzdGFydC1hbGVydCI6eyJjb21tYW5kIjoic3RhcnQiLCJ0YXJnZXQiOiJhbGVydCIsIm9wdGlvbnMiOnsiYWxlcnRfbWVzc2FnZSI6IlRoaXMgZGV2aWNlIGhhcyBiZWVuIGN1cnJlbnRseSBtYXJrZWQgYXMgbG9zdCBieSB0aGUgYWRtaW4uIFBsZWFzZSBjb250YWN0IGphdm9AcHJleWhxLmNvbSB0byBhcnJhbmdlIGl0cyBzYWZlIHJldHVybiBhbmQgYXZvaWQgZnVydGhlciBtZWFzdXJlcy4ifX19', () => {
-          add_to_db(old_db, 'commands', 'eyJzdGFydC1hbGFybSI6eyJjb21tYW5kIjoic3RhcnQiLCJ0YXJnZXQiOiJhbGFybSIsIm9wdGlvbnMiOnsic291bmQiOiJtb2RlbSJ9fX0', () => {
-            add_to_db(old_db, 'geofences', 'eyJnZW9mZW5jZS0xMTEiOnsiaWQiOjExMSwibmFtZSI6IkhvbWUiLCJzdGF0ZSI6Imluc2lkZSJ9fQ=', () => {
-              add_to_db(old_db, 'geofences', 'eyJnZW9mZW5jZS0xMTIiOnsiaWQiOjExMiwibmFtZSI6IldvcmsiLCJzdGF0ZSI6Im91dHNpZGUifX0=', () => {
-                add_to_db(old_db, 'geofences', 'eyJnZW9mZW5jZS0xMTMiOnsiaWQiOjExMywibmFtZSI6IlUiLCJzdGF0ZSI6Im91dHNpZGUifX0=', () => {
-                  add_to_db(old_db, 'files', 'eyJmaWxlLTExQjYyRTgyRTBDODI3Mzg0MEJFMUE4MTI2OTEwQTU4Ijp7InBhdGgiOiIvVXNlcnMvdXNlci9maWxlLmRvdCIsInNpemUiOjQyLCJ1c2VyIjoidXNlciIsIm5hbWUiOiJmaWxlLmRvdCIsInJlc3VtYWJsZSI6ZmFsc2V9fQ===', done)
+        add_to_db(old_db, 'commands', 'eyJzdGFydC1hbGVydCI6eyJjb21tYW5kIjoic3RhcnQiLCJ0YXJnZXQiOiJhbGVydCIsIm9wdGlvbnMiOnsiYWxlcnRfbWVzc2FnZSI6IlRoaXMgZGV2aWNlIGhhcyBiZWVuIGN1cnJlbnRseSBtYXJrZWQgYXMgbG9zdCBieSB0aGUgYWRtaW4uIFBsZWFzZSBjb250YWN0IGphdm9AcHJleWhxLmNvbSB0byBhcnJhbmdlIGl0cyBzYWZlIHJldHVybiBhbmQgYXZvaWQgZnVydGhlciBtZWFzdXJlcy4iLCJtZXNzYWdlSUQiOiIwYTZlZGE4Zi05OGY4LTRkOTItODcyOC1mZDdjMDQ1N2I3YjUifX19', () => {
+          add_to_db(old_db, 'commands', 'eyJzdGFydC1hbGFybSI6eyJjb21tYW5kIjoic3RhcnQiLCJ0YXJnZXQiOiJhbGFybSIsIm9wdGlvbnMiOnsibWVzc2FnZUlEIjoiZDdkYWE3ZDQtYWEwNy00MzYyLWI1NTEtNmNjMjFiN2IzMjcwIiwic291bmQiOiJhbGFybSJ9fX0=', () => {
+            add_to_db(old_db, 'commands', 'eyJzdGFydC1sb2NrIjp7ImNvbW1hbmQiOiJzdGFydCIsInRhcmdldCI6ImxvY2siLCJvcHRpb25zIjp7ImNsb3NlX2FwcHMiOmZhbHNlLCJ1bmxvY2tfcGFzcyI6InByZXlyb2NrcyJ9fX0=', () => {
+              add_to_db(old_db, 'geofences', 'eyJnZW9mZW5jZS0xMTEiOnsiaWQiOjExMSwibmFtZSI6IkhvbWUiLCJzdGF0ZSI6Imluc2lkZSJ9fQ=', () => {
+                add_to_db(old_db, 'geofences', 'eyJnZW9mZW5jZS0xMTIiOnsiaWQiOjExMiwibmFtZSI6IldvcmsiLCJzdGF0ZSI6Im91dHNpZGUifX0=', () => {
+                  add_to_db(old_db, 'geofences', 'eyJnZW9mZW5jZS0xMTMiOnsiaWQiOjExMywibmFtZSI6IlUiLCJzdGF0ZSI6Im91dHNpZGUifX0=', () => {
+                    add_to_db(old_db, 'files', 'eyJmaWxlLTExQjYyRTgyRTBDODI3Mzg0MEJFMUE4MTI2OTEwQTU4Ijp7InBhdGgiOiIvVXNlcnMvdXNlci9maWxlLmRvdCIsInNpemUiOjQyLCJ1c2VyIjoidXNlciIsIm5hbWUiOiJmaWxlLmRvdCIsInJlc3VtYWJsZSI6ZmFsc2V9fQ===', done)
+                  });
                 });
               });
             });
@@ -367,8 +369,33 @@ describe('storage', () => {
     })
 
     it('recovers the data and saves it in the new format', (done) => {
-      storage.recover_db(db, () => {
-        done();
+      storage.recover_db(db, (err) => {
+        should.not.exist(err);
+        storage.do('all', { type: 'commands' }, (err, data) => {
+          should.not.exist(err);
+
+          data[0].id.should.be.equal('0a6eda8f-98f8-4d92-8728-fd7c0457b7b5');
+          data[0].target.should.be.equal('alert');
+          data[1].id.should.be.equal('d7daa7d4-aa07-4362-b551-6cc21b7b3270');
+          data[1].target.should.be.equal('alarm');
+          should.exist(data[2].id);
+          data[2].target.should.be.equal('lock');
+
+          storage.do('all', { type: 'geofences' }, (err, data) => {
+            data[0].id.should.be.equal('111');
+            data[0].name.should.be.equal('Home');
+            data[1].id.should.be.equal('112');
+            data[1].name.should.be.equal('Work');
+            data[2].id.should.be.equal('113');
+            data[2].name.should.be.equal('U');
+
+            storage.do('all', { type: 'files' }, (err, data) => {
+              data[0].id.should.be.equal('11B62E82E0C8273840BE1A8126910A58');
+              data[0].name.should.be.equal('file.dot');
+              done();
+            });
+          });
+        });
       })
     });
   });
