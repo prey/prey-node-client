@@ -93,7 +93,7 @@ describe('Lock', () => {
         });
 
         it('calls ' + expected_bin + ' binary', function(done) {
-          lock.start(null, function(err, lock) {
+          lock.start(null,null, function(err, lock) {
             check_binary(expected_bin, done);
           });
         });
@@ -161,7 +161,7 @@ describe('Lock', () => {
       })
 
       it('calls prey-lock binary file', (done) => {
-        lock.start(null, function(err, lock) {
+        lock.start(null,null, function(err, lock) {
           check_python_binary('prey-lock', done);
         });
       })
@@ -175,7 +175,7 @@ describe('Lock', () => {
       })
 
       it('calls prey-lock binary file', (done) => {
-        lock.start(null, function(err, lock) {
+        lock.start(null,null, function(err, lock) {
           check_python_binary('prey-lock', done);
         });
       })
@@ -189,7 +189,7 @@ describe('Lock', () => {
       })
 
       it('calls prey-lock binary file', (done) => {
-        lock.start(null, function(err, lock) {
+        lock.start(null,null, function(err, lock) {
           check_python_binary('prey-lock3', done);
         });
       })
