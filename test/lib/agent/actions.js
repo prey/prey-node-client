@@ -40,7 +40,7 @@ describe('actions', function(){
         actions.start('xxxx-yyyy', 'alert', {message: 'hey!'})
         
         setTimeout(() => {
-          actions.start('9876-5432', 'alarm', {sound: 'alarm'}, (err) => {
+          actions.start('xxxx-zzzz', 'alert', {sound: 'alarm'}, (err) => {
             should.exist(err);
             err.message.should.containEql('Already running');
             
