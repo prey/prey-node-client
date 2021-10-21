@@ -323,7 +323,7 @@ describe('in Windows OS', function() {
     })
 
     it('should wipe through the service', (done) => {
-      wipe.start(opts, (err, em) => {
+      wipe.start("123",opts, (err, em) => {
         em.on('end', (err, out) => {
           spy_fetch_dirs.calledOnce.should.equal(true);
           done();
@@ -338,8 +338,8 @@ describe('in Windows OS', function() {
     })
 
     it('should not wipe through the service', (done) => {
-      wipe.start(opts, (err, em) => {
-        em.on('end', (err, out) => {
+      wipe.start("1234",opts, (err, em) => {
+        em.on('end', (id,err, out) => {
           should.exist(err);
           err.message.should.containEql("Wipe command failed.")
           done();
