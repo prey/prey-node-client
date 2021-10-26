@@ -255,17 +255,6 @@ describe('storage', () => {
         })
       })
 
-
-      it('not return empty', (done) => {
-        storage.do('query', {type: 'commands',column : "id", data: '2bf54e80-20b0-4fcf-9218-5c8e5c328a6d'}, (err, data) => {
-          console.log(err)
-          console.log(data)
-          should.not.exist(err);
-          data.length.should.be.equal(1);
-          done();
-        })
-      })
-
     })
 
   })

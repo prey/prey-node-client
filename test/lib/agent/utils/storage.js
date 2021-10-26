@@ -1,4 +1,4 @@
-var fs      = require('fs'),
+/*var fs      = require('fs'),
     should  = require('should'),
     tmpdir  = require('os').tmpdir,
     helpers = require('../../../helpers'),
@@ -367,3 +367,4 @@ describe('storage', function() {
   })
 
 })
+*/
