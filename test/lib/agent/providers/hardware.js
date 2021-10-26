@@ -1,10 +1,10 @@
 var join        = require('path').join,
+    tmpdir      = require('os').tmpdir,
     helpers     = require('./../../../helpers'),
     sinon       = require('sinon'),
     should      = require('should'),
     lib_path    = helpers.lib_path(),
-    device_keys = require(join(lib_path, 'agent', 'utils', 'keys-storage')),
-    storage     = require(join(lib_path, 'agent', 'utils', 'storage')),
+    storage2    = require(join(lib_path, 'agent', 'utils', 'commands_storage')),
     provider    = helpers.load('providers/hardware');
 
 describe('hardware', function(){
@@ -158,137 +158,157 @@ describe('hardware', function(){
     }
 
     describe('when doesnt exists stored hardware', () => {
-      var storage_stub,
-          stored_stub,
-          spy_del,
+      var spy_del,
           spy_store;
 
-      before(() => {
-        storage_stub = sinon.stub(storage, 'set').callsFake((key, data, cb) => { return cb(null); })
-        spy_store = sinon.spy(device_keys, 'store');
-        spy_del = sinon.spy(device_keys, 'del');
-        stored_stub = sinon.stub(device_keys, 'exist').callsFake((field, cb) => { return cb(null, null); })
+      before((done) => {
+        spy_store = sinon.spy(storage2.storage_fns, 'set');
+        spy_del = sinon.spy(storage2.storage_fns, 'del');
+        storage2.init('keys', tmpdir() + '/hardware.db', done)
       })
 
-      after(() => {
-        storage_stub.restore();
+      after((done) => {
         spy_del.restore();
-        stored_stub.restore();
         spy_store.restore();
+        storage2.erase(tmpdir() + '/hardware.db', done);
       })
 
       it('stores the data', (done) => {
         provider.track_hardware_changes(dummy_data1);
-        spy_store.calledOnce.should.be.true;
-        spy_del.notCalled.should.be.true;
-        done();
+        setTimeout(() => {
+          spy_store.calledOnce.should.be.true;
+          spy_del.notCalled.should.be.true;
+
+          storage2.do('all', {type: 'keys'}, (err, rows) => {
+            should.not.exist(err);
+            rows.length.should.be.equal(1);
+            rows[0].id.should.be.equal("hardware");
+            done();
+          })
+        }, 500)
       })
     })
 
     describe('when exists stored hardware', () => {
-      var storage_stub,
-          stored_stub,
-          spy_del,
+      var spy_del,
           spy_store;
 
       describe('and the data is the same', () => {
 
-        before(() => {
-          storage_stub = sinon.stub(storage, 'set').callsFake((key, data, cb) => { return cb(null); })
-          spy_store = sinon.spy(device_keys, 'store');
-          spy_del = sinon.spy(device_keys, 'del');
-          stored_stub = sinon.stub(device_keys, 'exist').callsFake((field, cb) => {return cb(null, stored_data)})
+        before((done) => {
+          storage2.init('keys', tmpdir() + '/hardware.db', () => {
+            storage2.do('set', {type: 'keys', id: 'hardware', data: {value: dummy_data1}}, () => {
+              spy_store = sinon.spy(storage2.storage_fns, 'set');
+              spy_del = sinon.spy(storage2.storage_fns, 'del');
+              done();
+            })
+          });
         })
 
-        after(() => {
-          storage_stub.restore();
+        after((done) => {
           spy_store.restore();
           spy_del.restore();
-          stored_stub.restore();
+          storage2.erase(tmpdir() + '/hardware.db', done);
         })
 
         it('shouldnt edit the local database', (done) => {
-          provider.track_hardware_changes(stored_data[0]);
-          spy_store.notCalled.should.be.true;
-          spy_del.notCalled.should.be.true;
-          done();
+          storage2.do('all', {type: 'keys'}, (err, rows) => {
+            provider.track_hardware_changes(stored_data[0]);
+            setTimeout(() => {
+              spy_store.callCount.should.be.equal(0);
+              spy_del.callCount.should.be.equal(0);
+              done();
+            }, 500);
+          })
         })
-
       });
 
-
       describe('and the data is different', () => {
-        var storage_stub,
-          stored_stub,
-          spy_del,
-          spy_store;
+        var spy_del,
+            spy_store;
+
+        before((done) => {
+          storage2.init('keys', tmpdir() + '/hardware.db', () => {
+            storage2.do('set', {type: 'keys', id: 'hardware', data: {value: dummy_data1}}, done)
+          })
+        })
+
+        after((done) => {
+          storage2.erase(tmpdir() + '/hardware.db', done);
+        });
 
         describe('when theres a new field', () => {
           before(() => {
-            storage_stub = sinon.stub(storage, 'set').callsFake((key, data, cb) => { return cb(null); })
-            spy_store = sinon.spy(device_keys, 'store');
-            spy_del = sinon.spy(device_keys, 'del');
-            stored_stub = sinon.stub(device_keys, 'exist').callsFake((field, cb) => {return cb(null, stored_data)})
+            spy_store = sinon.spy(storage2.storage_fns, 'set');
+            spy_del = sinon.spy(storage2.storage_fns, 'del');
           })
 
           after(() => {
-            storage_stub.restore();
             spy_store.restore();
             spy_del.restore();
-            stored_stub.restore();
           })
 
           it('replace the stored data', (done) => {
             provider.track_hardware_changes(dummy_data);
-            spy_store.calledOnce.should.be.true;
-            spy_del.calledOnce.should.be.true;
-            done();
+            setTimeout(() => {
+              storage2.do('all', {type: 'keys'}, (err, rows) => {
+                JSON.parse(rows[0].value).network_interfaces_list.length.should.be.equal(3);
+                spy_store.callCount.should.be.equal(1);
+                spy_del.callCount.should.be.equal(1);
+                done();
+              });
+            }, 500)
           })
         })
 
         describe('when a field is missing', () => {
           before(() => {
-            storage_stub = sinon.stub(storage, 'set').callsFake((key, data, cb) => { return cb(null); })
-            spy_store = sinon.spy(device_keys, 'store');
-            spy_del = sinon.spy(device_keys, 'del');
-            stored_stub = sinon.stub(device_keys, 'exist').callsFake((field, cb) => {return cb(null, stored_data)})
+            spy_store = sinon.spy(storage2.storage_fns, 'set');
+            spy_del = sinon.spy(storage2.storage_fns, 'del');
           })
 
           after(() => {
-            storage_stub.restore();
             spy_store.restore();
             spy_del.restore();
-            stored_stub.restore();
           })
 
           it('replace the stored data', (done) => {
             provider.track_hardware_changes(dummy_data2);
-            spy_store.calledOnce.should.be.true;
-            spy_del.calledOnce.should.be.true;
-            done();
+            setTimeout(() => {
+              storage2.do('all', {type: 'keys'}, (err, rows) => {
+                JSON.parse(rows[0].value).network_interfaces_list.length.should.be.equal(1);
+                spy_store.callCount.should.be.equal(1);
+                spy_del.callCount.should.be.equal(1);
+                done();
+              });
+            }, 500)
           })
         })
 
         describe('when a field changed', () => {
           before(() => {
-            storage_stub = sinon.stub(storage, 'set').callsFake((key, data, cb) => { return cb(null); })
-            spy_store = sinon.spy(device_keys, 'store');
-            spy_del = sinon.spy(device_keys, 'del');
-            stored_stub = sinon.stub(device_keys, 'exist').callsFake((field, cb) => {return cb(null, stored_data)})
+            spy_store = sinon.spy(storage2.storage_fns, 'set');
+            spy_del = sinon.spy(storage2.storage_fns, 'del');
           })
 
           after(() => {
-            storage_stub.restore();
             spy_store.restore();
             spy_del.restore();
-            stored_stub.restore();
           })
 
           it('replace the stored data', (done) => {
             provider.track_hardware_changes(dummy_data3);
-            spy_store.calledOnce.should.be.true;
-            spy_del.calledOnce.should.be.true;
-            done();
+            setTimeout(() => {
+              storage2.do('all', {type: 'keys'}, (err, rows) => {
+                var data = JSON.parse(rows[0].value);
+
+                data.network_interfaces_list.length.should.be.equal(2);
+                data.firmware_info.serial_number.should.be.equal('YYYYYYYYYYYY');
+                spy_store.callCount.should.be.equal(1);
+                spy_del.callCount.should.be.equal(1);
+                done();
+              });
+            }, 500)
           })
         })
 

@@ -33,7 +33,7 @@ describe('triggers', () => {
     push_stub = sinon.stub(push, 'response').callsFake(() => { return; })
     post_stub = sinon.stub(request, 'post').callsFake(() => { return; })
     actions_start_stub = sinon.stub(actions, 'start').callsFake(() => { return true; })
-    storage2.init('triggers', tmpdir() + '/test.db', done)
+    storage2.init('triggers', tmpdir() + '/test.db', done);
   })
 
   after((done) => {
