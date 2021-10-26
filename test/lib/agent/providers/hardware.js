@@ -197,7 +197,7 @@ describe('hardware', function(){
 
         before((done) => {
           storage2.init('keys', tmpdir() + '/hardware.db', () => {
-            storage2.do('set', {type: 'keys', id: 'hardware', data: {value: dummy_data1}}, () => {
+            storage2.do('set', {type: 'keys', id: 'hardware', data: {value: JSON.stringify(dummy_data1)}}, () => {
               spy_store = sinon.spy(storage2.storage_fns, 'set');
               spy_del = sinon.spy(storage2.storage_fns, 'del');
               done();
@@ -229,7 +229,7 @@ describe('hardware', function(){
 
         before((done) => {
           storage2.init('keys', tmpdir() + '/hardware.db', () => {
-            storage2.do('set', {type: 'keys', id: 'hardware', data: {value: dummy_data1}}, done)
+            storage2.do('set', {type: 'keys', id: 'hardware', data: {value: JSON.stringify(dummy_data1)}}, done)
           })
         })
 
