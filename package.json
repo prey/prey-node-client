@@ -37,7 +37,6 @@
     "firewall": "0.0.5",
     "getset": "git://github.com/javo/getset.git#0e1a82e851591f34af6c5a7491ce223eefa58a95",
     "graceful-fs": "4.1.15",
-    "https-proxy-agent": "^5.0.0",
     "iconv-lite": "0.6.2",
     "linus": "git://github.com/javo/linus.git#ebf4e2ba2e84364acb190c33a548591b9bfc666c",
     "memorize": "0.0.1",
@@ -64,7 +63,6 @@
     "wink": "0.0.1",
     "winssh": "",
     "wmic": "0.0.7",
-    "ws": "^7.5.2",
     "xml2js": "0.4.19"
   },
   "devDependencies": {
