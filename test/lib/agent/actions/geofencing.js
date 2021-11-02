@@ -212,7 +212,6 @@ describe('geofencing', function() {
         describe('and theres nothing being watched', function() {
           before(function() {
             push_stub = sinon.stub(push, 'response').callsFake((data, opts, cb) => {
-              console.log(data)
               push_data = data
               return true;
             });
@@ -262,7 +261,6 @@ describe('geofencing', function() {
         describe('and theres new fences compared with the stored', function() {
           before(function() {
             push_stub = sinon.stub(push, 'response').callsFake((data, opts, cb) => {
-              console.log(data)
               push_data = data
               return true;
             });
@@ -318,7 +316,6 @@ describe('geofencing', function() {
         describe('and theres less fences compared with the stored and one new', function() {
           before(function() {
             push_stub = sinon.stub(push, 'response').callsFake((data, opts, cb) => {
-              console.log(data)
               push_data = data
               return true;
             });
@@ -370,7 +367,6 @@ describe('geofencing', function() {
         describe('and theres no new fences comparing with the stored', function() {
           before(function() {
             push_stub = sinon.stub(push, 'response').callsFake((data, opts, cb) => {
-              console.log(data)
               push_data = data
               return true;
             });
@@ -421,7 +417,6 @@ describe('geofencing', function() {
         describe('and theres no fences now', function() {
           before(function() {
             push_stub = sinon.stub(push, 'response').callsFake((data, opts, cb) => {
-              console.log(data)
               push_data = data
               return true;
             });

@@ -525,7 +525,6 @@ describe('config cli arguments', function() {
           var attrs = ['--name', 'User', '--email', 'some@one.com', '--password', 'buenaonda', '--terms', 'yes', '--age', 'yes'];
 
           helpers.run_cli(['config', 'account', 'signup'].concat(attrs), function(code, out, err) {
-            console.log(err);
             code.should.eql(1);
             out.should.containEql('panel.signup called with opts');
             out.should.containEql('{"name":"User","email":"some@one.com"');

@@ -15,7 +15,6 @@ var helpers          = require('./../../../helpers'),
     commands         = require(join(lib_path, 'agent', 'commands')),
     actions          = require(join(lib_path, 'agent', 'actions')),
     triggers_storage = require(join(triggers_path, 'storage')),
-    // storage          = require(join(lib_path, 'agent', 'utils', 'storage')),
     storage2         = require(join(lib_path, 'agent', 'utils', 'commands_storage')),
     lp               = require(join(lib_path, 'agent', 'plugins', 'control-panel', 'long-polling')),
     dummy            = require('./fixtures/triggers_responses');
@@ -180,11 +179,9 @@ describe('triggers', () => {
             // device date
             // date = new Date(),
             // year = date.getFullYear() + 1,   // Always next year
-            // console.log("YEAR!!", year)
             // timezone_offset = new Date().getTimezoneOffset() * 60 * 1000,
             // new_date = new Date(Date.UTC(year, 6, 25, 15, 00, 05)).getTime() + timezone_offset;
             new_date = 1918330449000;
-            console.log("NEW DATE!", new_date)
             setTimeout(() => { triggers.start({}, done) }, 500)
             clock = sinon.useFakeTimers(new_date);
           })
@@ -197,7 +194,6 @@ describe('triggers', () => {
           })
 
           it('does not set up the trigger in the past', (done) => {
-            console.log("TEST1!!!")
             clock.tick(300);
             spy_perform.notCalled.should.be.equal(true);
             spy_logger.calledOnce.should.be.equal(true);
@@ -206,9 +202,7 @@ describe('triggers', () => {
           })
 
           it('executes the action at the right time', (done) => {
-            console.log("TEST2!!!")
             clock.tick(1001);
-            console.log("NEW DATE!", new Date().getTime())
             spy_perform.calledOnce.should.be.equal(true);
             spy_perform.getCall(0).args[0].target.should.be.equal('alert');
             spy_perform.getCall(0).args[0].options.trigger_id.should.exists;

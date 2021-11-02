@@ -18,8 +18,6 @@ describe('as_logged_user()', function(){
       logged_user_stub,
       current_user = process.env.USER;
 
-  // console.log('Current user: ' + current_user);
-
   describe('run', function() {
 
     function run(cmd, args, cb) {
