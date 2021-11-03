@@ -177,7 +177,6 @@ describe('triggers', () => {
             spy_sync = sinon.spy(triggers, 'sync');
             spy_perform = sinon.spy(commands, 'perform');
             new_date = 1918330449000;
-            console.log("NEW DATE!", new_date)
             setTimeout(() => { triggers.start({}, done) }, 500)
             clock = sinon.useFakeTimers(new_date);
           })

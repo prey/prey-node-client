@@ -212,13 +212,8 @@ describe('storage', () => {
 
     it('modify zone state when update', (done) => {
       storage.do('update', { type: 'geofences', id: 1234, columns: 'state', values: 'state' }, (err) => {
-      // storage.update('geofences', 1234, 'state', 'state', () => {
         storage.do('query', { type: 'geofences', column: 'id', data: 1234}, (err, data) => {
-        // storage.query('geofences', 'id', 1234, (err, out) => {
           storage.do('all', {type: 'geofences'}, (err, zonas) => {
-          // storage.all('geofences', (err, zonas) => {
-            console.log("ALL ZONAS", zonas)
-            console.log("QUERY", err, zonas)
             done();
           });
         })
@@ -401,7 +396,6 @@ describe('storage', () => {
 
     it('queue', (done) => {
       storage.do('set', { type: 'commands', id: id3, data: data3 }, () => {console.log("TERMINÓ EL SET1")});
-      // console.log("OEOEOE")
       storage.do('set', { type: 'commands', id: id4, data: data3}, () => {console.log("TERMINÓ EL SET2")});
 
       setTimeout(() => {
