@@ -78,6 +78,7 @@ describe('diskencryption', () => {
         it('returns error', (done) => {
           diskencryption.start(id,opts, (err, em) => {
             em.on('end', (id,err, out) => {
+              console.log("error;",err)
               should.exist(err);
               err.message.should.containEql('Admin service not available');
               done();

@@ -40,6 +40,7 @@ exports.put = function(file, deps, vars, cb) {
       if (err) return cb(err);
 
       var modified = replace_deps(data.toString(), deps);
+      // console.log(modified);
 
       fs.rename(file, file + '.original', function(err) {
         if (err) return cb(err);

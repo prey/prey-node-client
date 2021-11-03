@@ -303,6 +303,7 @@ describe('storage', () => {
 
   describe('store keys', () => {
     before(function(done) {
+      console.log("TPM DIR!!", tmpdir())
       storage.init('geofences', tmpdir() + '/bar.db', done);
     })
     it('store the key', (done) => {
