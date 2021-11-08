@@ -350,6 +350,7 @@ describe('storage', () => {
     
     after((done) => {
       storage.erase(tmpdir() + '/old_commands.db', done)
+      // done();
     })
 
     it('recovers the data and saves it in the new format', (done) => {
@@ -377,11 +378,20 @@ describe('storage', () => {
               data[0].id.should.be.equal('11B62E82E0C8273840BE1A8126910A58');
               data[0].name.should.be.equal('file.dot');
               done();
-            });
+            })
           });
         });
       })
     });
+
+    it('does nothing when the db has the new format', (done) => {
+      storage.init('keys', tmpdir()+ '/old_commands.db', () => {
+        storage.recover_db(db, (err) => {
+          should.not.exist(err);
+          done();
+        });
+      });
+    })
   });
 
   describe('otros tests', () => {
