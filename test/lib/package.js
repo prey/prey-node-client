@@ -104,7 +104,6 @@ describe('package.get_latest', function() {
   })
 
   function get_latest(current_version, dest, cb) {
-    console.log("HOLA!")
     package.get_latest('stable', current_version, dest, cb);
   }
 
@@ -160,7 +159,6 @@ describe('package.get_latest', function() {
     var new_version = '1.5.0', old_ver = '1.2.3';
 
     before(function (done) {
-      console.log("BEFORE")
       common.version = old_ver;
       stub = sinon.stub(package, 'new_version_available').callsFake((branch, current_version, cb) => {
         cb(null, new_version);
@@ -182,9 +180,7 @@ describe('package.get_latest', function() {
         return cb();
       });
 
-      // done();
       storage.init('versions', tmp() + '/versions.db', () => {
-        console.log("DONE INIT!!")
         done()
       });
     });
@@ -196,30 +192,20 @@ describe('package.get_latest', function() {
       event_data_stub.restore();
       post_spy.restore();
       post_event_stub.restore();
-      // storage.close('versions', () => {
-      storage.erase(tmp() + '/versions.db', done);
-      //   done();
-      // });
+      storage.erase(tmp() + '/versions.db', done)
     });
 
     it('requests the package and create version registry', function (done) {
-      console.log("DENTRO IT!!")
       var file_name = get_file_name(new_version),
           url       = 'https://downloads.preyproject.com/prey-client-releases/node-client/' + new_version + '/' + file_name,
           outfile   = join(tmpdir, file_name);
 
-      console.log("ANTES GETTER!!")
       var getter    = sinon.stub(needle, 'get').callsFake((requested_url, opts, cb) => {
-        console.log("DENTRO GETTER!!")
         requested_url.should.equal(url);
         opts.output.should.equal(outfile);
         getter.restore();
-        console.log("ALLL")
         storage.do('all', {type: 'versions'}, function(err, out) {
-          console.log("ERR; OUT", err, out)
           should.not.exist(err);
-
-          console.log(out)
           out.length.should.be.equal(1);
           out[0].id.should.be.equal('1.5.0');
           out[0].from.should.be.equal('1.2.3');
@@ -227,7 +213,6 @@ describe('package.get_latest', function() {
           out[0].attempts.should.be.equal(1);
           out[0].notified.should.be.equal(0);
           post_event_stub.notCalled.should.equal(true);
-          console.log("DONE!")
           done();
         })
       });
@@ -254,16 +239,15 @@ describe('package.get_latest', function() {
       it('returns an error', function(done) {
 
         get_latest('1.2.3', tmpdir, function(err) {
-          storage.do('all', {type: 'versions'}, function(err, out) {
-            console.log("CALLED COUNT!", post_event_stub.callCount)
+          storage.do('all', {type: 'versions'}, function(err1, out) {
             post_event_stub.calledOnce.should.equal(true)
-            should.not.exist(err);
+            should.not.exist(err1);
             out[0].attempts.should.be.equal(2);
             out[0].notified.should.be.equal(0);
+            err.should.be.a.Error;
+            err.message.should.match('Unable to download because I dont feel like it.');
+            done();
           })
-          err.should.be.a.Error;
-          err.message.should.match('Unable to download because I dont feel like it.');
-          done()
         });
 
       })
@@ -276,8 +260,9 @@ describe('package.get_latest', function() {
           storage.do('all', {type: 'versions'}, function(err, out) {
             post_event_stub.calledTwice.should.equal(true);
             should.not.exist(err);
-            out['version-1.5.0'].attempts.should.be.equal(3);
-            out['version-1.5.0'].notified.should.be.equal(false);
+            
+            out[0].attempts.should.be.equal(3);
+            out[0].notified.should.be.equal(0);
           })
           spy.called.should.be.false;
           spy.restore();
