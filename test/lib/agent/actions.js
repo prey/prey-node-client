@@ -28,17 +28,19 @@ describe('actions', function(){
 
     it('runs the action and then stop it', (done) => {
       actions.start('1234-5678', 'alarm', {sound: 'modem'});
-      hooks_spy.calledOnce.should.be.equal(true);
-      hooks_spy.getCall(0).args[0].should.be.equal('action');
-      hooks_spy.getCall(0).args[1].should.be.equal('started');
-      hooks_spy.getCall(0).args[2].should.be.equal('1234-5678');
-      hooks_spy.getCall(0).args[3].should.be.equal('alarm');
-      
       setTimeout(() => {
-        actions.stop('1234-5678');
-        alarm_stop_spy.calledOnce.should.be.equal(true);
-        done();
-      }, 1000)
+        hooks_spy.calledOnce.should.be.equal(true);
+        hooks_spy.getCall(0).args[0].should.be.equal('action');
+        hooks_spy.getCall(0).args[1].should.be.equal('started');
+        hooks_spy.getCall(0).args[2].should.be.equal('1234-5678');
+        hooks_spy.getCall(0).args[3].should.be.equal('alarm');
+
+        setTimeout(() => {
+          actions.stop('1234-5678');
+          alarm_stop_spy.calledOnce.should.be.equal(true);
+          done();
+        }, 1000)
+      }, 500)
     })
   });
 
@@ -61,22 +63,24 @@ describe('actions', function(){
 
     it('throws an error', (done) => {
       actions.start('9876-5432', 'alarm', {sound: 'modem'});
-      hooks_spy2.calledOnce.should.be.equal(true);
-      hooks_spy2.getCall(0).args[0].should.be.equal('action');
-      hooks_spy2.getCall(0).args[1].should.be.equal('started');
-      hooks_spy2.getCall(0).args[2].should.be.equal('9876-5432');
-      hooks_spy2.getCall(0).args[3].should.be.equal('alarm');
-
       setTimeout(() => {
-        actions.start('9876-5432', 'alarm', {sound: 'modem'}, (err) => {
-          should.exist(err);
-          err.message.should.containEql('Already running');
+        hooks_spy2.calledOnce.should.be.equal(true);
+        hooks_spy2.getCall(0).args[0].should.be.equal('action');
+        hooks_spy2.getCall(0).args[1].should.be.equal('started');
+        hooks_spy2.getCall(0).args[2].should.be.equal('9876-5432');
+        hooks_spy2.getCall(0).args[3].should.be.equal('alarm');
 
-          actions.stop('9876-5432');
-          alarm_stop_spy.calledOnce.should.be.equal(true);
-          done();
-        })
-      }, 1000)
+        setTimeout(() => {
+          actions.start('9876-5432', 'alarm', {sound: 'modem'}, (err) => {
+            should.exist(err);
+            err.message.should.containEql('Already running');
+
+            actions.stop('9876-5432');
+            alarm_stop_spy.calledOnce.should.be.equal(true);
+            done();
+          })
+        }, 1000)
+      }, 500)
     })
   })
 
@@ -107,31 +111,33 @@ describe('actions', function(){
     it('throws an error', (done) => {
       actions.start('1234-5678', 'alarm', {sound: 'modem'})
       actions.start('xxxx-yyyy', 'alert', {message: 'hey!'})
-      hooks_spy.calledTwice.should.be.equal(true);
-      hooks_spy.getCall(0).args[0].should.be.equal('action');
-      hooks_spy.getCall(0).args[1].should.be.equal('started');
-      hooks_spy.getCall(0).args[2].should.be.equal('1234-5678');
-      hooks_spy.getCall(0).args[3].should.be.equal('alarm');
-      hooks_spy.getCall(1).args[0].should.be.equal('action');
-      hooks_spy.getCall(1).args[1].should.be.equal('started');
-      hooks_spy.getCall(1).args[2].should.be.equal('xxxx-yyyy');
-      hooks_spy.getCall(1).args[3].should.be.equal('alert');
-
       setTimeout(() => {
-        actions.start('xxxx-zzzz', 'alert', {sound: 'alarm'}, (err) => {
-          should.exist(err);
-          err.message.should.containEql('Already running');
+        hooks_spy.calledTwice.should.be.equal(true);
+        hooks_spy.getCall(0).args[0].should.be.equal('action');
+        hooks_spy.getCall(0).args[1].should.be.equal('started');
+        hooks_spy.getCall(0).args[2].should.be.equal('1234-5678');
+        hooks_spy.getCall(0).args[3].should.be.equal('alarm');
+        hooks_spy.getCall(1).args[0].should.be.equal('action');
+        hooks_spy.getCall(1).args[1].should.be.equal('started');
+        hooks_spy.getCall(1).args[2].should.be.equal('xxxx-yyyy');
+        hooks_spy.getCall(1).args[3].should.be.equal('alert');
 
-          actions.stop('1234-5678');
-          alarm_stop_spy.calledOnce.should.be.equal(true);
+        setTimeout(() => {
+          actions.start('xxxx-zzzz', 'alert', {sound: 'alarm'}, (err) => {
+            should.exist(err);
+            err.message.should.containEql('Already running');
 
-          setTimeout(() => {
-            actions.stop('xxxx-yyyy');
-            alert_stop_spy.calledOnce.should.be.equal(true);
-            done();
-          }, 1000)
-        })
-      }, 1000)
+            actions.stop('1234-5678');
+            alarm_stop_spy.calledOnce.should.be.equal(true);
+
+            setTimeout(() => {
+              actions.stop('xxxx-yyyy');
+              alert_stop_spy.calledOnce.should.be.equal(true);
+              done();
+            }, 1000)
+          })
+        }, 1000)
+      }, 500)
 
       // it('stops current action and run the new one', (done) => {
       //   this.timeout(700);
