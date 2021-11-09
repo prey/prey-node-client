@@ -12,6 +12,9 @@ var helpers     = require('./../../../helpers'),
     keys        = require(join(api_path, 'keys')),
     storage2     = require(join(lib_path, 'agent', 'utils', 'commands_storage'));
 
+const { v4: uuidv4 } = require('uuid');
+var id = uuidv4();
+
 var fences = [
     { id: 1,
       name: 'oeoe',
@@ -162,7 +165,7 @@ describe('geofencing', function() {
       })
 
       it('does no call sync', function(done) {
-        geofencing.start({}, function() {
+        geofencing.start(id, {}, function() {
           spy_sync.notCalled.should.be.equal(true);
           done();
         })
@@ -194,7 +197,7 @@ describe('geofencing', function() {
         })
 
         it('call sync and deletes local fences', function(done) {
-          geofencing.start({}, function() {
+          geofencing.start(id, {}, function() {
             storage2.do('all', {type: 'geofences'}, (err, rows) => {
               rows.length.should.be.equal(0);
               geofencing.watching.length.should.be.equal(0);
@@ -235,7 +238,7 @@ describe('geofencing', function() {
           })
 
           it('call sync and stores all the zones', function(done) {
-            geofencing.start({}, function() {
+            geofencing.start(id, {}, function() {
               geofencing.watching[0].should.be.equal(1);
               geofencing.watching[1].should.be.equal(2);
               geofencing.watching[2].should.be.equal(3);
@@ -287,7 +290,7 @@ describe('geofencing', function() {
           it('call sync and stores the new zones', function(done) {
             storage2.do('all', {type: 'geofences'}, (err, rows) => {
               rows.length.should.be.equal(3);  // from last test
-              geofencing.start({}, function() {
+              geofencing.start(id, {}, function() {
                 spy_sync.calledOnce.should.be.equal(true);
                 geofencing.watching[0].should.be.equal(1);
                 geofencing.watching[1].should.be.equal(2);
@@ -343,7 +346,7 @@ describe('geofencing', function() {
           it('call sync, deletes the old zones and stores the new ones', function(done) {
             storage2.do('all', {type: 'geofences'}, (err, rows) => {
               rows.length.should.be.equal(5);  // from last test
-              geofencing.start({}, function() {
+              geofencing.start(id, {}, function() {
                 spy_sync.calledOnce.should.be.equal(true);
                 geofencing.watching[0].should.be.equal(1);
                 geofencing.watching[1].should.be.equal(5);
@@ -395,7 +398,7 @@ describe('geofencing', function() {
           it('call sync and stores the new zones', function(done) {
             storage2.do('all', {type: 'geofences'}, (err, rows) => {
               rows.length.should.be.equal(3);  // from last test
-              geofencing.start({}, function() {
+              geofencing.start(id, {}, function() {
                 spy_sync.calledOnce.should.be.equal(true);
                 geofencing.watching[0].should.be.equal(789);
                 geofencing.watching[1].should.be.equal(850);
@@ -446,7 +449,7 @@ describe('geofencing', function() {
           it('call sync and stores the new zones', function(done) {
             storage2.do('all', {type: 'geofences'}, (err, rows) => {
               rows.length.should.be.equal(2);  // from last test
-              geofencing.start({}, function() {
+              geofencing.start(id, {}, function() {
                 spy_sync.calledOnce.should.be.equal(true);
                 geofencing.watching.length.should.be.equal(0);
 

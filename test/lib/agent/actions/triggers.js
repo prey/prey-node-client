@@ -14,10 +14,12 @@ var helpers          = require('./../../../helpers'),
     keys             = require(join(api_path, 'keys')),
     commands         = require(join(lib_path, 'agent', 'commands')),
     actions          = require(join(lib_path, 'agent', 'actions')),
-    triggers_storage = require(join(triggers_path, 'storage')),
     storage2         = require(join(lib_path, 'agent', 'utils', 'commands_storage')),
     lp               = require(join(lib_path, 'agent', 'plugins', 'control-panel', 'long-polling')),
     dummy            = require('./fixtures/triggers_responses');
+
+const { v4: uuidv4 } = require('uuid');
+var id = uuidv4();
 
 describe('triggers', () => {
   var keys_present_stub,
@@ -67,8 +69,8 @@ describe('triggers', () => {
       describe('and triggers tables does not exists', () => {
         before((done) => {
           spy_sync = sinon.spy(triggers, 'sync');
-          spy_get_local = sinon.spy(triggers_storage, 'get_triggers');
-          triggers.start({}, done)
+          spy_get_local = sinon.spy(storage2.storage_fns, 'all');
+          triggers.start(id, {}, done)
         })
   
         after(() => {
@@ -90,9 +92,9 @@ describe('triggers', () => {
           
           before((done) => {
             spy_sync = sinon.spy(triggers, 'sync');
-            spy_get_local = sinon.spy(triggers_storage, 'get_triggers');
-            spy_clear_local = sinon.spy(triggers_storage, 'clear_triggers');
-            setTimeout(() => { triggers.start({}, done) }, 500)
+            spy_get_local = sinon.spy(storage2.storage_fns, 'all');
+            spy_clear_local = sinon.spy(storage2.storage_fns, 'clear');
+            setTimeout(() => { triggers.start(id, {}, done) }, 500)
           })
 
           after(() => {
@@ -112,10 +114,10 @@ describe('triggers', () => {
         describe('and local database has triggers data', () => {
           before((done) => {
             spy_activate = sinon.spy(triggers, 'activate');
-            triggers_storage.store(dummy.exact_triggers[0], () => {
-              triggers_storage.store(dummy.repeat_triggers[0], () => {
+            storage2.do('set', {type: 'triggers', id: dummy.repeat_triggers[0].id, data: dummy.exact_triggers[0]}, (err) => {
+              storage2.do('set', {type: 'triggers', id: dummy.repeat_triggers[0].id, data: dummy.repeat_triggers[0]}, (err) => {
                 setTimeout(() => {
-                  triggers.start({}, done);
+                  triggers.start(id, {}, done);
                 }, 2000)
               });
             })
@@ -150,8 +152,8 @@ describe('triggers', () => {
       describe('and the it has 0 triggers', () => {
         before((done) => {
           get_stub = sinon.stub(request, 'get').callsFake((uri, opts, cb) => { return cb(null, {body: []}); })
-          triggers_storage.store(dummy.exact_triggers[0], () => {
-            triggers.start({}, done);
+          storage2.do('set', {type: 'triggers', id: dummy.exact_triggers[0].id, data: dummy.exact_triggers[0]}, (err) => {
+            triggers.start(id, {}, done);
           });
         })
 
@@ -177,7 +179,7 @@ describe('triggers', () => {
             spy_sync = sinon.spy(triggers, 'sync');
             spy_perform = sinon.spy(commands, 'perform');
             new_date = 1918330449000;
-            setTimeout(() => { triggers.start({}, done) }, 500)
+            setTimeout(() => { triggers.start(id, {}, done) }, 500)
             clock = sinon.useFakeTimers(new_date);
           })
 
@@ -226,7 +228,7 @@ describe('triggers', () => {
             spy_sync = sinon.spy(triggers, 'sync');
             spy_perform = sinon.spy(commands, 'perform');
             test_time = 1560795900000;
-            setTimeout(() => { triggers.start({}, done) }, 500)
+            setTimeout(() => { triggers.start(id, {}, done) }, 500)
             clock = sinon.useFakeTimers(test_time);
           })
 
@@ -269,7 +271,7 @@ describe('triggers', () => {
             spy_sync = sinon.spy(triggers, 'sync');
             spy_perform = sinon.spy(commands, 'perform');
             new_date = 1561381200000;
-            setTimeout(() => { triggers.start({}, done) }, 500)
+            setTimeout(() => { triggers.start(id, {}, done) }, 500)
             clock = sinon.useFakeTimers(new_date);
             last_stub = sinon.stub(lp, 'last_connection').callsFake(() => {
               return 1461381200;  // unix time in seconds
@@ -380,7 +382,7 @@ describe('triggers', () => {
             // new_date = 1574261705000;
             new_date =  1576853705000;
                         // 1576853705;
-            setTimeout(() => { triggers.start({}, done) }, 500)
+            setTimeout(() => { triggers.start(id, {}, done) }, 500)
             clock = sinon.useFakeTimers(new_date);
           })
 
@@ -405,7 +407,7 @@ describe('triggers', () => {
 
           // it('does not executes again', (done) => {
           //   clock.tick(2000);
-          //   triggers.start({}, () => {
+          //   triggers.start(id, {}, () => {
           //     clock.tick(500);
           //     spy_perform.notCalled.should.be.equal(true);
           //     done();
