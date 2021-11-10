@@ -338,7 +338,9 @@ describe('storage', () => {
               add_to_db(old_db, 'geofences', 'eyJnZW9mZW5jZS0xMTEiOnsiaWQiOjExMSwibmFtZSI6IkhvbWUiLCJzdGF0ZSI6Imluc2lkZSJ9fQ=', () => {
                 add_to_db(old_db, 'geofences', 'eyJnZW9mZW5jZS0xMTIiOnsiaWQiOjExMiwibmFtZSI6IldvcmsiLCJzdGF0ZSI6Im91dHNpZGUifX0=', () => {
                   add_to_db(old_db, 'geofences', 'eyJnZW9mZW5jZS0xMTMiOnsiaWQiOjExMywibmFtZSI6IlUiLCJzdGF0ZSI6Im91dHNpZGUifX0=', () => {
-                    add_to_db(old_db, 'files', 'eyJmaWxlLTExQjYyRTgyRTBDODI3Mzg0MEJFMUE4MTI2OTEwQTU4Ijp7InBhdGgiOiIvVXNlcnMvdXNlci9maWxlLmRvdCIsInNpemUiOjQyLCJ1c2VyIjoidXNlciIsIm5hbWUiOiJmaWxlLmRvdCIsInJlc3VtYWJsZSI6ZmFsc2V9fQ===', done)
+                    add_to_db(old_db, 'keys', 'eyJob3N0bmFtZS1rZXkiOnsidmFsdWUiOiJQcmV5In19', () => {
+                      add_to_db(old_db, 'files', 'eyJmaWxlLTExQjYyRTgyRTBDODI3Mzg0MEJFMUE4MTI2OTEwQTU4Ijp7InBhdGgiOiIvVXNlcnMvdXNlci9maWxlLmRvdCIsInNpemUiOjQyLCJ1c2VyIjoidXNlciIsIm5hbWUiOiJmaWxlLmRvdCIsInJlc3VtYWJsZSI6ZmFsc2V9fQ===', done)
+                    });
                   });
                 });
               });
@@ -350,7 +352,6 @@ describe('storage', () => {
     
     after((done) => {
       storage.erase(tmpdir() + '/old_commands.db', done)
-      // done();
     })
 
     it('recovers the data and saves it in the new format', (done) => {
