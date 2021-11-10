@@ -14,7 +14,7 @@ var helpers          = require('./../../../helpers'),
     keys             = require(join(api_path, 'keys')),
     commands         = require(join(lib_path, 'agent', 'commands')),
     actions          = require(join(lib_path, 'agent', 'actions')),
-    storage2         = require(join(lib_path, 'agent', 'utils', 'commands_storage')),
+    storage          = require(join(lib_path, 'agent', 'utils', 'storage')),
     lp               = require(join(lib_path, 'agent', 'plugins', 'control-panel', 'long-polling')),
     dummy            = require('./fixtures/triggers_responses');
 
@@ -34,7 +34,7 @@ describe('triggers', () => {
     push_stub = sinon.stub(push, 'response').callsFake(() => { return; })
     post_stub = sinon.stub(request, 'post').callsFake(() => { return; })
     actions_start_stub = sinon.stub(actions, 'start').callsFake(() => { return true; })
-    storage2.init('triggers', tmpdir() + '/test.db', done);
+    storage.init('triggers', tmpdir() + '/test.db', done);
   })
 
   after((done) => {
@@ -43,8 +43,8 @@ describe('triggers', () => {
     post_stub.restore();
     push_stub.restore();
     actions_start_stub.restore();
-    storage2.do('clear', {type: 'triggers'}, () => {
-      storage2.erase(tmpdir() + '/test.db', done);
+    storage.do('clear', {type: 'triggers'}, () => {
+      storage.erase(tmpdir() + '/test.db', done);
     });
   })
 
@@ -69,7 +69,7 @@ describe('triggers', () => {
       describe('and triggers tables does not exists', () => {
         before((done) => {
           spy_sync = sinon.spy(triggers, 'sync');
-          spy_get_local = sinon.spy(storage2.storage_fns, 'all');
+          spy_get_local = sinon.spy(storage.storage_fns, 'all');
           triggers.start(id, {}, done)
         })
   
@@ -92,8 +92,8 @@ describe('triggers', () => {
           
           before((done) => {
             spy_sync = sinon.spy(triggers, 'sync');
-            spy_get_local = sinon.spy(storage2.storage_fns, 'all');
-            spy_clear_local = sinon.spy(storage2.storage_fns, 'clear');
+            spy_get_local = sinon.spy(storage.storage_fns, 'all');
+            spy_clear_local = sinon.spy(storage.storage_fns, 'clear');
             setTimeout(() => { triggers.start(id, {}, done) }, 500)
           })
 
@@ -114,8 +114,8 @@ describe('triggers', () => {
         describe('and local database has triggers data', () => {
           before((done) => {
             spy_activate = sinon.spy(triggers, 'activate');
-            storage2.do('set', {type: 'triggers', id: dummy.repeat_triggers[0].id, data: dummy.exact_triggers[0]}, (err) => {
-              storage2.do('set', {type: 'triggers', id: dummy.repeat_triggers[0].id, data: dummy.repeat_triggers[0]}, (err) => {
+            storage.do('set', {type: 'triggers', id: dummy.repeat_triggers[0].id, data: dummy.exact_triggers[0]}, (err) => {
+              storage.do('set', {type: 'triggers', id: dummy.repeat_triggers[0].id, data: dummy.repeat_triggers[0]}, (err) => {
                 setTimeout(() => {
                   triggers.start(id, {}, done);
                 }, 2000)
@@ -152,7 +152,7 @@ describe('triggers', () => {
       describe('and the it has 0 triggers', () => {
         before((done) => {
           get_stub = sinon.stub(request, 'get').callsFake((uri, opts, cb) => { return cb(null, {body: []}); })
-          storage2.do('set', {type: 'triggers', id: dummy.exact_triggers[0].id, data: dummy.exact_triggers[0]}, (err) => {
+          storage.do('set', {type: 'triggers', id: dummy.exact_triggers[0].id, data: dummy.exact_triggers[0]}, (err) => {
             triggers.start(id, {}, done);
           });
         })
@@ -163,7 +163,7 @@ describe('triggers', () => {
 
         it('call sync and deletes and cancel local triggers', (done) => {
           spy_clear_local.calledOnce.should.be.true;
-          storage2.do('all', {type: 'triggers'}, (err, obj) => {
+          storage.do('all', {type: 'triggers'}, (err, obj) => {
             Object.keys(obj).length.should.be.equal(0)
             done();
           })

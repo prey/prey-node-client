@@ -10,7 +10,7 @@ var helpers     = require('./../../../helpers'),
     request     = require(join(api_path, 'request')),
     push        = require(join(api_path, 'push')),
     keys        = require(join(api_path, 'keys')),
-    storage2     = require(join(lib_path, 'agent', 'utils', 'commands_storage'));
+    storage     = require(join(lib_path, 'agent', 'utils', 'storage'));
 
 const { v4: uuidv4 } = require('uuid');
 var id = uuidv4();
@@ -175,11 +175,11 @@ describe('geofencing', function() {
     describe('when the fences obtained are valid', function() {
 
       before((done) => {
-        storage2.init('keys', tmpdir() + '/geofences.db', done);
+        storage.init('keys', tmpdir() + '/geofences.db', done);
       })
 
       after((done) => {
-        storage2.erase(tmpdir() + '/geofences.db', done);
+        storage.erase(tmpdir() + '/geofences.db', done);
       })
 
       describe('and theres zero fences', function() {
@@ -198,7 +198,7 @@ describe('geofencing', function() {
 
         it('call sync and deletes local fences', function(done) {
           geofencing.start(id, {}, function() {
-            storage2.do('all', {type: 'geofences'}, (err, rows) => {
+            storage.do('all', {type: 'geofences'}, (err, rows) => {
               rows.length.should.be.equal(0);
               geofencing.watching.length.should.be.equal(0);
               spy_sync.calledOnce.should.be.equal(true);
@@ -221,8 +221,8 @@ describe('geofencing', function() {
             });
 
             spy_sync = sinon.spy(geofencing, 'sync');
-            spy_store = sinon.spy(storage2.storage_fns, 'set');
-            spy_del = sinon.spy(storage2.storage_fns, 'del');
+            spy_store = sinon.spy(storage.storage_fns, 'set');
+            spy_del = sinon.spy(storage.storage_fns, 'del');
 
             get_stub = sinon.stub(request, 'get').callsFake((uri, opts, cb) => {
               return cb(null, {body: fences});
@@ -244,7 +244,7 @@ describe('geofencing', function() {
               geofencing.watching[2].should.be.equal(3);
               spy_sync.calledOnce.should.be.equal(true);
 
-              storage2.do('all', {type: 'geofences'}, (err, rows) => {
+              storage.do('all', {type: 'geofences'}, (err, rows) => {
                 should.not.exist(err);
                 rows.length.should.be.equal(3);
                 rows[0].name.should.be.equal('oeoe');
@@ -271,8 +271,8 @@ describe('geofencing', function() {
             });
 
             spy_sync = sinon.spy(geofencing, 'sync');
-            spy_store = sinon.spy(storage2.storage_fns, 'set');
-            spy_del = sinon.spy(storage2.storage_fns, 'del');
+            spy_store = sinon.spy(storage.storage_fns, 'set');
+            spy_del = sinon.spy(storage.storage_fns, 'del');
 
             get_stub = sinon.stub(request, 'get').callsFake((uri, opts, cb) => {
               return cb(null, {body: fences2});
@@ -288,7 +288,7 @@ describe('geofencing', function() {
           })
 
           it('call sync and stores the new zones', function(done) {
-            storage2.do('all', {type: 'geofences'}, (err, rows) => {
+            storage.do('all', {type: 'geofences'}, (err, rows) => {
               rows.length.should.be.equal(3);  // from last test
               geofencing.start(id, {}, function() {
                 spy_sync.calledOnce.should.be.equal(true);
@@ -298,7 +298,7 @@ describe('geofencing', function() {
                 geofencing.watching[3].should.be.equal(4);
                 geofencing.watching[4].should.be.equal(5);
 
-                storage2.do('all', {type: 'geofences'}, (err, rows) => {
+                storage.do('all', {type: 'geofences'}, (err, rows) => {
                   rows.length.should.be.equal(5);
                   rows[0].name.should.be.equal('oeoe');
                   rows[1].name.should.be.equal('prey');
@@ -327,8 +327,8 @@ describe('geofencing', function() {
             });
 
             spy_sync = sinon.spy(geofencing, 'sync');
-            spy_store = sinon.spy(storage2.storage_fns, 'set');
-            spy_del = sinon.spy(storage2.storage_fns, 'del');
+            spy_store = sinon.spy(storage.storage_fns, 'set');
+            spy_del = sinon.spy(storage.storage_fns, 'del');
 
             get_stub = sinon.stub(request, 'get').callsFake((uri, opts, cb) => {
               return cb(null, {body: fences3});
@@ -344,7 +344,7 @@ describe('geofencing', function() {
           })
 
           it('call sync, deletes the old zones and stores the new ones', function(done) {
-            storage2.do('all', {type: 'geofences'}, (err, rows) => {
+            storage.do('all', {type: 'geofences'}, (err, rows) => {
               rows.length.should.be.equal(5);  // from last test
               geofencing.start(id, {}, function() {
                 spy_sync.calledOnce.should.be.equal(true);
@@ -352,7 +352,7 @@ describe('geofencing', function() {
                 geofencing.watching[1].should.be.equal(5);
                 geofencing.watching[2].should.be.equal(6);
 
-                storage2.do('all', {type: 'geofences'}, (err, rows) => {
+                storage.do('all', {type: 'geofences'}, (err, rows) => {
                   rows.length.should.be.equal(3);
                   rows[0].name.should.be.equal('oeoe');
                   rows[1].name.should.be.equal('school');
@@ -379,8 +379,8 @@ describe('geofencing', function() {
             });
 
             spy_sync = sinon.spy(geofencing, 'sync');
-            spy_store = sinon.spy(storage2.storage_fns, 'set');
-            spy_del = sinon.spy(storage2.storage_fns, 'del');
+            spy_store = sinon.spy(storage.storage_fns, 'set');
+            spy_del = sinon.spy(storage.storage_fns, 'del');
 
             get_stub = sinon.stub(request, 'get').callsFake((uri, opts, cb) => {
               return cb(null, {body: fences4});
@@ -396,7 +396,7 @@ describe('geofencing', function() {
           })
 
           it('call sync and stores the new zones', function(done) {
-            storage2.do('all', {type: 'geofences'}, (err, rows) => {
+            storage.do('all', {type: 'geofences'}, (err, rows) => {
               rows.length.should.be.equal(3);  // from last test
               geofencing.start(id, {}, function() {
                 spy_sync.calledOnce.should.be.equal(true);
@@ -404,7 +404,7 @@ describe('geofencing', function() {
                 geofencing.watching[1].should.be.equal(850);
 
 
-                storage2.do('all', {type: 'geofences'}, (err, rows) => {
+                storage.do('all', {type: 'geofences'}, (err, rows) => {
                   rows.length.should.be.equal(2);
                   rows[0].name.should.be.equal('blah');
                   rows[1].name.should.be.equal('meh');
@@ -430,8 +430,8 @@ describe('geofencing', function() {
             });
 
             spy_sync = sinon.spy(geofencing, 'sync');
-            spy_store = sinon.spy(storage2.storage_fns, 'set');
-            spy_del = sinon.spy(storage2.storage_fns, 'del');
+            spy_store = sinon.spy(storage.storage_fns, 'set');
+            spy_del = sinon.spy(storage.storage_fns, 'del');
 
             get_stub = sinon.stub(request, 'get').callsFake((uri, opts, cb) => {
               return cb(null, {body: fences5});
@@ -447,13 +447,13 @@ describe('geofencing', function() {
           })
 
           it('call sync and stores the new zones', function(done) {
-            storage2.do('all', {type: 'geofences'}, (err, rows) => {
+            storage.do('all', {type: 'geofences'}, (err, rows) => {
               rows.length.should.be.equal(2);  // from last test
               geofencing.start(id, {}, function() {
                 spy_sync.calledOnce.should.be.equal(true);
                 geofencing.watching.length.should.be.equal(0);
 
-                storage2.do('all', {type: 'geofences'}, (err, rows) => {
+                storage.do('all', {type: 'geofences'}, (err, rows) => {
                   rows.length.should.be.equal(0);
                   done();
                 });

@@ -15,7 +15,7 @@ var fs            = require('fs'),
     shared        = require(helpers.lib_path('conf', 'shared')),
     api           = require(helpers.lib_path('agent', 'plugins', 'control-panel', 'api')),
     common        = require(helpers.lib_path('common')),
-    storage       = require(helpers.lib_path('agent', 'utils', 'commands_storage'));
+    storage       = require(helpers.lib_path('agent', 'utils', 'storage'));
 
 var package       = require(helpers.lib_path('package'));
 

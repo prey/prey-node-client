@@ -4,7 +4,7 @@ var join        = require('path').join,
     sinon       = require('sinon'),
     should      = require('should'),
     lib_path    = helpers.lib_path(),
-    storage3    = require(join(lib_path, 'agent', 'utils', 'commands_storage')),
+    storage     = require(join(lib_path, 'agent', 'utils', 'storage')),
     provider    = helpers.load('providers/hardware');
 
 describe('hardware', function(){
@@ -162,15 +162,15 @@ describe('hardware', function(){
           spy_store;
 
       before((done) => {
-        spy_store = sinon.spy(storage3.storage_fns, 'set');
-        spy_del = sinon.spy(storage3.storage_fns, 'del');
-        storage3.init('keys', tmpdir() + '/hardware.db', done)
+        spy_store = sinon.spy(storage.storage_fns, 'set');
+        spy_del = sinon.spy(storage.storage_fns, 'del');
+        storage.init('keys', tmpdir() + '/hardware.db', done)
       })
 
       after((done) => {
         spy_del.restore();
         spy_store.restore();
-        storage3.erase(tmpdir() + '/hardware.db', done);
+        storage.erase(tmpdir() + '/hardware.db', done);
       })
 
       it('stores the data', (done) => {
@@ -179,7 +179,7 @@ describe('hardware', function(){
           spy_store.calledOnce.should.be.true;
           spy_del.notCalled.should.be.true;
 
-          storage3.do('all', {type: 'keys'}, (err, rows) => {
+          storage.do('all', {type: 'keys'}, (err, rows) => {
             should.not.exist(err);
             rows.length.should.be.equal(1);
             rows[0].id.should.be.equal("hardware");
@@ -196,10 +196,10 @@ describe('hardware', function(){
       describe('and the data is the same', () => {
 
         before((done) => {
-          storage3.init('keys', tmpdir() + '/hardware.db', () => {
-            storage3.do('set', {type: 'keys', id: 'hardware', data: {value: JSON.stringify(dummy_data1)}}, () => {
-              spy_store = sinon.spy(storage3.storage_fns, 'set');
-              spy_del = sinon.spy(storage3.storage_fns, 'del');
+          storage.init('keys', tmpdir() + '/hardware.db', () => {
+            storage.do('set', {type: 'keys', id: 'hardware', data: {value: JSON.stringify(dummy_data1)}}, () => {
+              spy_store = sinon.spy(storage.storage_fns, 'set');
+              spy_del = sinon.spy(storage.storage_fns, 'del');
               done();
             })
           });
@@ -208,11 +208,11 @@ describe('hardware', function(){
         after((done) => {
           spy_store.restore();
           spy_del.restore();
-          storage3.erase(tmpdir() + '/hardware.db', done);
+          storage.erase(tmpdir() + '/hardware.db', done);
         })
 
         it('shouldnt edit the local database', (done) => {
-          storage3.do('all', {type: 'keys'}, (err, rows) => {
+          storage.do('all', {type: 'keys'}, (err, rows) => {
             provider.track_hardware_changes(stored_data[0]);
             setTimeout(() => {
               spy_store.callCount.should.be.equal(0);
@@ -228,19 +228,19 @@ describe('hardware', function(){
             spy_store;
 
         before((done) => {
-          storage3.init('keys', tmpdir() + '/hardware.db', () => {
-            storage3.do('set', {type: 'keys', id: 'hardware', data: {value: JSON.stringify(dummy_data1)}}, done)
+          storage.init('keys', tmpdir() + '/hardware.db', () => {
+            storage.do('set', {type: 'keys', id: 'hardware', data: {value: JSON.stringify(dummy_data1)}}, done)
           })
         })
 
         after((done) => {
-          storage3.erase(tmpdir() + '/hardware.db', done);
+          storage.erase(tmpdir() + '/hardware.db', done);
         });
 
         describe('when theres a new field', () => {
           before(() => {
-            spy_store = sinon.spy(storage3.storage_fns, 'set');
-            spy_del = sinon.spy(storage3.storage_fns, 'del');
+            spy_store = sinon.spy(storage.storage_fns, 'set');
+            spy_del = sinon.spy(storage.storage_fns, 'del');
           })
 
           after(() => {
@@ -251,7 +251,7 @@ describe('hardware', function(){
           it('replace the stored data', (done) => {
             provider.track_hardware_changes(dummy_data);
             setTimeout(() => {
-              storage3.do('all', {type: 'keys'}, (err, rows) => {
+              storage.do('all', {type: 'keys'}, (err, rows) => {
                 JSON.parse(rows[0].value).network_interfaces_list.length.should.be.equal(3);
                 spy_store.callCount.should.be.equal(1);
                 spy_del.callCount.should.be.equal(1);
@@ -263,8 +263,8 @@ describe('hardware', function(){
 
         describe('when a field is missing', () => {
           before(() => {
-            spy_store = sinon.spy(storage3.storage_fns, 'set');
-            spy_del = sinon.spy(storage3.storage_fns, 'del');
+            spy_store = sinon.spy(storage.storage_fns, 'set');
+            spy_del = sinon.spy(storage.storage_fns, 'del');
           })
 
           after(() => {
@@ -275,7 +275,7 @@ describe('hardware', function(){
           it('replace the stored data', (done) => {
             provider.track_hardware_changes(dummy_data2);
             setTimeout(() => {
-              storage3.do('all', {type: 'keys'}, (err, rows) => {
+              storage.do('all', {type: 'keys'}, (err, rows) => {
                 JSON.parse(rows[0].value).network_interfaces_list.length.should.be.equal(1);
                 spy_store.callCount.should.be.equal(1);
                 spy_del.callCount.should.be.equal(1);
@@ -287,8 +287,8 @@ describe('hardware', function(){
 
         describe('when a field changed', () => {
           before(() => {
-            spy_store = sinon.spy(storage3.storage_fns, 'set');
-            spy_del = sinon.spy(storage3.storage_fns, 'del');
+            spy_store = sinon.spy(storage.storage_fns, 'set');
+            spy_del = sinon.spy(storage.storage_fns, 'del');
           })
 
           after(() => {
@@ -299,7 +299,7 @@ describe('hardware', function(){
           it('replace the stored data', (done) => {
             provider.track_hardware_changes(dummy_data3);
             setTimeout(() => {
-              storage3.do('all', {type: 'keys'}, (err, rows) => {
+              storage.do('all', {type: 'keys'}, (err, rows) => {
                 var data = JSON.parse(rows[0].value);
 
                 data.network_interfaces_list.length.should.be.equal(2);
