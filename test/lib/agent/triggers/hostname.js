@@ -9,7 +9,7 @@ var should   = require('should'),
     api_path = join(lib_path, 'agent', 'plugins', 'control-panel', 'api');
     api      = require(api_path),
     request  = require(join(api_path, 'request')),
-    storage  = require('./../../../../lib/agent/utils/commands_storage'),
+    storage  = require('./../../../../lib/agent/utils/storage'),
     hooks    = helpers.load('hooks');
 
 var opts = {};
