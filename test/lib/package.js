@@ -180,9 +180,7 @@ describe('package.get_latest', function() {
         return cb();
       });
 
-      storage.init('versions', tmp() + '/versions.db', () => {
-        done()
-      });
+      storage.init('versions', tmp() + '/versions.db', done);
     });
 
     after(function(done) {
