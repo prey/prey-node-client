@@ -397,6 +397,15 @@ describe('triggers', () => {
             done();
           })
 
+           // it('does not executes again', (done) => {
+          //   clock.tick(2000);
+          //   triggers.start(id, {}, () => {
+          //     clock.tick(500);
+          //     spy_perform.notCalled.should.be.equal(true);
+          //     done();
+          //   })
+          // })
+
         })
       })
     });
