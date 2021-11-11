@@ -1,5 +1,15 @@
 # Change Log
 
+## [v1.9.13](https://github.com/prey/prey-node-client/tree/v1.9.14) (2021-11-15)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.9.13..v1.9.14)
+
+**Merged pull requests:**
+
+- Storage commands by id[\#519](https://github.com/prey/prey-node-client/pull/519) ([javo](https://github.com/javo))([JohaoRosasRosillo](https://github.com/JohaoRosasRosillo))
+- Updated executable signatures for windows[\#520](https://github.com/prey/prey-node-client/pull/520) ([JohaoRosasRosillo](https://github.com/JohaoRosasRosillo))
+- Access wifi data through daemon for macOS Monterey[\#521](https://github.com/prey/prey-node-client/pull/521) ([javo](https://github.com/javo))
+
+
 ## [v1.9.13](https://github.com/prey/prey-node-client/tree/v1.9.13) (2021-08-16)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.9.12..v1.9.13)
 
