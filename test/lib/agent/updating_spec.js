@@ -260,11 +260,6 @@ describe('updating', function() {
 
           // it('callbacks an error and notifies it', function (done){
 
-          //   storage.init('versions', tmpdir() + '/versions', (err) => {
-          //     storage.do('set', {type: 'versions', id: '1.2.5', data:  {from: '1.2.3', to: '1.2.5', attempts: 3, notified: 0}}, () => {
-          //       done();
-          //       updater.check_for_update();
-          //       setTimeout(() => {
 
           //         post_spy.calledOnce.should.equal(true);
           //         done();
