@@ -139,23 +139,6 @@ describe('actions', function(){
         }, 1000)
       }, 500)
 
-      // it('stops current action and run the new one', (done) => {
-      //   this.timeout(700);
-      //   // actions.start('1234-5678', 'alert', {message: 'hi!'})
-      //   actions.start('1234-5678', 'alarm', {sound: 'modem'})
-        
-      //   setTimeout(() => {
-    
-      //     // actions.start('9876-5432', 'alert', {message: 'hey!'})
-      //     actions.start('9876-5432', 'alarm', {sound: 'alarm'})
-    
-      //     setTimeout(() => {
-      //       actions.stop('9876-5432');
-      //       done();
-      //     }, 3000)
-          
-      //   }, 3000)
-      // })
     })
 
   })
