@@ -261,8 +261,6 @@ describe('triggers', () => {
 
         })
 
-        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
         describe('and it has event triggers', () => {
           var clock;
 
@@ -376,12 +374,7 @@ describe('triggers', () => {
             spy_sync = sinon.spy(triggers, 'sync');
             spy_perform = sinon.spy(commands, 'perform');
             spy_logger2 = sinon.spy(triggers.logger, 'warn');
-            // timezone_offset = new Date().getTimezoneOffset() * 60 * 1000,
-            // new_date = new Date(Date.UTC(2019, 11, 20, 11, 55, 05)).getTime() + timezone_offset;
-            // console.log("NEW DATE!!", new_date)
-            // new_date = 1574261705000;
             new_date =  1576853705000;
-                        // 1576853705;
             setTimeout(() => { triggers.start(id, {}, done) }, 500)
             clock = sinon.useFakeTimers(new_date);
           })
