@@ -9,23 +9,20 @@ var should   = require('should'),
     api_path = join(lib_path, 'agent', 'plugins', 'control-panel', 'api');
     api      = require(api_path),
     request  = require(join(api_path, 'request')),
-    storage  = require(helpers.lib_path('agent', 'utils', 'storage')),
+    storage  = require('./../../../../lib/agent/utils/storage'),
     hooks    = helpers.load('hooks');
 
 var opts = {};
 
 describe('hostame', () => {
-
   before(done => {
-    storage.init('keys', tmpdir() + '/keys', done);
+    storage.init('keys', tmpdir() + '/keys_new.db', done);
   })
 
   after(done => {
-    storage.close('keys', () => {
-      storage.erase(tmpdir() + '/keys', () => {
-        hostname.stop();
-        done();
-      });
+    storage.erase(tmpdir() + '/keys_new.db', () => {
+      hostname.stop();
+      done();
     });
   })
 
@@ -43,15 +40,17 @@ describe('hostame', () => {
     })
 
     it('Stores the hostname', done => {
-      storage.all('keys', function(err, out) {
+      storage.do('all', {type: 'keys'}, (err, out) => {
         Object.keys(out).length.should.eql(0);
         
         hostname.start(opts, () => {});
         setTimeout(() => {
-          storage.all('keys', (err, out) => {
+          storage.do('all', {type: 'keys'}, (err, out) => {  
+
             should.not.exist(err);
-            out['hostname-key'].should.exist
-            out['hostname-key'].value.should.be.equal('John PC');
+            out[0]['id'].should.exist;
+            
+            out[0]['value'].should.be.equal('John PC');
             done();
           })
         }, 2000)
@@ -81,10 +80,10 @@ describe('hostame', () => {
       it ('doesnt send event', (done) => {
         hostname.start(opts, () => {
           spy_push.notCalled.should.be.equal(true);
-          storage.all('keys', (err, out) => {
+          storage.do('all', {type: 'keys'}, (err, out) => {  
             should.not.exist(err);
-            out['hostname-key'].should.exist
-            out['hostname-key'].value.should.be.equal('John PC');
+            out[0]['id'].should.exist
+            out[0]['value'].should.be.equal('John PC');
             done();
           })
         })

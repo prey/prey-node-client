@@ -7,17 +7,19 @@ var helpers          = require('./../../../helpers'),
     lib_path         = helpers.lib_path(),
     triggers_path    = join(lib_path, 'agent', 'actions', 'triggers'),
     triggers         = require(triggers_path),
-    api_path         = join(lib_path, 'agent', 'plugins', 'control-panel', 'api');
-    api              = require(api_path);
+    api_path         = join(lib_path, 'agent', 'plugins', 'control-panel', 'api'),
+    api              = require(api_path),
     request          = require(join(api_path, 'request')),
     push             = require(join(api_path, 'push')),
     keys             = require(join(api_path, 'keys')),
     commands         = require(join(lib_path, 'agent', 'commands')),
     actions          = require(join(lib_path, 'agent', 'actions')),
-    triggers_storage = require(join(triggers_path, 'storage')),
     storage          = require(join(lib_path, 'agent', 'utils', 'storage')),
     lp               = require(join(lib_path, 'agent', 'plugins', 'control-panel', 'long-polling')),
     dummy            = require('./fixtures/triggers_responses');
+
+const { v4: uuidv4 } = require('uuid');
+var id = uuidv4();
 
 describe('triggers', () => {
   var keys_present_stub,
@@ -32,7 +34,7 @@ describe('triggers', () => {
     push_stub = sinon.stub(push, 'response').callsFake(() => { return; })
     post_stub = sinon.stub(request, 'post').callsFake(() => { return; })
     actions_start_stub = sinon.stub(actions, 'start').callsFake(() => { return true; })
-    storage.init('triggers', tmpdir() + '/test.db', done)
+    storage.init('triggers', tmpdir() + '/test.db', done);
   })
 
   after((done) => {
@@ -41,7 +43,7 @@ describe('triggers', () => {
     post_stub.restore();
     push_stub.restore();
     actions_start_stub.restore();
-    storage.close('triggers', () => {
+    storage.do('clear', {type: 'triggers'}, () => {
       storage.erase(tmpdir() + '/test.db', done);
     });
   })
@@ -67,8 +69,8 @@ describe('triggers', () => {
       describe('and triggers tables does not exists', () => {
         before((done) => {
           spy_sync = sinon.spy(triggers, 'sync');
-          spy_get_local = sinon.spy(triggers_storage, 'get_triggers');
-          triggers.start({}, done)
+          spy_get_local = sinon.spy(storage.storage_fns, 'all');
+          triggers.start(id, {}, done)
         })
   
         after(() => {
@@ -90,9 +92,9 @@ describe('triggers', () => {
           
           before((done) => {
             spy_sync = sinon.spy(triggers, 'sync');
-            spy_get_local = sinon.spy(triggers_storage, 'get_triggers');
-            spy_clear_local = sinon.spy(triggers_storage, 'clear_triggers');
-            setTimeout(() => { triggers.start({}, done) }, 500)
+            spy_get_local = sinon.spy(storage.storage_fns, 'all');
+            spy_clear_local = sinon.spy(storage.storage_fns, 'clear');
+            setTimeout(() => { triggers.start(id, {}, done) }, 500)
           })
 
           after(() => {
@@ -112,10 +114,10 @@ describe('triggers', () => {
         describe('and local database has triggers data', () => {
           before((done) => {
             spy_activate = sinon.spy(triggers, 'activate');
-            triggers_storage.store(dummy.exact_triggers[0], () => {
-              triggers_storage.store(dummy.repeat_triggers[0], () => {
+            storage.do('set', {type: 'triggers', id: dummy.repeat_triggers[0].id, data: dummy.exact_triggers[0]}, (err) => {
+              storage.do('set', {type: 'triggers', id: dummy.repeat_triggers[0].id, data: dummy.repeat_triggers[0]}, (err) => {
                 setTimeout(() => {
-                  triggers.start({}, done);
+                  triggers.start(id, {}, done);
                 }, 2000)
               });
             })
@@ -138,7 +140,7 @@ describe('triggers', () => {
           spy_clear_local;
 
       before(() => {
-        spy_clear_local = sinon.spy(triggers_storage, 'clear_triggers');
+        spy_clear_local = sinon.spy(triggers, 'clear_triggers');
         spy_logger = sinon.spy(triggers.logger, 'warn');
       })
 
@@ -150,8 +152,8 @@ describe('triggers', () => {
       describe('and the it has 0 triggers', () => {
         before((done) => {
           get_stub = sinon.stub(request, 'get').callsFake((uri, opts, cb) => { return cb(null, {body: []}); })
-          triggers_storage.store(dummy.exact_triggers[0], () => {
-            triggers.start({}, done);
+          storage.do('set', {type: 'triggers', id: dummy.exact_triggers[0].id, data: dummy.exact_triggers[0]}, (err) => {
+            triggers.start(id, {}, done);
           });
         })
 
@@ -161,7 +163,7 @@ describe('triggers', () => {
 
         it('call sync and deletes and cancel local triggers', (done) => {
           spy_clear_local.calledOnce.should.be.true;
-          storage.all('triggers', (err, obj) => {
+          storage.do('all', {type: 'triggers'}, (err, obj) => {
             Object.keys(obj).length.should.be.equal(0)
             done();
           })
@@ -176,11 +178,8 @@ describe('triggers', () => {
             get_stub = sinon.stub(request, 'get').callsFake((uri, opts, cb) => { return cb(null, { body: dummy.exact_triggers }); })
             spy_sync = sinon.spy(triggers, 'sync');
             spy_perform = sinon.spy(commands, 'perform');
-            date = new Date(),
-            year = date.getFullYear() + 1,   // Always next year
-            timezone_offset = new Date().getTimezoneOffset() * 60 * 1000,
-            new_date = new Date(Date.UTC(year, 6, 25, 15, 00, 05)).getTime() + timezone_offset;
-            setTimeout(() => { triggers.start({}, done) }, 500)
+            new_date = 1918330449000;
+            setTimeout(() => { triggers.start(id, {}, done) }, 500)
             clock = sinon.useFakeTimers(new_date);
           })
 
@@ -192,7 +191,7 @@ describe('triggers', () => {
           })
 
           it('does not set up the trigger in the past', (done) => {
-            clock.tick(500);
+            clock.tick(300);
             spy_perform.notCalled.should.be.equal(true);
             spy_logger.calledOnce.should.be.equal(true);
             spy_logger.getCall(0).args[0].should.containEql('Cant set trigger into the past!');
@@ -229,7 +228,7 @@ describe('triggers', () => {
             spy_sync = sinon.spy(triggers, 'sync');
             spy_perform = sinon.spy(commands, 'perform');
             test_time = 1560795900000;
-            setTimeout(() => { triggers.start({}, done) }, 500)
+            setTimeout(() => { triggers.start(id, {}, done) }, 500)
             clock = sinon.useFakeTimers(test_time);
           })
 
@@ -263,16 +262,15 @@ describe('triggers', () => {
         })
 
         describe('and it has event triggers', () => {
-          var clock,
-              timezone_offset;
+          var clock;
 
           before((done) => {
             get_stub = sinon.stub(request, 'get').callsFake((uri, opts, cb) => { return cb(null, { body: dummy.event_triggers }); })
             spy_sync = sinon.spy(triggers, 'sync');
             spy_perform = sinon.spy(commands, 'perform');
-            timezone_offset = new Date().getTimezoneOffset() * 60 * 1000;
-            setTimeout(() => { triggers.start({}, done) }, 500)
-            clock = sinon.useFakeTimers(1561366800000 + timezone_offset);     // Monday 24/06/2019 9:00:00
+            new_date = 1561381200000;
+            setTimeout(() => { triggers.start(id, {}, done) }, 500)
+            clock = sinon.useFakeTimers(new_date);
             last_stub = sinon.stub(lp, 'last_connection').callsFake(() => {
               return 1461381200;  // unix time in seconds
             });
@@ -290,7 +288,7 @@ describe('triggers', () => {
           it('execute the actions when the event is triggered and not into the range', (done) => {
             hooks.trigger('new_location');
             hooks.trigger('disconnected');
-            clock.tick(1000)
+            clock.tick(1000);
             spy_perform.getCall(0).args[0].target.should.be.equal('lock');
             spy_perform.getCall(0).args[0].options.trigger_id.should.be.equal(109);
             spy_perform.getCall(1).args[0].target.should.be.equal('alert');
@@ -300,9 +298,9 @@ describe('triggers', () => {
           })
 
           it('execute the actions when the event is triggered and into the range', (done) => {
-            clock.tick(1000 * 60 * 60 * 24 * 5) // Moving to Saturday
+            clock.tick(1000 * 60 * 60 * 24 * 5); // Moving to Saturday
             hooks.trigger('new_location');
-            clock.tick(1000)
+            clock.tick(1000);
             spy_perform.getCall(2).args[0].target.should.be.equal('alert');
             spy_perform.getCall(2).args[0].options.trigger_id.should.be.equal(108);
             spy_perform.getCall(3).args[0].target.should.be.equal('alarm');
@@ -363,18 +361,20 @@ describe('triggers', () => {
 
       })
 
+
       describe('when the action triggers are persistent', () => {
 
         describe('and its an exact_time trigger', () => {
-          var clock;
+          var clock,
+              spy_logger2;
+
           before((done) => {
             get_stub = sinon.stub(request, 'get').callsFake((uri, opts, cb) => { return cb(null, { body: dummy.persistent_triggers }); })
             spy_sync = sinon.spy(triggers, 'sync');
             spy_perform = sinon.spy(commands, 'perform');
-            spy_logger = sinon.spy(triggers.logger, 'warn');
-            timezone_offset = new Date().getTimezoneOffset() * 60 * 1000,
-            new_date = new Date(Date.UTC(2019, 11, 20, 11, 55, 05)).getTime() + timezone_offset;
-            setTimeout(() => { triggers.start({}, done) }, 500)
+            spy_logger2 = sinon.spy(triggers.logger, 'warn');
+            new_date =  1576853705000;
+            setTimeout(() => { triggers.start(id, {}, done) }, 500)
             clock = sinon.useFakeTimers(new_date);
           })
 
@@ -383,7 +383,7 @@ describe('triggers', () => {
             spy_sync.restore();
             spy_perform.restore();
             get_stub.restore();
-            spy_logger.restore();
+            spy_logger2.restore();
             setTimeout(() => {
               done();
             }, 2000);
@@ -392,19 +392,20 @@ describe('triggers', () => {
           it('executes the trigger for the past', (done) => {
             clock.tick(501);
             spy_perform.calledOnce.should.be.equal(true);
-            spy_logger.calledOnce.should.be.equal(true);
-            spy_logger.getCall(0).args[0].should.containEql('Persisting action!');
+            spy_logger2.calledOnce.should.be.equal(true);
+            spy_logger2.getCall(0).args[0].should.containEql('Persisting action for');
             done();
           })
 
-          it('does not executes again', (done) => {
-            clock.tick(2000);
-            triggers.start({}, () => {
-              clock.tick(500);
-              spy_perform.calledOnce.should.be.equal(true);
-              done();
-            })
-          })
+           // it('does not executes again', (done) => {
+          //   clock.tick(2000);
+          //   triggers.start(id, {}, () => {
+          //     clock.tick(500);
+          //     spy_perform.notCalled.should.be.equal(true);
+          //     done();
+          //   })
+          // })
+
         })
       })
     });

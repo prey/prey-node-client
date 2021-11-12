@@ -44,9 +44,13 @@ describe('exceptions.send', function() {
   })
 
   describe('on failed request', function() {
-
+    var stub2;
     before(function() {
-      helpers.stub_request('post', new Error('ENOENT'));
+      stub2 = helpers.stub_request('post', new Error('ENOENT'));
+    })
+
+    after(() => {
+      stub2.restore();
     })
 
     it ('callsback an error', function(done) {

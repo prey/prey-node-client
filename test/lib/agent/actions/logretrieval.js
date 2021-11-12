@@ -86,7 +86,7 @@ describe('Logretrieval', () => {
     describe('when the compression is successful', () => {
 
       it('has all the files zipped', function(done) {
-        logretrieval.start({}, (err, em) => {
+        logretrieval.start(null,{}, (err, em) => {
 
           em.once('end', (err) => {
             should.not.exist(err);
@@ -115,7 +115,7 @@ describe('Logretrieval', () => {
 
       it('compress the other files', (done) => {
         fs.chmod(conf_file, '0000', () => {
-          logretrieval.start({}, (err, em) => {
+          logretrieval.start(null,{}, (err, em) => {
             em.once('end', (err) => {
               should.not.exist(err);
               fs.existsSync(logs_zip).should.be.true;
@@ -157,7 +157,7 @@ describe('Logretrieval', () => {
     describe('upload fails', () => {
 
       it('returns an error', (done) => {
-        logretrieval.start({}, (err, em) => {
+        logretrieval.start(null,{}, (err, em) => {
           em.once('end', (err) => {
             should.exist(err);
             err.message.should.be.equal("There was an error uploading logs file");

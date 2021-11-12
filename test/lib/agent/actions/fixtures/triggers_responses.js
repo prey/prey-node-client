@@ -6,7 +6,7 @@ var exact_triggers = [
       {
         "type": "exact_time",
         "info": {
-          "date": "20190501120000"     // In the past
+          "date": "20180501120000"     // In the past
         }
       }
     ],
@@ -30,7 +30,7 @@ var exact_triggers = [
       {
         "type": "exact_time",
         "info": {
-          "date": "" + (new Date().getFullYear() +1) + "0725150006"     // "20200725150406" Always next year
+          "date": "20301015183410"
         }
       }
     ],
@@ -65,7 +65,7 @@ var exact_triggers = [
       {
         "type": "exact_time",
         "info": {
-          "date": "" + (new Date().getFullYear() +1) + "0725150007"
+          "date": "20301015183411"
         }
       }
     ],

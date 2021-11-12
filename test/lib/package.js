@@ -179,7 +179,8 @@ describe('package.get_latest', function() {
       post_spy = sinon.stub(needle, 'post').callsFake((url, data, opts, cb) => {
         return cb();
       });
-      storage.init('versions', tmp() + '/versions', done);
+
+      storage.init('versions', tmp() + '/versions.db', done);
     });
 
     after(function(done) {
@@ -189,9 +190,7 @@ describe('package.get_latest', function() {
       event_data_stub.restore();
       post_spy.restore();
       post_event_stub.restore();
-      storage.close('versions', () => {
-        storage.erase(tmp() + '/versions', done);
-      });
+      storage.erase(tmp() + '/versions.db', done)
     });
 
     it('requests the package and create version registry', function (done) {
@@ -203,14 +202,14 @@ describe('package.get_latest', function() {
         requested_url.should.equal(url);
         opts.output.should.equal(outfile);
         getter.restore();
-        storage.all('versions', function(err, out) {
+        storage.do('all', {type: 'versions'}, function(err, out) {
           should.not.exist(err);
-          Object.keys(out).length.should.be.equal(1);
-          Object.keys(out)[0].should.be.equal('version-1.5.0');
-          out['version-1.5.0'].from.should.be.equal('1.2.3');
-          out['version-1.5.0'].to.should.be.equal('1.5.0');
-          out['version-1.5.0'].attempts.should.be.equal(1);
-          out['version-1.5.0'].notified.should.be.equal(false);
+          out.length.should.be.equal(1);
+          out[0].id.should.be.equal('1.5.0');
+          out[0].from.should.be.equal('1.2.3');
+          out[0].to.should.be.equal('1.5.0');
+          out[0].attempts.should.be.equal(1);
+          out[0].notified.should.be.equal(0);
           post_event_stub.notCalled.should.equal(true);
           done();
         })
@@ -238,15 +237,15 @@ describe('package.get_latest', function() {
       it('returns an error', function(done) {
 
         get_latest('1.2.3', tmpdir, function(err) {
-          storage.all('versions', function(err, out) {
+          storage.do('all', {type: 'versions'}, function(err1, out) {
             post_event_stub.calledOnce.should.equal(true)
-            should.not.exist(err);
-            out['version-1.5.0'].attempts.should.be.equal(2);
-            out['version-1.5.0'].notified.should.be.equal(false);
+            should.not.exist(err1);
+            out[0].attempts.should.be.equal(2);
+            out[0].notified.should.be.equal(0);
+            err.should.be.a.Error;
+            err.message.should.match('Unable to download because I dont feel like it.');
+            done();
           })
-          err.should.be.a.Error;
-          err.message.should.match('Unable to download because I dont feel like it.');
-          done()
         });
 
       })
@@ -256,11 +255,12 @@ describe('package.get_latest', function() {
         var spy = sinon.spy(fs, 'createReadStream');
 
         get_latest('1.2.3', tmpdir, function(err) {
-          storage.all('versions', function(err, out) {
+          storage.do('all', {type: 'versions'}, function(err, out) {
             post_event_stub.calledTwice.should.equal(true);
             should.not.exist(err);
-            out['version-1.5.0'].attempts.should.be.equal(3);
-            out['version-1.5.0'].notified.should.be.equal(false);
+            
+            out[0].attempts.should.be.equal(3);
+            out[0].notified.should.be.equal(0);
           })
           spy.called.should.be.false;
           spy.restore();

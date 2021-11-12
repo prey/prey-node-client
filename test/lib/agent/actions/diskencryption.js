@@ -16,8 +16,9 @@ describe('diskencryption', () => {
 
   describe('when os != windows', () => {
     var opts = {}
+    var id ;
     it('returns an error', (done) => {
-      diskencryption.start(opts, (err, em) => {
+      diskencryption.start(id,opts, (err, em) => {
         should.exist(err);
         err.message.should.containEql('Action only allowed on Windows 1O');
         done();
@@ -40,8 +41,9 @@ describe('diskencryption', () => {
 
     describe('when the action has no options', () => {
       var opts = {}
+      var id ;
       it('returns an error', (done) => {
-        diskencryption.start(opts, (err, em) => {
+        diskencryption.start(id, opts, (err, em) => {
           should.exist(err);
           err.message.should.containEql('The encryption data is not valid');
           done();
@@ -54,6 +56,7 @@ describe('diskencryption', () => {
         check_service_stub;
 
       describe('when the service is not available', () => {
+        var id = "123";
         var opts = {
           encryption: true,
           disks: ["C:", "D:"],
@@ -73,8 +76,8 @@ describe('diskencryption', () => {
         })
 
         it('returns error', (done) => {
-          diskencryption.start(opts, (err, em) => {
-            em.on('end', (err, out) => {
+          diskencryption.start(id,opts, (err, em) => {
+            em.on('end', (id,err, out) => {
               should.exist(err);
               err.message.should.containEql('Admin service not available');
               done();
@@ -91,6 +94,8 @@ describe('diskencryption', () => {
           full_disk: true,
           encryption_method: "XtsAes128"
         }
+
+        var id = "123"
 
         before(() => {
           sys_win.monitoring_service_go = true;
@@ -111,8 +116,8 @@ describe('diskencryption', () => {
           })
 
           it('notify error to the user and shouldnt ask for keys or status', (done) => {
-            diskencryption.start(opts, (err, em) => {
-              em.on('end', (err, out) => {
+            diskencryption.start(id,opts, (err, em) => {
+              em.on('end', (id,err, out) => {
                 should.exist(err);
                 err.message.should.containEql('Socket hang up');
                 spy_commands.notCalled.should.be.equal(true);
@@ -141,8 +146,8 @@ describe('diskencryption', () => {
           })
 
           it('notify error to the user', (done) => {
-            diskencryption.start(opts, (err, em) => {
-              em.on('end', (err, out) => {
+            diskencryption.start(id,opts, (err, em) => {
+              em.on('end', (id,err, out) => {
                 should.not.exist(err);
                 should.exist(out);
                 out["F"].should.be.equal(4);
@@ -170,8 +175,8 @@ describe('diskencryption', () => {
           })
 
           it('notify success', (done) => {
-            diskencryption.start(opts, (err, em) => {
-              em.on('end', (err, out) => {
+            diskencryption.start(id,opts, (err, em) => {
+              em.on('end', (id,err, out) => {
                 should.not.exist(err);
                 should.exist(out);
                 out["F"].should.be.equal(0);
@@ -189,6 +194,8 @@ describe('diskencryption', () => {
         encryption: false,
         disks: [["C:", "12345-67890"], ["D:", "9876-5432"]]
       }
+
+      var id = "123"
 
       describe('when the password is incorrect', () => {
         var body = '{"error":false, "output":[{"disk":"F:","error":true,"message":"Incorrect unlock password","code":7}]}'
@@ -208,8 +215,8 @@ describe('diskencryption', () => {
         })
 
         it('notify incorrect password error to the user', (done) => {
-          diskencryption.start(opts, (err, em) => {
-            em.on('end', (err, out) => {
+          diskencryption.start(id,opts, (err, em) => {
+            em.on('end', (id,err, out) => {
               should.not.exist(err);
               should.exist(out);
               out["F"].should.be.equal(7);
@@ -237,8 +244,8 @@ describe('diskencryption', () => {
         })
 
         it('notify success', (done) => {
-          diskencryption.start(opts, (err, em) => {
-            em.on('end', (err, out) => {
+          diskencryption.start(id,opts, (err, em) => {
+            em.on('end', (id,err, out) => {
               should.not.exist(err);
               should.exist(out);
               out["F"].should.be.equal(0);
