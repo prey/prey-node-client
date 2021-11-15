@@ -5,6 +5,7 @@
 
 **Merged pull requests:**
 
+- Fix old storage recovery validation[\#524](https://github.com/prey/prey-node-client/pull/524) ([javo](https://github.com/javo))([JohaoRosasRosillo](https://github.com/JohaoRosasRosillo))
 - Storage commands by id[\#519](https://github.com/prey/prey-node-client/pull/519) ([javo](https://github.com/javo))([JohaoRosasRosillo](https://github.com/JohaoRosasRosillo))
 - Updated executable signatures for windows[\#520](https://github.com/prey/prey-node-client/pull/520) ([JohaoRosasRosillo](https://github.com/JohaoRosasRosillo))
 - Access wifi data through daemon for macOS Monterey[\#521](https://github.com/prey/prey-node-client/pull/521) ([javo](https://github.com/javo))
