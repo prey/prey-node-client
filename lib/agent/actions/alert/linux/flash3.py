@@ -162,19 +162,32 @@ class Alert:
 
         self.create_window(bg_color)  # sets self.window
 
-        _monitor = self.window.get_display().get_primary_monitor()
-        main_screen_width = _monitor.get_geometry().width
-        main_screen_height = _monitor.get_geometry().height
+        _monitor = Gdk.Screen.get_default()
+        main_screen_width = _monitor.get_width()
+        main_screen_height = _monitor.get_height()
+
+        print("print main_screen_width: ",main_screen_width)
+        print("print main_screen_height: ",main_screen_height)
+
 
         if main_screen_width > 2000:
             self.scale = 2
+        print("print elf.scale: ",self.scale)
+
 
         one_third_width = main_screen_width / 3
+        print("print one_third_width: ",one_third_width)
+       
         elements_width = one_third_width * 2
+        print("print elements_width: ",elements_width)
+
         base_height = 150 * self.scale
+        print("print base_height: ",base_height)
 
         if args.entry is not None:
             base_height += 30 * self.scale
+
+        print("print base_height2: ",base_height)
 
         letters_per_line = elements_width / (8 * self.scale)
         lines = int(math.ceil(len(args.message) / float(letters_per_line)))
@@ -184,8 +197,10 @@ class Alert:
         # these are needed later to position the input
         self.input_width = elements_width
         self.left_offset = one_third_width / 2  # the other have should be to the right
+        #self.left_offset = 0  # the other have should be to the right
+        print("print left_offset: ",self.left_offset)
         right_offset = self.left_offset + elements_width
-
+        print("print right_offset: ",right_offset)
         # print "Letters per line: %d" % letters_per_line
         # print "Lines: %d" % lines
         # print "Left offset: %d" % self.left_offset
