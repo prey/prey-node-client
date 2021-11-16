@@ -303,7 +303,6 @@ describe('storage', () => {
 
   describe('store keys', () => {
     before(function(done) {
-      console.log("TPM DIR!!", tmpdir())
       storage.init('geofences', tmpdir() + '/bar.db', done);
     })
     it('store the key', (done) => {
@@ -329,6 +328,7 @@ describe('storage', () => {
     before((done) => {
       // creating and old storage db and adding it some dummy data.
       path = join(tmpdir(), 'old_commands.db');
+      storage.first_init = false;
       
       storage.init(null, path, (err, old_db) => {
         db = old_db;
