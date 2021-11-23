@@ -44,6 +44,96 @@ describe('actions', function(){
     })
   });
 
+  describe('action start with options loops 5 and secondsbetween 0', () => {
+    var emitter = new Emitter(),
+        hooks_spy,
+        alarm_start_stub;
+
+    before(() => {
+      hooks_spy = sinon.stub(hooks, 'trigger');
+      alarm_start_stub = sinon.stub(alarm, 'start').callsFake((id, options, cb) => { return cb(null, emitter); })
+      alarm_stop_spy = sinon.stub(alarm, 'stop');
+    })
+
+    after(() => {
+      alarm_start_stub.restore();
+      hooks_spy.restore();
+      alarm_stop_spy.restore();
+    })
+
+    it('runs the action and alarm sound 5 times', (done) => {
+      let alarmStart = actions.start('4321-9876', 'alarm', {sound: 'modem', loops: 5, secondsbetween: 0 });
+      setTimeout(() => {
+        alarmStart.loops.should.be.equal(4);
+        hooks_spy.calledOnce.should.be.equal(true);
+        hooks_spy.getCall(0).args[0].should.be.equal('action');
+        hooks_spy.getCall(0).args[1].should.be.equal('started');
+        hooks_spy.getCall(0).args[2].should.be.equal('4321-9876');
+        hooks_spy.getCall(0).args[3].should.be.equal('alarm');
+        setTimeout(() => {
+          alarmStart.loops.should.be.equal(3);
+          setTimeout(() => {
+            alarmStart.loops.should.be.equal(2);
+            setTimeout(() => {
+              alarmStart.loops.should.be.equal(1);
+              setTimeout(() => {
+                alarmStart.loops.should.be.equal(0);
+                actions.stop('4321-9876');
+                alarm_stop_spy.calledOnce.should.be.equal(true);
+                done();
+              }, 30 * 1000);
+            }, 30 * 1000);
+          }, 30 * 1000);
+        }, 30 * 1000);
+      }, 1000);
+    })
+  });
+
+  describe('action start with options loops 5 and secondsbetween 5', () => {
+    var emitter = new Emitter(),
+        hooks_spy,
+        alarm_start_stub;
+
+    before(() => {
+      hooks_spy = sinon.stub(hooks, 'trigger');
+      alarm_start_stub = sinon.stub(alarm, 'start').callsFake((id, options, cb) => { return cb(null, emitter); })
+      alarm_stop_spy = sinon.stub(alarm, 'stop');
+    })
+
+    after(() => {
+      alarm_start_stub.restore();
+      hooks_spy.restore();
+      alarm_stop_spy.restore();
+    })
+
+    it('runs the action and alarm sound 5 times and wait 5 seconds between each call', (done) => {
+      let alarmStart = actions.start('1342-9487', 'alarm', {sound: 'modem', loops: 5, secondsbetween: 5 });
+      setTimeout(() => {
+        alarmStart.loops.should.be.equal(4);
+        hooks_spy.calledOnce.should.be.equal(true);
+        hooks_spy.getCall(0).args[0].should.be.equal('action');
+        hooks_spy.getCall(0).args[1].should.be.equal('started');
+        hooks_spy.getCall(0).args[2].should.be.equal('1342-9487');
+        hooks_spy.getCall(0).args[3].should.be.equal('alarm');
+        setTimeout(() => {
+          alarmStart.loops.should.be.equal(3);
+          setTimeout(() => {
+            alarmStart.loops.should.be.equal(2);
+            setTimeout(() => {
+              alarmStart.loops.should.be.equal(1);
+              setTimeout(() => {
+                alarmStart.loops.should.be.equal(0);
+                actions.stop('1342-9487');
+                alarm_stop_spy.calledOnce.should.be.equal(true);
+                done();
+              }, 30 * 1000 + 5 * 1000);
+            }, 30 * 1000 + 5 * 1000);
+          }, 30 * 1000 + 5 * 1000);
+        }, 30 * 1000 + 5 * 1000);
+      }, 1000);
+    })
+  });
+
   describe('when an action with same id arrives', () => {
     var emitter = new Emitter(),
         hooks_spy2,
