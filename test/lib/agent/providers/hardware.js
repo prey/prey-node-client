@@ -5,6 +5,7 @@ var join        = require('path').join,
     should      = require('should'),
     lib_path    = helpers.lib_path(),
     storage     = require(join(lib_path, 'agent', 'utils', 'storage')),
+    os          = require('os'),
     provider    = helpers.load('providers/hardware');
 
 describe('hardware', function(){
@@ -74,6 +75,53 @@ describe('hardware', function(){
     });
 
   });
+
+  describe('get_rp_module', function(){
+
+    describe('When  is windows', function(){
+
+      before(() => {
+        os_name = 'windows';
+        platform_stub_windows = sinon.stub(os, 'platform').callsFake(() => { return 'windows'; });
+       
+      })
+  
+      after(() => {
+        platform_stub_windows.restore();
+      })
+  
+      it('ok', (done) => {
+        provider.get_rp_module(function(err, obj) {
+          should.not.exist(err);
+          //err.message.should.containEql('Only for windows');
+          done();
+        });
+      })
+  
+    });
+
+    describe('When not is windows', function(){
+
+    before(() => {
+      platform_stub = sinon.stub(os, 'platform').callsFake(() => { return 'mac'; });
+     
+    })
+
+    after(() => {
+      platform_stub.restore();
+    })
+
+    it('error', (done) => {
+      provider.get_rp_module(function(err, obj) {
+        should.exist(err);
+        err.message.should.containEql('Only for windows');
+        done();
+      });
+    })
+
+  });
+
+});
 
   describe('hardware_changes', () => {
 
