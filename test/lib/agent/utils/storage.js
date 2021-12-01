@@ -338,8 +338,16 @@ describe('storage', () => {
               add_to_db(old_db, 'geofences', 'eyJnZW9mZW5jZS0xMTEiOnsiaWQiOjExMSwibmFtZSI6IkhvbWUiLCJzdGF0ZSI6Imluc2lkZSJ9fQ=', () => {
                 add_to_db(old_db, 'geofences', 'eyJnZW9mZW5jZS0xMTIiOnsiaWQiOjExMiwibmFtZSI6IldvcmsiLCJzdGF0ZSI6Im91dHNpZGUifX0=', () => {
                   add_to_db(old_db, 'geofences', 'eyJnZW9mZW5jZS0xMTMiOnsiaWQiOjExMywibmFtZSI6IlUiLCJzdGF0ZSI6Im91dHNpZGUifX0=', () => {
-                    add_to_db(old_db, 'keys', 'eyJob3N0bmFtZS1rZXkiOnsidmFsdWUiOiJQcmV5In19', () => {
-                      add_to_db(old_db, 'files', 'eyJmaWxlLTExQjYyRTgyRTBDODI3Mzg0MEJFMUE4MTI2OTEwQTU4Ijp7InBhdGgiOiIvVXNlcnMvdXNlci9maWxlLmRvdCIsInNpemUiOjQyLCJ1c2VyIjoidXNlciIsIm5hbWUiOiJmaWxlLmRvdCIsInJlc3VtYWJsZSI6ZmFsc2V9fQ===', done)
+                    add_to_db(old_db, 'triggers', 'eyJ0cmlnZ2VyLTY4MTUiOnsiaWQiOjY4MTUsIm5hbWUiOiJsb2FuX2F1dG9tYXRpb24iLCJwZXJzaXN0Ijp0cnVlLCJzeW5jZWRfYXQiOjE2Mzc1NzY3NTY0MTAsImxhc3RfZXhlYyI6bnVsbCwiYXV0b21hdGlvbl9ldmVudHMiOlt7InR5cGUiOiJleGFjdF90aW1lIiwiaW5mbyI6eyJkYXRlIjoiMjAyMTExMzAwNzI0MDAifX1dLCJhdXRvbWF0aW9uX2FjdGlvbnMiOlt7ImFjdGlvbiI6eyJjb21tYW5kIjoic3RhcnQiLCJ0YXJnZXQiOiJsb2NrIiwib3B0aW9ucyI6eyJ1bmxvY2tfcGFzcyI6InByZXlyb2NrcyIsImxvY2tfbWVzc2FnZSI6ImxvY2shIiwiY2xvc2VfYXBwcyI6ZmFsc2V9fSwiZGVsYXkiOjB9XX19', () => {
+                      add_to_db(old_db, 'triggers', 'eyJ0cmlnZ2VyLTY4MTQiOnsiaWQiOjY4MTQsIm5hbWUiOiJsb2FuX2F1dG9tYXRpb24iLCJzeW5jZWRfYXQiOjE2Mzc1NzY3NTY0MTAsImxhc3RfZXhlYyI6bnVsbCwiYXV0b21hdGlvbl9ldmVudHMiOlt7InR5cGUiOiJleGFjdF90aW1lIiwiaW5mbyI6eyJkYXRlIjoiMjAyMTExMzAwNzA5MDAifX1dLCJhdXRvbWF0aW9uX2FjdGlvbnMiOlt7ImFjdGlvbiI6eyJjb21tYW5kIjoic3RhcnQiLCJ0YXJnZXQiOiJhbGVydCIsIm9wdGlvbnMiOnsiYWxlcnRfbWVzc2FnZSI6IllvdXIgZXF1aXBtZW50IGxvYW4gd2lsbCBleHBpcmUgaW4gMTUgbWludXRlcywgcGxlYXNlIHNhdmUgeW91ciB3b3JrIGFuZCByZXR1cm4gaXQgdGltZWx5LiJ9fSwiZGVsYXkiOjB9XX19', () => {
+                        add_to_db(old_db, 'keys', 'eyJob3N0bmFtZS1rZXkiOnsidmFsdWUiOiJQcmV5In19', () => {
+                          add_to_db(old_db, 'versions', 'eyJ2ZXJzaW9uLTEuOS4xNCI6eyJmcm9tIjoiMS45LjEzIiwidG8iOiIxLjkuMTQiLCJhdHRlbXB0cyI6MSwibm90aWZpZWQiOmZhbHNlfX0', () => {
+                            add_to_db(old_db, 'versions', 'eyJ2ZXJzaW9uLTEuOS4xMyI6eyJmcm9tIjoiMS45LjEyIiwidG8iOiIxLjkuMTMiLCJhdHRlbXB0cyI6NSwibm90aWZpZWQiOnRydWV9fQ', () => {
+                              add_to_db(old_db, 'files', 'eyJmaWxlLTExQjYyRTgyRTBDODI3Mzg0MEJFMUE4MTI2OTEwQTU4Ijp7InBhdGgiOiIvVXNlcnMvdXNlci9maWxlLmRvdCIsInNpemUiOjQyLCJ1c2VyIjoidXNlciIsIm5hbWUiOiJmaWxlLmRvdCIsInJlc3VtYWJsZSI6ZmFsc2V9fQ===', done)
+                            });
+                          });
+                        });
+                      });
                     });
                   });
                 });
@@ -375,11 +383,26 @@ describe('storage', () => {
             data[2].id.should.be.equal('113');
             data[2].name.should.be.equal('U');
 
-            storage.do('all', { type: 'files' }, (err, data) => {
-              data[0].id.should.be.equal('11B62E82E0C8273840BE1A8126910A58');
-              data[0].name.should.be.equal('file.dot');
-              done();
-            })
+            storage.do('all', { type: 'triggers' }, (err, data) => {
+              data[0].id.should.be.equal('6815');
+              data[0].persist.should.be.equal(1);
+              data[1].id.should.be.equal('6814');
+              data[1].persist.should.be.equal(0);
+
+              storage.do('all', { type: 'versions' }, (err, data) => {
+                data[0].id.should.be.equal('1.9.14');
+                data[0].attempts.should.be.equal(1);
+                data[1].id.should.be.equal('1.9.13');
+                data[1].attempts.should.be.equal(5);
+
+                storage.do('all', { type: 'files' }, (err, data) => {
+                  data[0].id.should.be.equal('11B62E82E0C8273840BE1A8126910A58');
+                  data[0].name.should.be.equal('file.dot');
+                  done();
+                });
+              });
+
+            });
           });
         });
       })

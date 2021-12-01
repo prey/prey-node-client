@@ -16,6 +16,8 @@ var join          = require('path').join,
 var versions_path = system.paths.versions,
     spy_logger;
 
+var id = "8c0b5054-352e-4e77-941a-bfc07fcf53b1"
+
 describe('updating', function() {
 
   var branch_stub;
@@ -68,7 +70,7 @@ describe('updating', function() {
       })
   
       it('logs an error and returns', function(done) {
-        updater.check("yeah");
+        updater.check(id, "yeah");
         spy_logger.calledOnce.should.be.equal(true);
         spy_logger.getCall(0).args[0].should.containEql('No versions support.');
         done();
@@ -91,7 +93,7 @@ describe('updating', function() {
         })
 
         it('logs an invalidad target error', function(done) {
-          updater.check("im not valid");
+          updater.check(id, "im not valid");
           spy_logger.calledOnce.should.be.equal(true);
           spy_logger.getCall(0).args[0].should.containEql('Invalid target for upgrade command');
           done();
@@ -110,7 +112,7 @@ describe('updating', function() {
         })
           
         it('returns activation error', (done) => {
-          updater.check("activate")
+          updater.check(id, "activate")
           spy_logger.calledOnce.should.be.equal(true);
           spy_logger.getCall(0).args[0].should.containEql('Missing client version to activate');
           done();
@@ -155,7 +157,7 @@ describe('updating', function() {
 
       it('callsback with no errors', function(done) {
 
-        updater.check('reset', {}, function(err, ver) {
+        updater.check(id, 'reset', {}, function(err, ver) {
           should.exist(err);
           err.message.should.containEql('Theres no new version available');
           done();
@@ -213,7 +215,7 @@ describe('updating', function() {
 
           it('callbacks an error', function (done){
 
-            updater.check('reset', {}, function(err, ver) {
+            updater.check(id, 'reset', {}, function(err, ver) {
               should.exist(err);
               err.message.should.equal('Upgrade to 1.2.5 failed. Exit code: undefined');
               err.stack.should.containEql('Launching rockets\nSHOOT!!');
@@ -337,7 +339,7 @@ describe('updating', function() {
 
         it('process exits with status code(0)', function (done){
           this.timeout(16000);
-          updater.check('reset', {}, function(err, ver) {
+          updater.check(id, 'reset', {}, function(err, ver) {
             exit_code.should.equal(0);
             unreffed.should.be.true;
             done();
