@@ -5,6 +5,7 @@ var join        = require('path').join,
     should      = require('should'),
     lib_path    = helpers.lib_path(),
     storage     = require(join(lib_path, 'agent', 'utils', 'storage')),
+    os          = require('os'),
     provider    = helpers.load('providers/hardware');
 
 describe('hardware', function(){
@@ -74,6 +75,7 @@ describe('hardware', function(){
     });
 
   });
+
 
   describe('hardware_changes', () => {
 
