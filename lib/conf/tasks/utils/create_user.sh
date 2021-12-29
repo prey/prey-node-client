@@ -26,6 +26,8 @@ if [ "$(uname)" == "Linux" ]; then
 else
   USERS_PATH="/Users"
   SHELL="/sbin/nologin"
+  AIRPORT_CMD="/System/Library/PrivateFrameworks/Apple80211.framework/Versions/Current/Resources/airport"
+  SUDOERS_ARGS="$SUDOERS_ARGS, $AIRPORT_CMD"
 fi
 
 SUDOERS_LINE="${USER_NAME} ALL = NOPASSWD: ${SUDOERS_ARGS}"
