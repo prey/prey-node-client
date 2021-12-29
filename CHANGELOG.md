@@ -1,6 +1,15 @@
 # Change Log
 
-## [v1.9.13](https://github.com/prey/prey-node-client/tree/v1.9.14) (2021-11-15)
+## [v1.9.15](https://github.com/prey/prey-node-client/tree/v1.9.15) (2021-12-30)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.9.14..v1.9.15)
+
+**Merged pull requests:**
+
+- Get os edition for windows 11[\#535](https://github.com/prey/prey-node-client/pull/535) ([JohaoRosasRosillo](https://github.com/JohaoRosasRosillo))
+- Fix callback issue on automations[\#538](https://github.com/prey/prey-node-client/pull/538) ([javo](https://github.com/javo))([JohaoRosasRosillo](https://github.com/JohaoRosasRosillo))
+
+
+## [v1.9.14](https://github.com/prey/prey-node-client/tree/v1.9.14) (2021-11-15)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.9.13..v1.9.14)
 
 **Merged pull requests:**
