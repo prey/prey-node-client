@@ -1,5 +1,12 @@
 # Change Log
 
+## [v1.9.16](https://github.com/prey/prey-node-client/tree/v1.9.16) (2022-01-04)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.9.15..v1.9.16)
+
+**Merged pull requests:**
+
+- Ask location with sudo on macOS Monterey[\#537](https://github.com/prey/prey-node-client/pull/537) ([javo](https://github.com/javo))
+
 ## [v1.9.15](https://github.com/prey/prey-node-client/tree/v1.9.15) (2021-12-30)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.9.14..v1.9.15)
 
