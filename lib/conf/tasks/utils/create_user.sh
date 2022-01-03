@@ -12,11 +12,11 @@ FULL_NAME="Prey Anti-Theft"
 
 SU_CMD=$(command -v su) || SU_CMD="/bin/su"
 
-# this means user will be able to run commands as other users except root
-SUDOERS_FILE="/etc/sudoers.d/50_${USER_NAME}_switcher"
+# With SUDOERS_FILE user will be able to run commands as other users except root
 SUDOERS_ARGS="${SU_CMD} [A-z]*, !${SU_CMD} root*, !${SU_CMD} -*"
 
 if [ "$(uname)" == "Linux" ]; then
+  SUDOERS_FILE="/etc/sudoers.d/50_${USER_NAME}_switcher"
   USERS_PATH="/home"
   [ -n "$(which dmidecode)" ] && SUDOERS_ARGS="$(which dmidecode), ${SUDOERS_ARGS}"
   [ -n "$(which iwlist)" ] && SUDOERS_ARGS="$(which iwlist), ${SUDOERS_ARGS}"
@@ -24,6 +24,7 @@ if [ "$(uname)" == "Linux" ]; then
   # also, since nologin path changes between linux distros, lets use /bin/false instead
   SHELL="/bin/false"
 else
+  SUDOERS_FILE="/etc/sudoers.d/51_${USER_NAME}_switcher" # New version for macOS
   USERS_PATH="/Users"
   SHELL="/sbin/nologin"
   AIRPORT_CMD="/System/Library/PrivateFrameworks/Apple80211.framework/Versions/Current/Resources/airport"
@@ -107,6 +108,11 @@ grant_privileges() {
   grep -q "^#includedir.*/etc/sudoers.d" /etc/sudoers || echo "#includedir /etc/sudoers.d" >> /etc/sudoers
 
   ( umask 226 && echo "${SUDOERS_LINE}" > "$SUDOERS_FILE" )
+
+  # Delete old sudoers file on macOS
+  if [ "$(uname)" == "Darwin" ]; then
+    rm -rf "/etc/sudoers.d/etc/sudoers.d/50_${USER_NAME}_switcher"
+  fi
 
 }
 
