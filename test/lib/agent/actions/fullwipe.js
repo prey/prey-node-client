@@ -1,27 +1,27 @@
-var helpers        = require('./../../../helpers'),
+var helpers        = require('../../../helpers'),
     os             = require('os'),
     should         = require('should'),
     sinon          = require('sinon'),
     join           = require('path').join,
     needle         = require('needle'),
+    child_p        = require('child_process'),
     lib_path       = helpers.lib_path(),
     commands       = helpers.load('commands'),
     tokens         = helpers.load('token'),
     sys_index_path = helpers.lib_path('system'),
     sys_index      = require(sys_index_path),
     sys_win        = require(join(sys_index_path, 'windows')),
-    factoryreset_path   = join(lib_path, 'agent', 'actions', 'factoryreset'),
-    factoryreset   = require(factoryreset_path),
-    api            = require('./../../../../lib/agent/plugins/control-panel/api');
-    
+    fullwipe_path   = join(lib_path, 'agent', 'actions', 'fullwipe'),
+    api            = require('./../../../../lib/agent/plugins/control-panel/api'),
+    fullwipe = require(fullwipe_path);
 
-describe('factoryreset', () => {
+describe('fullwipe', () => {
 
   describe('when os != windows', () => {
     var opts = {}
     var id ;
     it('returns an error', (done) => {
-      factoryreset.start(id,opts, (err, em) => {
+      fullwipe.start(id,opts, (err, em) => {
         should.exist(err);
         err.message.should.containEql('Action only allowed on Windows 1O');
         done();
@@ -46,7 +46,7 @@ describe('factoryreset', () => {
       var opts = undefined
       var id ;
       it('returns an error', (done) => {
-        factoryreset.start(id, opts, (err, em) => {
+        fullwipe.start(id, opts, (err, em) => {
           should.exist(err);
           err.message.should.containEql('The factory reset data is not valid');
           done();
@@ -60,13 +60,14 @@ describe('factoryreset', () => {
         
       describe('when the token is wrong', () => {
        var id = "123";
-        var opts = { token : "abc" , target : 'factoryreset'  }
+        var opts = { token : "abc" , target : 'fullwipewindows'  }
 
         beforeEach(function(){
           api.keys.set({ api: 'foobar', device : '12345' })
         })
 
         before(() => {
+          fullwipe.timeout = 0;
           sys_win.monitoring_service_go = false;
           check_token_service_stub = sinon.stub(needle, 'post').callsFake((url, data, opts, cb) => {
             return cb(new Error('There was an error communicating with the server api Token'))
@@ -78,7 +79,7 @@ describe('factoryreset', () => {
         })
 
         it('token error', (done) => {
-          factoryreset.start(id,opts, (err, em) => {
+          fullwipe.start(id,opts, (err, em) => {
               should.exist(err);
               err.message.should.containEql('There was an error communicating with the server api Token');
               done();
@@ -88,7 +89,7 @@ describe('factoryreset', () => {
 
      describe('when the service is available', () => {
 
-        var opts = { token : "abc" , target : 'factoryreset'  }
+        var opts = { token : "abc" , target : 'fullwipewindows'  }
         var id = "123"
 
         beforeEach(function(){
@@ -118,7 +119,7 @@ describe('factoryreset', () => {
           })
 
           it('notify error to the user and shouldnt ask for keys or status', (done) => {
-            factoryreset.start(id,opts, (err, em) => {
+            fullwipe.start(id,opts, (err, em) => {
               em.on('end', (id,err, out) => {
                 should.exist(err);
                 err.message.should.containEql('Socket hang up');
@@ -132,7 +133,7 @@ describe('factoryreset', () => {
 
 
         describe('when the action is successful', () => {
-          var body = '{"error":false, "output":{"error":false,"message":"SUCCESS: The scheduled task Prey Factory Reset has successfully been created","code":0}}'
+          var body = '{"error":false, "output":{"error":false,"message":"OK","code":0}}'
 
           before(() => {
             run_stub = sinon.stub(needle, 'post').callsFake((url, data, opts, cb) => {
@@ -144,16 +145,22 @@ describe('factoryreset', () => {
             run_stub_token = sinon.stub(tokens, 'post_token').callsFake((opts, cb) => {
               return cb(null)
             })
+            
+            stub_child_p = sinon.stub(child_p, 'exec').callsFake((cmd, cb) => {
+              cb(null,null,null);
+            })
+
           })
 
           after(() => {
             run_stub.restore();
             commands_stub.restore();
             run_stub_token.restore();
+            stub_child_p.restore();
           })
 
           it('notify success', (done) => {
-            factoryreset.start(id,opts, (err, em) => {
+            fullwipe.start(id,opts, (err, em) => {
               em.on('end', (id,err, out) => {
                 should.not.exist(err);
                 should.exist(out);
