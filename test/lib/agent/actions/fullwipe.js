@@ -55,8 +55,7 @@ describe('fullwipe', () => {
     })
 
     describe('reseting', () => {
-      var run_stub,
-        check_service_stub;
+      var run_stub;
         
       describe('when the token is wrong', () => {
        var id = "123";
@@ -128,9 +127,7 @@ describe('fullwipe', () => {
               })
             });
           })
-          
         })
-
 
         describe('when the action is successful', () => {
           var body = '{"error":false, "output":{"error":false,"message":"OK","code":0}}'
@@ -172,6 +169,5 @@ describe('fullwipe', () => {
         })
       })
     })
-
   });
 })

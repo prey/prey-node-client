@@ -127,9 +127,7 @@ describe('factoryreset', () => {
               })
             });
           })
-          
         })
-
 
         describe('when the action is successful', () => {
           var body = '{"error":false, "output":{"error":false,"message":"SUCCESS: The scheduled task Prey Factory Reset has successfully been created","code":0}}'
@@ -165,6 +163,5 @@ describe('factoryreset', () => {
         })
       })
     })
-
   });
 })
