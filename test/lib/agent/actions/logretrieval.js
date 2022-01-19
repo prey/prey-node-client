@@ -1,4 +1,5 @@
 var fs       = require('fs'),
+    os       = require('os'),
     join     = require('path').join, 
     should   = require('should'),
     sinon    = require('sinon'),
@@ -25,7 +26,11 @@ var etc_dir   = join(tmpdir(), 'etc'),
     log_file  = join(log_dir, 'prey.log'),
     conf_file = join(prey_dir, 'prey.conf'),
     comm_file = join(prey_dir, 'commands.db'),
-    rotated_log_file = join(prey_dir, 'prey.log.1.gz');
+    rotated_log_file    = join(prey_dir, 'prey.log.1.gz'),
+    winsvc_log_file     = join(prey_dir, 'winsvc.log'),
+    winsvc_updater_file = join(prey_dir, 'updater.log');
+
+const id = '1234';
 
 describe('Logretrieval', () => {
 
@@ -42,6 +47,8 @@ describe('Logretrieval', () => {
     fs.writeFileSync(conf_file, Buffer.from("Hi, I'm the prey.conf"));
     fs.writeFileSync(comm_file, Buffer.from("I store commands"));
     fs.writeFileSync(log_file, Buffer.from("And I'm the f***ing log"));
+    fs.writeFileSync(winsvc_log_file, Buffer.from("Admin service log!"));
+    fs.writeFileSync(winsvc_updater_file, Buffer.from("Updater log for win service"));
 
     // Simulate a rotated log zipped file.
     var output = fs.createWriteStream(rotated_log_file);
@@ -85,38 +92,83 @@ describe('Logretrieval', () => {
 
     describe('when the compression is successful', () => {
 
-      it('has all the files zipped', function(done) {
-        logretrieval.start(null,{}, (err, em) => {
+      describe('and the OS is not windows', () => {
 
-          em.once('end', (err) => {
-            should.not.exist(err);
-            fs.existsSync(logs_zip).should.be.true;
+        it('has all the files zipped except winsvc', function(done) {
+          logretrieval.start(id, {}, (err, em) => {
 
-            unzip(logs_zip, () => {
-              fs.existsSync(logs_dir).should.be.equal(true);
-              fs.existsSync(join(logs_dir, 'prey.log.1.gz')).should.be.equal(true);
-              fs.existsSync(join(logs_dir, 'prey.log')).should.be.equal(true);
-              fs.existsSync(join(logs_dir, 'prey.conf')).should.be.equal(true);
-              fs.existsSync(join(logs_dir, 'commands.db')).should.be.equal(true);
+            em.once('end', (id, err) => {
+              should.not.exist(err);
+              fs.existsSync(logs_zip).should.be.true;
 
-              // Check files content
-              fs.readFileSync(join(logs_dir, 'prey.log')).toString().should.containEql("And I'm the f***ing log");
-              fs.readFileSync(join(logs_dir, 'prey.conf')).toString().should.containEql("Hi, I'm the prey.conf");
-              fs.readFileSync(join(logs_dir, 'commands.db')).toString().should.containEql("I store commands");
-              
-              done();
+              unzip(logs_zip, () => {
+                fs.existsSync(logs_dir).should.be.equal(true);
+                fs.existsSync(join(logs_dir, 'prey.log.1.gz')).should.be.equal(true);
+                fs.existsSync(join(logs_dir, 'prey.log')).should.be.equal(true);
+                fs.existsSync(join(logs_dir, 'prey.conf')).should.be.equal(true);
+                fs.existsSync(join(logs_dir, 'commands.db')).should.be.equal(true);
+                fs.existsSync(join(logs_dir, 'winsvc.log')).should.be.equal(false);
+                fs.existsSync(join(logs_dir, 'updater.log')).should.be.equal(false);
+
+                // Check files content
+                fs.readFileSync(join(logs_dir, 'prey.log')).toString().should.containEql("And I'm the f***ing log");
+                fs.readFileSync(join(logs_dir, 'prey.conf')).toString().should.containEql("Hi, I'm the prey.conf");
+                fs.readFileSync(join(logs_dir, 'commands.db')).toString().should.containEql("I store commands");
+
+                done();
+              })
             })
-          })
+          });
         });
-      })
+      });
+
+      describe('and the OS is windows', () => {
+
+        var win_stub;
+        before(() => {
+          win_stub = sinon.stub(os, 'platform').callsFake(() => { return 'win32'; });
+        })
+
+        after(() => {
+          win_stub.restore();
+        })
+
+        it('has all the files zipped', function(done) {
+          logretrieval.start(id, {}, (err, em) => {
+            em.once('end', (id, err) => {
+              should.not.exist(err);
+              fs.existsSync(logs_zip).should.be.true;
+
+              unzip(logs_zip, () => {
+                fs.existsSync(logs_dir).should.be.equal(true);
+                fs.existsSync(join(logs_dir, 'prey.log.1.gz')).should.be.equal(true);
+                fs.existsSync(join(logs_dir, 'prey.log')).should.be.equal(true);
+                fs.existsSync(join(logs_dir, 'prey.conf')).should.be.equal(true);
+                fs.existsSync(join(logs_dir, 'commands.db')).should.be.equal(true);
+                fs.existsSync(join(logs_dir, 'winsvc.log')).should.be.equal(true);
+                fs.existsSync(join(logs_dir, 'updater.log')).should.be.equal(true);
+
+                // Check files content
+                fs.readFileSync(join(logs_dir, 'prey.log')).toString().should.containEql("And I'm the f***ing log");
+                fs.readFileSync(join(logs_dir, 'prey.conf')).toString().should.containEql("Hi, I'm the prey.conf");
+                fs.readFileSync(join(logs_dir, 'commands.db')).toString().should.containEql("I store commands");
+                fs.readFileSync(join(logs_dir, 'winsvc.log')).toString().should.containEql("Admin service log!");
+                fs.readFileSync(join(logs_dir, 'updater.log')).toString().should.containEql("Updater log for win service");
+
+                done();
+              })
+            })
+          });
+        });
+      });
     })
 
     describe('when the compression of one file fails', () => {
 
       it('compress the other files', (done) => {
         fs.chmod(conf_file, '0000', () => {
-          logretrieval.start(null,{}, (err, em) => {
-            em.once('end', (err) => {
+          logretrieval.start(id ,{}, (err, em) => {
+            em.once('end', (id, err) => {
               should.not.exist(err);
               fs.existsSync(logs_zip).should.be.true;
 
@@ -157,8 +209,8 @@ describe('Logretrieval', () => {
     describe('upload fails', () => {
 
       it('returns an error', (done) => {
-        logretrieval.start(null,{}, (err, em) => {
-          em.once('end', (err) => {
+        logretrieval.start(id, {}, (err, em) => {
+          em.once('end', (id, err) => {
             should.exist(err);
             err.message.should.be.equal("There was an error uploading logs file");
             done();
