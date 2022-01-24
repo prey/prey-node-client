@@ -30,6 +30,8 @@ var etc_dir   = join(tmpdir(), 'etc'),
     winsvc_log_file     = join(prey_dir, 'winsvc.log'),
     winsvc_updater_file = join(prey_dir, 'updater.log');
 
+logretrieval.tmpdir = prey_dir;
+
 const id = '1234';
 
 describe('Logretrieval', () => {
