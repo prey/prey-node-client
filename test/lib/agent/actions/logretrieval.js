@@ -129,11 +129,11 @@ describe('Logretrieval', () => {
         var win_stub;
         before(() => {
           win_stub = sinon.stub(os, 'platform').callsFake(() => { return 'win32'; });
-        })
+        });
 
         after(() => {
           win_stub.restore();
-        })
+        });
 
         it('has all the files zipped', function(done) {
           logretrieval.start(id, {}, (err, em) => {
@@ -163,7 +163,7 @@ describe('Logretrieval', () => {
           });
         });
       });
-    })
+    });
 
     describe('when the compression of one file fails', () => {
 
@@ -189,9 +189,9 @@ describe('Logretrieval', () => {
             });
           });
         });
-      })
-    })
-  })
+      });
+    });
+  });
 
   describe('upload request', () => {
 
