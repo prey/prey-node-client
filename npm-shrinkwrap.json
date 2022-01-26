@@ -1,7 +1,7 @@
 {
   "name": "prey",
-  "version": "1.9.16",
-  "lockfileVersion": 2,
+  "version": "1.9.17",
+  "lockfileVersion": 1,
   "requires": true,
   "packages": {
     "": {
