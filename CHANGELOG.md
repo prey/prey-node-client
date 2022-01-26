@@ -1,5 +1,17 @@
 # Change Log
 
+## [v1.9.17](https://github.com/prey/prey-node-client/tree/v1.9.17) (2022-01-31)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.9.16..v1.9.17)
+
+**Merged pull requests:**
+
+- Actions Factory Reset and Full Wipe[\#540](https://github.com/prey/prey-node-client/pull/540) ([JohaoRosasRosillo](https://github.com/JohaoRosasRosillo))
+- Unmute alarm on Ubuntu[\#542](https://github.com/prey/prey-node-client/pull/542) ([SoraKenji](https://github.com/SoraKenji))
+- Fix panel mac native accuracy location[\#544](https://github.com/prey/prey-node-client/pull/544) ([SoraKenji](https://github.com/SoraKenji))
+- Add windows service logs to logretrieval[\#545](https://github.com/prey/prey-node-client/pull/545) ([javo](https://github.com/javo))
+- Fix SSO for ubuntu installation[\#546](https://github.com/prey/prey-node-client/pull/546) ([SoraKenji](https://github.com/SoraKenji))
+- Fix geofencing callback error[\#547](https://github.com/prey/prey-node-client/pull/547) ([JohaoRosasRosillo](https://github.com/JohaoRosasRosillo))
+
 ## [v1.9.16](https://github.com/prey/prey-node-client/tree/v1.9.16) (2022-01-04)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.9.15..v1.9.16)
 
