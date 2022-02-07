@@ -1,5 +1,12 @@
 # Change Log
 
+## [v1.9.18](https://github.com/prey/prey-node-client/tree/v1.9.18) (2022-02-07)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.9.17..v1.9.18)
+
+**Merged pull requests:**
+
+- fix send information from service windows ( tpm_module, os_edition, winsvc_version, rp_module) to panel [\#551](https://github.com/prey/prey-node-client/pull/551) ([JohaoRosasRosillo](https://github.com/JohaoRosasRosillo))
+
 ## [v1.9.17](https://github.com/prey/prey-node-client/tree/v1.9.17) (2022-01-31)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.9.16..v1.9.17)
 
