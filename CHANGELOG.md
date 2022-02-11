@@ -1,5 +1,10 @@
 # Change Log
 
+## [v1.9.19](https://github.com/prey/prey-node-client/tree/v1.9.19) (2022-02-11)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.9.18..v1.9.19)
+
+**Merged pull requests:**
+
 ## [v1.9.18](https://github.com/prey/prey-node-client/tree/v1.9.18) (2022-02-07)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.9.17..v1.9.18)
 
