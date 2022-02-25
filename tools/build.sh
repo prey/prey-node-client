@@ -52,7 +52,7 @@ git_modified_files() {
 }
 
 check_node_version() {
-  EXPECTED_NODE_VER="10.20.1"
+  EXPECTED_NODE_VER="14.16.0"
   CURRENT_NODE_VER="$(./bin/node --version)"
   
   if [ "v${EXPECTED_NODE_VER}" != "$CURRENT_NODE_VER" ]; then
@@ -157,13 +157,15 @@ build() {
   read keypress
 
   zip_file
-  pack windows x86
-  pack linux x86
-  [ -n "$is_mac" ] && pack mac x86
 
-  pack windows x64
-  pack linux x64
+  [ -n "$is_mac" ] && pack mac x86
   [ -n "$is_mac" ] && pack mac x64
+
+  pack windows x86
+  pack windows x64
+
+  pack linux x86
+  pack linux x64
 
   cd $DIST
   # ./checksum.sh $VERSION
@@ -177,8 +179,19 @@ zip_file(){
   if [ -z "$OS" ]; then
     zip -9 -r "$ZIP" "$FOLDER" 1> /dev/null
   elif [ "$OS" = 'windows' ]; then
+    if [ "$ARCH" == "x86" ]; then
+      rm -rf "$FOLDER/node_modules/sqlite3/lib/binding/napi-v3-darwin-x64"
+      cp -R "$CURRENT_PATH/tools/sqlite3/windows/napi-v3-win32-ia32" "$FOLDER/node_modules/sqlite3/lib/binding/"
+      cp -R "$CURRENT_PATH/tools/sqlite3/windows/napi-v3-win32-x64" "$FOLDER/node_modules/sqlite3/lib/binding/"
+    fi
     zip -9 -r "$ZIP" "$FOLDER" -x \*.sh \*linux/* \*mac/* \*darwin/* 1> /dev/null
+
   elif [ "$OS" = 'mac' ]; then
+    if [ "$ARCH" == "x86" ]; then
+      rm -rf "$FOLDER/node_modules/sqlite3/lib/binding/napi-v3-darwin-x64"
+      cp -R "$CURRENT_PATH/tools/sqlite3/mac/napi-v3-darwin-x64" "$FOLDER/node_modules/sqlite3/lib/binding/"
+    fi
+
     # if [ -n "$is_mac" ]; then
     #   ditto -v -c -k --zlibCompressionLevel 9 --rsrc --extattr --noqtn --keepParent "$FOLDER" "$ZIP"
     # else
@@ -186,6 +199,11 @@ zip_file(){
     zip -9 -r "$ZIP" "$FOLDER" -x \*.cmd \*.exe \*.dll \*windows/* \*linux/* 1> /dev/null
     # fi
   elif [ "$OS" = 'linux' ]; then
+    if [ "$ARCH" == "x86" ]; then
+      rm -rf "$FOLDER/node_modules/sqlite3"
+      cp -R "$CURRENT_PATH/tools/sqlite3/linux/sqlite3" "$FOLDER/node_modules/"
+    fi
+
     zip -9 -r "$ZIP" "$FOLDER" -x \*.cmd \*.exe \*.dll \*windows/* \*mac/* \*darwin/* 1> /dev/null
   fi
 
