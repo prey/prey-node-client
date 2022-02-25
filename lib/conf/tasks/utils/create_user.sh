@@ -84,6 +84,7 @@ create_user() {
     [ -z "$USER_ID" ] && echo "Unable to get user id, cannot continue." && exit 1
 
     dscl . -create /Users/${USER_NAME}
+    dscl . -create /Users/${USER_NAME} IsHidden 1
     dscl . -create /Users/${USER_NAME} UserShell "${SHELL}"
     dscl . -create /Users/${USER_NAME} RealName "${FULL_NAME}"
     dscl . -create /Users/${USER_NAME} UniqueID "$USER_ID"
