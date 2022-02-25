@@ -241,9 +241,9 @@ pack(){
 
 }
 
-if [ "$(git_modified_files)" -gt 0 ]; then
-  abort "Tree contains changes. Please commit or stash to avoid losing data."
-fi
+# if [ "$(git_modified_files)" -gt 0 ]; then
+#   abort "Tree contains changes. Please commit or stash to avoid losing data."
+# fi
 
 # ensure node version matches the expected one
 check_node_version
@@ -251,9 +251,9 @@ check_node_version
 
 trap cleanup EXIT
 
-if [ -z "$SKIP_TESTS" ]; then
-  run_specs && build $1
-else
-  echo "Skipping tests. You cheatin'?"
-  build $1
-fi
+# if [ -z "$SKIP_TESTS" ]; then
+#   run_specs && build $1
+# else
+#   echo "Skipping tests. You cheatin'?"
+build $1
+# fi
