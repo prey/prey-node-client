@@ -200,11 +200,16 @@ zip_file(){
     # fi
   elif [ "$OS" = 'linux' ]; then
     if [ "$ARCH" == "x86" ]; then
+      unzip -q "$CURRENT_PATH/tools/sqlite3/linux/sqlite3.zip" -d "$CURRENT_PATH/tools/sqlite3/linux"
       rm -rf "$FOLDER/node_modules/sqlite3"
       cp -R "$CURRENT_PATH/tools/sqlite3/linux/sqlite3" "$FOLDER/node_modules/"
     fi
 
     zip -9 -r "$ZIP" "$FOLDER" -x \*.cmd \*.exe \*.dll \*windows/* \*mac/* \*darwin/* 1> /dev/null
+
+    if [ "$ARCH" == "x64" ]; then
+      rm -rf "$CURRENT_PATH/tools/sqlite3/linux/sqlite3"
+    fi
   fi
 
   mv "$ROOT/$ZIP" "$VERSION_PATH"
