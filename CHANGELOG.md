@@ -1,5 +1,16 @@
 # Change Log
 
+**Merged pull requests:**
+
+## [v1.9.20](https://github.com/prey/prey-node-client/tree/v1.9.20) (2022-02-25)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.9.19..v1.9.20)
+
+**Merged pull requests:**
+
+- lock improvement [\#557](https://github.com/prey/prey-node-client/pull/557) ([SoraKenji](https://github.com/SoraKenji))
+- Fix for sqlite3 files and signatures [\#556](https://github.com/prey/prey-node-client/pull/556) ([javo](https://github.com/javo))
+- add Is Hidden property to prey user [\#554](https://github.com/prey/prey-node-client/pull/554) ([JohaoRosasRosillo](https://github.com/JohaoRosasRosillo))
+
 ## [v1.9.19](https://github.com/prey/prey-node-client/tree/v1.9.19) (2022-02-11)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.9.18..v1.9.19)
 
