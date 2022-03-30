@@ -2,6 +2,16 @@
 
 **Merged pull requests:**
 
+## [v1.9.21](https://github.com/prey/prey-node-client/tree/v1.9.21) (2022-03-30)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.9.20..v1.9.21)
+
+**Merged pull requests:**
+
+- Fix lock errors/index.js import: Fixes an error by importing .../errors/index.js to lock index file [\#564](https://github.com/prey/prey-node-client/pull/564) ([SoraKenji](https://github.com/SoraKenji))
+- Wmic and custom wipe: Fixes a problem with WMIC commands, since newer Windows version doesnt admit WMIC commands anymore. Also fixes Custom Wipe not deleting files on MacOS systems [\#563](https://github.com/prey/prey-node-client/pull/563) ([JohaoRosasRosillo](https://github.com/JohaoRosasRosillo))
+
+**Merged pull requests:**
+
 ## [v1.9.20](https://github.com/prey/prey-node-client/tree/v1.9.20) (2022-02-25)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.9.19..v1.9.20)
 
