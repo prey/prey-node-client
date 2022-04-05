@@ -92,8 +92,7 @@
     "coverage": "istanbul cover _mocha -- lib/agent/plugins test --recursive",
     "postinstall": "./bin/prey config hooks post_install",
     "postupdate": "./bin/prey config hooks post_install",
-    "preuninstall": "./bin/prey config hooks pre_uninstall",
-    "docs": "./node_modules/jsdoc/jsdoc.js $PATH"
+    "preuninstall": "./bin/prey config hooks pre_uninstall"
   },
   "bugs": {
     "url": "http://github.com/prey/prey-node-client/issues"
