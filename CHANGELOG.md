@@ -9,6 +9,7 @@
 
 - Fix lock errors/index.js import: Fixes an error by importing .../errors/index.js to lock index file [\#564](https://github.com/prey/prey-node-client/pull/564) ([SoraKenji](https://github.com/SoraKenji))
 - Wmic and custom wipe: Fixes a problem with WMIC commands, since newer Windows version doesnt admit WMIC commands anymore. Also fixes Custom Wipe not deleting files on MacOS systems [\#563](https://github.com/prey/prey-node-client/pull/563) ([JohaoRosasRosillo](https://github.com/JohaoRosasRosillo))
+- Fix/loan exact time: Fixes errors when inserting data with unwanted characters in database [\#573] (https://github.com/prey/prey-node-client/pull/573)
 
 **Merged pull requests:**
 
