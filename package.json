@@ -1,6 +1,6 @@
 {
   "name": "prey",
-  "version": "1.9.22",
+  "version": "1.9.23",
   "author": "Client Engineering <client-eng@preyhq.com>",
   "keywords": [
     "prey",
@@ -61,6 +61,7 @@
     "tuna": "0.0.2",
     "uid-number": "0.0.5",
     "underscore": "^1.9.1",
+    "uuid": "^8.3.2",
     "whenever": "0.0.3",
     "wink": "0.0.1",
     "winssh": "",
@@ -68,6 +69,9 @@
     "xml2js": "0.4.19"
   },
   "devDependencies": {
+    "eslint": "^8.12.0",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-plugin-import": "^2.26.0",
     "mkdirp": "^0.5.1",
     "mocha": "^5.2.0",
     "mock-spawn": "^0.2.6",
