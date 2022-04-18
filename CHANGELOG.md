@@ -2,6 +2,23 @@
 
 **Merged pull requests:**
 
+## [v1.9.24](https://github.com/prey/prey-node-client/tree/v1.9.24) (2022-04-18)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.9.20..v1.9.24)
+
+**Merged pull requests:**
+
+- Fix storage when apostrophe [\#586](https://github.com/prey/prey-node-client/pull/586) ([SoraKenji](https://github.com/SoraKenji))
+- Send info location when api geo return error 429 [\#585](https://github.com/prey/prey-node-client/pull/585) ([JohaoRosasRosillo](https://github.com/JohaoRosasRosillo))
+- Fallback to systemInformation when wmic is disabled [\#584] (https://github.com/prey/prey-node-client/pull/584)
+- Fixes underscore module not found [\#583] (https://github.com/prey/prey-node-client/pull/583)
+- Fixes over get_access_point_network on windows.js [\#582] (https://github.com/prey/prey-node-client/pull/582)
+- fixes issues when winscv service is not available [\#580] (https://github.com/prey/prey-node-client/pull/582)
+- Fixes alert problem when message is not a string [\#578] (https://github.com/prey/prey-node-client/pull/578)
+
+## [v1.9.23](https://github.com/prey/prey-node-client/tree/v1.9.23) (2022-04-08)
+
+## [v1.9.22](https://github.com/prey/prey-node-client/tree/v1.9.22) (2022-04-08)
+
 ## [v1.9.21](https://github.com/prey/prey-node-client/tree/v1.9.21) (2022-03-30)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.9.20..v1.9.21)
 
