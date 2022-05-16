@@ -56,7 +56,7 @@
     "rimraf": "",
     "satan": "https://github.com/javo/satan.git#c6076a3f239e448e399e786a26248c37b5aba426",
     "semver": "^5.6.0",
-    "sqlite3": "5.0.2",
+    "sqlite3": "5.0.3",
     "sudoer": "https://github.com/javo/sudoer.git#8d5619a1acdd7d37fa688a7ea5c041cb5e3cb697",
     "systeminformation": "^5.9.17",
     "tuna": "0.0.2",
