@@ -2,13 +2,21 @@
 
 **Merged pull requests:**
 
-## [v1.10.1](https://github.com/prey/prey-node-client/tree/v1.10.0) (2022-06-01)
+
+## [v1.10.2](https://github.com/prey/prey-node-client/tree/v1.10.2) (2022-06-01)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.10.1..v1.10.2)
+
+**Merged pull requests:**
+
+- Send info to google in order signal strenght [\#622](https://github.com/prey/prey-node-client/pull/622) ([SoraKenji](https://github.com/SoraKenji))
+
+## [v1.10.1](https://github.com/prey/prey-node-client/tree/v1.10.1) (2022-06-01)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.10.0..v1.10.1)
 
 **Merged pull requests:**
 
 - Send info to google in order signal strenght [\#620](https://github.com/prey/prey-node-client/pull/620) ([JohaoRosasRosillo](https://github.com/JohaoRosasRosillo))
-- Fix to stored.length when stored is falsy [\#619] ([SoraKenji](https://github.com/prey/prey-node-client/pull/619s))
+- Fix to stored.length when stored is falsy [\#619](https://github.com/prey/prey-node-client/pull/619) ([SoraKenji](https://github.com/SoraKenji))
 
 ## [v1.10.0](https://github.com/prey/prey-node-client/tree/v1.10.0) (2022-05-16)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.9.24..v1.10.0)
@@ -17,11 +25,11 @@
 
 - Send keys and status info periodically to panel [\#594](https://github.com/prey/prey-node-client/pull/594) ([JohaoRosasRosillo](https://github.com/JohaoRosasRosillo))
 - Fix strategies geo [\#595](https://github.com/prey/prey-node-client/pull/595) ([JohaoRosasRosillo](https://github.com/JohaoRosasRosillo))
-- Fix reading last_connection [\#596] ([JohaoRosasRosillo](https://github.com/prey/prey-node-client/pull/596)
-- Send info control zone only when has zone control in panel [\#597] ([JohaoRosasRosillo](https://github.com/prey/prey-node-client/pull/597))
-- Changes over some callback undefined [\#601] ([SoraKenji](https://github.com/prey/prey-node-client/pull/601))
-- Websockets master [\#603] ([SoraKenji](https://github.com/prey/prey-node-client/pull/603))
-- Fix strategies geo [\#604] ([SoraKenji](https://github.com/prey/prey-node-client/pull/604))
+- Fix reading last_connection [\#596] ([JohaoRosasRosillo](https://github.com/JohaoRosasRosillo)
+- Send info control zone only when has zone control in panel [\#597](https://github.com/prey/prey-node-client/pull/597) ([JohaoRosasRosillo](https://github.com/JohaoRosasRosillo))
+- Changes over some callback undefined [\#601](https://github.com/prey/prey-node-client/pull/601) ([SoraKenji](https://github.com/SoraKenji))
+- Websockets master [\#603](https://github.com/prey/prey-node-client/pull/603) ([SoraKenji](https://github.com/SoraKenji))
+- Fix strategies geo [\#604](https://github.com/prey/prey-node-client/pull/604) ([SoraKenji](https://github.com/SoraKenji))
 
 ## [v1.9.24](https://github.com/prey/prey-node-client/tree/v1.9.24) (2022-04-18)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.9.20..v1.9.24)
