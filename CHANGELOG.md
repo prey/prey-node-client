@@ -2,6 +2,14 @@
 
 **Merged pull requests:**
 
+## [v1.10.1](https://github.com/prey/prey-node-client/tree/v1.10.0) (2022-06-01)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.10.0..v1.10.1)
+
+**Merged pull requests:**
+
+- Send info to google in order signal strenght [\#620](https://github.com/prey/prey-node-client/pull/620) ([JohaoRosasRosillo](https://github.com/JohaoRosasRosillo))
+- Fix to stored.length when stored is falsy [\#619] ([SoraKenji](https://github.com/prey/prey-node-client/pull/619s))
+
 ## [v1.10.0](https://github.com/prey/prey-node-client/tree/v1.10.0) (2022-05-16)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.9.24..v1.10.0)
 
