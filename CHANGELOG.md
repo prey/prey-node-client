@@ -1,8 +1,5 @@
 # Change Log
 
-**Merged pull requests:**
-
-
 ## [v1.10.2](https://github.com/prey/prey-node-client/tree/v1.10.2) (2022-06-01)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.10.1..v1.10.2)
 
@@ -25,7 +22,7 @@
 
 - Send keys and status info periodically to panel [\#594](https://github.com/prey/prey-node-client/pull/594) ([JohaoRosasRosillo](https://github.com/JohaoRosasRosillo))
 - Fix strategies geo [\#595](https://github.com/prey/prey-node-client/pull/595) ([JohaoRosasRosillo](https://github.com/JohaoRosasRosillo))
-- Fix reading last_connection [\#596] ([JohaoRosasRosillo](https://github.com/JohaoRosasRosillo)
+- Fix reading last_connection [\#596](https://github.com/prey/prey-node-client/pull/596) ([JohaoRosasRosillo](https://github.com/JohaoRosasRosillo))
 - Send info control zone only when has zone control in panel [\#597](https://github.com/prey/prey-node-client/pull/597) ([JohaoRosasRosillo](https://github.com/JohaoRosasRosillo))
 - Changes over some callback undefined [\#601](https://github.com/prey/prey-node-client/pull/601) ([SoraKenji](https://github.com/SoraKenji))
 - Websockets master [\#603](https://github.com/prey/prey-node-client/pull/603) ([SoraKenji](https://github.com/SoraKenji))
@@ -38,11 +35,11 @@
 
 - Fix storage when apostrophe [\#586](https://github.com/prey/prey-node-client/pull/586) ([SoraKenji](https://github.com/SoraKenji))
 - Send info location when api geo return error 429 [\#585](https://github.com/prey/prey-node-client/pull/585) ([JohaoRosasRosillo](https://github.com/JohaoRosasRosillo))
-- Fallback to systemInformation when wmic is disabled [\#584] (https://github.com/prey/prey-node-client/pull/584)
-- Fixes underscore module not found [\#583] (https://github.com/prey/prey-node-client/pull/583)
-- Fixes over get_access_point_network on windows.js [\#582] (https://github.com/prey/prey-node-client/pull/582)
-- fixes issues when winscv service is not available [\#580] (https://github.com/prey/prey-node-client/pull/582)
-- Fixes alert problem when message is not a string [\#578] (https://github.com/prey/prey-node-client/pull/578)
+- Fallback to systemInformation when wmic is disabled [\#584](https://github.com/prey/prey-node-client/pull/584) ([JohaoRosasRosillo](https://github.com/JohaoRosasRosillo))
+- Fixes underscore module not found [\#583] (https://github.com/prey/prey-node-client/pull/583) ([SoraKenji](https://github.com/SoraKenji))
+- Fixes over get_access_point_network on windows.js [\#582] (https://github.com/prey/prey-node-client/pull/582) ([SoraKenji](https://github.com/SoraKenji))
+- fixes issues when winscv service is not available [\#580] (https://github.com/prey/prey-node-client/pull/582) ([SoraKenji](https://github.com/SoraKenji))
+- Fixes alert problem when message is not a string [\#578] (https://github.com/prey/prey-node-client/pull/578) ([SoraKenji](https://github.com/SoraKenji))
 
 ## [v1.9.23](https://github.com/prey/prey-node-client/tree/v1.9.23) (2022-04-08)
 
