@@ -1,5 +1,13 @@
 # Change Log
 
+## [v1.10.3](https://github.com/prey/prey-node-client/tree/v1.10.2) (2022-06-06)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.10.2..v1.10.3)
+
+**Merged pull requests:**
+
+- Now triggers won't be sending information to actions endpoint [\#627](https://github.com/prey/prey-node-client/pull/627) ([SoraKenji](https://github.com/SoraKenji))
+- Fix connection's issues when sleep mode [\#629](https://github.com/prey/prey-node-client/pull/629) ([SoraKenji](https://github.com/SoraKenji))
+
 ## [v1.10.2](https://github.com/prey/prey-node-client/tree/v1.10.2) (2022-06-01)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.10.1..v1.10.2)
 
