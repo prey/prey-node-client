@@ -1,6 +1,15 @@
 # Change Log
 
-## [v1.10.3](https://github.com/prey/prey-node-client/tree/v1.10.2) (2022-06-06)
+
+## [v1.10.4](https://github.com/prey/prey-node-client/tree/v1.10.4) (2022-06-09)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.10.3..v1.10.4)
+
+**Merged pull requests:**
+
+- Fix triggers action [\#633](https://github.com/prey/prey-node-client/pull/633) ([patriciojofre](https://github.com/patriciojofre))
+- Load hooks after each connection [\#635](https://github.com/prey/prey-node-client/pull/635) ([SoraKenji](https://github.com/SoraKenji))
+
+## [v1.10.3](https://github.com/prey/prey-node-client/tree/v1.10.3) (2022-06-06)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.10.2..v1.10.3)
 
 **Merged pull requests:**
