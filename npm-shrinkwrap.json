@@ -6,7 +6,7 @@
   "packages": {
     "": {
       "name": "prey",
-      "version": "1.10.4",
+      "version": "1.10.5",
       "hasInstallScript": true,
       "os": [
         "linux",

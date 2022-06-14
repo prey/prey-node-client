@@ -1,5 +1,11 @@
 # Change Log
 
+## [v1.10.5](https://github.com/prey/prey-node-client/tree/v1.10.5) (2022-06-14)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.10.4..v1.10.5)
+
+**Merged pull requests:**
+
+- Now localserver gets created only at the beginning of the call. [\#638](https://github.com/prey/prey-node-client/pull/638) ([SoraKenji](https://github.com/SoraKenji))
 
 ## [v1.10.4](https://github.com/prey/prey-node-client/tree/v1.10.4) (2022-06-09)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.10.3..v1.10.4)
