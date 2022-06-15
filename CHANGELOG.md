@@ -1,5 +1,12 @@
 # Change Log
 
+## [v1.10.6](https://github.com/prey/prey-node-client/tree/v1.10.6) (2022-06-15)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.10.5..v1.10.6)
+
+**Merged pull requests:**
+
+- Fixed double connection issues when error/close websocket [\#640](https://github.com/prey/prey-node-client/pull/640) ([SoraKenji](https://github.com/SoraKenji))
+
 ## [v1.10.5](https://github.com/prey/prey-node-client/tree/v1.10.5) (2022-06-14)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.10.4..v1.10.5)
 
