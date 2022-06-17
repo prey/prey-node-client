@@ -1,5 +1,12 @@
 # Change Log
 
+## [v1.10.7](https://github.com/prey/prey-node-client/tree/v1.10.7) (2022-06-17)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.10.6..v1.10.7)
+
+**Merged pull requests:**
+
+- Fix when logged_user function get stucked [\#642](https://github.com/prey/prey-node-client/pull/642) ([SoraKenji](https://github.com/SoraKenji))
+
 ## [v1.10.6](https://github.com/prey/prey-node-client/tree/v1.10.6) (2022-06-15)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.10.5..v1.10.6)
 
