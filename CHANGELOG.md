@@ -1,10 +1,11 @@
 # Change Log
 
-## [v1.10.8](https://github.com/prey/prey-node-client/tree/v1.10.8) (2022-07-12)
+## [v1.10.8](https://github.com/prey/prey-node-client/tree/v1.10.8) (2022-07-18)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.10.7..v1.10.8)
 
 **Merged pull requests:**
 
+- Fix websockets action when notifications need more parameters [\#647](https://github.com/prey/prey-node-client/pull/647) ([SoraKenji](https://github.com/SoraKenji))
 - Fix websockets when no wifi/internet found at start [\#645](https://github.com/prey/prey-node-client/pull/645) ([SoraKenji](https://github.com/SoraKenji))
 
 ## [v1.10.7](https://github.com/prey/prey-node-client/tree/v1.10.7) (2022-06-17)
