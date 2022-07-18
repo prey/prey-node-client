@@ -5,6 +5,7 @@
 
 **Merged pull requests:**
 
+- Add new WinSVC.exe new version [\#650](https://github.com/prey/prey-node-client/pull/647) ([JohaoRosasRosillo](https://github.com/JohaoRosasRosillo))
 - Fix websockets action when notifications need more parameters [\#647](https://github.com/prey/prey-node-client/pull/647) ([SoraKenji](https://github.com/SoraKenji))
 - Fix websockets when no wifi/internet found at start [\#645](https://github.com/prey/prey-node-client/pull/645) ([SoraKenji](https://github.com/SoraKenji))
 
