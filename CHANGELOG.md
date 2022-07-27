@@ -1,5 +1,12 @@
 # Change Log
 
+## [v1.10.9](https://github.com/prey/prey-node-client/tree/v1.10.9) (2022-07-27)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.10.8..v1.10.9)
+
+**Merged pull requests:**
+
+- Fix websockets reconnection after internet connection is down. There were duplicated timers for notifying status. [\#653](https://github.com/prey/prey-node-client/pull/653) ([SoraKenji](https://github.com/SoraKenji))
+
 ## [v1.10.8](https://github.com/prey/prey-node-client/tree/v1.10.8) (2022-07-18)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.10.7..v1.10.8)
 
