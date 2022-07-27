@@ -1,12 +1,12 @@
 {
   "name": "prey",
-  "version": "1.10.8",
+  "version": "1.10.9",
   "lockfileVersion": 2,
   "requires": true,
   "packages": {
     "": {
       "name": "prey",
-      "version": "1.10.8",
+      "version": "1.10.9",
       "hasInstallScript": true,
       "os": [
         "linux",
