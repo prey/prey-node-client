@@ -1,5 +1,14 @@
 # Change Log
 
+## [v1.10.10](https://github.com/prey/prey-node-client/tree/v1.10.10) (2022-08-01)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.10.9..v1.10.10)
+
+**Merged pull requests:**
+
+- Fix issue when loading a folder without any files inside. File Retrieval. [\#652](https://github.com/prey/prey-node-client/pull/652) ([JohaoRosasRosillo](https://github.com/JohaoRosasRosillo))
+
+- Fix reconnection issue because of timer. [\#656](https://github.com/prey/prey-node-client/pull/656) ([SoraKenji](https://github.com/SoraKenji))
+
 ## [v1.10.9](https://github.com/prey/prey-node-client/tree/v1.10.9) (2022-07-27)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.10.8..v1.10.9)
 
