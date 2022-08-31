@@ -25,6 +25,14 @@ var helpers        = require('./../../../helpers'),
 
 
   describe('when os != windows', () => {
+    before(() => {
+      sys_index.os_name = "mac" 
+      platform_stub = sinon.stub(os, 'platform').callsFake(() => { return 'mac'; });
+    })
+
+    after(() => {
+      platform_stub.restore();
+    })
     it('returns an error', (done) => {
       control_panel.send_info_encrypt((err) => {
         should.exist(err);
