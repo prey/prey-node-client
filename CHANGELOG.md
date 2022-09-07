@@ -1,5 +1,16 @@
 # Change Log
 
+## [v1.10.11](https://github.com/prey/prey-node-client/tree/v1.10.11) (2022-09-07)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.10.10..v1.10.11)
+
+**Merged pull requests:**
+
+- Now application pings to websocket endpoint in order to not lose connection and handles the connection better. [\#665](https://github.com/prey/prey-node-client/pull/665) ([SoraKenji](https://github.com/SoraKenji))
+
+- Adds an XML file for settings in Factory Reset action. [\#664](https://github.com/prey/prey-node-client/pull/664) ([JohaoRosasRosillo](https://github.com/JohaoRosasRosillo))
+
+- Adds handler for new format of hardware information on Apple M1/M2 chipset. [\#660](https://github.com/prey/prey-node-client/pull/660) ([JohaoRosasRosillo](https://github.com/JohaoRosasRosillo))
+
 ## [v1.10.10](https://github.com/prey/prey-node-client/tree/v1.10.10) (2022-08-01)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.10.9..v1.10.10)
 
