@@ -5,6 +5,10 @@
 
 **Merged pull requests:**
 
+- New version WinSVC v2.0.10. [\#671](https://github.com/prey/prey-node-client/pull/671) ([JohaoRosasRosillo](https://github.com/JohaoRosasRosillo))
+
+- Fixs merged problems on websocket/index.js. [\#669](https://github.com/prey/prey-node-client/pull/669) ([SoraKenji](https://github.com/SoraKenji))
+
 - Now application pings to websocket endpoint in order to not lose connection and handles the connection better. [\#665](https://github.com/prey/prey-node-client/pull/665) ([SoraKenji](https://github.com/SoraKenji))
 
 - Adds an XML file for settings in Factory Reset action. [\#664](https://github.com/prey/prey-node-client/pull/664) ([JohaoRosasRosillo](https://github.com/JohaoRosasRosillo))
