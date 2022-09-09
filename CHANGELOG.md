@@ -5,6 +5,8 @@
 
 **Merged pull requests:**
 
+- Fixs a circular call on websocket/index.js when trying to clear intervals. [\#673](https://github.com/prey/prey-node-client/pull/673) ([SoraKenji](https://github.com/SoraKenji))
+
 - New version WinSVC v2.0.10. [\#671](https://github.com/prey/prey-node-client/pull/671) ([JohaoRosasRosillo](https://github.com/JohaoRosasRosillo))
 
 - Fixs merged problems on websocket/index.js. [\#669](https://github.com/prey/prey-node-client/pull/669) ([SoraKenji](https://github.com/SoraKenji))
