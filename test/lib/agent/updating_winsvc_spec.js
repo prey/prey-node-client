@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 var join           = require('path').join,
     helpers        = require(join('..', '..', 'helpers')),
     should         = require('should'),
@@ -7,10 +8,8 @@ var join           = require('path').join,
     sys_index      = require(sys_index_path),
     sys_win        = require(join(sys_index_path, 'windows')),
     os             = require('os'),
+    sending        = { count: 0 }
     updater        = require(helpers.lib_path('agent', 'updater'));
-
-
-var sending = { count: 0 }
 
 function startCheckUpdateWinsvc(number) {
   setInterval(function () {
@@ -29,6 +28,7 @@ describe('when os != windows', () => {
   after(() => {
     platform_stub.restore();
   })
+  
   it('returns an error', (done) => {
     updater.check_for_update_winsvc((err) => {
       should.exist(err);
@@ -148,8 +148,7 @@ describe('when os is windows', () => {
 
     it('should return 2.0.0', (done) => {
       updater.check_for_update_winsvc((err) => {
-        should.exist(err);
-        err.message.should.containEql('service_version_stable is updated,2.0.2');
+        should.not.exist(err);
         done();
       });
     })
