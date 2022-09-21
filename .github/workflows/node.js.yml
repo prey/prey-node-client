@@ -15,4 +15,4 @@ jobs:
 
     steps:
     # - run: npm install
-    - run: node_modules/mocha/bin/mocha test
+    - run: npm test
