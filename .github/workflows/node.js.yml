@@ -5,7 +5,8 @@ on: push
 jobs:
   build:
 
-    runs-on: ubuntu-latest
+    # runs-on: ubuntu-latest
+    runs-on: macos-latest
 
     strategy:
       matrix:
@@ -24,7 +25,6 @@ jobs:
           git config --global url."https://github.com/".insteadOf
           ssh://git@github.com/
       - run: npm ci
-      - run: npm run build --if-present
       # - run: node_modules/mocha/bin/mocha test/lib/agent/index.js
       - run: node_modules/mocha/bin/mocha
 
