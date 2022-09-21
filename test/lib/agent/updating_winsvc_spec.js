@@ -7,16 +7,11 @@ var join           = require('path').join,
     sys_index      = require(sys_index_path),
     sys_win        = require(join(sys_index_path, 'windows')),
     os             = require('os'),
-    control_panel  = require(helpers.lib_path('agent', 'plugins', 'control-panel', 'index')),
-    system = require(join(helpers.lib_path(), 'common')).system,
-    updater       = require(helpers.lib_path('agent', 'updater'));
-
-
+    updater        = require(helpers.lib_path('agent', 'updater'));
 
 
     var sending = { count: 0 }
-
-
+    
   function startCheckUpdateWinsvc(number){
        setInterval(function() {
           sending.count += number;
@@ -110,34 +105,6 @@ describe('updater winsvc', function() {
         });
       })
     })
-
-     describe('when get_winsvc_version is less or iqual to 1.1.0', () => {
-
-        var get_winsvc_version_1_2_0_stub;
-        var get_stable_version_winsvc;
-        before(() => {
-            get_winsvc_version_1_2_0_stub = sinon.stub(sys_win, 'get_winsvc_version').callsFake((cb) => {
-            cb(null,"1.1.0");
-          });
-          get_stable_version_winsvc = sinon.stub(updater, 'get_stable_version_winsvc').callsFake((cb) => {
-            cb(null,"2.0.9");
-          });
-          
-        })
-  
-        after(() => {
-            get_winsvc_version_1_2_0_stub.restore();
-            get_stable_version_winsvc.restore();
-        })
-  
-        it('should return 1.1.0', (done) => {
-          updater.check_for_update_winsvc((err) => {
-            should.exist(err);
-            err.message.should.containEql('Error to get winsvc version, version is less than 1.2.0');
-            done();
-          });
-        })
-      })
 
       describe('when get_stable_version_winsvc return error', () => {
 
