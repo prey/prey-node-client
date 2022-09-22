@@ -5,7 +5,7 @@ var helpers     = require('./../../../helpers'),
     tmpdir      = require('os').tmpdir,
     lib_path    = helpers.lib_path(),
     geof_path   = join(lib_path, 'agent', 'actions', 'geofencing'),
-    api_path    = join(lib_path, 'agent', 'plugins', 'control-panel', 'api');
+    api_path    = join(lib_path, 'agent', 'plugins', 'control-panel', 'api'),
     geofencing  = require(geof_path),
     request     = require(join(api_path, 'request')),
     push        = require(join(api_path, 'push')),
@@ -131,7 +131,7 @@ var fences4 = [
     notifications_out: true }
 ];
 
-var fences5 = [];
+var fences_empty = [];
 
 describe('geofencing', function() {
 
@@ -416,53 +416,45 @@ describe('geofencing', function() {
             done();
           })
         })
+      })
 
-        describe('and theres no fences now', function() {
-          before(function() {
-            push_stub = sinon.stub(push, 'response').callsFake((data, opts, cb) => {
-              push_data = data
-              return true;
-            });
+      describe('and theres no fences now', function() {
+        before(function() {
+          push_stub = sinon.stub(push, 'response').callsFake((data, opts, cb) => {
+            return true;
+          });
 
-            spy_sync = sinon.spy(geofencing, 'sync');
-            spy_store = sinon.spy(storage.storage_fns, 'set');
-            spy_del = sinon.spy(storage.storage_fns, 'del');
+          spy_sync = sinon.spy(geofencing, 'sync');
+          spy_store = sinon.spy(storage.storage_fns, 'set');
+          spy_del = sinon.spy(storage.storage_fns, 'del');
 
-            get_stub = sinon.stub(request, 'get').callsFake((uri, opts, cb) => {
-              return cb(null, {body: fences5});
-            });
-          })
-
-          after(function() {
-            push_stub.restore();
-            spy_sync.restore();
-            spy_store.restore();
-            spy_del.restore();
-            get_stub.restore();
-          })
-
-          it('call sync and stores the new zones', function(done) {
-            storage.do('all', {type: 'geofences'}, (err, rows) => {
-              rows.length.should.be.equal(2);  // from last test
-              geofencing.start(id, {}, function() {
-                spy_sync.calledOnce.should.be.equal(true);
-                geofencing.watching.length.should.be.equal(0);
-
-                storage.do('all', {type: 'geofences'}, (err, rows) => {
-                  rows.length.should.be.equal(0);
-                  done();
-                });
-              })
-            });
-          })
-
-          it('does notify to control panel', function(done) {
-            push_data.reason.should.exist;
-            push_data.reason.should.be.equal('[]')
-            done();
-          })
+          get_stub = sinon.stub(request, 'get').callsFake((uri, opts, cb) => {
+            return cb(null, {body: []});
+          });
         })
 
+        after(function() {
+          push_stub.restore();
+          spy_sync.restore();
+          spy_store.restore();
+          spy_del.restore();
+          get_stub.restore();
+        })
+
+        it('call sync and stores the new zones 2', function(done) {
+          storage.do('all', {type: 'geofences'}, (err, rows) => {
+            rows.length.should.be.equal(2);  // from last test
+            geofencing.start(id, {}, function() {
+              spy_sync.calledOnce.should.be.equal(true);
+              geofencing.watching.length.should.be.equal(0);
+
+              storage.do('all', {type: 'geofences'}, (err, rows) => {
+                rows.length.should.be.equal(2);
+                done();
+              });
+            })
+          });
+        })
       })
 
     })
