@@ -3,7 +3,7 @@ var helpers          = require('./../../../helpers'),
     should           = require('should'),
     sinon            = require('sinon'),
     join             = require('path').join,
-    hooks            = helpers.load('hooks');
+    hooks            = helpers.load('hooks'),
     lib_path         = helpers.lib_path(),
     triggers_path    = join(lib_path, 'agent', 'actions', 'triggers'),
     triggers         = require(triggers_path),
@@ -29,19 +29,21 @@ describe('triggers', () => {
       actions_start_stub;
 
   before((done) => {
-    keys_present_stub = sinon.stub(keys, 'present').callsFake(() => { return true; })
-    keys_get_stub = sinon.stub(keys, 'get').callsFake(() => { return { api: 'aaaaaaaaaa', device: 'bbbbbb' } })
+    
+    keys.set({ api: 'xxxxxxxxx', device: 'foobar' })
     push_stub = sinon.stub(push, 'response').callsFake(() => { return; })
     post_stub = sinon.stub(request, 'post').callsFake(() => { return; })
+    keys_get_stub = sinon.stub(keys, 'get').callsFake(() => { return { api: 'aaaaaaaaaa', device: 'bbbbbb' } })
+    keys_present_stub = sinon.stub(keys, 'present').callsFake(() => { return true; })
     actions_start_stub = sinon.stub(actions, 'start').callsFake(() => { return true; })
     storage.init('triggers', tmpdir() + '/test.db', done);
   })
 
   after((done) => {
-    keys_present_stub.restore();
-    keys_get_stub.restore();
     post_stub.restore();
     push_stub.restore();
+    keys_present_stub.restore();
+    keys_get_stub.restore();
     actions_start_stub.restore();
     storage.do('clear', {type: 'triggers'}, () => {
       storage.erase(tmpdir() + '/test.db', done);
@@ -66,7 +68,7 @@ describe('triggers', () => {
         get_stub.restore();
       })
 
-      describe('and triggers tables does not exists', () => {
+     describe('and triggers tables does not exists', () => {
         before((done) => {
           spy_sync = sinon.spy(triggers, 'sync');
           spy_get_local = sinon.spy(storage.storage_fns, 'all');
@@ -88,7 +90,7 @@ describe('triggers', () => {
 
       describe('and triggers table exists', () => {
 
-        describe('and when there is no data in the local database', () => {
+       describe('and when there is no data in the local database', () => {
           
           before((done) => {
             spy_sync = sinon.spy(triggers, 'sync');
@@ -181,6 +183,8 @@ describe('triggers', () => {
             new_date = 1918330449000;
             setTimeout(() => { triggers.start(id, {}, done) }, 500)
             clock = sinon.useFakeTimers(new_date);
+
+
           })
 
           after(() => {
@@ -220,7 +224,7 @@ describe('triggers', () => {
           })
         })
 
-        describe('and it has repeat_time triggers', () => {
+       describe('and it has repeat_time triggers', () => {
           var clock;
 
           before((done) => {
