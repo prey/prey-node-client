@@ -215,7 +215,7 @@ describe('hardware', function(){
 
         it('shouldnt edit the local database', (done) => {
           storage.do('all', {type: 'keys'}, (err, rows) => {
-            provider.track_hardware_changes(stored_data[0]);
+            provider.track_hardware_changes(dummy_data1);
             setTimeout(() => {
               spy_store.callCount.should.be.equal(0);
               spy_del.callCount.should.be.equal(0);
@@ -274,10 +274,13 @@ describe('hardware', function(){
             spy_del.restore();
           })
 
-          it('replace the stored data', (done) => {
+          it('replace the stored data3', (done) => {
             provider.track_hardware_changes(dummy_data2);
             setTimeout(() => {
               storage.do('all', {type: 'keys'}, (err, rows) => {
+
+                //console.log("dummy data :",dummy_data2.network_interfaces_list)
+                //console.log("network data :",JSON.parse(rows[0].value).network_interfaces_list)
                 JSON.parse(rows[0].value).network_interfaces_list.length.should.be.equal(1);
                 spy_store.callCount.should.be.equal(1);
                 spy_del.callCount.should.be.equal(1);
