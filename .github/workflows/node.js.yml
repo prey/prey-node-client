@@ -6,7 +6,8 @@ jobs:
   build:
 
     #runs-on: ubuntu-latest
-    runs-on: macos-latest it works, in ubuntu it generates a lot of errors
+    runs-on: macos-latest
+    #runs-on: macos-latest it works, in ubuntu it generates a lot of errors
 
     strategy:
       matrix:
