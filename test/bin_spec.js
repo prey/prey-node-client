@@ -18,22 +18,31 @@ if (is_windows) {
 }
 
 function run_bin_prey(args, cb) {
+  console.log("bin_prey:",bin_prey)
+  console.log("args:",args)
   var child = spawn(bin_prey, args, { env: exec_env });
+
   var out = '', err = '';
 
   child.stdout.on('data', function(data){
+  //console.log("child on:",data)
+  console.log("child on:")
+
     out += data;
   })
 
   child.stderr.on('data', function(data){
+  console.log("child stderr:",data)
     err += data;
   })
 
   child.on('exit', function(code){
+  console.log("child code:",code)
     cb(code, out, err)
   })
 
   setTimeout(function(){
+  console.log("child kill:")
     child.kill()
   }, 1500);
 }
@@ -42,6 +51,8 @@ describe('bin/prey', function(){
 
   before(function(done) {
     exec('"' + node_bin + '" -v', function(err, out) {
+      console.log("bide bin err: ",err)
+      console.log("bide bin out: ",out)
       if (!err) node_versions.local = out.toString().trim();
       done();
     })
@@ -61,6 +72,9 @@ describe('bin/prey', function(){
 
       it('uses local node binary', function(done){
         run_bin_prey(['-N'], function(code, out, err) {
+          console.log("run_bin_prey code:",code)
+          console.log("run_bin_prey out:",out)
+          console.log("run_bin_prey err:",err)
           code.should.equal(0);
           out.should.containEql(node_versions.local);
           done();
@@ -73,7 +87,7 @@ describe('bin/prey', function(){
   // To test params, we create a fake node bin so we can capture
   // the arguments with which it is called.
   // We also set the PATH variable to that dir, to make sure it's called
-
+/*
   describe('params', function(){
 
     describe('when called -h param', function(){
@@ -117,5 +131,5 @@ describe('bin/prey', function(){
     });
 
   });
-
+*/
 });
