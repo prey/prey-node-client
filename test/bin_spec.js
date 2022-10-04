@@ -18,10 +18,8 @@ if (is_windows) {
 }
 
 function run_bin_prey(args, cb) {
-  console.log("bin_prey:",bin_prey)
-  console.log("args:",args)
+  //console.log("exec_env:",exec_env)
   var child = spawn(bin_prey, args, { env: exec_env });
-
   var out = '', err = '';
 
   child.stdout.on('data', function(data){
