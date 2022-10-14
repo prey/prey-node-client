@@ -12,10 +12,31 @@ var helpers        = require('./../../../helpers'),
     sys_win        = require(join(sys_index_path, 'windows')),
     factoryreset_path   = join(lib_path, 'agent', 'actions', 'factoryreset'),
     factoryreset   = require(factoryreset_path),
-    api            = require('./../../../../lib/agent/plugins/control-panel/api');
-    
+    api            = require('./../../../../lib/agent/plugins/control-panel/api'),
+    system         = require('./../../../../lib/system'),
+    fs             = require('fs');
 
 describe('factoryreset', () => {
+
+
+  let directory_factory_reset = join(
+    system.paths.current,
+      'lib',
+      'agent',
+      'actions',
+      'factoryreset',
+      'bin'
+    ),
+      file_factory_reset_xml = join(directory_factory_reset, 'FactoryReset.xml');
+
+  after(() => {
+    fs.unlink(file_factory_reset_xml, (err) => {
+      if (err) {
+        console.error(err)
+        return
+      }
+    })
+  })
 
   describe('when os != windows', () => {
     var opts = {}
@@ -151,6 +172,7 @@ describe('factoryreset', () => {
           })
 
           it('notify success', (done) => {
+
             factoryreset.start(id,opts, (err, em) => {
               em.on('end', (id,err, out) => {
                 should.not.exist(err);

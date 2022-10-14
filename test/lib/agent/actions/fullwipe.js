@@ -48,7 +48,7 @@ describe('fullwipe', () => {
       it('returns an error', (done) => {
         fullwipe.start(id, opts, (err, em) => {
           should.exist(err);
-          err.message.should.containEql('The factory reset data is not valid');
+          err.message.should.containEql('The fullwipe data is not valid');
           done();
         })
       })
