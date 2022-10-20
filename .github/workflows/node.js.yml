@@ -1,31 +1,31 @@
-name: Node.js CI
+#name: Node.js CI
 
-on: push
+#on: push
 
-jobs:
-  build:
+#jobs:
+#  build:
 
-    #runs-on: ubuntu-latest
-    runs-on: macos-latest
-    #runs-on: macos-latest it works, in ubuntu it generates a lot of errors
+#    #runs-on: ubuntu-latest
+#    runs-on: macos-latest
+#    #runs-on: macos-latest it works, in ubuntu it generates a lot of errors
 
-    strategy:
-      matrix:
-        # node-version: [14.x, 16.x, 18.x]
-        node-version: [14.x]
-        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
-
-    steps:
-      - uses: actions/checkout@v3
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
-        with:
-          node-version: ${{ matrix.node-version }}
-      - name: Reconfigure git to use HTTP authentication
-        run: >
-          git config --global url."https://github.com/".insteadOf
-          ssh://git@github.com/
-      - run: npm ci
-      # - run: node_modules/mocha/bin/mocha test/lib/agent/index.js
-      - run: node_modules/mocha/bin/mocha
+#    strategy:
+#      matrix:
+#        # node-version: [14.x, 16.x, 18.x]
+#        node-version: [14.x]
+#        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
+#
+#    steps:
+#      - uses: actions/checkout@v3
+#      - name: Use Node.js ${{ matrix.node-version }}
+#        uses: actions/setup-node@v3
+#        with:
+#          node-version: ${{ matrix.node-version }}
+#      - name: Reconfigure git to use HTTP authentication
+#        run: >
+#          git config --global url."https://github.com/".insteadOf
+#          ssh://git@github.com/
+#      - run: npm ci
+#      # - run: node_modules/mocha/bin/mocha test/lib/agent/index.js
+#      - run: node_modules/mocha/bin/mocha
 
