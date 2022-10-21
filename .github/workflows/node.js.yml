@@ -27,5 +27,5 @@ jobs:
           ssh://git@github.com/
       - run: npm ci
       # - run: node_modules/mocha/bin/mocha test/lib/agent/index.js
-      - run: node_modules/mocha/bin/mocha
+      - run: npm test
 
