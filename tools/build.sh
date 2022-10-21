@@ -53,6 +53,11 @@ git_modified_files() {
 
 check_node_version() {
   EXPECTED_NODE_VER="14.16.0"
+
+  if uname -p = "arm"; then
+    EXPECTED_NODE_VER="16.17.1"
+  fi
+
   CURRENT_NODE_VER="$(./bin/node --version)"
   
   if [ "v${EXPECTED_NODE_VER}" != "$CURRENT_NODE_VER" ]; then
