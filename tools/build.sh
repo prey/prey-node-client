@@ -118,7 +118,8 @@ build() {
   [ -z "$(does_tag_exist v${VERSION})" ] && abort "Tag not found: v${VERSION}"
 
   CURRENT_BRANCH=$(get_current_branch)
-  git checkout v${VERSION}
+  # TODO: uncomment line below
+  # git checkout v${VERSION}
 
   DIST="$(pwd)/builds"
   ROOT="/tmp/prey-build.$$"
@@ -135,6 +136,8 @@ build() {
   cp -R npm-shrinkwrap.json README.md license.txt prey.conf.default package.json bin lib "$ROOT/$FOLDER"
   cd "$ROOT/$FOLDER"
 
+  # https://github.com/TryGhost/node-sqlite3/issues/1552#issuecomment-1073309408
+  npm config set python python3
   BUNDLE_ONLY=1 npm install --production # > /dev/null
   if [ $? -ne 0 ]; then
     abort "NPM install failed."
@@ -165,6 +168,7 @@ build() {
 
   [ -n "$is_mac" ] && pack mac x86
   [ -n "$is_mac" ] && pack mac x64
+  [ -n "$is_mac" ] && pack mac arm
 
   pack windows x86
   pack windows x64
