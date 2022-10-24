@@ -32,7 +32,7 @@
         "linus": "https://github.com/javo/linus.git#ebf4e2ba2e84364acb190c33a548591b9bfc666c",
         "memorize": "0.0.1",
         "mime": "https://registry.npmjs.org/mime/-/mime-1.2.5.tgz",
-        "needle": "^0.8.1",
+        "needle": "3.1.0",
         "network": "https://github.com/JohaoRosasRosillo/network.git",
         "node-jsencrypt": "1.0.0",
         "node-schedule": "1.3.2",
@@ -3187,22 +3187,27 @@
       "dev": true
     },
     "node_modules/needle": {
-      "version": "0.8.2",
+      "version": "3.1.0",
+      "resolved": "https://registry.npmjs.org/needle/-/needle-3.1.0.tgz",
+      "integrity": "sha512-gCE9weDhjVGCRqS8dwDR/D3GTAeyXLXuqp7I8EzH6DllZGXSUyxuqqLh+YX9rMAWaaTFyVAg6rHGL25dqvczKw==",
       "dependencies": {
-        "iconv-lite": "^0.4.4"
+        "debug": "^3.2.6",
+        "iconv-lite": "^0.6.3",
+        "sax": "^1.2.4"
       },
       "bin": {
         "needle": "bin/needle"
       },
       "engines": {
-        "node": ">= 0.10.x"
+        "node": ">= 4.4.x"
       }
     },
     "node_modules/needle/node_modules/iconv-lite": {
-      "version": "0.4.24",
-      "license": "MIT",
+      "version": "0.6.3",
+      "resolved": "https://registry.npmjs.org/iconv-lite/-/iconv-lite-0.6.3.tgz",
+      "integrity": "sha512-4fCk79wshMdzMp2rH06qWrJE4iolqLhCUH+OiuIgU++RB0+94NlDL81atO7GX55uUKueo0txHNtvEyI6D7WdMw==",
       "dependencies": {
-        "safer-buffer": ">= 2.1.2 < 3"
+        "safer-buffer": ">= 2.1.2 < 3.0.0"
       },
       "engines": {
         "node": ">=0.10.0"
@@ -3244,32 +3249,6 @@
       },
       "engines": {
         "node": ">= 0.6.x"
-      }
-    },
-    "node_modules/network/node_modules/iconv-lite": {
-      "version": "0.4.24",
-      "license": "MIT",
-      "dependencies": {
-        "safer-buffer": ">= 2.1.2 < 3"
-      },
-      "engines": {
-        "node": ">=0.10.0"
-      }
-    },
-    "node_modules/network/node_modules/needle": {
-      "version": "3.0.0",
-      "resolved": "https://registry.npmjs.org/needle/-/needle-3.0.0.tgz",
-      "integrity": "sha512-eGr0qnfHxAjr+Eptl1zr2lgUQUPC1SZfTkg2kFi0kxr1ChJonHUVYobkug8siBKMlyUVVp56MSkp6CSeXH/jgw==",
-      "dependencies": {
-        "debug": "^3.2.6",
-        "iconv-lite": "^0.4.4",
-        "sax": "^1.2.4"
-      },
-      "bin": {
-        "needle": "bin/needle"
-      },
-      "engines": {
-        "node": ">= 4.4.x"
       }
     },
     "node_modules/network/node_modules/wmic": {
@@ -7205,15 +7184,21 @@
       "dev": true
     },
     "needle": {
-      "version": "0.8.2",
+      "version": "3.1.0",
+      "resolved": "https://registry.npmjs.org/needle/-/needle-3.1.0.tgz",
+      "integrity": "sha512-gCE9weDhjVGCRqS8dwDR/D3GTAeyXLXuqp7I8EzH6DllZGXSUyxuqqLh+YX9rMAWaaTFyVAg6rHGL25dqvczKw==",
       "requires": {
-        "iconv-lite": "^0.4.4"
+        "debug": "^3.2.6",
+        "iconv-lite": "^0.6.3",
+        "sax": "^1.2.4"
       },
       "dependencies": {
         "iconv-lite": {
-          "version": "0.4.24",
+          "version": "0.6.3",
+          "resolved": "https://registry.npmjs.org/iconv-lite/-/iconv-lite-0.6.3.tgz",
+          "integrity": "sha512-4fCk79wshMdzMp2rH06qWrJE4iolqLhCUH+OiuIgU++RB0+94NlDL81atO7GX55uUKueo0txHNtvEyI6D7WdMw==",
           "requires": {
-            "safer-buffer": ">= 2.1.2 < 3"
+            "safer-buffer": ">= 2.1.2 < 3.0.0"
           }
         }
       }
@@ -7242,22 +7227,6 @@
           "version": "2.9.0",
           "requires": {
             "graceful-readlink": ">= 1.0.0"
-          }
-        },
-        "iconv-lite": {
-          "version": "0.4.24",
-          "requires": {
-            "safer-buffer": ">= 2.1.2 < 3"
-          }
-        },
-        "needle": {
-          "version": "3.0.0",
-          "resolved": "https://registry.npmjs.org/needle/-/needle-3.0.0.tgz",
-          "integrity": "sha512-eGr0qnfHxAjr+Eptl1zr2lgUQUPC1SZfTkg2kFi0kxr1ChJonHUVYobkug8siBKMlyUVVp56MSkp6CSeXH/jgw==",
-          "requires": {
-            "debug": "^3.2.6",
-            "iconv-lite": "^0.4.4",
-            "sax": "^1.2.4"
           }
         },
         "wmic": {

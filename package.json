@@ -43,7 +43,7 @@
     "linus": "https://github.com/javo/linus.git#ebf4e2ba2e84364acb190c33a548591b9bfc666c",
     "memorize": "0.0.1",
     "mime": "https://registry.npmjs.org/mime/-/mime-1.2.5.tgz",
-    "needle": "^0.8.1",
+    "needle": "3.1.0",
     "network": "https://github.com/JohaoRosasRosillo/network.git",
     "node-jsencrypt": "1.0.0",
     "node-schedule": "1.3.2",
