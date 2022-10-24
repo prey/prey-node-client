@@ -5,6 +5,14 @@
 
 **Merged pull requests:**
 
+- Fix multiple entrance prey user permissions. [\#681](https://github.com/prey/prey-node-client/pull/681) ([SoraKenji](https://github.com/SoraKenji))
+
+- Adds auth to HTTP geo call [\#680](https://github.com/prey/prey-node-client/pull/680) ([JohaoRosasRosillo](https://github.com/JohaoRosasRosillo))
+
+- New action to call update WinSVC to update Prey service. [\#678](https://github.com/prey/prey-node-client/pull/678) ([JohaoRosasRosillo](https://github.com/JohaoRosasRosillo))
+git
+- Updated new WinSVC with new feature. Now it can update Prey services per request. [\#676](https://github.com/prey/prey-node-client/pull/676) ([JohaoRosasRosillo](https://github.com/JohaoRosasRosillo))
+
 - Fixs a circular call on websocket/index.js when trying to clear intervals. [\#673](https://github.com/prey/prey-node-client/pull/673) ([SoraKenji](https://github.com/SoraKenji))
 
 - New version WinSVC v2.0.10. [\#671](https://github.com/prey/prey-node-client/pull/671) ([JohaoRosasRosillo](https://github.com/JohaoRosasRosillo))
