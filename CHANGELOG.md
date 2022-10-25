@@ -5,6 +5,10 @@
 
 **Merged pull requests:**
 
+- Remove console logs. [\#687](https://github.com/prey/prey-node-client/pull/687) ([JohaoRosasRosillo](https://github.com/JohaoRosasRosillo))
+
+- Fix variable to update WinSVC so it's only on Windows. [\#686](https://github.com/prey/prey-node-client/pull/686) ([JohaoRosasRosillo](https://github.com/JohaoRosasRosillo))
+
 - Fix multiple entrance prey user permissions. [\#681](https://github.com/prey/prey-node-client/pull/681) ([SoraKenji](https://github.com/SoraKenji))
 
 - Adds auth to HTTP geo call [\#680](https://github.com/prey/prey-node-client/pull/680) ([JohaoRosasRosillo](https://github.com/JohaoRosasRosillo))
