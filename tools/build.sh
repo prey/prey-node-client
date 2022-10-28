@@ -195,6 +195,10 @@ zip_file(){
       rm -rf "$FOLDER/node_modules/sqlite3/lib/binding/napi-v3-darwin-x64"
       cp -R "$CURRENT_PATH/tools/sqlite3/mac/napi-v3-darwin-x64" "$FOLDER/node_modules/sqlite3/lib/binding/"
     fi
+    if [ "$ARCH" == "arm64" ]; then
+      rm -rf "$FOLDER/node_modules/sqlite3/lib/binding/napi-v6-darwin-unknown-arm64"
+      cp -R "$CURRENT_PATH/tools/sqlite3/mac/napi-v6-darwin-unknown-arm64" "$FOLDER/node_modules/sqlite3/lib/binding/"
+    fi
 
     # if [ -n "$is_mac" ]; then
     #   ditto -v -c -k --zlibCompressionLevel 9 --rsrc --extattr --noqtn --keepParent "$FOLDER" "$ZIP"
