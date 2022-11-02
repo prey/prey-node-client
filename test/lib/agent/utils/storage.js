@@ -32,7 +32,8 @@
        storage.erase(path, () => {
          rmdir(dir_path, done);
        });
-     });     it('returns an error when the directory is unaccesible', (done) => {
+     });     
+     it('returns an error when the directory is unaccesible', (done) => {
        fs.chmod(dir_path, '0000', () => {
          storage.init(null, path, (err, db) => {
            should.exist(err);
@@ -95,10 +96,10 @@
            target: 'alert',
            options: { message: 'hey!' },
          };
-         storage.init('commands', tmpdir() + '/commands.db', done);
+         storage.init('commands', tmpdir() + '/commands1.db', done);
        });       
        after((done) => {
-         storage.erase(tmpdir() + '/commands.db', done);
+         storage.erase(tmpdir() + '/commands1.db', done);
        });       
        it('store the command', (done) => {
          storage.do('set', { type: 'commands', id: id, data: data }, (err) => {
