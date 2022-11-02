@@ -76,7 +76,8 @@
          });
        });
      });
-   });   describe('data management into db', () => {
+   });   
+   /*describe('data management into db', () => {
      describe('on commands', () => {
        var id, data;       before((done) => {
          id = uuidv4();
@@ -165,7 +166,8 @@
          });
        });
      });
-   });   describe('store geofencing', () => {
+   });   */
+   /*describe('store geofencing', () => {
      before(function (done) {
        storage.init('geofences', tmpdir() + '/bar.db', done);
      });     it('store the zone', (done) => {
@@ -190,9 +192,12 @@
          }
        );
      });
-   });   describe('store files', () => {});   describe('verify', () => {
+   });   */
+   describe('store files', () => {});   
+   /*describe('verify', () => {
      describe('validate if exist id', () => {
-       var id, data;       before((done) => {
+       var id, data;       
+       before((done) => {
          id = uuidv4();
          // encryption.status[tmpdir() + '/commands.db'] = null;
          storage.init('commands', tmpdir() + '/commands_new.db', done);
@@ -211,37 +216,8 @@
          );
        });
      });
-   });
-   //   {
-   //     "trigger-2005":{
-   //        "id":2005,
-   //        "name":"oeoe",
-   //        "synced_at":1592498417316,
-   //        "last_exec":null,
-   //  "automation_events":[
-   //     {
-   //        "type":"exact_time",
-   //        "info":{
-   //           "date":"20200618154100"
-   //        }
-   //     }
-   //  ],
-   //  "automation_actions":[
-   //     {
-   //        "action":{
-   //           "command":"start",
-   //           "target":"alert",
-   //           "options":{
-   //              "alert_message":"This device has been currently marked as lost."
-   //           }
-   //        },
-   //        "delay":0
-   //     }
-   //  ]
-   //     }
-   //  }   // [{"action":{"command":"start","target":"alert","options":{"alert_message":"This device has been currently marked as lost."}},"delay":0}]
-   // [{"type":"exact_time","info":{"date":"20200618154100"}}]   describe('store triggers', () => {
-     before(function (done) {
+   });*/
+   /*  before(function (done) {
        storage.init('triggers', tmpdir() + '/bar.db', done);
      });
      it('store the trigger', (done) => {
@@ -270,8 +246,9 @@
          // storage.set('triggers', id, data, () => {
          done();
        });
-     });
-   });   describe('store keys', () => {
+     });*/
+   });  
+    /*describe('store keys', () => {
      before(function (done) {
        storage.init('geofences', tmpdir() + '/bar.db', done);
      });
@@ -289,7 +266,8 @@
          }
        );
      });
-   });   describe('recover data from old db', () => {
+   });   */
+   /*describe('recover data from old db', () => {
      var path, db;
      before((done) => {
        // creating and old storage db and adding it some dummy data.
@@ -425,4 +403,4 @@
          });
        });
      });
-   });
+   });*/
