@@ -5,6 +5,8 @@
 
 **Merged pull requests:**
 
+- Fix callback when sending encrypt information. [\#691](https://github.com/prey/prey-node-client/pull/691) ([JohaoRosasRosillo](https://github.com/JohaoRosasRosillo))
+
 - Remove console logs. [\#687](https://github.com/prey/prey-node-client/pull/687) ([JohaoRosasRosillo](https://github.com/JohaoRosasRosillo))
 
 - Fix variable to update WinSVC so it's only on Windows. [\#686](https://github.com/prey/prey-node-client/pull/686) ([JohaoRosasRosillo](https://github.com/JohaoRosasRosillo))
