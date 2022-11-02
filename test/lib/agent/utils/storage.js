@@ -77,7 +77,7 @@
        });
      });
    });   
-   /*describe('data management into db', () => {
+   describe('data management into db', () => {
      describe('on commands', () => {
        var id, data;       before((done) => {
          id = uuidv4();
@@ -166,7 +166,7 @@
          });
        });
      });
-   });   */
+   }); 
    /*describe('store geofencing', () => {
      before(function (done) {
        storage.init('geofences', tmpdir() + '/bar.db', done);
