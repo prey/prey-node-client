@@ -96,15 +96,13 @@
            target: 'alert',
            options: { message: 'hey!' },
          };
-         storage.init('commands', tmpdir() + '/commands1.db', done);
+         storage.init('commands', tmpdir() + '/commands.db', done);
        });       
        after((done) => {
-         storage.erase(tmpdir() + '/commands1.db', done);
+         storage.erase(tmpdir() + '/commands.db', done);
        });       
        it('store the command', (done) => {
-         storage.do('set', { type: 'commands', id: id, data: data }, (err) => {
-          done()
-         });
+         done()
        });       
        /*it('can read the data by id', (done) => {
          storage.do(
