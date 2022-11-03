@@ -105,6 +105,7 @@
         console.log('before storage')
          storage.do('set', { type: 'commands', id: id, data: data }, (err) => {
         console.log('after storage')
+        console.log('after storage err',err)
 
            should.not.exist(err);
            storage.do('all', { type: 'commands' }, (err, out) => {
@@ -114,7 +115,7 @@
              out[0].started.should.be.equal('NULL');
              done();
            });
-         });
+         },true);
        });       
        /*it('can read the data by id', (done) => {
          storage.do(
