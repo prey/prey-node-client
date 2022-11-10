@@ -19,7 +19,6 @@ describe('hardware', function(){
         done();
       });
     });
-
   });
 
   describe('network_interfaces_list', function() {
