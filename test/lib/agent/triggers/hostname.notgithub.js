@@ -2,14 +2,14 @@ var should   = require('should'),
     sinon    = require('sinon'),
     join     = require('path').join,
     tmpdir   = require('os').tmpdir,
-    helpers  = require('./../../../helpers'),
+    helpers  = require('../../../helpers'),
     cp       = require('child_process'),
     hostname = helpers.load('triggers/hostname'),
     lib_path = helpers.lib_path(),
     api_path = join(lib_path, 'agent', 'plugins', 'control-panel', 'api');
     api      = require(api_path),
     request  = require(join(api_path, 'request')),
-    storage  = require('./../../../../lib/agent/utils/storage'),
+    storage  = require('../../../../lib/agent/utils/storage'),
     hooks    = helpers.load('hooks');
 
 var opts = {};

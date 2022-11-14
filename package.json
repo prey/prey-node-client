@@ -94,7 +94,7 @@
   },
   "scripts": {
     "start": "./bin/prey",
-    "test": "./bin/prey test lib/agent/plugins test --recursive --reporter dot --timeout 10000",
+    "test": "./bin/prey test lib/agent/plugins test --recursive --reporter dot --timeout 10000 --exclude **/*.notgithub.js",
     "coverage": "istanbul cover _mocha -- lib/agent/plugins test --recursive",
     "postinstall": "./bin/prey config hooks post_install",
     "postupdate": "./bin/prey config hooks post_install",

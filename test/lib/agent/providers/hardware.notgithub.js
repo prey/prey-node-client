@@ -1,6 +1,6 @@
 var join        = require('path').join,
     tmpdir      = require('os').tmpdir,
-    helpers     = require('./../../../helpers'),
+    helpers     = require('../../../helpers'),
     sinon       = require('sinon'),
     should      = require('should'),
     lib_path    = helpers.lib_path(),

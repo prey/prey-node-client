@@ -1,4 +1,4 @@
-var helpers          = require('./../../../helpers'),
+var helpers          = require('../../../helpers'),
     tmpdir           = require('os').tmpdir,
     should           = require('should'),
     sinon            = require('sinon'),
