@@ -7,8 +7,9 @@ fi
 
 cwd=$(pwd)
 node_path="$cwd/node"
-base_url="http://nodejs.org/dist"
+base_url="http://nodejs.org/download"
 
+# TODO: replace SHASUMS.txt with the new url in order to get the latest version.
 get_latest_version(){
   local url="${base_url}/latest/SHASUMS.txt"
   curl -s $url | grep "node-v" | head -1 | sed "s/.*node-v\([^\-]*\)-.*/\1/"
@@ -21,7 +22,8 @@ fetch_tar(){
   local dest="$4"
 
   local file="${dir}.tar.gz"
-  local url="${base_url}/v${version}/${file}"
+  # local url="${base_url}/v${version}/${file}"
+  local url="${base_url}/release/v${version}/${file}"
 
   local target_dir="${dest}/${dir}"
   local target_file="${dest}/${file}"
@@ -31,10 +33,12 @@ fetch_tar(){
   fi
 
   echo "Fetching ${url}..."
-  curl "$url" -o "$target_file"
+  curl -L -o "$target_file" "$url" 
   [ $? -ne 0 ] && return 1
 
-  tar -zvxf ${target_file} -C ${dest}
+  # TODO: handle exceptions here
+  tar -zvxf ${target_file} -C ${dest} 2> /dev/null
+
   mv ${target_dir}/bin/node ${dest}/node.${os}
 
   rm -Rf ${target_file}
@@ -63,16 +67,17 @@ fetch(){
 
   local path86="${node_path}/${version}/x86"
   local path64="${node_path}/${version}/x64"
+  local patharm64="${node_path}/${version}/arm64"
 
   [ -d "$path86" ] && echo "Version exists: ${version}" && return 1
 
   mkdir -p "$path86" 2> /dev/null
   mkdir -p "$path64" 2> /dev/null
+  mkdir -p "$patharm64" 2> /dev/null
 
-  fetch_tar $version "mac" "node-v${version}-darwin-x86" "$path86"
   fetch_tar $version "mac" "node-v${version}-darwin-x64" "$path64"
+  fetch_tar $version "mac" "node-v${version}-darwin-arm64" "$patharm64"
 
-  fetch_tar $version "linux" "node-v${version}-linux-x86" "$path86"
   fetch_tar $version "linux" "node-v${version}-linux-x64" "$path64"
 
   fetch_exe $version "node.exe" "$path86"
@@ -87,7 +92,7 @@ set_version(){
   [ ! -d "node/${version}" ] && echo "Version not found: ${version}" && return 1
 
   echo "Symlinking version ${version}."
-  [[ "$(uname -m)" =~ '64' ]] && type='x64' || type='x86'
+  [[ "$(uname -m)" =~ 'arm64' ]] && type='arm64' || type='x64'
   [ "$(uname)" == 'Linux' ] && os='linux' || os='mac'
 
   echo "Arch: $type"  

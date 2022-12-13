@@ -52,7 +52,8 @@ git_modified_files() {
 }
 
 check_node_version() {
-  EXPECTED_NODE_VER="14.16.0"
+  EXPECTED_NODE_VER="16.18.0"
+
   CURRENT_NODE_VER="$(./bin/node --version)"
   
   if [ "v${EXPECTED_NODE_VER}" != "$CURRENT_NODE_VER" ]; then
@@ -113,7 +114,8 @@ build() {
   [ -z "$(does_tag_exist v${VERSION})" ] && abort "Tag not found: v${VERSION}"
 
   CURRENT_BRANCH=$(get_current_branch)
-  git checkout v${VERSION}
+  # TODO: uncomment line below
+  # git checkout v${VERSION}
 
   DIST="$(pwd)/builds"
   ROOT="/tmp/prey-build.$$"
@@ -130,6 +132,9 @@ build() {
   cp -R npm-shrinkwrap.json README.md license.txt prey.conf.default package.json bin lib "$ROOT/$FOLDER"
   cd "$ROOT/$FOLDER"
 
+  # https://github.com/TryGhost/node-sqlite3/issues/1552#issuecomment-1073309408
+  npm config set python python3
+  
   BUNDLE_ONLY=1 npm install --production # > /dev/null
   if [ $? -ne 0 ]; then
     abort "NPM install failed."
@@ -158,13 +163,12 @@ build() {
 
   zip_file
 
-  [ -n "$is_mac" ] && pack mac x86
   [ -n "$is_mac" ] && pack mac x64
+  [ -n "$is_mac" ] && pack mac arm64
 
   pack windows x86
   pack windows x64
 
-  pack linux x86
   pack linux x64
 
   cd $DIST
@@ -187,9 +191,19 @@ zip_file(){
     zip -9 -r "$ZIP" "$FOLDER" -x \*.sh \*linux/* \*mac/* \*darwin/* 1> /dev/null
 
   elif [ "$OS" = 'mac' ]; then
+    if [ "$ARCH" == "x64" ]; then
+      rm -rf "$FOLDER/node_modules/sqlite3/lib/binding/napi-v3-darwin-x64"
+      rm -rf "$FOLDER/node_modules/sqlite3/lib/binding/napi-v6-darwin-unknown-arm64"
+      cp -R "$CURRENT_PATH/tools/sqlite3/mac/napi-v6-darwin-unknown-x64" "$FOLDER/node_modules/sqlite3/lib/binding/"
+    fi
     if [ "$ARCH" == "x86" ]; then
       rm -rf "$FOLDER/node_modules/sqlite3/lib/binding/napi-v3-darwin-x64"
-      cp -R "$CURRENT_PATH/tools/sqlite3/mac/napi-v3-darwin-x64" "$FOLDER/node_modules/sqlite3/lib/binding/"
+      rm -rf "$FOLDER/node_modules/sqlite3/lib/binding/napi-v6-darwin-unknown-arm64"
+      cp -R "$CURRENT_PATH/tools/sqlite3/mac/napi-v6-darwin-unknown-x64" "$FOLDER/node_modules/sqlite3/lib/binding/"
+    fi
+    if [ "$ARCH" == "arm64" ]; then
+      rm -rf "$FOLDER/node_modules/sqlite3/lib/binding/napi-v6-darwin-unknown-arm64"
+      cp -R "$CURRENT_PATH/tools/sqlite3/mac/napi-v6-darwin-unknown-arm64" "$FOLDER/node_modules/sqlite3/lib/binding/"
     fi
 
     # if [ -n "$is_mac" ]; then
@@ -222,13 +236,16 @@ pack(){
   ARCH="$2"
   ZIP="prey-${OS}-${VERSION}-${ARCH}.zip"
 
-  NODE_VER=$(readlink ${CURRENT_PATH}/node/current | tr "\/" " " | awk '{print $(NF-1)}')
-  [ -z "${NODE_VER}" ] && return 1
+  NODE_AGENT_VER=$(readlink ${CURRENT_PATH}/node/current | tr "\/" " " | awk '{print $(NF-1)}')
+  if [ -z "${NODE_AGENT_VER}" ]; then 
+    echo -e "node is not present in current ${CURRENT_PATH}/node/current"
+    return 1
+  fi
 
   NODE_BIN="node.${OS}"
   [ "$OS" = "windows" ] && NODE_BIN="node.exe"
 
-  cp "$CURRENT_PATH/node/${NODE_VER}/${ARCH}/${NODE_BIN}" "${ROOT}/${FOLDER}/bin"
+  cp "$CURRENT_PATH/node/${NODE_AGENT_VER}/${ARCH}/${NODE_BIN}" "${ROOT}/${FOLDER}/bin"
 
   if [ "$OS" != "windows" ]; then
     mv "${ROOT}/${FOLDER}/bin/node.${OS}" "${ROOT}/${FOLDER}/bin/node"
@@ -241,19 +258,26 @@ pack(){
 
 }
 
-if [ "$(git_modified_files)" -gt 0 ]; then
-  abort "Tree contains changes. Please commit or stash to avoid losing data."
-fi
+# TODO: uncomment the line below
+# if [ "$(git_modified_files)" -gt 0 ]; then
+#   abort "Tree contains changes. Please commit or stash to avoid losing data."
+# fi
 
 # ensure node version matches the expected one
 check_node_version
-[ -n "$is_mac" ] && check_code_signatures
+
+# TODO: verify signature is returning permission denied
+# [ -n "$is_mac" ] && check_code_signatures
 
 trap cleanup EXIT
 
-if [ -z "$SKIP_TESTS" ]; then
-  run_specs && build $1
-else
-  echo "Skipping tests. You cheatin'?"
-  build $1
-fi
+# TODO: uncomment line below
+# if [ -z "$SKIP_TESTS" ]; then
+#   run_specs && build $1
+# else
+#   echo "Skipping tests. You cheatin'?"
+#   build $1
+# fi
+
+# TODO: remove this line. just for testing
+build $1
