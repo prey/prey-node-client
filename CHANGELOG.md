@@ -1,5 +1,16 @@
 # Change Log
 
+## [v1.11.0](https://github.com/prey/prey-node-client/tree/v1.11.0) (2022-12-14)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.10.11..v1.11.0)
+
+**Merged pull requests:**
+
+- New version WinSVC 2.0.11. Improved autoupdate [\#696](https://github.com/prey/prey-node-client/pull/696) ([SoraKenji](https://github.com/SoraKenji))
+
+- Fixed comparation between old and new hardware information. [\#685](https://github.com/prey/prey-node-client/pull/695) ([JohaoRosasRosillo](https://github.com/JohaoRosasRosillo))
+
+- Added arm64 native support [\#688](https://github.com/prey/prey-node-client/pull/688) ([SoraKenji](https://github.com/SoraKenji)) ([patriciojofre](https://github.com/patriciojofre))
+
 ## [v1.10.11](https://github.com/prey/prey-node-client/tree/v1.10.11) (2022-09-07)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.10.10..v1.10.11)
 
