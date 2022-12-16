@@ -185,8 +185,8 @@ zip_file(){
   elif [ "$OS" = 'windows' ]; then
     if [ "$ARCH" == "x86" ]; then
       rm -rf "$FOLDER/node_modules/sqlite3/lib/binding/napi-v3-darwin-x64"
-      cp -R "$CURRENT_PATH/tools/sqlite3/windows/napi-v3-win32-ia32" "$FOLDER/node_modules/sqlite3/lib/binding/"
-      cp -R "$CURRENT_PATH/tools/sqlite3/windows/napi-v3-win32-x64" "$FOLDER/node_modules/sqlite3/lib/binding/"
+      cp -R "$CURRENT_PATH/tools/sqlite3/windows/napi-v6-win32-unknown-ia32" "$FOLDER/node_modules/sqlite3/lib/binding/"
+      cp -R "$CURRENT_PATH/tools/sqlite3/windows/napi-v6-win32-unknown-x64" "$FOLDER/node_modules/sqlite3/lib/binding/"
     fi
     zip -9 -r "$ZIP" "$FOLDER" -x \*.sh \*linux/* \*mac/* \*darwin/* 1> /dev/null
 
@@ -214,15 +214,17 @@ zip_file(){
     # fi
   elif [ "$OS" = 'linux' ]; then
     if [ "$ARCH" == "x86" ]; then
-      unzip -q "$CURRENT_PATH/tools/sqlite3/linux/sqlite3.zip" -d "$CURRENT_PATH/tools/sqlite3/linux"
-      rm -rf "$FOLDER/node_modules/sqlite3"
-      cp -R "$CURRENT_PATH/tools/sqlite3/linux/sqlite3" "$FOLDER/node_modules/"
+      # unzip -q "$CURRENT_PATH/tools/sqlite3/linux/sqlite3.zip" -d "$CURRENT_PATH/tools/sqlite3/linux"
+      # rm -rf "$FOLDER/node_modules/sqlite3"
+      # cp -R "$CURRENT_PATH/tools/sqlite3/linux/sqlite3" "$FOLDER/node_modules/"
+      cp -R "$CURRENT_PATH/tools/sqlite3/linux/napi-v6-linux-glibc-x64" "$FOLDER/node_modules/sqlite3/lib/binding/"
     fi
 
     zip -9 -r "$ZIP" "$FOLDER" -x \*.cmd \*.exe \*.dll \*windows/* \*mac/* \*darwin/* 1> /dev/null
 
     if [ "$ARCH" == "x64" ]; then
-      rm -rf "$CURRENT_PATH/tools/sqlite3/linux/sqlite3"
+      # rm -rf "$CURRENT_PATH/tools/sqlite3/linux/sqlite3"
+      cp -R "$CURRENT_PATH/tools/sqlite3/linux/napi-v6-linux-glibc-x64" "$FOLDER/node_modules/sqlite3/lib/binding/"
     fi
   fi
 
