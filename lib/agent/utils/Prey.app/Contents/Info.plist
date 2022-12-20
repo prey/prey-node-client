@@ -52,9 +52,5 @@
 	<string>MainView</string>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
-	<key>com.apple.security.automation.apple-events</key>
-	<true/>
-	<key>com.apple.security.device.camera</key>
-	<string>Prey utilizes the device's camera to take pictures when you request evidence reports.</string>
 </dict>
 </plist>
