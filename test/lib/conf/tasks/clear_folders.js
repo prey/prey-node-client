@@ -1,15 +1,14 @@
-var helpers = require('./../../../helpers'),
-    should = require('should'),
-    sinon = require('sinon'),
-    fs = require('fs'),
-    join = require('path').join,
-    tmpdir = require('os').tmpdir,
-    common = require('../../../../lib/common'),
-    module_path = helpers.lib_path('conf', 'tasks', 'clear_folders'),
+var helpers       = require('./../../../helpers'),
+    should        = require('should'),
+    sinon         = require('sinon'),
+    fs            = require('fs'),
+    join          = require('path').join,
+    tmpdir        = require('os').tmpdir,
+    common        = require('../../../../lib/common'),
+    module_path   = helpers.lib_path('conf', 'tasks', 'clear_folders'),
     clear_folders = require(module_path);
 
 describe('Remove old folders version', () => {
-
 
     describe('When dont have access to folder', () => {
 
