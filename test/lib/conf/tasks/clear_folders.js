@@ -47,31 +47,7 @@ describe('Remove old folders version', () => {
             });
         })
 
-        it('Should remove old folders', (done) => {
-            clear_folders.start((err, obj) => {
-                should.exist(err);
-                err.message.should.containEql('Not folders to delete');
-                done();
-            });
-        });
-    })
-
-    describe('When length folders to delete is zero', () => {
-
-        let dir_path = join(tmpdir(), 'versions1'),
-            path4 = join(dir_path, '1.10.11');
-
-        before((done) => {
-            fs.mkdir(dir_path, function () {
-                fs.mkdir(path4, function () {
-                    common.system.paths.versions = dir_path;
-                    common.version = "1.10.11";
-                    done()
-                });
-            });
-        })
-
-        it('Should remove old folders', (done) => {
+        it('Should return error , not folders to delete', (done) => {
             clear_folders.start((err, obj) => {
                 should.exist(err);
                 err.message.should.containEql('Not folders to delete');
