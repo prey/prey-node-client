@@ -49,7 +49,6 @@ describe('Remove old folders version', () => {
 
         it('Should return not folders to delete', (done) => {
             clear_folders.start((err, obj) => {
-                console.log("1.......",err)
                 should.not.exist(err);
                 done();
             });
