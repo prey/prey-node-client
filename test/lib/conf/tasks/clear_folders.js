@@ -47,10 +47,10 @@ describe('Remove old folders version', () => {
             });
         })
 
-        it('Should return error , not folders to delete', (done) => {
+        it('Should return not folders to delete', (done) => {
             clear_folders.start((err, obj) => {
-                should.exist(err);
-                err.message.should.containEql('Not folders to delete');
+                console.log("1.......",err)
+                should.not.exist(err);
                 done();
             });
         });
