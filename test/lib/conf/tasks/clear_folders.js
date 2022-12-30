@@ -24,7 +24,7 @@ describe('Remove old folders version', () => {
         })
 
         it('Should return error ', (done) => {
-            clear_folders.start((err, obj) => {
+            clear_folders.start((err) => {
                 should.exist(err);
                 err.message.should.containEql('permission denied');
                 done();
@@ -48,7 +48,7 @@ describe('Remove old folders version', () => {
         })
 
         it('Should return not folders to delete', (done) => {
-            clear_folders.start((err, obj) => {
+            clear_folders.start((err) => {
                 should.not.exist(err);
                 done();
             });
