@@ -1,5 +1,14 @@
 # Change Log
 
+## [v1.11.0](https://github.com/prey/prey-node-client/tree/v1.11.1) (2023-03-07)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.11.0..v1.11.1)
+
+**Merged pull requests:**
+
+- Fixes issue with automations only retrieving data when Prey Client in initialize[\#718](https://github.com/prey/prey-node-client/pull/718) ([SoraKenji](https://github.com/SoraKenji))
+
+- Now on when uninstalling, it deletes Prey folder on Windows. This will only work with the new installer and forward so if Prey auto update from older version, this won't work.  This change is related to Prey-client-distribution repository ([SoraKenji](https://github.com/SoraKenji))
+
 ## [v1.11.0](https://github.com/prey/prey-node-client/tree/v1.11.0) (2022-12-14)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.10.11..v1.11.0)
 
