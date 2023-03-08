@@ -5,7 +5,9 @@
 
 **Merged pull requests:**
 
-- Fixes issue with automations only retrieving data when Prey Client in initialize[\#718](https://github.com/prey/prey-node-client/pull/718) ([SoraKenji](https://github.com/SoraKenji))
+- Fixes issue with automations only retrieving data when Prey Client in initialize [\#718](https://github.com/prey/prey-node-client/pull/718) ([SoraKenji](https://github.com/SoraKenji))
+
+- Fixes an issue when updating to newer version on Windows [\#722](https://github.com/prey/prey-node-client/pull/722) ([SoraKenji](https://github.com/SoraKenji))
 
 - Now on when uninstalling, it deletes Prey folder on Windows. This will only work with the new installer and forward so if Prey auto update from older version, this won't work.  This change is related to Prey-client-distribution repository ([SoraKenji](https://github.com/SoraKenji))
 
