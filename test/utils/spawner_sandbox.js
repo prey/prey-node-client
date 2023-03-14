@@ -60,7 +60,7 @@ exports.put = function(file, deps, vars, cb) {
 }
 
 exports.release = function(file, cb) {
-  fs.exists(file + '.original', function(exists) {
+  fs.existsSync(file + '.original', function(exists) {
     if (!exists)
       return cb(new Error('Original file not found.'));
 
