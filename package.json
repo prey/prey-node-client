@@ -1,7 +1,7 @@
 {
   "name": "prey",
-  "version": "1.11.0",
-  "author": "Client Engineering <client-eng@preyhq.com>",
+  "version": "1.11.1",
+  "author": "Engineering <tec@preyhq.com>",
   "keywords": [
     "prey",
     "anti",
@@ -12,8 +12,11 @@
     "stolen",
     "laptop"
   ],
-  "description": "They can run but they can't hide.",
-  "engine": "node >= 0.6",
+  "description": "Prey: Laptop Tracking & Data security. Find & Protect lost devices.",
+  "engine": "node >= 16.18.0",
+  "engines": {
+    "node": ">=16.18.0"
+  },
   "os": [
     "linux",
     "darwin",
@@ -26,7 +29,7 @@
   },
   "dependencies": {
     "arch": "^2.1.2",
-    "archiver": "^4.0.2",
+    "archiver": "^5.3.1",
     "async": "^2.6.1",
     "buckle": "https://github.com/javo/buckle.git#4c3d6e0e35d19f73ab0f3e585a1217cdd15938fb",
     "chmodr": "1.2.0",
@@ -71,13 +74,16 @@
     "xml2js": "0.4.19"
   },
   "devDependencies": {
-    "eslint": "^8.12.0",
+    "eslint": "^8.35.0",
     "eslint-config-airbnb-base": "^15.0.0",
-    "eslint-plugin-import": "^2.26.0",
+    "eslint-config-prettier": "^8.7.0",
+    "eslint-plugin-import": "^2.27.5",
+    "eslint-plugin-node": "^11.1.0",
     "mkdirp": "^0.5.1",
     "mocha": "^10.1.0",
     "mock-spawn": "^0.2.6",
     "node.extend": "^2.0.2",
+    "prettier": "^2.8.4",
     "sandboxed-module": "^2.0.3",
     "should": "^13.2.3",
     "sinon": "^7.5.0"
@@ -98,7 +104,10 @@
     "coverage": "istanbul cover _mocha -- lib/agent/plugins test --recursive",
     "postinstall": "./bin/prey config hooks post_install",
     "postupdate": "./bin/prey config hooks post_install",
-    "preuninstall": "./bin/prey config hooks pre_uninstall"
+    "preuninstall": "./bin/prey config hooks pre_uninstall",
+    "lint": "eslint .",
+    "lint-fix": "eslint . --fix",
+    "format": "npx prettier --write"
   },
   "bugs": {
     "url": "http://github.com/prey/prey-node-client/issues"
