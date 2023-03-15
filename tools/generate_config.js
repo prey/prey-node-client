@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+
 ////////////////////////////////////////////////////////////
 // Generates new config file based on each driver settings.
 // Dumps new config file in root_path/prey.conf.default
