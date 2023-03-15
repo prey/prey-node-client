@@ -17,6 +17,10 @@
 
 - Fix support for proxy connection [\#715](https://github.com/prey/prey-node-client/pull/715) ([JohaoRosasRosillo](https://github.com/JohaoRosasRosillo))
 
+- Remove prey's files in temp [\#725](https://github.com/prey/prey-node-client/pull/713) ([JohaoRosasRosillo](https://github.com/JohaoRosasRosillo))
+
+- Send prey-user binary's version to backend [\#715](https://github.com/prey/prey-node-client/pull/712) ([JohaoRosasRosillo](https://github.com/JohaoRosasRosillo))
+
 ## [v1.11.1](https://github.com/prey/prey-node-client/tree/v1.11.1) (2023-03-07)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.11.0..v1.11.1)
 
