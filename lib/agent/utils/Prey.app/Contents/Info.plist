@@ -20,6 +20,8 @@
 	<string>Prey</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>3.1</string>
 	<key>CFBundleSupportedPlatforms</key>
 	<array>
 		<string>MacOSX</string>
@@ -43,11 +45,13 @@
 	<key>DTXcodeBuild</key>
 	<string>13F100</string>
 	<key>LSMinimumSystemVersion</key>
-	<string>10.10</string>
+	<string>10.7</string>
 	<key>LSUIElement</key>
 	<true/>
 	<key>NSCameraUsageDescription</key>
 	<string>Prey utilizes the device's camera to take pictures when you request evidence reports.</string>
+	<key>NSLocationUsageDescription</key>
+	<string>When Prey cannot get the Wifi MAC addresses, it will use the location of the device to track it.</string>
 	<key>NSMainNibFile</key>
 	<string>MainView</string>
 	<key>NSPrincipalClass</key>
