@@ -4,25 +4,55 @@
 <dict>
 	<key>files</key>
 	<dict>
+		<key>Resources/AlertIcon.png</key>
+		<data>
+		H7QTXumrVW3Ne2kwqf9vwuRy2e4=
+		</data>
+		<key>Resources/AlertIcon@2x.png</key>
+		<data>
+		ar3f79j/wQ1aM64KyLffvkm2gAA=
+		</data>
 		<key>Resources/AppIcon.icns</key>
 		<data>
 		WYR5fY5RSK5tXbom3UtMnJu15Po=
 		</data>
 		<key>Resources/Assets.car</key>
 		<data>
-		QjN7I2rxGlAOqfh87f1hpD4SK60=
+		b41Sz0+vJIyyEFpgXHdoqWUKPBU=
 		</data>
 		<key>Resources/MainView.nib/keyedobjects-101300.nib</key>
 		<data>
-		ZbLE2IyurbrU82IjN4yEvU+VyUU=
+		LWJgmwZs5kEn4tPv+7MMit7zDC8=
 		</data>
 		<key>Resources/MainView.nib/keyedobjects.nib</key>
 		<data>
-		LBpiAA9su8zIYECdW5fp1egxBz0=
+		xb/krzjHBZWy2GUJHmIGwXOZpyI=
 		</data>
 	</dict>
 	<key>files2</key>
 	<dict>
+		<key>Resources/AlertIcon.png</key>
+		<dict>
+			<key>hash</key>
+			<data>
+			H7QTXumrVW3Ne2kwqf9vwuRy2e4=
+			</data>
+			<key>hash2</key>
+			<data>
+			2udLYrBPS+24rBvGo9sq6l058N3Ol5Hko1xJr5aTHWY=
+			</data>
+		</dict>
+		<key>Resources/AlertIcon@2x.png</key>
+		<dict>
+			<key>hash</key>
+			<data>
+			ar3f79j/wQ1aM64KyLffvkm2gAA=
+			</data>
+			<key>hash2</key>
+			<data>
+			JnBAel+bPvfCUjMTQewMC5SIIcC51+NaUhRzxAqJQAQ=
+			</data>
+		</dict>
 		<key>Resources/AppIcon.icns</key>
 		<dict>
 			<key>hash</key>
@@ -38,33 +68,33 @@
 		<dict>
 			<key>hash</key>
 			<data>
-			QjN7I2rxGlAOqfh87f1hpD4SK60=
+			b41Sz0+vJIyyEFpgXHdoqWUKPBU=
 			</data>
 			<key>hash2</key>
 			<data>
-			a/uXmw8XRZCrrIGQWeYsFSbWWoG60c03FScbd2T013A=
+			qo+uWfY6MD3G27E7rBQl4BlUaqDPv7p3zFUOX2hvjXA=
 			</data>
 		</dict>
 		<key>Resources/MainView.nib/keyedobjects-101300.nib</key>
 		<dict>
 			<key>hash</key>
 			<data>
-			ZbLE2IyurbrU82IjN4yEvU+VyUU=
+			LWJgmwZs5kEn4tPv+7MMit7zDC8=
 			</data>
 			<key>hash2</key>
 			<data>
-			VlYdJaSDf1UcEhrE9+Ha5iemt9jEOBOErlXUuT+v1Es=
+			+gTbTy2DwfPHXagS2gOuSMvsF2hGEN2mgpBUxsgF2p4=
 			</data>
 		</dict>
 		<key>Resources/MainView.nib/keyedobjects.nib</key>
 		<dict>
 			<key>hash</key>
 			<data>
-			LBpiAA9su8zIYECdW5fp1egxBz0=
+			xb/krzjHBZWy2GUJHmIGwXOZpyI=
 			</data>
 			<key>hash2</key>
 			<data>
-			Rak9wNZqmH3fDrC3vsRXbZtlCin2QiSx0T3bCQK5mAQ=
+			itzAugidEpcMboUFzfnjKZJtwaPlxU9Xr2mVJO4QTTE=
 			</data>
 		</dict>
 	</dict>
