@@ -1,5 +1,31 @@
 # Change Log
 
+## [v1.11.3](https://github.com/prey/prey-node-client/tree/v1.11.3) (2023-03-27)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.11.2..v1.11.3)
+
+**Merged pull requests:**
+
+- Now prey deletes user called Prey after uninstalling itself in MacOS [\#711](https://github.com/prey/prey-node-client/pull/711) ([SoraKenji](https://github.com/SoraKenji))
+
+- Exception logs now in prey.log [\#742](https://github.com/prey/prey-node-client/pull/742) ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix in get_active_access_point for Windows [\#728](https://github.com/prey/prey-node-client/pull/728) ([JohaoRosasRosillo](https://github.com/JohaoRosasRosillo))
+
+- Changes to files to delete/change deprecated code [\#727](https://github.com/prey/prey-node-client/pull/727) ([SoraKenji](https://github.com/SoraKenji))
+
+- Updating library Archiver to 5.3.1 [\#725](https://github.com/prey/prey-node-client/pull/725) ([JohaoRosasRosillo](https://github.com/JohaoRosasRosillo))
+
+- New way to kill off services when uninstalling [\#717](https://github.com/prey/prey-node-client/pull/717) ([SoraKenji](https://github.com/SoraKenji))
+
+- Add fix for location in Ubuntu [\#725](https://github.com/prey/prey-node-client/pull/725) ([JohaoRosasRosillo](https://github.com/JohaoRosasRosillo))
+
+- Fix support for proxy connection [\#715](https://github.com/prey/prey-node-client/pull/715) ([JohaoRosasRosillo](https://github.com/JohaoRosasRosillo))
+
+- Remove prey's files in temp [\#725](https://github.com/prey/prey-node-client/pull/713) ([JohaoRosasRosillo](https://github.com/JohaoRosasRosillo))
+
+- Send prey-user binary's version to backend [\#715](https://github.com/prey/prey-node-client/pull/712) ([JohaoRosasRosillo](https://github.com/JohaoRosasRosillo))
+
+
 ## [v1.11.2](https://github.com/prey/prey-node-client/tree/v1.11.2) (2023-03-24)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.11.1..v1.11.2)
 
