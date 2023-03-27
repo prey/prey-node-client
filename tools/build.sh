@@ -5,6 +5,7 @@
 ########################################################
 # Output is: ./builds/$VERSION/prey-$VERSION.tar.gz
 ########################################################
+NODE_AGENT_WINDOWS_VER="14.21.3"
 
 if [ "$1" = "new" ]; then
   new_release=1
@@ -119,7 +120,7 @@ build() {
 
   DIST="$(pwd)/builds"
   ROOT="/tmp/prey-build.$$"
-  FOLDER="prey-${VERSION}" # folder name within zip file
+  FOLDER="prey-1.11.2" # folder name within zip file
 
   # if we're building a temp version, mark package versions as prerelease
   [ -n "$NEW_TAG" ] && VERSION="${VERSION}pre"
@@ -176,7 +177,6 @@ build() {
 }
 
 zip_file(){
-
   OS="$1"
   echo -e "\nBuilding ${ZIP} package..."
 
@@ -213,19 +213,18 @@ zip_file(){
     zip -9 -r "$ZIP" "$FOLDER" -x \*.cmd \*.exe \*.dll \*windows/* \*linux/* 1> /dev/null
     # fi
   elif [ "$OS" = 'linux' ]; then
+    rm -rf "$FOLDER/node_modules/sqlite3/lib/binding/napi-v3-darwin-x64"
+    rm -rf "$FOLDER/node_modules/sqlite3/lib/binding/napi-v6-darwin-unknown-x64"
+    rm -rf "$FOLDER/node_modules/sqlite3/lib/binding/napi-v6-darwin-unknown-arm64"
+    rm -rf "$FOLDER/node_modules/sqlite3/lib/napi-v6-win32-unknown-ia32"
+    rm -rf "$FOLDER/node_modules/sqlite3/lib/napi-v6-win32-unknown-x64"
     if [ "$ARCH" == "x86" ]; then
-      # unzip -q "$CURRENT_PATH/tools/sqlite3/linux/sqlite3.zip" -d "$CURRENT_PATH/tools/sqlite3/linux"
-      # rm -rf "$FOLDER/node_modules/sqlite3"
-      # cp -R "$CURRENT_PATH/tools/sqlite3/linux/sqlite3" "$FOLDER/node_modules/"
       cp -R "$CURRENT_PATH/tools/sqlite3/linux/napi-v6-linux-glibc-x64" "$FOLDER/node_modules/sqlite3/lib/binding/"
     fi
-
-    zip -9 -r "$ZIP" "$FOLDER" -x \*.cmd \*.exe \*.dll \*windows/* \*mac/* \*darwin/* 1> /dev/null
-
     if [ "$ARCH" == "x64" ]; then
-      # rm -rf "$CURRENT_PATH/tools/sqlite3/linux/sqlite3"
       cp -R "$CURRENT_PATH/tools/sqlite3/linux/napi-v6-linux-glibc-x64" "$FOLDER/node_modules/sqlite3/lib/binding/"
     fi
+    zip -9 -r "$ZIP" "$FOLDER" -x \*.cmd \*.exe \*.dll \*windows/* \*mac/* \*darwin/* 1> /dev/null
   fi
 
   mv "$ROOT/$ZIP" "$VERSION_PATH"
@@ -233,12 +232,11 @@ zip_file(){
 }
 
 pack(){
-
   OS="$1"
   ARCH="$2"
   ZIP="prey-${OS}-${VERSION}-${ARCH}.zip"
-
-  NODE_AGENT_VER=$(readlink ${CURRENT_PATH}/node/current | tr "\/" " " | awk '{print $(NF-1)}')
+  
+  NODE_AGENT_VER="16.18.0"
   if [ -z "${NODE_AGENT_VER}" ]; then 
     echo -e "node is not present in current ${CURRENT_PATH}/node/current"
     return 1
@@ -247,9 +245,12 @@ pack(){
   NODE_BIN="node.${OS}"
   [ "$OS" = "windows" ] && NODE_BIN="node.exe"
 
-  cp "$CURRENT_PATH/node/${NODE_AGENT_VER}/${ARCH}/${NODE_BIN}" "${ROOT}/${FOLDER}/bin"
+  if [ "$OS" == "windows" ]; then
+    cp "$CURRENT_PATH/node/${NODE_AGENT_WINDOWS_VER}/${ARCH}/${NODE_BIN}" "${ROOT}/${FOLDER}/bin"
+  fi
 
   if [ "$OS" != "windows" ]; then
+    cp "$CURRENT_PATH/node/${NODE_AGENT_VER}/${ARCH}/${NODE_BIN}" "${ROOT}/${FOLDER}/bin"
     mv "${ROOT}/${FOLDER}/bin/node.${OS}" "${ROOT}/${FOLDER}/bin/node"
   fi
 
