@@ -236,7 +236,7 @@ pack(){
   ARCH="$2"
   ZIP="prey-${OS}-${VERSION}-${ARCH}.zip"
   
-  NODE_AGENT_VER="16.18.0"
+  NODE_AGENT_VER=$(readlink ${CURRENT_PATH}/node/current | tr "\/" " " | awk '{print $(NF-1)}')
   if [ -z "${NODE_AGENT_VER}" ]; then 
     echo -e "node is not present in current ${CURRENT_PATH}/node/current"
     return 1
