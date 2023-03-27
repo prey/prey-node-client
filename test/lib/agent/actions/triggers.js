@@ -70,7 +70,7 @@ describe('triggers', () => {
         before((done) => {
           spy_sync = sinon.spy(triggers, 'sync');
           spy_get_local = sinon.spy(storage.storage_fns, 'all');
-          triggers.start(id, {}, done)
+          triggers.start(id, done)
         })
   
         after(() => {
@@ -94,7 +94,7 @@ describe('triggers', () => {
             spy_sync = sinon.spy(triggers, 'sync');
             spy_get_local = sinon.spy(storage.storage_fns, 'all');
             spy_clear_local = sinon.spy(storage.storage_fns, 'clear');
-            setTimeout(() => { triggers.start(id, {}, done) }, 500)
+            setTimeout(() => { triggers.start(id, done) }, 500)
           })
 
           after(() => {
@@ -117,7 +117,7 @@ describe('triggers', () => {
             storage.do('set', {type: 'triggers', id: dummy.repeat_triggers[0].id, data: dummy.exact_triggers[0]}, (err) => {
               storage.do('set', {type: 'triggers', id: dummy.repeat_triggers[0].id, data: dummy.repeat_triggers[0]}, (err) => {
                 setTimeout(() => {
-                  triggers.start(id, {}, done);
+                  triggers.start(id, done);
                 }, 2000)
               });
             })
@@ -153,7 +153,7 @@ describe('triggers', () => {
         before((done) => {
           get_stub = sinon.stub(request, 'get').callsFake((uri, opts, cb) => { return cb(null, {body: []}); })
           storage.do('set', {type: 'triggers', id: dummy.exact_triggers[0].id, data: dummy.exact_triggers[0]}, (err) => {
-            triggers.start(id, {}, done);
+            triggers.start(id, done);
           });
         })
 
@@ -179,7 +179,7 @@ describe('triggers', () => {
             spy_sync = sinon.spy(triggers, 'sync');
             spy_perform = sinon.spy(commands, 'perform');
             new_date = 1918330449000;
-            setTimeout(() => { triggers.start(id, {}, done) }, 500)
+            setTimeout(() => { triggers.start(id, done) }, 500)
             clock = sinon.useFakeTimers(new_date);
           })
 
@@ -228,7 +228,7 @@ describe('triggers', () => {
             spy_sync = sinon.spy(triggers, 'sync');
             spy_perform = sinon.spy(commands, 'perform');
             test_time = 1560795900000;
-            setTimeout(() => { triggers.start(id, {}, done) }, 500)
+            setTimeout(() => { triggers.start(id, done) }, 500)
             clock = sinon.useFakeTimers(test_time);
           })
 
@@ -269,7 +269,7 @@ describe('triggers', () => {
             spy_sync = sinon.spy(triggers, 'sync');
             spy_perform = sinon.spy(commands, 'perform');
             new_date = 1561381200000;
-            setTimeout(() => { triggers.start(id, {}, done) }, 500)
+            setTimeout(() => { triggers.start(id, done) }, 500)
             clock = sinon.useFakeTimers(new_date);
             last_stub = sinon.stub(lp, 'last_connection').callsFake(() => {
               return 1461381200;  // unix time in seconds
@@ -374,7 +374,7 @@ describe('triggers', () => {
             spy_perform = sinon.spy(commands, 'perform');
             spy_logger2 = sinon.spy(triggers.logger, 'warn');
             new_date =  1576853705000;
-            setTimeout(() => { triggers.start(id, {}, done) }, 500)
+            setTimeout(() => { triggers.start(id, done) }, 500)
             clock = sinon.useFakeTimers(new_date);
           })
 
@@ -399,7 +399,7 @@ describe('triggers', () => {
 
            // it('does not executes again', (done) => {
           //   clock.tick(2000);
-          //   triggers.start(id, {}, () => {
+          //   triggers.start(id, () => {
           //     clock.tick(500);
           //     spy_perform.notCalled.should.be.equal(true);
           //     done();
