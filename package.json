@@ -79,6 +79,7 @@
     "eslint-config-prettier": "^8.7.0",
     "eslint-plugin-import": "^2.27.5",
     "eslint-plugin-node": "^11.1.0",
+    "jest": "^29.5.0",
     "mkdirp": "^0.5.1",
     "mocha": "^10.1.0",
     "mock-spawn": "^0.2.6",
@@ -100,6 +101,7 @@
   },
   "scripts": {
     "start": "./bin/prey",
+    "test_jest": "jest",
     "test": "./bin/prey test lib/agent/plugins test --recursive --reporter dot",
     "coverage": "istanbul cover _mocha -- lib/agent/plugins test --recursive",
     "postinstall": "./bin/prey config hooks post_install",
