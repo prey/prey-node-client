@@ -20,7 +20,7 @@ const initMockData = () => {
     prey_owl.create_watcher = mockEnsureCreated;
     prey_owl.remove_single_watcher = mockEnsureDestroyed;
 };
-//1
+//1 - 
 test(`new_prey-user=0.0.3|prey/=yes|prey/version=no|old_prey-user=0.0.2|new_config=no|old_config=no`, (done) => {
     initMockData();
 
