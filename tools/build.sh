@@ -5,6 +5,7 @@
 ########################################################
 # Output is: ./builds/$VERSION/prey-$VERSION.tar.gz
 ########################################################
+NODE_AGENT_WINDOWS_VER="14.21.3"
 
 if [ "$1" = "new" ]; then
   new_release=1
@@ -231,13 +232,11 @@ zip_file(){
   mv "$ROOT/$ZIP" "$VERSION_PATH"
   echo "$VERSION_PATH/$ZIP"
 }
-
 pack(){
-
   OS="$1"
   ARCH="$2"
   ZIP="prey-${OS}-${VERSION}-${ARCH}.zip"
-
+  
   NODE_AGENT_VER=$(readlink ${CURRENT_PATH}/node/current | tr "\/" " " | awk '{print $(NF-1)}')
   if [ -z "${NODE_AGENT_VER}" ]; then 
     echo -e "node is not present in current ${CURRENT_PATH}/node/current"
@@ -247,9 +246,12 @@ pack(){
   NODE_BIN="node.${OS}"
   [ "$OS" = "windows" ] && NODE_BIN="node.exe"
 
-  cp "$CURRENT_PATH/node/${NODE_AGENT_VER}/${ARCH}/${NODE_BIN}" "${ROOT}/${FOLDER}/bin"
+  if [ "$OS" == "windows" ]; then
+    cp "$CURRENT_PATH/node/${NODE_AGENT_WINDOWS_VER}/${ARCH}/${NODE_BIN}" "${ROOT}/${FOLDER}/bin"
+  fi
 
   if [ "$OS" != "windows" ]; then
+    cp "$CURRENT_PATH/node/${NODE_AGENT_VER}/${ARCH}/${NODE_BIN}" "${ROOT}/${FOLDER}/bin"
     mv "${ROOT}/${FOLDER}/bin/node.${OS}" "${ROOT}/${FOLDER}/bin/node"
   fi
 
