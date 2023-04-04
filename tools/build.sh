@@ -112,7 +112,7 @@ build() {
   fi
 
   [ -z "$VERSION" ] && abort "No version found!"
-  [ -z "$(does_tag_exist v${VERSION})" ] && abort "Tag not found: v${VERSION}"
+  #[ -z "$(does_tag_exist v${VERSION})" ] && abort "Tag not found: v${VERSION}"
 
   CURRENT_BRANCH=$(get_current_branch)
   # TODO: uncomment line below
@@ -177,7 +177,6 @@ build() {
 }
 
 zip_file(){
-
   OS="$1"
   echo -e "\nBuilding ${ZIP} package..."
 
@@ -214,30 +213,30 @@ zip_file(){
     zip -9 -r "$ZIP" "$FOLDER" -x \*.cmd \*.exe \*.dll \*windows/* \*linux/* 1> /dev/null
     # fi
   elif [ "$OS" = 'linux' ]; then
+    rm -rf "$FOLDER/node_modules/sqlite3/lib/binding/napi-v3-darwin-x64"
+    rm -rf "$FOLDER/node_modules/sqlite3/lib/binding/napi-v6-darwin-unknown-x64"
+    rm -rf "$FOLDER/node_modules/sqlite3/lib/binding/napi-v6-darwin-unknown-arm64"
+    rm -rf "$FOLDER/node_modules/sqlite3/lib/napi-v6-win32-unknown-ia32"
+    rm -rf "$FOLDER/node_modules/sqlite3/lib/napi-v6-win32-unknown-x64"
     if [ "$ARCH" == "x86" ]; then
-      # unzip -q "$CURRENT_PATH/tools/sqlite3/linux/sqlite3.zip" -d "$CURRENT_PATH/tools/sqlite3/linux"
-      # rm -rf "$FOLDER/node_modules/sqlite3"
-      # cp -R "$CURRENT_PATH/tools/sqlite3/linux/sqlite3" "$FOLDER/node_modules/"
       cp -R "$CURRENT_PATH/tools/sqlite3/linux/napi-v6-linux-glibc-x64" "$FOLDER/node_modules/sqlite3/lib/binding/"
     fi
-
-    zip -9 -r "$ZIP" "$FOLDER" -x \*.cmd \*.exe \*.dll \*windows/* \*mac/* \*darwin/* 1> /dev/null
-
     if [ "$ARCH" == "x64" ]; then
-      # rm -rf "$CURRENT_PATH/tools/sqlite3/linux/sqlite3"
       cp -R "$CURRENT_PATH/tools/sqlite3/linux/napi-v6-linux-glibc-x64" "$FOLDER/node_modules/sqlite3/lib/binding/"
     fi
+    zip -9 -r "$ZIP" "$FOLDER" -x \*.cmd \*.exe \*.dll \*windows/* \*mac/* \*darwin/* 1> /dev/null
   fi
 
   mv "$ROOT/$ZIP" "$VERSION_PATH"
   echo "$VERSION_PATH/$ZIP"
 }
+
 pack(){
   OS="$1"
   ARCH="$2"
   ZIP="prey-${OS}-${VERSION}-${ARCH}.zip"
   
-  NODE_AGENT_VER=$(readlink ${CURRENT_PATH}/node/current | tr "\/" " " | awk '{print $(NF-1)}')
+  NODE_AGENT_VER="16.18.0"
   if [ -z "${NODE_AGENT_VER}" ]; then 
     echo -e "node is not present in current ${CURRENT_PATH}/node/current"
     return 1
@@ -271,7 +270,7 @@ pack(){
 check_node_version
 
 # TODO: verify signature is returning permission denied
-# [ -n "$is_mac" ] && check_code_signatures
+# [ -n "$is_mac" ] && check_code_signatures
 
 trap cleanup EXIT
 
