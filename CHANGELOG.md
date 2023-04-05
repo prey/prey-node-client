@@ -1,5 +1,12 @@
 # Change Log
 
+## [v1.11.4](https://github.com/prey/prey-node-client/tree/v1.11.4) (2023-04-04)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.11.3..v1.11.4)
+
+**Merged pull requests:**
+
+- Fixes proxy usage for Prey client. In versions 1.11.2 - 1.11.3 there was a problem with that portion of the code that made Prey restart itself over and over until user changes try_proxy property inside prey.conf file [\#749](https://github.com/prey/prey-node-client/pull/749) ([SoraKenji](https://github.com/SoraKenji))
+
 ## [v1.11.3](https://github.com/prey/prey-node-client/tree/v1.11.3) (2023-03-27)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.11.2..v1.11.3)
 
