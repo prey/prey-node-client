@@ -21,7 +21,7 @@
         "chmodr": "1.2.0",
         "chownr": "1.1.4",
         "clean-exit": "0.0.3",
-        "commander": "",
+        "commander": "9.1.0",
         "compare-versions": "3.3.0",
         "firewall": "0.0.5",
         "getset": "https://github.com/javo/getset.git#0e1a82e851591f34af6c5a7491ce223eefa58a95",
@@ -39,13 +39,13 @@
         "ocelot": "0.0.5",
         "os-triggers": "0.1.4",
         "petit": "https://github.com/javo/petit.git#8ef623a53a78caa9df07bebb77a9f6c3c0e5e379",
-        "qs": "",
+        "qs": "6.10.3",
         "remover": "0.1.2",
         "reply": "^0.3.1",
-        "rimraf": "",
+        "rimraf": "3.0.2",
         "satan": "https://github.com/javo/satan.git#c6076a3f239e448e399e786a26248c37b5aba426",
         "semver": "^5.6.0",
-        "sqlite3": "^5.1.2",
+        "sqlite3": "^5.1.5",
         "sudoer": "https://github.com/javo/sudoer.git#8d5619a1acdd7d37fa688a7ea5c041cb5e3cb697",
         "systeminformation": "^5.9.17",
         "tuna": "0.0.2",
@@ -54,7 +54,7 @@
         "uuid": "^8.3.2",
         "whenever": "0.0.3",
         "wink": "0.0.1",
-        "winssh": "",
+        "winssh": "0.0.3",
         "wmic": "0.0.7",
         "ws": "^7.5.6",
         "xml2js": "0.4.19"
@@ -7491,9 +7491,9 @@
       "dev": true
     },
     "node_modules/sqlite3": {
-      "version": "5.1.2",
-      "resolved": "https://registry.npmjs.org/sqlite3/-/sqlite3-5.1.2.tgz",
-      "integrity": "sha512-D0Reg6pRWAFXFUnZKsszCI67tthFD8fGPewRddDCX6w4cYwz3MbvuwRICbL+YQjBAh9zbw+lJ/V9oC8nG5j6eg==",
+      "version": "5.1.5",
+      "resolved": "https://registry.npmjs.org/sqlite3/-/sqlite3-5.1.5.tgz",
+      "integrity": "sha512-7sP16i4wI+yKnGOO2q2ijze7EjQ9US+Vw7DYYwxfFtqNZDGgBcEw0oeDaDvUTq66uJOzVd/z6MkIg+c9erSJKg==",
       "hasInstallScript": true,
       "dependencies": {
         "@mapbox/node-pre-gyp": "^1.0.0",
@@ -13906,9 +13906,9 @@
       "dev": true
     },
     "sqlite3": {
-      "version": "5.1.2",
-      "resolved": "https://registry.npmjs.org/sqlite3/-/sqlite3-5.1.2.tgz",
-      "integrity": "sha512-D0Reg6pRWAFXFUnZKsszCI67tthFD8fGPewRddDCX6w4cYwz3MbvuwRICbL+YQjBAh9zbw+lJ/V9oC8nG5j6eg==",
+      "version": "5.1.5",
+      "resolved": "https://registry.npmjs.org/sqlite3/-/sqlite3-5.1.5.tgz",
+      "integrity": "sha512-7sP16i4wI+yKnGOO2q2ijze7EjQ9US+Vw7DYYwxfFtqNZDGgBcEw0oeDaDvUTq66uJOzVd/z6MkIg+c9erSJKg==",
       "requires": {
         "@mapbox/node-pre-gyp": "^1.0.0",
         "node-addon-api": "^4.2.0",
