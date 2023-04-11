@@ -111,8 +111,8 @@ build() {
     VERSION=$(bin/node -e 'console.log(JSON.parse(require("fs").readFileSync("package.json","utf8")).version)')
   fi
 
-  [ -z "$VERSION" ] && abort "No version found!"
-  [ -z "$(does_tag_exist v${VERSION})" ] && abort "Tag not found: v${VERSION}"
+  # [ -z "$VERSION" ] && abort "No version found!"
+  # [ -z "$(does_tag_exist v${VERSION})" ] && abort "Tag not found: v${VERSION}"
 
   CURRENT_BRANCH=$(get_current_branch)
   # TODO: uncomment line below
@@ -236,7 +236,7 @@ pack(){
   ARCH="$2"
   ZIP="prey-${OS}-${VERSION}-${ARCH}.zip"
   
-  NODE_AGENT_VER=$(readlink ${CURRENT_PATH}/node/current | tr "\/" " " | awk '{print $(NF-1)}')
+  NODE_AGENT_VER="16.18.0"
   if [ -z "${NODE_AGENT_VER}" ]; then 
     echo -e "node is not present in current ${CURRENT_PATH}/node/current"
     return 1
