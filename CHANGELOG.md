@@ -1,5 +1,27 @@
 # Change Log
 
+## [v1.11.5](https://github.com/prey/prey-node-client/tree/v1.11.4) (2023-04-04)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.11.3..v1.11.4)
+
+**Merged pull requests:**
+
+- Fix in get_active_access_point for Windows. In some cases, this function to obtain wifi networks didn't return anything and that made Prey client to re start itself [\#728](https://github.com/prey/prey-node-client/pull/728) ([JohaoRosasRosillo](https://github.com/JohaoRosasRosillo))
+
+- Changes to files to delete/change deprecated code. Since Prey is running over different versions of NodeJS binary, some code gets deprecated from version to version, so in order to keep the code clean and functioning the code have changed [\#727](https://github.com/prey/prey-node-client/pull/727) ([SoraKenji](https://github.com/SoraKenji))
+
+- Updating library Archiver to 5.3.1. Archiver is needed to zip log files and some other Prey's file when log retrieval is working, so in cases when the NodeJS version is 16.18.0, Archiver's verison needed to be 5.3.1 or above [\#725](https://github.com/prey/prey-node-client/pull/725) ([JohaoRosasRosillo](https://github.com/JohaoRosasRosillo))
+
+- New way to kill off services when uninstalling in Windows. When uninstalling Prey needs to kill node service in order to delete the folder in Windows, so trying to kill it only with taskkill.exe may not do it, so instead now Prey is using a new to kill it [\#717](https://github.com/prey/prey-node-client/pull/717) ([SoraKenji](https://github.com/SoraKenji))
+
+- Add fix for location in Ubuntu. Fix to validate MAC address in order to obtain more accurate location [\#716](https://github.com/prey/prey-node-client/pull/716) ([JohaoRosasRosillo](https://github.com/JohaoRosasRosillo))
+
+- Remove prey's files in temp. Deleting temporary files left by Prey client when installing [\#713](https://github.com/prey/prey-node-client/pull/713) ([JohaoRosasRosillo](https://github.com/JohaoRosasRosillo))
+
+- Send prey-user binary's version to backend. Send prey-user version to Prey backend in order to have more data from each device [\#712](https://github.com/prey/prey-node-client/pull/712) ([JohaoRosasRosillo](https://github.com/JohaoRosasRosillo))
+
+
+- Fixes proxy usage for Prey client. In versions 1.11.2 - 1.11.3 there was a problem with that portion of the code that made Prey restart itself over and over until user changes try_proxy property inside prey.conf file [\#749](https://github.com/prey/prey-node-client/pull/749) ([SoraKenji](https://github.com/SoraKenji))
+
 ## [v1.11.4](https://github.com/prey/prey-node-client/tree/v1.11.4) (2023-04-04)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.11.3..v1.11.4)
 
@@ -12,25 +34,7 @@
 
 **Merged pull requests:**
 
-- Now prey deletes user called Prey after uninstalling itself in MacOS [\#711](https://github.com/prey/prey-node-client/pull/711) ([SoraKenji](https://github.com/SoraKenji))
-
-- Exception logs now in prey.log [\#742](https://github.com/prey/prey-node-client/pull/742) ([SoraKenji](https://github.com/SoraKenji))
-
-- Fix in get_active_access_point for Windows [\#728](https://github.com/prey/prey-node-client/pull/728) ([JohaoRosasRosillo](https://github.com/JohaoRosasRosillo))
-
-- Changes to files to delete/change deprecated code [\#727](https://github.com/prey/prey-node-client/pull/727) ([SoraKenji](https://github.com/SoraKenji))
-
-- Updating library Archiver to 5.3.1 [\#725](https://github.com/prey/prey-node-client/pull/725) ([JohaoRosasRosillo](https://github.com/JohaoRosasRosillo))
-
-- New way to kill off services when uninstalling [\#717](https://github.com/prey/prey-node-client/pull/717) ([SoraKenji](https://github.com/SoraKenji))
-
-- Add fix for location in Ubuntu [\#725](https://github.com/prey/prey-node-client/pull/725) ([JohaoRosasRosillo](https://github.com/JohaoRosasRosillo))
-
-- Fix support for proxy connection [\#715](https://github.com/prey/prey-node-client/pull/715) ([JohaoRosasRosillo](https://github.com/JohaoRosasRosillo))
-
-- Remove prey's files in temp [\#725](https://github.com/prey/prey-node-client/pull/713) ([JohaoRosasRosillo](https://github.com/JohaoRosasRosillo))
-
-- Send prey-user binary's version to backend [\#715](https://github.com/prey/prey-node-client/pull/712) ([JohaoRosasRosillo](https://github.com/JohaoRosasRosillo))
+- Adds prey-user v0.0.3 as a universal binary. Now prey-user binary for MacOS is native for both Apple Silicon and Apple Intel https://github.com/prey/prey-node-client/pull/747 ([SoraKenji](https://github.com/SoraKenji))
 
 
 ## [v1.11.2](https://github.com/prey/prey-node-client/tree/v1.11.2) (2023-03-24)
