@@ -5,17 +5,17 @@
 
 **Merged pull requests:**
 
-- Fix in get_active_access_point for Windows. In some cases, this function to obtain wifi networks didn't return anything and that made Prey client to re start itself [\#728](https://github.com/prey/prey-node-client/pull/728) ([JohaoRosasRosillo](https://github.com/JohaoRosasRosillo))
+- Fix in get_active_access_point for Windows. In some cases, this function for obtaining wifi networks didn't return anything making the Prey client restart [\#728](https://github.com/prey/prey-node-client/pull/728) ([JohaoRosasRosillo](https://github.com/JohaoRosasRosillo))
 
-- Changes to files to delete/change deprecated code. Since Prey is running over different versions of NodeJS binary, some code gets deprecated from version to version, so in order to keep the code clean and functioning the code have changed [\#727](https://github.com/prey/prey-node-client/pull/727) ([SoraKenji](https://github.com/SoraKenji))
+- File changes to delete/modify deprecated code. Since Prey is running over different versions of NodeJS binary, some code gets deprecated from version to version, so the code was changed in order to keep it clean and functioning [\#727](https://github.com/prey/prey-node-client/pull/727) ([SoraKenji](https://github.com/SoraKenji))
 
-- Updating library Archiver to 5.3.1. Archiver is needed to zip log files and some other Prey's file when log retrieval is working, so in cases when the NodeJS version is 16.18.0, Archiver's verison needed to be 5.3.1 or above [\#725](https://github.com/prey/prey-node-client/pull/725) ([JohaoRosasRosillo](https://github.com/JohaoRosasRosillo))
+- Updating library Archiver to 5.3.1. Archiver is needed to zip log files and some other Prey files when log retrieval is working, so in cases when the NodeJS version is 16.18.0, Archiver's verison needed to be 5.3.1 or above [\#725](https://github.com/prey/prey-node-client/pull/725) ([JohaoRosasRosillo](https://github.com/JohaoRosasRosillo))
 
-- New way to kill off services when uninstalling in Windows. When uninstalling Prey needs to kill node service in order to delete the folder in Windows, so trying to kill it only with taskkill.exe may not do it, so instead now Prey is using a new to kill it [\#717](https://github.com/prey/prey-node-client/pull/717) ([SoraKenji](https://github.com/SoraKenji))
+- New way to kill off services when uninstalling in Windows. When doing so Prey needs to kill node service in order to delete the folder in Windows. Trying to kill it only using taskkill.exe could not work, so Prey added a new way to kill it [\#717](https://github.com/prey/prey-node-client/pull/717) ([SoraKenji](https://github.com/SoraKenji))
 
-- Add fix for location in Ubuntu. Fix to validate MAC address in order to obtain more accurate location [\#716](https://github.com/prey/prey-node-client/pull/716) ([JohaoRosasRosillo](https://github.com/JohaoRosasRosillo))
+- Added fix for location in Ubuntu in order to validate MAC address to obtain more accurate locations [\#716](https://github.com/prey/prey-node-client/pull/716) ([JohaoRosasRosillo](https://github.com/JohaoRosasRosillo))
 
-- Remove prey's files in temp. Deleting temporary files left by Prey client when installing [\#713](https://github.com/prey/prey-node-client/pull/713) ([JohaoRosasRosillo](https://github.com/JohaoRosasRosillo))
+- Remove Prey's files in temp. Deleting temporary files left by Prey client when installing [\#713](https://github.com/prey/prey-node-client/pull/713) ([JohaoRosasRosillo](https://github.com/JohaoRosasRosillo))
 
 - Send prey-user binary's version to backend. Send prey-user version to Prey backend in order to have more data from each device [\#712](https://github.com/prey/prey-node-client/pull/712) ([JohaoRosasRosillo](https://github.com/JohaoRosasRosillo))
 
