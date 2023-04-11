@@ -1,7 +1,7 @@
 # Change Log
 
-## [v1.11.5](https://github.com/prey/prey-node-client/tree/v1.11.4) (2023-04-04)
-[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.11.3..v1.11.4)
+## [v1.11.5](https://github.com/prey/prey-node-client/tree/v1.11.5) (2023-04-11)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.11.4..v1.11.5)
 
 **Merged pull requests:**
 
