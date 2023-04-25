@@ -11,6 +11,7 @@
         "ecmaVersion": "latest"
     },
     "rules": {
-        "linebreak-style": "off"
+        "linebreak-style": "off",
+        "node/no-deprecated-api": "error"
     }
 }
