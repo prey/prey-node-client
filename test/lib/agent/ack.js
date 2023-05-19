@@ -2,9 +2,9 @@ const {
   describe, it, before, after,
 } = require('mocha');
 const should = require('should');
-const { tmpdir } = require('os');
+const sinon = require('sinon');
 const ack = require('../../../lib/agent/ack');
-const storage = require('../../../lib/agent/utils/storage');
+const websocket = require('../../../lib/agent/plugins/control-panel/websockets');
 
 describe('validation ack acknowledge', () => {
   describe('validation if json is valid', () => {
@@ -16,42 +16,39 @@ describe('validation ack acknowledge', () => {
       });
     });
   });
-  describe('with no keys stored', () => {
-    before((done) => {
-      storage.init('ack', `${tmpdir()}/storeAck.db`, () => {
-        storage.do(
-          'set',
-          { type: 'ack', id: '1', data: { id: '1', type: 'ack', retries: 0 } },
-          () => {
-            done();
-          },
-        );
-      });
-    });
-    it('there is ackId = 1', (done) => {
-      ack.verifyIfExistId('1', (err, exist) => {
-        should.not.exist(err);
-        exist.should.equal(true);
-        done();
-      });
-    });
-    it('there is not ackId = 2', (done) => {
-      ack.verifyIfExistId('2', (err, exist) => {
-        should.not.exist(err);
-        exist.should.equal(false);
-        done();
-      });
-    });
+  describe('validation if json is valid', () => {
     it('process ack and register', (done) => {
-      ack.processAck({ type: 'ack', ack_id: '3', retries: 0 }, (err, registeredJson) => {
+      ack.processAck({
+        ack_id: '3', type: 'ack', id: '1234',
+      }, (err, registeredJson) => {
         should.not.exist(err);
-        JSON.stringify(registeredJson).should.equal(JSON.stringify({ ack_id: '3', type: 'ack', retries: 0 }));
+        JSON.stringify(registeredJson).should.equal(JSON.stringify({
+          ack_id: '3', type: 'ack', id: '1234',
+        }));
         done();
       });
+    });
+  });
+  describe('send to server ack', () => {
+    let websocketStub = null;
+    websocket.responsesAck.push({
+      ack_id: '3',
+      type: 'ack',
+      id: '1',
+      sent: false,
+      retries: 0,
+    });
+    before(() => {
+      websocketStub = sinon.stub(websocket, 'sendAckToServer').callsFake(() => '');
     });
 
-    after((done) => {
-      storage.erase(`${tmpdir()}/storeAck.db`, done);
+    after(() => {
+      websocketStub.restore();
+    });
+
+    it('notify ack', (done) => {
+      websocket.notifyAck('3,', 'ack', false, 0);
+      done();
     });
   });
 });
