@@ -9,6 +9,7 @@ var helpers = require('./../../../../helpers'),
     geo = {
       darwin: require(join(geo_path, 'darwin')),
       linux: require(join(geo_path, 'linux')),
+      win32: require(join(geo_path, 'win32')),
       win: require(join(geo_path, 'win32')),
     },
     geonative_strat = helpers.load('providers/geo/strategies').native;
@@ -26,6 +27,11 @@ describe('native geoloc', function () {
   }
 
   var successful_location = {
+    win32: {
+      lat: 38.707163,
+      lng: -9.135517,
+      accuracy: 140000.0
+    },
     win: {
       lat: 38.707163,
       lng: -9.135517,
