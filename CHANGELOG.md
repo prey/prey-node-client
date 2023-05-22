@@ -5,6 +5,14 @@
 
 **Merged pull requests:**
 
+- Add acknowledge message to server in order to inform reception and acceptance of actions from server [\#765](https://github.com/prey/prey-node-client/pull/765) ([JohaoRosasRosillo](https://github.com/JohaoRosasRosillo))
+
+- Add new prey-user binary version featuring a change for cases when database is created as own as root and this now change that to the corresponding user.
+
+- Add prey_restarts.log to Windows in order to know unix timestamps of last 5 restarts [\#767](https://github.com/prey/prey-node-client/pull/767) ([SoraKenji](https://github.com/SoraKenji))\
+
+- Fix problem when connecting and disconnecting from internet happens to quickly making a bunch of emails being send when geofences are configured [\#766](https://github.com/prey/prey-node-client/pull/766) ([SoraKenji](https://github.com/SoraKenji))
+
 - Fix in get_active_access_point for Windows. In some cases, this function for obtaining wifi networks didn't return anything making the Prey client restart [\#728](https://github.com/prey/prey-node-client/pull/728) ([JohaoRosasRosillo](https://github.com/JohaoRosasRosillo))
 
 - File changes to delete/modify deprecated code. Since Prey is running over different versions of NodeJS binary, some code gets deprecated from version to version, so the code was changed in order to keep it clean and functioning [\#727](https://github.com/prey/prey-node-client/pull/727) ([SoraKenji](https://github.com/SoraKenji))
