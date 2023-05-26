@@ -507,7 +507,7 @@ describe('config cli arguments', function() {
               keys: {
                 is_api_key_set: function() { return false }
               },
-              panel: {
+              panel:{
                 signup: function(opts, cb) {
                   return cb(new Error('panel.signup called with opts: ' + JSON.stringify(opts)))
                 }

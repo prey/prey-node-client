@@ -310,15 +310,15 @@ describe('triggers', () => {
           });
 
           it('execute the actions on events with id', (done) => {
-            hooks.trigger('geofencing_in', {id: 666});
+            hooks.trigger('geofencing_in', { id: 666 });
             clock.tick(500)
-            hooks.trigger('geofencing_in', {id: 667});
+            hooks.trigger('geofencing_in', { id: 667 });
             clock.tick(500)
             spy_perform.getCall(4).args[0].target.should.be.equal('alarm');
             spy_perform.getCall(4).args[0].options.trigger_id.should.be.equal(111);
             spy_perform.getCall(5).args[0].target.should.be.equal('lock');
             spy_perform.getCall(5).args[0].options.trigger_id.should.be.equal(112);
-            spy_perform.callCount.should.be.equal(6); 
+            spy_perform.callCount.should.be.equal(6);
             done();
           });
 

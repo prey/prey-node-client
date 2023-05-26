@@ -9,6 +9,7 @@ var helpers     = require('./../../../helpers'),
     geofencing  = require(geof_path),
     request     = require(join(api_path, 'request')),
     push        = require(join(api_path, 'push')),
+    { methods } = push.methods,
     keys        = require(join(api_path, 'keys')),
     storage     = require(join(lib_path, 'agent', 'utils', 'storage'));
 
@@ -176,6 +177,7 @@ describe('geofencing', function() {
 
       before((done) => {
         storage.init('keys', tmpdir() + '/geofences.db', done);
+        
       })
 
       after((done) => {
@@ -183,8 +185,18 @@ describe('geofencing', function() {
       })
 
       describe('and theres zero fences', function() {
-
         before(function() {
+          storage.do('all', {type: 'geofences'}, (err, rows) => {
+            if (!rows && rows.length === 0) return;
+            console.log(`ROOOOOOOOOOOWS: ${rows}`);
+            rows.forEach(element => {
+              console.log(element);
+              storage.do('del', { type: 'geofences', id: element.id }, (errdel)=>{
+                console.log(`AN ERROR MAYBE ${errdel}`)
+                
+              });
+            });
+          });
           spy_sync = sinon.spy(geofencing, 'sync');
           get_stub = sinon.stub(request, 'get').callsFake((uri, opts, cb) => {
             return cb(null, {body: []});
@@ -197,39 +209,41 @@ describe('geofencing', function() {
         })
 
         it('call sync and deletes local fences', function(done) {
-          geofencing.start(id, {}, function() {
-            storage.do('all', {type: 'geofences'}, (err, rows) => {
-              rows.length.should.be.equal(0);
-              geofencing.watching.length.should.be.equal(0);
-              spy_sync.calledOnce.should.be.equal(true);
-              done();
-            })
-          })
-        })
+          setTimeout(()=> {
+            geofencing.start(id, {}, function() {
+              storage.do('all', {type: 'geofences'}, (err, rows) => {
+                console.log(`hola soy yo deberia ser AAAAAAAAAAAAAAAAA ${JSON.stringify(rows)}`);
+                rows.length.should.be.equal(0);
+                geofencing.watching.length.should.be.equal(0);
+                spy_sync.calledOnce.should.be.equal(true);
+                done();
+              });
+            });
+          }, 2000);
+        });
 
       })
 
       describe('and theres one or more fences', function() {
         var push_data;
+        let pushStubGeofencing;
 
         describe('and theres nothing being watched', function() {
           before(function() {
-            push_stub = sinon.stub(push, 'response').callsFake((data, opts, cb) => {
-              push_data = data
+            pushStubGeofencing = sinon.stub(push, 'response').callsFake((data, opts, cb) => {
+              push_data = data;
               return true;
             });
-
             spy_sync = sinon.spy(geofencing, 'sync');
             spy_store = sinon.spy(storage.storage_fns, 'set');
             spy_del = sinon.spy(storage.storage_fns, 'del');
-
             get_stub = sinon.stub(request, 'get').callsFake((uri, opts, cb) => {
               return cb(null, {body: fences});
             });
           })
 
           after(function() {
-            push_stub.restore();
+            pushStubGeofencing.restore();
             spy_sync.restore();
             get_stub.restore();
             spy_store.restore();
@@ -251,19 +265,19 @@ describe('geofencing', function() {
                 rows[2].name.should.be.equal('home');
                 done();
               });
-            })
-          })
+            });
+          });
 
           it('does notify to control panel', function(done) {
             push_data.reason.should.exist;
-            push_data.reason.should.be.equal('[1,2,3]')
+            push_data.reason.should.be.equal('[1,2,3]');
             done();
-          })
+          });
         })
 
         describe('and theres new fences compared with the stored', function() {
           before(function() {
-            push_stub = sinon.stub(push, 'response').callsFake((data, opts, cb) => {
+            pushStubGeofencing = sinon.stub(push, 'response').callsFake((data, opts, cb) => {
               push_data = data
               return true;
             });
@@ -278,7 +292,7 @@ describe('geofencing', function() {
           })
 
           after(function() {
-            push_stub.restore();
+            pushStubGeofencing.restore();
             spy_sync.restore();
             spy_store.restore();
             spy_del.restore();
@@ -318,8 +332,8 @@ describe('geofencing', function() {
 
         describe('and theres less fences compared with the stored and one new', function() {
           before(function() {
-            push_stub = sinon.stub(push, 'response').callsFake((data, opts, cb) => {
-              push_data = data
+            pushStubGeofencing = sinon.stub(push, 'response').callsFake((data, opts, cb) => {
+              push_data = data;
               return true;
             });
 
@@ -333,7 +347,7 @@ describe('geofencing', function() {
           })
 
           after(function() {
-            push_stub.restore();
+            pushStubGeofencing.restore();
             spy_sync.restore();
             spy_store.restore();
             spy_del.restore();
@@ -369,7 +383,7 @@ describe('geofencing', function() {
 
         describe('and theres no new fences comparing with the stored', function() {
           before(function() {
-            push_stub = sinon.stub(push, 'response').callsFake((data, opts, cb) => {
+            pushStubGeofencing = sinon.stub(push, 'response').callsFake((data, opts, cb) => {
               push_data = data
               return true;
             });
@@ -384,7 +398,7 @@ describe('geofencing', function() {
           })
 
           after(function() {
-            push_stub.restore();
+            pushStubGeofencing.restore();
             spy_sync.restore();
             spy_store.restore();
             spy_del.restore();
@@ -419,7 +433,7 @@ describe('geofencing', function() {
 
         describe('and theres no fences now', function() {
           before(function() {
-            push_stub = sinon.stub(push, 'response').callsFake((data, opts, cb) => {
+            pushStubGeofencing = sinon.stub(push, 'response').callsFake((data, opts, cb) => {
               push_data = data
               return true;
             });
@@ -434,7 +448,7 @@ describe('geofencing', function() {
           })
 
           after(function() {
-            push_stub.restore();
+            pushStubGeofencing.restore();
             spy_sync.restore();
             spy_store.restore();
             spy_del.restore();

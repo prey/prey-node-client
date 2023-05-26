@@ -15,15 +15,24 @@ var helpers        = require('./../../../helpers'),
 describe('diskencryption', () => {
 
   describe('when os != windows', () => {
+    before(() => {
+      sys_index.os_name = 'mac';
+      platform_stub = sinon.stub(os, 'platform').callsFake(() => { return 'mac'; });
+    });
+    
+    after(() => {
+      platform_stub.restore();
+    });
+
     var opts = {}
     var id ;
     it('returns an error', (done) => {
-      diskencryption.start(id,opts, (err, em) => {
+      diskencryption.start(id, opts, (err, em) => {
         should.exist(err);
         err.message.should.containEql('Action only allowed on Windows 1O');
         done();
       });
-    })
+    });
   })
 
   describe('when os is windows', () => {
@@ -33,11 +42,11 @@ describe('diskencryption', () => {
       sys_index.check_service = sys_win.check_service;
       sys_index.run_as_admin = sys_win.run_as_admin;
       platform_stub = sinon.stub(os, 'platform').callsFake(() => { return 'win32'; });
-    })
+    });
 
     after(() => {
       platform_stub.restore();
-    })
+    });
 
     describe('when the action has no options', () => {
       var opts = {}
@@ -76,8 +85,8 @@ describe('diskencryption', () => {
         })
 
         it('returns error', (done) => {
-          diskencryption.start(id,opts, (err, em) => {
-            em.on('end', (id,err, out) => {
+          diskencryption.start(id, opts, (err, em) => {
+            em.on('end', (id, err, out) => {
               should.exist(err);
               err.message.should.containEql('Admin service not available');
               done();
