@@ -155,7 +155,7 @@ describe('scripts/create_user_spec', function(){
           it('should NOT be able to impersonate root', function(done){
             var impersonate_test =
               spawn('sudo',
-                    ['-n', 'su', root, '-c', 'whoami'],
+                    ['-n', 'su', global, '-c', 'whoami'],
                     { uid : impersonator_id });
             impersonate_test.on('close', function(code){
               code.should.be.equal(1);

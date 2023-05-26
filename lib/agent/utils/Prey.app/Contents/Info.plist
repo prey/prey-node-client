@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>BuildMachineOSBuild</key>
-	<string>18G103</string>
+	<string>21F79</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleExecutable</key>
@@ -21,7 +21,7 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>2.1</string>
+	<string>3.1</string>
 	<key>CFBundleSupportedPlatforms</key>
 	<array>
 		<string>MacOSX</string>
@@ -31,23 +31,27 @@
 	<key>DTCompiler</key>
 	<string>com.apple.compilers.llvm.clang.1_0</string>
 	<key>DTPlatformBuild</key>
-	<string>11A1027</string>
+	<string>13F100</string>
+	<key>DTPlatformName</key>
+	<string>macosx</string>
 	<key>DTPlatformVersion</key>
-	<string>GM</string>
+	<string>12.3</string>
 	<key>DTSDKBuild</key>
-	<string>19A547</string>
+	<string>21E226</string>
 	<key>DTSDKName</key>
-	<string>macosx10.15</string>
+	<string>macosx12.3</string>
 	<key>DTXcode</key>
-	<string>1110</string>
+	<string>1341</string>
 	<key>DTXcodeBuild</key>
-	<string>11A1027</string>
+	<string>13F100</string>
 	<key>LSMinimumSystemVersion</key>
 	<string>10.7</string>
 	<key>LSUIElement</key>
 	<true/>
 	<key>NSCameraUsageDescription</key>
 	<string>Prey utilizes the device's camera to take pictures when you request evidence reports.</string>
+	<key>NSLocationUsageDescription</key>
+	<string>When Prey cannot get the Wifi MAC addresses, it will use the location of the device to track it.</string>
 	<key>NSMainNibFile</key>
 	<string>MainView</string>
 	<key>NSPrincipalClass</key>

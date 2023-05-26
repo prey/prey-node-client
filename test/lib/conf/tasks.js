@@ -330,7 +330,7 @@ describe('tasks', function() {
             });
           }
 
-          fs.exists(dir, function (exists) {
+          fs.existsSync(dir, function (exists) {
             if (exists) {
               rimraf(dir, function () {
                 createDirStructure(dir);

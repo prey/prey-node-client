@@ -60,14 +60,12 @@ exports.put = function(file, deps, vars, cb) {
 }
 
 exports.release = function(file, cb) {
-  fs.exists(file + '.original', function(exists) {
-    if (!exists)
-      return cb(new Error('Original file not found.'));
+  let exists = fs.existsSync(file + '.original');
+  if (!exists) return cb(new Error('Original file not found.'));
 
-    fs.unlink(file, function(err) {
-      if (err) return cb(err);
+  fs.unlink(file, function(err) {
+    if (err) return cb(err);
 
-      fs.rename(file + '.original', file, cb);
-    })
-  })
+    fs.rename(file + '.original', file, cb);
+  });
 }

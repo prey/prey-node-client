@@ -62,10 +62,9 @@ describe('bin/prey', function(){
 
       // check, just in case
       before(function(done){
-         fs.exists(node_bin, function(exists) {
-          exists.should.be.true;
-          done();
-        });
+        let exists = fs.existsSync(node_bin)
+        exists.should.be.true;
+        done();
       });
 
       it('uses local node binary', function(done){

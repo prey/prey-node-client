@@ -1,9 +1,89 @@
 # Change Log
 
+## [v1.11.5](https://github.com/prey/prey-node-client/tree/v1.11.5) (2023-04-11)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.11.4..v1.11.5)
+
+**Merged pull requests:**
+
+- Fix in get_active_access_point for Windows. In some cases, this function for obtaining wifi networks didn't return anything making the Prey client restart [\#728](https://github.com/prey/prey-node-client/pull/728) ([JohaoRosasRosillo](https://github.com/JohaoRosasRosillo))
+
+- File changes to delete/modify deprecated code. Since Prey is running over different versions of NodeJS binary, some code gets deprecated from version to version, so the code was changed in order to keep it clean and functioning [\#727](https://github.com/prey/prey-node-client/pull/727) ([SoraKenji](https://github.com/SoraKenji))
+
+- Updating library Archiver to 5.3.1. Archiver is needed to zip log files and some other Prey files when log retrieval is working, so in cases when the NodeJS version is 16.18.0, Archiver's verison needed to be 5.3.1 or above [\#725](https://github.com/prey/prey-node-client/pull/725) ([JohaoRosasRosillo](https://github.com/JohaoRosasRosillo))
+
+- New way to kill off services when uninstalling in Windows. When doing so Prey needs to kill node service in order to delete the folder in Windows. Trying to kill it only using taskkill.exe could not work, so Prey added a new way to kill it [\#717](https://github.com/prey/prey-node-client/pull/717) ([SoraKenji](https://github.com/SoraKenji))
+
+- Added fix for location in Ubuntu in order to validate MAC address to obtain more accurate locations [\#716](https://github.com/prey/prey-node-client/pull/716) ([JohaoRosasRosillo](https://github.com/JohaoRosasRosillo))
+
+- Remove Prey's files in temp. Deleting temporary files left by Prey client when installing [\#713](https://github.com/prey/prey-node-client/pull/713) ([JohaoRosasRosillo](https://github.com/JohaoRosasRosillo))
+
+- Send prey-user binary's version to backend. Send prey-user version to Prey backend in order to have more data from each device [\#712](https://github.com/prey/prey-node-client/pull/712) ([JohaoRosasRosillo](https://github.com/JohaoRosasRosillo))
+
+
+- Fixes proxy usage for Prey client. In versions 1.11.2 - 1.11.3 there was a problem with that portion of the code that made Prey restart itself over and over until user changes try_proxy property inside prey.conf file [\#749](https://github.com/prey/prey-node-client/pull/749) ([SoraKenji](https://github.com/SoraKenji))
+
+## [v1.11.4](https://github.com/prey/prey-node-client/tree/v1.11.4) (2023-04-04)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.11.3..v1.11.4)
+
+**Merged pull requests:**
+
+- Fixes proxy usage for Prey client. In versions 1.11.2 - 1.11.3 there was a problem with that portion of the code that made Prey restart itself over and over until user changes try_proxy property inside prey.conf file [\#749](https://github.com/prey/prey-node-client/pull/749) ([SoraKenji](https://github.com/SoraKenji))
+
+## [v1.11.3](https://github.com/prey/prey-node-client/tree/v1.11.3) (2023-03-27)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.11.2..v1.11.3)
+
+**Merged pull requests:**
+
+- Adds prey-user v0.0.3 as a universal binary. Now prey-user binary for MacOS is native for both Apple Silicon and Apple Intel https://github.com/prey/prey-node-client/pull/747 ([SoraKenji](https://github.com/SoraKenji))
+
+
+## [v1.11.2](https://github.com/prey/prey-node-client/tree/v1.11.2) (2023-03-24)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.11.1..v1.11.2)
+
+**Merged pull requests:**
+
+- Fix/max listeners exceeded warning on network state changed [\#741](https://github.com/prey/prey-node-client/pull/741) ([SoraKenji](https://github.com/SoraKenji))
+
+## [v1.11.1](https://github.com/prey/prey-node-client/tree/v1.11.1) (2023-03-07)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.11.0..v1.11.1)
+
+**Merged pull requests:**
+
+- Fixes issue with automations only retrieving data when Prey Client in initialize [\#718](https://github.com/prey/prey-node-client/pull/718) ([SoraKenji](https://github.com/SoraKenji))
+
+- Fixes an issue when updating to newer version on Windows [\#722](https://github.com/prey/prey-node-client/pull/722) ([SoraKenji](https://github.com/SoraKenji))
+
+- Now on when uninstalling, it deletes Prey folder on Windows. This will only work with the new installer and forward so if Prey auto update from older version, this won't work.  This change is related to Prey-client-distribution repository ([SoraKenji](https://github.com/SoraKenji))
+
+## [v1.11.0](https://github.com/prey/prey-node-client/tree/v1.11.0) (2022-12-14)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.10.11..v1.11.0)
+
+**Merged pull requests:**
+
+- New version WinSVC 2.0.11. Improved autoupdate [\#696](https://github.com/prey/prey-node-client/pull/696) ([SoraKenji](https://github.com/SoraKenji))
+
+- Fixed comparation between old and new hardware information. [\#685](https://github.com/prey/prey-node-client/pull/695) ([JohaoRosasRosillo](https://github.com/JohaoRosasRosillo))
+
+- Added arm64 native support [\#688](https://github.com/prey/prey-node-client/pull/688) ([SoraKenji](https://github.com/SoraKenji)) ([patriciojofre](https://github.com/patriciojofre))
+
 ## [v1.10.11](https://github.com/prey/prey-node-client/tree/v1.10.11) (2022-09-07)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.10.10..v1.10.11)
 
 **Merged pull requests:**
+
+- Fix callback when sending encrypt information. [\#691](https://github.com/prey/prey-node-client/pull/691) ([JohaoRosasRosillo](https://github.com/JohaoRosasRosillo))
+
+- Remove console logs. [\#687](https://github.com/prey/prey-node-client/pull/687) ([JohaoRosasRosillo](https://github.com/JohaoRosasRosillo))
+
+- Fix variable to update WinSVC so it's only on Windows. [\#686](https://github.com/prey/prey-node-client/pull/686) ([JohaoRosasRosillo](https://github.com/JohaoRosasRosillo))
+
+- Fix multiple entrance prey user permissions. [\#681](https://github.com/prey/prey-node-client/pull/681) ([SoraKenji](https://github.com/SoraKenji))
+
+- Adds auth to HTTP geo call [\#680](https://github.com/prey/prey-node-client/pull/680) ([JohaoRosasRosillo](https://github.com/JohaoRosasRosillo))
+
+- New action to call update WinSVC to update Prey service. [\#678](https://github.com/prey/prey-node-client/pull/678) ([JohaoRosasRosillo](https://github.com/JohaoRosasRosillo))
+git
+- Updated new WinSVC with new feature. Now it can update Prey services per request. [\#676](https://github.com/prey/prey-node-client/pull/676) ([JohaoRosasRosillo](https://github.com/JohaoRosasRosillo))
 
 - Fixs a circular call on websocket/index.js when trying to clear intervals. [\#673](https://github.com/prey/prey-node-client/pull/673) ([SoraKenji](https://github.com/SoraKenji))
 
