@@ -137,9 +137,9 @@ describe('factoryreset', () => {
             run_stub_token.restore();
             spy_commands.restore();
           })
-
           it('notify error to the user and shouldnt ask for keys or status', (done) => {
             factoryreset.start(id,opts, (err, em) => {
+              console.log(err);
               em.on('end', (id,err, out) => {
                 should.exist(err);
                 err.message.should.containEql('Socket hang up');

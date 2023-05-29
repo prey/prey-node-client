@@ -310,6 +310,7 @@ describe('tasks', function() {
         var old_current;
 
         before(function(done) {
+          console.log('perrito');
           common.system.paths.versions = null;
 
           old_current = common.system.paths.current;
@@ -318,6 +319,7 @@ describe('tasks', function() {
           var dir = common.system.paths.current;
 
           var createDirStructure = function (base_dir) {
+            console.log('gatito');
             fs.mkdir(base_dir, function () {
               fs.mkdir(join(base_dir, "bin"), function () {
                 var preyBinDir = join(__dirname, "..", "..", "..","bin", "prey");
@@ -349,7 +351,6 @@ describe('tasks', function() {
 
         it('does not create a current symlink/dir', function(done) {
           var spy = sinon.spy(vm, 'set_current');
-
           // ok, now go
           tasks.activate({}, function(err) {
             should.not.exist(err);
