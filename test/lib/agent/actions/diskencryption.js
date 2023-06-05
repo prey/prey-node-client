@@ -116,8 +116,8 @@ describe('diskencryption', () => {
           })
 
           it('notify error to the user and shouldnt ask for keys or status', (done) => {
-            diskencryption.start(id,opts, (err, em) => {
-              em.on('end', (id,err, out) => {
+            diskencryption.start(id, opts, (err, em) => {
+              em.on('end', (id, err, out) => {
                 should.exist(err);
                 err.message.should.containEql('Socket hang up');
                 spy_commands.notCalled.should.be.equal(true);

@@ -25,7 +25,7 @@ describe('updating', function() {
   before(function() {
     common.logger.pause();
 
-    // ensure the config.get('download_edge') call returns false
+    //ensure the config.get('download_edge') call returns false
     branch_stub = sinon.stub(common.config, 'get').callsFake(key => {
       return false;
     })
@@ -143,7 +143,7 @@ describe('updating', function() {
       before(function(done) {
         real_version = common.version;
         common.version = '1.2.3';
-        upstream_version = '1.2.1'; // should not happen, but anyway
+        upstream_version = '1.2.1'; //should not happen, but anyway
 
         stub = stub_get_stable_version(upstream_version);
         storage.init('versions', tmpdir() + '/version', done);
@@ -186,9 +186,9 @@ describe('updating', function() {
         stub.restore();
       });
 
-      // for this test, we fake the 'spawn' call and return a fake child,
-      // for whom we will trigger a fake 'exit' event, as if the child process
-      // had exited, so updater.check's callback gets triggered
+      //for this test, we fake the 'spawn' call and return a fake child,
+      //for whom we will trigger a fake 'exit' event, as if the child process
+      //had exited, so updater.check's callback gets triggered
       describe('when upgrading fails', function() {
 
         var fake_spawn;
@@ -260,30 +260,30 @@ describe('updating', function() {
             storage.erase(tmpdir() + '/versions', done);
           });
 
-          // it('callbacks an error and notifies it', function (done){
+          //it('callbacks an error and notifies it', function (done){
 
-           //   storage.init('versions', tmpdir() + '/versions', (err) => {
-          //     storage.do('set', {type: 'versions', id: '1.2.5', data:  {from: '1.2.3', to: '1.2.5', attempts: 3, notified: 0}}, () => {
-          //       done();
-          //       updater.check_for_update();
-          //       setTimeout(() => {
+           //  storage.init('versions', tmpdir() + '/versions', (err) => {
+          //    storage.do('set', {type: 'versions', id: '1.2.5', data:  {from: '1.2.3', to: '1.2.5', attempts: 3, notified: 0}}, () => {
+          //      done();
+          //      updater.check_for_update();
+          //      setTimeout(() => {
 
 
-          //         post_spy.calledOnce.should.equal(true);
-          //         done();
-          //       }, 2500)
+          //        post_spy.calledOnce.should.equal(true);
+          //        done();
+          //      }, 2500)
 
-          //     });
-          //   });
+          //    });
+          //  });
 
-          // });
+          //});
         });
 
       });
 
-      // for this test, we fake the 'spawn' call and return a fake child,
-      // for whom we will emit the 'YOUARENOTMYFATHER' string in its stdout
-      // as if the updater is succesfully going through.
+      //for this test, we fake the 'spawn' call and return a fake child,
+      //for whom we will emit the 'YOUARENOTMYFATHER' string in its stdout
+      //as if the updater is succesfully going through.
       describe('when upgrading succeeds', function() {
 
         var fake_spawn,

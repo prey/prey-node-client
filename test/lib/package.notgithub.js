@@ -29,7 +29,7 @@ var dummy_checksum = '1cb6c1b14888d1d88021689b5971a25dfb3a132a';
 var current_checksum;
 
 //////////////////////////////////////////////////////
-// helpers
+helpers
 
 var get_file_name = function(ver) {
   var os_name   = process.platform.replace('win32', 'windows').replace('darwin', 'mac'),
@@ -69,7 +69,7 @@ var emulate_download = function(file) {
       return cb(null, { body: obj });
     }
 
-    requested_file = basename(url); // store it for later
+    requested_file = basename(url); //store it for later
 
     fs.readFile(file, function(err, data) {
       fs.writeFile(opts.output, data, function(err) {
@@ -91,16 +91,15 @@ var stub_unpacker = function(fn) {
 }
 
 //////////////////////////////////////////////////////
-// go
 
 describe('package.get_latest', function() {
 
   before(function() {
-    process.stdout.writable = false; // turns logging off for this module
+    process.stdout.writable = false; //turns logging off for this module
   })
 
   after(function() {
-    process.stdout.writable = true; // logging back on
+    process.stdout.writable = true; //logging back on
   })
 
   function get_latest(current_version, dest, cb) {
@@ -291,7 +290,7 @@ describe('package.get_latest', function() {
           spy.called.should.be.true;
           spy.args[0][0].should.match(/prey-(\w+)-1.5.0-(\w+).zip/);
           spy.restore();
-          // spystub.calledWith.should.be('foobar');
+          spystub.calledWith.should.be('foobar');
           done()
         });
 
@@ -299,7 +298,7 @@ describe('package.get_latest', function() {
 
       describe('and the checksum is invalid', function() {
 
-        // just keep the checksum as it is
+        //just keep the checksum as it is
 
         it('returns an error', function(done) {
 
@@ -343,7 +342,7 @@ describe('package.get_latest', function() {
           current_checksum = dummy_checksum;
         })
 
-        // no write perms only testable in *Nix and Windows > XP
+        //no write perms only testable in *Nix and Windows > XP
         if (!is_windows || parseFloat(os.release()) > 5.1) {
 
         describe('with no write permissions', function() {
@@ -416,7 +415,7 @@ describe('package.get_latest', function() {
             var failer;
 
             before(function() {
-              failer = stub_unpacker(); // default function returns error already
+              failer = stub_unpacker(); //default function returns error already
             })
 
             after(function() {
@@ -439,7 +438,7 @@ describe('package.get_latest', function() {
 
           describe('if unpacking works', function() {
 
-            // no need to stub, should work by default
+            //no need to stub, should work by default
 
             it('tries to rename the folder from prey-a.b.c to simply a.b.c', function(done) {
 
@@ -489,7 +488,7 @@ describe('package.get_latest', function() {
 
             describe('if renaming works', function() {
 
-              // nothing to stub, it should work by default
+              //nothing to stub, it should work by default
 
               it('final folder should exist', function(done) {
                 get_latest('1.2.3', dest, function(err) {
@@ -500,7 +499,6 @@ describe('package.get_latest', function() {
                 });
               });
 
-              // this test probably passes only in *nixes
               if (!is_windows) {
 
                 it('makes sure bin/node and bin/prey are executable', function(done) {

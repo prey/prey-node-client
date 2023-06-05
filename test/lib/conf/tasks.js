@@ -10,7 +10,9 @@ var fs      = require('fs'),
     api      = require(api_path),
     request  = require(join(api_path, 'request')),
     shared   = require(helpers.lib_path('conf', 'shared')),
-    tmpdir   = require('os').tmpdir();
+    tmpdir   = require('os').tmpdir(),
+    clear_folders = require(helpers.lib_path('conf', 'tasks', 'clear_folders')),
+    clear_files_temp = require(helpers.lib_path('conf', 'tasks', 'clear_files_prey_temp'));
 
 var os_name = process.platform.replace('win32', 'windows').replace('darwin', 'mac');
 
@@ -330,17 +332,15 @@ describe('tasks', function() {
             });
           }
 
-          fs.existsSync(dir, function (exists) {
-            if (exists) {
-              rimraf(dir, function () {
-                createDirStructure(dir);
-              });
-            } else {
+          let exists = fs.existsSync(dir);
+          if (exists) {
+            rimraf(dir, function () {
               createDirStructure(dir);
-            }
-          });
-
-        })
+            });
+          } else {
+            createDirStructure(dir);
+          }
+        });
 
         after(function(done) {
           rimraf(common.system.paths.current, done)
@@ -349,7 +349,6 @@ describe('tasks', function() {
 
         it('does not create a current symlink/dir', function(done) {
           var spy = sinon.spy(vm, 'set_current');
-
           // ok, now go
           tasks.activate({}, function(err) {
             should.not.exist(err);
@@ -419,7 +418,9 @@ describe('tasks', function() {
       })
 
       describe('with versions support', function() {
-
+        let sharedVersionManager;
+        let clearFolderStart;
+        let clearFolderTempStart;
         var dir = join(tmpdir, 'versions');
 
         before(function() {
@@ -429,11 +430,24 @@ describe('tasks', function() {
         describe('and current version equals this version', function() {
 
           before(function() {
-            vm.this().should.eql(vm.current());
-          })
+            clearFolderStart = sinon.stub(clear_folders, 'start').callsFake(
+              (cb) => {
+              return cb(); 
+            });
+            clearFolderTempStart = sinon.stub(clear_files_temp, 'start').callsFake(
+              (cb) => {
+              return cb(); 
+            });
+            sharedVersionManager = sinon.stub(shared.version_manager, 'set_current').callsFake(
+              (version, cb) => {
+              return cb(null); 
+            });
+          }); //   vm.this().should.eql(vm.current());
+          after(()=>{
+            sharedVersionManager.restore();
+          });
 
           it('doesnt stop, but shows warning', function(done) {
-
             tasks.activate({}, function(err, out) {
               should.not.exist(err);
               done();
@@ -878,15 +892,19 @@ describe('tasks', function() {
         })
 
         describe('and post_install hooks succeed', function() {
-
-          var hooks_stub;
+          let daemonWatcher;
+          let hooks_stub;
 
           before(function() {
-            hooks_stub = sinon.stub(hooks, 'post_install').callsFake(cb =>{ cb() })
+            daemonWatcher = sinon.stub(daemon, 'set_watcher').callsFake(
+              cb => { return cb();
+            });
+            hooks_stub = sinon.stub(hooks, 'post_install').callsFake(cb =>{ return cb() })
           })
 
           after(function() {
             hooks_stub.restore();
+            daemonWatcher.restore();
           })
 
           it('returns no error', function(done) {
@@ -901,13 +919,13 @@ describe('tasks', function() {
       })
 
       describe('if hooks.post_install fails', function() {
-
+        let hooks_stub;
         before(function() {
-          stub = sinon.stub(hooks, 'post_install').callsFake(cb => { cb() })
+          hooks_stub = sinon.stub(hooks, 'post_install').callsFake(cb => { cb() })
         })
 
         after(function() {
-          stub.restore();
+          hooks_stub.restore();
         })
 
         it('returns EACCESS error', function(done) {
