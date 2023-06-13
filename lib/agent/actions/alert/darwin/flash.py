@@ -329,7 +329,7 @@ if __name__ == '__main__':
 
   parser = argparse.ArgumentParser(description='Shows an onscreen message.')
   parser.add_argument('message', metavar='message', help='Message to show')
-  parser.add_argument('-t', '--title', dest='title', default='Important', help='Title to show above.')
+  parser.add_argument('-t', '--title', dest='title', default='', help='Title to show above.')
   parser.add_argument('-e', '--entry', dest='entry', help='Adds an text input.')
   parser.add_argument('-l', '--level', dest='level', help='Warning level. "warning" or "info" (default)')
 
