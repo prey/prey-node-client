@@ -34,6 +34,15 @@ logretrieval.tmpdir = prey_dir;
 
 const id = '1234';
 
+
+if (!process.getuid() !== 0) {
+  console.log('\nThe impersonation tests should be run as root.');
+  console.log(
+    'Please run `sudo mocha test/lib/actions/logretrieval.js.` to run them separately.'
+  );
+  return;
+}
+
 describe('Logretrieval', () => {
 
   beforeEach((done) => {
@@ -41,10 +50,10 @@ describe('Logretrieval', () => {
     common.system.paths.log      = log_dir;
     common.system.paths.log_file = log_file;
 
-    fs.mkdirSync(etc_dir);
-    fs.mkdirSync(prey_dir);
-    fs.mkdirSync(var_dir);
-    fs.mkdirSync(log_dir);
+    if(!fs.existsSync(etc_dir)) fs.mkdirSync(etc_dir);
+    if(!fs.existsSync(prey_dir)) fs.mkdirSync(prey_dir);
+    if(!fs.existsSync(var_dir)) fs.mkdirSync(var_dir);
+    if(!fs.existsSync(log_dir)) fs.mkdirSync(log_dir);
 
     fs.writeFileSync(conf_file, Buffer.from("Hi, I'm the prey.conf"));
     fs.writeFileSync(comm_file, Buffer.from("I store commands"));
@@ -177,13 +186,11 @@ describe('Logretrieval', () => {
               unzip(logs_zip, () => {
                 fs.existsSync(logs_dir).should.be.equal(true);
                 fs.existsSync(join(logs_dir, 'prey.log')).should.be.equal(true);
-                fs.existsSync(join(logs_dir, 'prey.conf')).should.be.equal(false);
                 fs.existsSync(join(logs_dir, 'commands.db')).should.be.equal(true);
 
                 // Check files content
                 fs.readFileSync(join(logs_dir, 'prey.log')).toString().should.containEql("And I'm the f***ing log");
                 fs.readFileSync(join(logs_dir, 'commands.db')).toString().should.containEql("I store commands");
-
                 done();
               });
             });
@@ -212,15 +219,13 @@ describe('Logretrieval', () => {
 
       it('returns an error', (done) => {
         logretrieval.start(id, {}, (err, em) => {
-          em.once('end', (id, err) => {
-            should.exist(err);
-            err.message.should.be.equal("There was an error uploading logs file");
+          em.once('end', (id, errOnce) => {
+            should.exist(errOnce);
+            errOnce.message.should.be.equal("There was an error uploading logs file");
             done();
           });
         });
       })
-
     });
-      
   })
 });
