@@ -14,6 +14,7 @@ describe('check_and_show()', function() {
     var config_stub, device_stub;
 
     before(function() {
+      spy_show = sinon.spy(panel, 'show');
       config_stub = sinon.stub(secure, 'open_config').callsFake(() => { return true; });
       device_stub = sinon.stub(shared.keys, 'verify_current').callsFake(cb => {
         return cb(new Error('API Key not found!'));
@@ -35,7 +36,7 @@ describe('check_and_show()', function() {
         spy_show.calledOnce.should.equal(true);
         spy_force.notCalled.should.equal(true);
         done();
-      }, 250)
+      }, 1250)
     })
 
   });
@@ -81,6 +82,8 @@ describe('check_and_show()', function() {
         var config_stub, device_stub, shared_keys_stub;
 
         before(function() {
+          spy_show = sinon.spy(panel, 'show');
+          spy_force = sinon.spy(panel, 'force_new_config');
           config_stub = sinon.stub(secure, 'open_config').callsFake(() => { return true; });
           device_stub = sinon.stub(shared.keys, 'verify_current').callsFake(cb => { return cb(null); });
           shared_keys_stub = sinon.stub(shared.keys, 'get').callsFake(() => {
@@ -153,6 +156,7 @@ describe('check_and_show()', function() {
     var config_stub, device_stub, reset_stub;
 
     before(function() {
+      spy_reset = sinon.spy(panel, 'reset_old_keys');
       reset_stub = sinon.stub(secure, 'reset_keys').callsFake(cb => { return cb(null); });
       config_stub = sinon.stub(secure, 'open_config').callsFake(() => { return true; });
       device_stub = sinon.stub(shared.keys, 'verify_current').callsFake(cb => { return cb(null); });

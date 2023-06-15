@@ -13,9 +13,11 @@ describe('all actions', function(){
 
       actions.forEach(function(action_name){
 
-        var mod = require(path.join(actions_path, action_name));
-        (typeof mod.start).should.equal('function');
-
+        if (action_name != '.DS_Store') {
+          var mod = require(path.join(actions_path, action_name));
+          (typeof mod.start).should.equal('function');     
+        }
+       
       });
 
     });

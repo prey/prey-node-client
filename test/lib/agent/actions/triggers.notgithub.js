@@ -1,9 +1,9 @@
-var helpers          = require('./../../../helpers'),
+var helpers          = require('../../../helpers'),
     tmpdir           = require('os').tmpdir,
     should           = require('should'),
     sinon            = require('sinon'),
     join             = require('path').join,
-    hooks            = helpers.load('hooks');
+    hooks            = helpers.load('hooks'),
     lib_path         = helpers.lib_path(),
     triggers_path    = join(lib_path, 'agent', 'actions', 'triggers'),
     triggers         = require(triggers_path),
@@ -29,19 +29,21 @@ describe('triggers', () => {
       actions_start_stub;
 
   before((done) => {
-    keys_present_stub = sinon.stub(keys, 'present').callsFake(() => { return true; })
-    keys_get_stub = sinon.stub(keys, 'get').callsFake(() => { return { api: 'aaaaaaaaaa', device: 'bbbbbb' } })
+    
+    keys.set({ api: 'xxxxxxxxx', device: 'foobar' })
     push_stub = sinon.stub(push, 'response').callsFake(() => { return; })
     post_stub = sinon.stub(request, 'post').callsFake(() => { return; })
+    keys_get_stub = sinon.stub(keys, 'get').callsFake(() => { return { api: 'aaaaaaaaaa', device: 'bbbbbb' } })
+    keys_present_stub = sinon.stub(keys, 'present').callsFake(() => { return true; })
     actions_start_stub = sinon.stub(actions, 'start').callsFake(() => { return true; })
     storage.init('triggers', tmpdir() + '/test.db', done);
   })
 
   after((done) => {
-    keys_present_stub.restore();
-    keys_get_stub.restore();
     post_stub.restore();
     push_stub.restore();
+    keys_present_stub.restore();
+    keys_get_stub.restore();
     actions_start_stub.restore();
     storage.do('clear', {type: 'triggers'}, () => {
       storage.erase(tmpdir() + '/test.db', done);
@@ -66,7 +68,7 @@ describe('triggers', () => {
         get_stub.restore();
       })
 
-      describe('and triggers tables does not exists', () => {
+     describe('and triggers tables does not exists', () => {
         before((done) => {
           spy_sync = sinon.spy(triggers, 'sync');
           spy_get_local = sinon.spy(storage.storage_fns, 'all');
@@ -88,7 +90,7 @@ describe('triggers', () => {
 
       describe('and triggers table exists', () => {
 
-        describe('and when there is no data in the local database', () => {
+       describe('and when there is no data in the local database', () => {
           
           before((done) => {
             spy_sync = sinon.spy(triggers, 'sync');
@@ -181,6 +183,8 @@ describe('triggers', () => {
             new_date = 1918330449000;
             setTimeout(() => { triggers.start(id, done) }, 500)
             clock = sinon.useFakeTimers(new_date);
+
+
           })
 
           after(() => {
@@ -220,7 +224,7 @@ describe('triggers', () => {
           })
         })
 
-        describe('and it has repeat_time triggers', () => {
+       describe('and it has repeat_time triggers', () => {
           var clock;
 
           before((done) => {
@@ -240,11 +244,11 @@ describe('triggers', () => {
           })
 
           it('execute the trigger weekly', (done) => {
-            // Test trigger set to be executed Mondays and Thursdays at 14:25:10, until next Wednesday.
-            // it should run this monday and thursday, and then next monday, stoppping on wednesday.
+            //Test trigger set to be executed Mondays and Thursdays at 14:25:10, until next Wednesday.
+            //it should run this monday and thursday, and then next monday, stoppping on wednesday.
             var time = test_time;
 
-            while(time < 1561680000000) {      // Every second for the next two weeks, until next friday
+            while(time < 1561680000000) {      //Every second for the next two weeks, until next friday
               time += 1000;
               clock.tick(1000);
             }
@@ -272,7 +276,7 @@ describe('triggers', () => {
             setTimeout(() => { triggers.start(id, done) }, 500)
             clock = sinon.useFakeTimers(new_date);
             last_stub = sinon.stub(lp, 'last_connection').callsFake(() => {
-              return 1461381200;  // unix time in seconds
+              return 1461381200;  //unix time in seconds
             });
           })
 
@@ -298,7 +302,7 @@ describe('triggers', () => {
           })
 
           it('execute the actions when the event is triggered and into the range', (done) => {
-            clock.tick(1000 * 60 * 60 * 24 * 5); // Moving to Saturday
+            clock.tick(1000 * 60 * 60 * 24 * 5); //Moving to Saturday
             hooks.trigger('new_location');
             clock.tick(1000);
             spy_perform.getCall(2).args[0].target.should.be.equal('alert');
@@ -323,7 +327,7 @@ describe('triggers', () => {
           });
 
           it('execute the actions when the event is triggered and into days the range', (done) => {
-            clock.tick(1000 * 60 * 60 * 24) // One more Day
+            clock.tick(1000 * 60 * 60 * 24) //One more Day
             hooks.trigger('stopped_charging');
             clock.tick(1000);
             spy_perform.getCall(6).args[0].target.should.be.equal('alert');
@@ -332,7 +336,7 @@ describe('triggers', () => {
           });
 
           it('execute with days and hours ranges', (done) => {
-            clock.tick(1000 * 60 * 60 * 24) // One more Day
+            clock.tick(1000 * 60 * 60 * 24) //One more Day
             hooks.trigger('mac_address_changed');
             clock.tick(1000)
             spy_perform.getCall(7).args[0].target.should.be.equal('lock');
@@ -397,6 +401,8 @@ describe('triggers', () => {
             done();
           })
 
+<<<<<<< HEAD:test/lib/agent/actions/triggers.notgithub.js
+=======
            // it('does not executes again', (done) => {
           //   clock.tick(2000);
           //   triggers.start(id, () => {
@@ -405,6 +411,7 @@ describe('triggers', () => {
           //     done();
           //   })
           // })
+>>>>>>> master:test/lib/agent/actions/triggers.js
 
         })
       })
