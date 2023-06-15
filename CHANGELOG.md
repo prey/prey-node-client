@@ -5,13 +5,21 @@
 
 **Merged pull requests:**
 
-- Add acknowledge message to server in order to inform reception and acceptance of actions from server [\#765](https://github.com/prey/prey-node-client/pull/765) ([JohaoRosasRosillo](https://github.com/JohaoRosasRosillo))
+- Now get_status accepts more than one callback to be called when finished, this fixes an error when get_status get two or more calls before finished [\#778](https://github.com/prey/prey-node-client/pull/778) ([SoraKenji](https://github.com/SoraKenji))
 
-- Add new prey-user binary version featuring a change for cases when database is created as own as root and this now change that to the corresponding user.
+- Fixes unit and functional tests in the repository [\#776](https://github.com/prey/prey-node-client/pull/776) ([SoraKenji](https://github.com/SoraKenji))
 
-- Add prey_restarts.log to Windows in order to know unix timestamps of last 5 restarts [\#767](https://github.com/prey/prey-node-client/pull/767) ([SoraKenji](https://github.com/SoraKenji))\
+- Improves wifi connections order before sending it to backend to, in some cases, get a better location accuracy [\#771](https://github.com/prey/prey-node-client/pull/771) ([JohaoRosasRosillo](https://github.com/JohaoRosasRosillo))
+
+- Add prey_restarts.log to Windows in order to know unix timestamps of last 5 restarts [\#767](https://github.com/prey/prey-node-client/pull/767) ([SoraKenji](https://github.com/SoraKenji))
 
 - Fix problem when connecting and disconnecting from internet happens to quickly making a bunch of emails being send when geofences are configured [\#766](https://github.com/prey/prey-node-client/pull/766) ([SoraKenji](https://github.com/SoraKenji))
+
+- Add acknowledge message to server in order to inform reception and acceptance of actions from server [\#765](https://github.com/prey/prey-node-client/pull/765) ([JohaoRosasRosillo](https://github.com/JohaoRosasRosillo))
+
+- Fixes proxy usage for Prey client. In versions 1.11.2 - 1.11.3 there was a problem with that portion of the code that made Prey restart itself over and over until user changes try_proxy property inside prey.conf file [\#749](https://github.com/prey/prey-node-client/pull/749) ([SoraKenji](https://github.com/SoraKenji))
+
+- Add new prey-user binary version featuring a change for cases when database is created as own as root and this now change that to the corresponding user.
 
 - Fix in get_active_access_point for Windows. In some cases, this function for obtaining wifi networks didn't return anything making the Prey client restart [\#728](https://github.com/prey/prey-node-client/pull/728) ([JohaoRosasRosillo](https://github.com/JohaoRosasRosillo))
 
@@ -26,9 +34,6 @@
 - Remove Prey's files in temp. Deleting temporary files left by Prey client when installing [\#713](https://github.com/prey/prey-node-client/pull/713) ([JohaoRosasRosillo](https://github.com/JohaoRosasRosillo))
 
 - Send prey-user binary's version to backend. Send prey-user version to Prey backend in order to have more data from each device [\#712](https://github.com/prey/prey-node-client/pull/712) ([JohaoRosasRosillo](https://github.com/JohaoRosasRosillo))
-
-
-- Fixes proxy usage for Prey client. In versions 1.11.2 - 1.11.3 there was a problem with that portion of the code that made Prey restart itself over and over until user changes try_proxy property inside prey.conf file [\#749](https://github.com/prey/prey-node-client/pull/749) ([SoraKenji](https://github.com/SoraKenji))
 
 ## [v1.11.4](https://github.com/prey/prey-node-client/tree/v1.11.4) (2023-04-04)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.11.3..v1.11.4)
