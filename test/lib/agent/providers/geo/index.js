@@ -16,7 +16,7 @@ describe('geoloc fallback', function() {
 
     if (cbs_len && cbs_len < 3) {
 
-      ['native', 'wifi', 'geoip'].forEach(function(strat, i) {
+      ['native', 'wifi'].forEach(function(strat, i) {
         if (cbs_len === 1) {
           stubs[strat] = sinon.stub(strats, strat).callsFake(cbs[0]);
         } else if (cbs[i] && typeof cbs[i] === 'function') {
@@ -31,7 +31,7 @@ describe('geoloc fallback', function() {
   }
 
   function restore_stubs() {
-    ['native', 'wifi', 'geoip'].forEach(function(strat) {
+    ['native', 'wifi'].forEach(function(strat) {
       if (stubs[strat]) {
         stubs[strat].restore();
       }
@@ -49,17 +49,6 @@ describe('geoloc fallback', function() {
     after(function() {
       restore_stubs();
     });
-
-    it('reaches geoip and return no location', function(done) {
-      geo.fetch_location(function(err, res) {
-        err.should.equal(err);
-        should(res).not.exist;
-        stubs.wifi.calledOnce.should.equal(true);
-        stubs.geoip.calledOnce.should.equal(true);
-        done();
-      });
-    });
-
   });
 
   describe('when running osx', function() {
