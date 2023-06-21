@@ -14,14 +14,14 @@ var fs      = require('fs'),
     clear_folders = require(helpers.lib_path('conf', 'tasks', 'clear_folders')),
     clear_files_temp = require(helpers.lib_path('conf', 'tasks', 'clear_files_prey_temp'));
 
-var os_name = process.platform.replace('win32', 'windows').replace('darwin', 'mac');
+var osName = process.platform.replace('win32', 'windows').replace('darwin', 'mac');
 
 var common  = require(helpers.lib_path('common')),
     tasks   = require(helpers.lib_path('conf', 'tasks')),
     vm      = require(helpers.lib_path('conf', 'shared', 'version_manager'));
 
 var prey_user = require(helpers.lib_path('conf', 'tasks', 'prey_user')),
-    hooks   = require(helpers.lib_path('conf', 'tasks', 'os', os_name )),
+    hooks   = require(helpers.lib_path('conf', 'tasks', 'os', osName )),
     daemon  = require(helpers.lib_path('conf', 'tasks', 'daemon'));
 
 var firewall  = require('firewall');
@@ -69,7 +69,7 @@ describe('tasks', function() {
       }
     }
 
-    if (os_name == 'windows') {
+    if (osName == 'windows') {
 
       var firewall_stubs = {};
 
@@ -990,7 +990,7 @@ describe('tasks', function() {
       var win_hooks = require(helpers.lib_path('conf', 'tasks', 'os', 'windows'));
 
       // if we're actually running on windows, reset the FW stubs
-      if (os_name == 'windows') {
+      if (osName == 'windows') {
         before(function() {
           firewall_stubs.add.restore();
         })

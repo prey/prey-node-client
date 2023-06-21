@@ -26,7 +26,7 @@ var helpers        = require('./../../../helpers'),
 
   describe('when os != windows', () => {
     before(() => {
-      sys_index.os_name = "mac" 
+      sys_index.osName = "mac" 
       platform_stub = sinon.stub(os, 'platform').callsFake(() => { return 'mac'; });
     })
 
@@ -44,7 +44,7 @@ var helpers        = require('./../../../helpers'),
 
   describe('when os is windows', () => {
     before(() => {
-      sys_index.os_name = "windows"
+      sys_index.osName = "windows"
       sys_index.check_service = sys_win.check_service;
       sys_index.run_as_admin = sys_win.run_as_admin;
       platform_stub = sinon.stub(os, 'platform').callsFake(() => { return 'win32'; });
@@ -79,7 +79,7 @@ var helpers        = require('./../../../helpers'),
 
     describe('when is not compatible_with_module_tpm', () => {
 
-      var data = { os_edition  : "Basic", winsvc_version : "2.0.1" , os_name : "windows"}
+      var data = { os_edition  : "Basic", winsvc_version : "2.0.1" , osName : "windows"}
 
       it('should return false when not is compatible', (done) => {
         let response = sys_win.compatible_with_module_tpm(data);
@@ -91,7 +91,7 @@ var helpers        = require('./../../../helpers'),
 
     describe('when is compatible_with_module_tpm', () => {
 
-      var data = { os_edition  : "Pro", winsvc_version : "2.0.1" , os_name : "windows"}
+      var data = { os_edition  : "Pro", winsvc_version : "2.0.1" , osName : "windows"}
 
       var os_version_stub,
       os_version = "10.5.0";
@@ -120,7 +120,7 @@ var helpers        = require('./../../../helpers'),
 describe('Send info interval', function() {
 
   before(() => {
-    sys_index.os_name = "windows"
+    sys_index.osName = "windows"
     platform_stub_3 = sinon.stub(os, 'platform').callsFake(() => { return 'win32'; });
   })
 
@@ -128,7 +128,7 @@ describe('Send info interval', function() {
 describe('encrypt info', function() {
 
   beforeEach(function() {
-    sys_index.os_name = "windows"
+    sys_index.osName = "windows"
     this.clock = sinon.useFakeTimers();
   });
 

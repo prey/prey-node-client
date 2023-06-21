@@ -32,7 +32,7 @@ describe('fullwipe', () => {
   describe('when os is windows', () => {
 
     before(() => {
-      sys_index.os_name = "windows"
+      sys_index.osName = "windows"
       sys_index.check_service = sys_win.check_service;
       sys_index.run_as_admin = sys_win.run_as_admin;
       platform_stub = sinon.stub(os, 'platform').callsFake(() => { return 'win32'; });

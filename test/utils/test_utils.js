@@ -10,7 +10,7 @@
 // Module requirements
 var fs        = require('fs'),
     path      = require('path'),
-    os_name   = process.platform === 'darwin' ? 'mac' : 'linux',
+    osName   = process.platform === 'darwin' ? 'mac' : 'linux',
     exec      = require('child_process').exec,
     spawn     = require('child_process').spawn;
 
@@ -72,7 +72,7 @@ utils.make_network_up = function (iface) {
 utils.get_user_id = function (username, callback) {
   var command;
 
-  if (os_name === 'mac') {
+  if (osName === 'mac') {
     command = 'dscl . -read /Users/' + username + ' UniqueID'
             + ' | awk \' { print ( $(NF) ) }\'';
   } else { // linux
@@ -91,7 +91,7 @@ utils.get_user_id = function (username, callback) {
 utils.get_non_root_user_id = function (callback) {
   var command;
 
-  if (os_name === 'mac') {
+  if (osName === 'mac') {
     command = 'dscl . -list /Users UniqueID'
             + ' | grep -Ev "^_|daemon|nobody|root|Guest"'
             + ' | tail -1'
@@ -114,7 +114,7 @@ utils.get_non_root_user_id = function (callback) {
 utils.get_another_username = function (username, callback) {
   var command;
 
-  if (os_name === 'mac') {
+  if (osName === 'mac') {
     command = 'dscl . -list /Users'
             + ' | grep -Ev "^_|daemon|nobody|root|Guest|' + username + '"'
             + ' | tail -1'
@@ -138,7 +138,7 @@ utils.get_another_username = function (username, callback) {
 utils.count_users_in_system = function (callback) {
   var command;
 
-  if (os_name === 'mac') {
+  if (osName === 'mac') {
     command = 'dscl . -list /Users'
             + ' | grep -Ev "^_|daemon|nobody|root|Guest"'
             + ' | wc -l'
@@ -161,7 +161,7 @@ utils.create_user = function (username, callback) {
   var command,
       id;
 
-  if (os_name === 'mac') {
+  if (osName === 'mac') {
     // Will be needing to issue four commands in sequence:
     command = "dscl . -list /Users UniqueID | awk '{print $2}' | sort -ug | tail -1";
     exec(command, executed_first);
@@ -197,7 +197,7 @@ utils.create_user = function (username, callback) {
 utils.remove_user = function (username, callback) {
   var command;
 
-  if (os_name === 'mac') {
+  if (osName === 'mac') {
     command = 'dscl . -delete /Users/' + username;
     var t = setTimeout(function(){ execute_command(); }, 2000);
   } else { // linux

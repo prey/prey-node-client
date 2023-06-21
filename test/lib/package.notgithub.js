@@ -32,9 +32,9 @@ var current_checksum;
 helpers
 
 var get_file_name = function(ver) {
-  var os_name   = process.platform.replace('win32', 'windows').replace('darwin', 'mac'),
+  var osName   = process.platform.replace('win32', 'windows').replace('darwin', 'mac'),
       arch      = process.arch == 'x64' ? 'x64' : 'x86';
-  return ['prey', os_name, ver, arch].join('-') + '.zip';
+  return ['prey', osName, ver, arch].join('-') + '.zip';
 }
 
 var stable_version = function(ver) {

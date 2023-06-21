@@ -12,7 +12,7 @@ var helpers        = require('./../../../helpers'),
 describe('Encryption status', () => {
 
   before(() => {
-    sys_index.os_name = "windows"
+    sys_index.osName = "windows"
     sys_index.check_service = sys_win.check_service;
     sys_index.run_as_admin = sys_win.run_as_admin;
     sys_index.get_as_admin = sys_win.get_as_admin;

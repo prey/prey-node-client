@@ -21,7 +21,7 @@ function startCheckUpdateWinsvc(number) {
 
 describe('when os != windows', () => {
   before(() => {
-    sys_index.os_name = "mac"
+    sys_index.osName = "mac"
     platform_stub = sinon.stub(os, 'platform').callsFake(() => { return 'mac'; });
   })
 
@@ -40,14 +40,14 @@ describe('when os != windows', () => {
 
 describe('update winsvcs interval', function () {
   before(() => {
-    sys_index.os_name = "windows"
+    sys_index.osName = "windows"
     platform_stub_3 = sinon.stub(os, 'platform').callsFake(() => { return 'win32'; });
   })
 
   describe('updater winsvc', function () {
 
     beforeEach(function () {
-      sys_index.os_name = "windows"
+      sys_index.osName = "windows"
       this.clock = sinon.useFakeTimers();
     });
 
@@ -68,7 +68,7 @@ describe('update winsvcs interval', function () {
 
 describe('when os is windows', () => {
   before(() => {
-    sys_index.os_name = "windows"
+    sys_index.osName = "windows"
     sys_index.check_service = sys_win.check_service;
     sys_index.run_as_admin = sys_win.run_as_admin;
     platform_stub = sinon.stub(os, 'platform').callsFake(() => { return 'win32'; });

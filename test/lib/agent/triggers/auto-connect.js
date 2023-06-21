@@ -3,8 +3,8 @@ var should       = require('should'),
     helpers      = require('./../../../helpers'),
     reconnect    = helpers.load('triggers/auto-connect/reconnect'),
     network      = helpers.load('providers/network');
-    os_name      = process.platform.replace('darwin', 'mac').replace('win32', 'windows'),
-    os_functions = helpers.load('triggers/auto-connect/' + os_name);
+    osName      = process.platform.replace('darwin', 'mac').replace('win32', 'windows'),
+    os_functions = helpers.load('triggers/auto-connect/' + osName);
 
 var ap_list = [ { ssid: 'Prey-Guest',
                   mac_address: '11:22:33:44:55:66',

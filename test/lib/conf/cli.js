@@ -9,7 +9,7 @@ var join    = require('path').join,
 var mirror   = function(obj) { return obj };
 
 var common_base = {
-  os_name: 'linux',
+  osName: 'linux',
   system: {
     tempfile_path: mirror,
     paths: {}

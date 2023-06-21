@@ -4,14 +4,14 @@
 var sinon   = require('sinon'),
     should  = require('should'),
     join    = require('path').join,
-    os_name = process.platform.replace('win32', 'windows').replace('darwin', 'mac');
+    osName = process.platform.replace('win32', 'windows').replace('darwin', 'mac');
 
 describe('set_interval #sinon', function(){
 
   var get,
       set,
       sys_path = join(__dirname, '..', '..', 'lib', 'system'),
-      delay    = require(join(sys_path, os_name, 'delay')),
+      delay    = require(join(sys_path, osName, 'delay')),
       system   = require(sys_path);
 
   describe('when no delay is set', function(){
