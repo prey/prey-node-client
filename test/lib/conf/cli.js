@@ -484,7 +484,7 @@ describe('config cli arguments', function() {
           var deps = {
             './shared': {
               keys: {
-                is_api_key_set: function() { return true }
+                isApiKeySet: function() { return true }
               }
             }
           }
@@ -513,7 +513,7 @@ describe('config cli arguments', function() {
           var deps = {
             './shared': {
               keys: {
-                is_api_key_set: function() { return false }
+                isApiKeySet: function() { return false }
               },
               panel: {
                 signup: function(opts, cb) {
