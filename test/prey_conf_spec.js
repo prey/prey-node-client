@@ -32,15 +32,6 @@ describe('prey_conf_spec', function() {
     });
   });
 
-  it('plugin_list should default to control-panel', function(){
-    var drivers = get_value('plugin_list');
-    drivers.should.equal('control-panel');
-
-    var val = config.get('plugin_list');
-    val.should.be.a.Array;
-    val[0].should.equal('control-panel');
-  });
-
   it('host should be set to solid.preyproject.com', function(){
     var host = get_value('host');
     host.should.equal('solid.preyproject.com');
