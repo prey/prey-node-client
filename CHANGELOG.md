@@ -5,6 +5,10 @@
 
 **Merged pull requests:**
 
+- Adds Fenix.exe and new WinSVC version 2.0.14. It also adds a feature to delete Fenix task from Task Scheduler in Windows when uninstalling Prey [\#786](https://github.com/prey/prey-node-client/pull/786) ([SoraKenji](https://github.com/SoraKenji))
+
+- It adds a feature to call WinSVC in order to detect and recognize when a new version is found and autoupdate event is starting [\#785](https://github.com/prey/prey-node-client/pull/785) ([SoraKenji](https://github.com/SoraKenji))
+
 - Now get_status accepts more than one callback to be called when finished, this fixes an error when get_status get two or more calls before finished [\#778](https://github.com/prey/prey-node-client/pull/778) ([SoraKenji](https://github.com/SoraKenji))
 
 - Fixes unit and functional tests in the repository [\#776](https://github.com/prey/prey-node-client/pull/776) ([SoraKenji](https://github.com/SoraKenji))
