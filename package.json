@@ -106,7 +106,7 @@
     "test-ci": "./bin/prey test lib/agent/plugins test --recursive --reporter dot --timeout 10000 --exclude **/*.notgithub.js",
     "coverage": "istanbul cover _mocha -- lib/agent/plugins test --recursive",
     "post_install": "./bin/prey config hooks post_install",
-    "postupdate": "./bin/prey config hooks post_install",
+    "post_update": "./bin/prey config hooks post_install",
     "pre_uninstall": "./bin/prey config hooks pre_uninstall",
     "lint": "eslint .",
     "lint-fix": "eslint . --fix",
