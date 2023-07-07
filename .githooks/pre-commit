@@ -15,7 +15,6 @@ then
 		echo "$message1"
 		echo "$message2"
 		echo "$message3"
-		echo "$message4"
     exit 1
 fi
 
