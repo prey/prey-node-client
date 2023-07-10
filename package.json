@@ -71,7 +71,7 @@
     "winssh": "0.0.3",
     "wmic": "0.0.7",
     "ws": "^7.5.6",
-    "xml2js": "0.4.19"
+    "xml2js": "^0.5.0"
   },
   "devDependencies": {
     "eslint": "^8.39.0",
