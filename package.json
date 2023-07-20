@@ -74,7 +74,7 @@
     "xml2js": "0.4.19"
   },
   "devDependencies": {
-    "eslint": "^8.39.0",
+    "eslint": "^8.44.0",
     "eslint-config-airbnb-base": "^15.0.0",
     "eslint-config-prettier": "^8.7.0",
     "eslint-plugin-import": "^2.27.5",
