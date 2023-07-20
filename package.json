@@ -30,7 +30,7 @@
   "dependencies": {
     "arch": "^2.1.2",
     "archiver": "^5.3.1",
-    "async": "^2.6.1",
+    "async": "^2.6.4",
     "buckle": "https://github.com/javo/buckle.git#4c3d6e0e35d19f73ab0f3e585a1217cdd15938fb",
     "chmodr": "1.2.0",
     "chownr": "1.1.4",
@@ -58,7 +58,7 @@
     "rimraf": "3.0.2",
     "satan": "https://github.com/javo/satan.git#c6076a3f239e448e399e786a26248c37b5aba426",
     "semver": "^5.6.0",
-    "sqlite3": "^5.1.2",
+    "sqlite3": "^5.1.5",
     "sudoer": "https://github.com/javo/sudoer.git#8d5619a1acdd7d37fa688a7ea5c041cb5e3cb697",
     "systeminformation": "^5.9.17",
     "tuna": "0.0.2",
@@ -73,7 +73,7 @@
     "xml2js": "0.4.19"
   },
   "devDependencies": {
-    "eslint": "^8.39.0",
+    "eslint": "^8.44.0",
     "eslint-config-airbnb-base": "^15.0.0",
     "eslint-config-prettier": "^8.7.0",
     "eslint-plugin-import": "^2.27.5",
