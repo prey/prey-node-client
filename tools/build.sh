@@ -275,12 +275,12 @@ check_node_version
 trap cleanup EXIT
 
 # TODO: uncomment line below
-# if [ -z "$SKIP_TESTS" ]; then
-#   run_specs && build $1
-# else
-#   echo "Skipping tests. You cheatin'?"
-#   build $1
-# fi
+if [ -z "$SKIP_TESTS" ]; then
+  run_specs && build $1
+else
+  echo "Skipping tests. You cheatin'?"
+  build $1
+fi
 
 # TODO: remove this line. just for testing
 build $1
