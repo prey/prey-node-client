@@ -130,7 +130,7 @@ build() {
 
   echo "Temp build directory set to ${ROOT}."
   mkdir -p "$ROOT/$FOLDER"
-  cp -R npm-shrinkwrap.json README.md license.txt prey.conf.default package.json bin lib "$ROOT/$FOLDER"
+  cp -R package-lock.json README.md license.txt prey.conf.default package.json bin lib "$ROOT/$FOLDER"
   cd "$ROOT/$FOLDER"
 
   # https://github.com/TryGhost/node-sqlite3/issues/1552#issuecomment-1073309408
@@ -236,7 +236,7 @@ pack(){
   ARCH="$2"
   ZIP="prey-${OS}-${VERSION}-${ARCH}.zip"
   
-  NODE_AGENT_VER=$(readlink ${CURRENT_PATH}/node/current | tr "\/" " " | awk '{print $(NF-1)}')
+  NODE_AGENT_VER=$(head -n 1 ${CURRENT_PATH}/node/current.txt)
   if [ -z "${NODE_AGENT_VER}" ]; then 
     echo -e "node is not present in current ${CURRENT_PATH}/node/current"
     return 1
@@ -275,12 +275,12 @@ check_node_version
 trap cleanup EXIT
 
 # TODO: uncomment line below
-# if [ -z "$SKIP_TESTS" ]; then
-#   run_specs && build $1
-# else
-#   echo "Skipping tests. You cheatin'?"
-#   build $1
-# fi
+if [ -z "$SKIP_TESTS" ]; then
+  run_specs && build $1
+else
+  echo "Skipping tests. You cheatin'?"
+  build $1
+fi
 
 # TODO: remove this line. just for testing
 build $1
