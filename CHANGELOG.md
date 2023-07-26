@@ -6,27 +6,29 @@
 
 **Merged pull requests:**
 
-- Optimize gathering information for missing report and fix a bug when the camera is being used on zoom/teams calls failing to retrieve an image, but not ending the process ([SoraKenji](https://github.com/SoraKenji))
+- Information gathering optimizing for Missing Report feature, and bug fix to image retrieval process when the camera is being used on zoom/teams calls. [\#812](https://github.com/prey/prey-node-client/pull/812) ([SoraKenji](https://github.com/SoraKenji))
 
-- It improves the accuracy for location data going back to version 1.11.4's sort wifi network data. Also includes a way to filter networks removing not useful networks (https://developers.google.com/maps/documentation/geolocation/requests-geolocation#sample-requests) [\#806](https://github.com/prey/prey-node-client/pull/806) ([SoraKenji](https://github.com/SoraKenji))
+- Accuracy improvement for location data going back to version 1.11.4's when sorting wifi network data. Enhancement includes network filtering. (https://developers.google.com/maps/documentation/geolocation/requests-geolocation#sample-requests) [\#806](https://github.com/prey/prey-node-client/pull/806) ([SoraKenji](https://github.com/SoraKenji))
 
-- When a action is created and it needs to get trigger over a certain condition and it's not persisting action then even if it fails to call it then it shouldn't be saved in the database. [\#803](https://github.com/prey/prey-node-client/pull/803) ([SoraKenji](https://github.com/SoraKenji))
+- Database storage revision for created actions that are not persistent. If they trigger over certain conditions, even if the system fails to call them, then they won’t be saved in the database. 
+[\#803](https://github.com/prey/prey-node-client/pull/803) ([SoraKenji](https://github.com/SoraKenji))
 
-- Update to eslint npm package from 8.39.0 or above. to 8.44.0 or above. [\#802](https://github.com/prey/prey-node-client/pull/802) ([SoraKenji](https://github.com/SoraKenji))
+- ESLint npm package was updated, going from 8.39.0 or above, to 8.44.0 or above. [\#802](https://github.com/prey/prey-node-client/pull/802) ([SoraKenji](https://github.com/SoraKenji))
 
-- Update to xml2js npm package from 0.4.19 to 0.5.0 or above. [\#801](https://github.com/prey/prey-node-client/pull/801) ([SoraKenji](https://github.com/SoraKenji))
+- xml2js npm package was updated going from 0.4.19 to 0.5.0 or above. [\#801](https://github.com/prey/prey-node-client/pull/801) 
+([SoraKenji](https://github.com/SoraKenji))
 
-- Update to semver npm package from 5.6.0 or above to 5.1.2 or above. [\#800](https://github.com/prey/prey-node-client/pull/800) ([SoraKenji](https://github.com/SoraKenji))
+- SemVer npm package was updated going from 5.6.0 or above, to 5.1.2 or above. [\#800](https://github.com/prey/prey-node-client/pull/800) ([SoraKenji](https://github.com/SoraKenji))
 
-- Update to jsdoc npm package from 3.6.10 or above to 4.0.2 or above. It also changes that package to dev dependency [\#799](https://github.com/prey/prey-node-client/pull/799) ([SoraKenji](https://github.com/SoraKenji))
+- JSDoc npm package was updated going from 3.6.10 or above, to 4.0.2 or above. Package changes to dev dependency [\#799](https://github.com/prey/prey-node-client/pull/799) ([SoraKenji](https://github.com/SoraKenji))
 
-- Update to async npm package from 2.6.1 to 2.6.4 [\#798](https://github.com/prey/prey-node-client/pull/798) ([SoraKenji](https://github.com/SoraKenji))
+- npm package was updated to async from 2.6.1 to 2.6.4. [\#798](https://github.com/prey/prey-node-client/pull/798) ([SoraKenji](https://github.com/SoraKenji))
 
-- Update to sqlite3 npm package from 5.1.2 to 5.1.5 [\#797](https://github.com/prey/prey-node-client/pull/797) ([SoraKenji](https://github.com/SoraKenji))
+- SQLite3 npm package was updated from 5.1.2 to 5.1.5. [\#797](https://github.com/prey/prey-node-client/pull/797) ([SoraKenji](https://github.com/SoraKenji))
 
-- When a loan is created or modify from web browser, a call to verify changes is request from Prey for Desktop so in order to ensure data is reliable now it waits for 8 seconds before making the request to backend [\#795](https://github.com/prey/prey-node-client/pull/795) ([SoraKenji](https://github.com/SoraKenji))
+- Updates to Loan creation/modification process. The browser requests a change verification call from Prey to ensure data reliability. [\#795](https://github.com/prey/prey-node-client/pull/795) ([SoraKenji](https://github.com/SoraKenji))
 
-- Modify package.json to differenciate "npm install" instruction from "npm run post_install/pre_uninstall/post_update" because when running "npm i" post_install get called [\#792](https://github.com/prey/prey-node-client/pull/792) ([SoraKenji](https://github.com/SoraKenji))
+- Package.json modification to differentiate “npm install” instruction from “npm run post_install/pre_uninstall/post_update” [\#792](https://github.com/prey/prey-node-client/pull/792) ([SoraKenji](https://github.com/SoraKenji))
 
 ## [v1.11.5](https://github.com/prey/prey-node-client/tree/v1.11.5) (2023-06-29)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.11.4..v1.11.5)
