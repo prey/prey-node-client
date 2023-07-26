@@ -400,19 +400,6 @@ describe('triggers', () => {
             spy_logger2.getCall(0).args[0].should.containEql('Persisting action for');
             done();
           })
-
-<<<<<<< HEAD:test/lib/agent/actions/triggers.notgithub.js
-=======
-           // it('does not executes again', (done) => {
-          //   clock.tick(2000);
-          //   triggers.start(id, () => {
-          //     clock.tick(500);
-          //     spy_perform.notCalled.should.be.equal(true);
-          //     done();
-          //   })
-          // })
->>>>>>> master:test/lib/agent/actions/triggers.js
-
         })
       })
     });
