@@ -10,7 +10,7 @@ var fs       = require('fs'),
     tmpdir   = require('os').tmpdir,
     helpers  = require('./../../../helpers'),
     lib_path = helpers.lib_path(),
-    common   = require(helpers.lib_path('common')),    
+    system = require(helpers.lib_path('system')),    
     action_path = join(lib_path, 'agent', 'actions', 'logretrieval'),
     logretrieval = require(action_path);
 
@@ -46,9 +46,9 @@ if (!process.getuid() !== 0) {
 describe('Logretrieval', () => {
 
   beforeEach((done) => {
-    common.system.paths.config   = prey_dir;
-    common.system.paths.log      = log_dir;
-    common.system.paths.log_file = log_file;
+    system.paths.config   = prey_dir;
+    system.paths.log      = log_dir;
+    system.paths.log_file = log_file;
 
     if(!fs.existsSync(etc_dir)) fs.mkdirSync(etc_dir);
     if(!fs.existsSync(prey_dir)) fs.mkdirSync(prey_dir);

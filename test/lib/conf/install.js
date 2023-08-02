@@ -2,6 +2,7 @@ var join        = require('path').join,
     spawn       = require('child_process').spawn,
     should      = require('should'),
     sandbox     = require('./../../utils/spawner_sandbox'),
+    system = require('../system'),
     helpers     = require('./../../helpers');
 
 var conf_path   = helpers.lib_path('conf'),
@@ -47,7 +48,7 @@ describe('upgrade/remote', function() {
   function create_sandbox(versions_path, done) {
 
     var common = common_base;
-    common.system.paths = { 
+    system.paths = { 
       versions: versions_path 
     }
 
