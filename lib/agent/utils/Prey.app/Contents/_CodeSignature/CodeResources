@@ -6,65 +6,38 @@
 	<dict>
 		<key>Resources/AppIcon.icns</key>
 		<data>
-		WYR5fY5RSK5tXbom3UtMnJu15Po=
+		k0YS4Mmo3++UfeJ7b3v6dQIyJB0=
 		</data>
 		<key>Resources/Assets.car</key>
 		<data>
-		QjN7I2rxGlAOqfh87f1hpD4SK60=
+		A/4hXYcTQOo4Q632tYHzz0X01Hc=
 		</data>
-		<key>Resources/MainView.nib/keyedobjects-101300.nib</key>
+		<key>Resources/MainView.nib</key>
 		<data>
 		ZbLE2IyurbrU82IjN4yEvU+VyUU=
-		</data>
-		<key>Resources/MainView.nib/keyedobjects.nib</key>
-		<data>
-		LBpiAA9su8zIYECdW5fp1egxBz0=
 		</data>
 	</dict>
 	<key>files2</key>
 	<dict>
 		<key>Resources/AppIcon.icns</key>
 		<dict>
-			<key>hash</key>
-			<data>
-			WYR5fY5RSK5tXbom3UtMnJu15Po=
-			</data>
 			<key>hash2</key>
 			<data>
-			npj9FGpAB5OOO+qxf/ar++BO4WL6QQu94yfkFYwlDAQ=
+			rA14Hn1vpDHM8/1ym0gVvyCeDbXD5Fdq7leFgKirze8=
 			</data>
 		</dict>
 		<key>Resources/Assets.car</key>
 		<dict>
-			<key>hash</key>
-			<data>
-			QjN7I2rxGlAOqfh87f1hpD4SK60=
-			</data>
 			<key>hash2</key>
 			<data>
-			a/uXmw8XRZCrrIGQWeYsFSbWWoG60c03FScbd2T013A=
+			ZTHU+AZft106yY0qbmcGEOzTysXSih2w8UEfFp9+S2s=
 			</data>
 		</dict>
-		<key>Resources/MainView.nib/keyedobjects-101300.nib</key>
+		<key>Resources/MainView.nib</key>
 		<dict>
-			<key>hash</key>
-			<data>
-			ZbLE2IyurbrU82IjN4yEvU+VyUU=
-			</data>
 			<key>hash2</key>
 			<data>
 			VlYdJaSDf1UcEhrE9+Ha5iemt9jEOBOErlXUuT+v1Es=
-			</data>
-		</dict>
-		<key>Resources/MainView.nib/keyedobjects.nib</key>
-		<dict>
-			<key>hash</key>
-			<data>
-			LBpiAA9su8zIYECdW5fp1egxBz0=
-			</data>
-			<key>hash2</key>
-			<data>
-			Rak9wNZqmH3fDrC3vsRXbZtlCin2QiSx0T3bCQK5mAQ=
 			</data>
 		</dict>
 	</dict>
