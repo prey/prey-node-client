@@ -4,7 +4,7 @@ name: Stale Branches
 
 on:
   schedule:
-    - cron: '30 12 8 8 *'
+    - cron: '00 10 9 8 *'
     
 permissions:
   issues: write
