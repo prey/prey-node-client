@@ -16,6 +16,8 @@
 
 - Fix on taking screenshot and pictures on stolen reports for Mac OS. [\#832](https://github.com/prey/prey-node-client/pull/832) ([SoraKenji](https://github.com/SoraKenji))([Beregcamlost](https://github.com/beregcamlost))
 
+- New wpxsvc (WinSVC) version 2.0.15. It adds a new feature to delete Fenix from Task Scheduler in Windows. [\#860](https://github.com/prey/prey-node-client/pull/860) ([SoraKenji](https://github.com/SoraKenji))([Beregcamlost](https://github.com/beregcamlost))
+
 ## [v1.11.6](https://github.com/prey/prey-node-client/tree/v1.11.6) (2023-07-24)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.11.5..v1.11.6)
 
