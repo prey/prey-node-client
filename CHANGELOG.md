@@ -6,17 +6,19 @@
 
 **Merged pull requests:**
 
-- Fix to mitigate errors when prey-user binary periodically checks on the main service on Mac OS. [\#824](https://github.com/prey/prey-node-client/pull/824) ([SoraKenji](https://github.com/SoraKenji))
+- For screenshots there was a limit of 1.5 MB to upload, but now it's increased to 20 MB. [\#863](https://github.com/prey/prey-node-client/pull/863) ([SoraKenji](https://github.com/SoraKenji))([Beregcamlost](https://github.com/beregcamlost))
 
-- Improvement for checking the `winsvc` version against the server version to upgrade for minimize further errors. [\#826](https://github.com/prey/prey-node-client/pull/826) ([SoraKenji](https://github.com/SoraKenji))
-
-- Correction for Screen Lock issue when the user has multiple virtual desktops and is not in the main desktop, now all desktops are locked succesfully on Mac OS. [\#830](https://github.com/prey/prey-node-client/pull/830) ([SoraKenji](https://github.com/SoraKenji))
-
-- Added new version for `winsvc` and now activates `fenix` automatically on Windows OS. [\#831](https://github.com/prey/prey-node-client/pull/831) ([SoraKenji](https://github.com/SoraKenji))
+- New wpxsvc (WinSVC) version 2.0.15. It adds a new feature to delete Fenix from Task Scheduler in Windows. [\#860](https://github.com/prey/prey-node-client/pull/860) ([SoraKenji](https://github.com/SoraKenji))([Beregcamlost](https://github.com/beregcamlost))
 
 - Fix on taking screenshot and pictures on stolen reports for Mac OS. [\#832](https://github.com/prey/prey-node-client/pull/832) ([SoraKenji](https://github.com/SoraKenji))([Beregcamlost](https://github.com/beregcamlost))
 
-- New wpxsvc (WinSVC) version 2.0.15. It adds a new feature to delete Fenix from Task Scheduler in Windows. [\#860](https://github.com/prey/prey-node-client/pull/860) ([SoraKenji](https://github.com/SoraKenji))([Beregcamlost](https://github.com/beregcamlost))
+- Added new version for `winsvc` and now activates `fenix` automatically on Windows OS. [\#831](https://github.com/prey/prey-node-client/pull/831) ([SoraKenji](https://github.com/SoraKenji))
+
+- Correction for Screen Lock issue when the user has multiple virtual desktops and is not in the main desktop, now all desktops are locked succesfully on Mac OS. [\#830](https://github.com/prey/prey-node-client/pull/830) ([SoraKenji](https://github.com/SoraKenji))
+
+- Improvement for checking the `winsvc` version against the server version to upgrade for minimize further errors. [\#826](https://github.com/prey/prey-node-client/pull/826) ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix to mitigate errors when prey-user binary periodically checks on the main service on Mac OS. [\#824](https://github.com/prey/prey-node-client/pull/824) ([SoraKenji](https://github.com/SoraKenji))
 
 ## [v1.11.6](https://github.com/prey/prey-node-client/tree/v1.11.6) (2023-07-24)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.11.5..v1.11.6)
@@ -113,9 +115,9 @@
 
 **Merged pull requests:**
 
-- Fixes issue with automations only retrieving data when Prey Client in initialize [\#718](https://github.com/prey/prey-node-client/pull/718) ([SoraKenji](https://github.com/SoraKenji))
-
 - Fixes an issue when updating to newer version on Windows [\#722](https://github.com/prey/prey-node-client/pull/722) ([SoraKenji](https://github.com/SoraKenji))
+
+- Fixes issue with automations only retrieving data when Prey Client in initialize [\#718](https://github.com/prey/prey-node-client/pull/718) ([SoraKenji](https://github.com/SoraKenji))
 
 - Now on when uninstalling, it deletes Prey folder on Windows. This will only work with the new installer and forward so if Prey auto update from older version, this won't work.  This change is related to Prey-client-distribution repository ([SoraKenji](https://github.com/SoraKenji))
 
@@ -126,9 +128,9 @@
 
 - New version WinSVC 2.0.11. Improved autoupdate [\#696](https://github.com/prey/prey-node-client/pull/696) ([SoraKenji](https://github.com/SoraKenji))
 
-- Fixed comparation between old and new hardware information. [\#685](https://github.com/prey/prey-node-client/pull/695) ([JohaoRosasRosillo](https://github.com/JohaoRosasRosillo))
-
 - Added arm64 native support [\#688](https://github.com/prey/prey-node-client/pull/688) ([SoraKenji](https://github.com/SoraKenji)) ([patriciojofre](https://github.com/patriciojofre))
+
+- Fixed comparation between old and new hardware information. [\#685](https://github.com/prey/prey-node-client/pull/695) ([JohaoRosasRosillo](https://github.com/JohaoRosasRosillo))
 
 ## [v1.10.11](https://github.com/prey/prey-node-client/tree/v1.10.11) (2022-09-07)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.10.10..v1.10.11)
@@ -166,9 +168,9 @@ git
 
 **Merged pull requests:**
 
-- Fix issue when loading a folder without any files inside. File Retrieval. [\#652](https://github.com/prey/prey-node-client/pull/652) ([JohaoRosasRosillo](https://github.com/JohaoRosasRosillo))
-
 - Fix reconnection issue because of timer. [\#656](https://github.com/prey/prey-node-client/pull/656) ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix issue when loading a folder without any files inside. File Retrieval. [\#652](https://github.com/prey/prey-node-client/pull/652) ([JohaoRosasRosillo](https://github.com/JohaoRosasRosillo))
 
 ## [v1.10.9](https://github.com/prey/prey-node-client/tree/v1.10.9) (2022-07-27)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.10.8..v1.10.9)
