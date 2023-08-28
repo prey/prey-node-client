@@ -12,8 +12,6 @@
 
 - Fix on taking screenshot and pictures on stolen reports for Mac OS. [\#832](https://github.com/prey/prey-node-client/pull/832) ([SoraKenji](https://github.com/SoraKenji))([Beregcamlost](https://github.com/beregcamlost))
 
-- Added new version for `winsvc` and now activates `fenix` automatically on Windows OS. [\#831](https://github.com/prey/prey-node-client/pull/831) ([SoraKenji](https://github.com/SoraKenji))
-
 - Correction for Screen Lock issue when the user has multiple virtual desktops and is not in the main desktop, now all desktops are locked succesfully on Mac OS. [\#830](https://github.com/prey/prey-node-client/pull/830) ([SoraKenji](https://github.com/SoraKenji))
 
 - Improvement for checking the `winsvc` version against the server version to upgrade for minimize further errors. [\#826](https://github.com/prey/prey-node-client/pull/826) ([SoraKenji](https://github.com/SoraKenji))
