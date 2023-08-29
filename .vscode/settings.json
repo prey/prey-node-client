@@ -1,5 +1,6 @@
 {
   "conventionalCommits.scopes": [
-    "storage"
+    "storage",
+    "factory-reset"
   ]
 }
