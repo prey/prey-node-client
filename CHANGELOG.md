@@ -1,5 +1,13 @@
 # Change Log
 
+## [v1.11.8](https://github.com/prey/prey-node-client/tree/v1.11.8) (2023-09-04)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.11.7..v1.11.8)
+
+**Merged pull requests:**
+
+- New configuration data for Factory Reset in Windows. Changes task's priority to ensure it'll run even on multiple unexpected cases. [\#869](https://github.com/prey/prey-node-client/pull/869) ([SoraKenji](https://github.com/SoraKenji))([Beregcamlost](https://github.com/beregcamlost))
+
+- For Windows clients, Prey tries to send two different webcam pictures and there was an issue because those two tasks were interefing with each other. Now one runs after the other eliminating that error. A new screenshot software was added, now Prey's capable to take a screenshot of all screens. [\#867](https://github.com/prey/prey-node-client/pull/867) ([SoraKenji](https://github.com/SoraKenji))([Beregcamlost](https://github.com/beregcamlost))
 
 ## [v1.11.7](https://github.com/prey/prey-node-client/tree/v1.11.7) (2023-08-08)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.11.6..v1.11.7)
@@ -10,13 +18,13 @@
 
 - New wpxsvc (WinSVC) version 2.0.15. It adds a new feature to delete Fenix from Task Scheduler in Windows. [\#860](https://github.com/prey/prey-node-client/pull/860) ([SoraKenji](https://github.com/SoraKenji))([Beregcamlost](https://github.com/beregcamlost))
 
-- Fix on taking screenshot and pictures on stolen reports for Mac OS. [\#832](https://github.com/prey/prey-node-client/pull/832) ([SoraKenji](https://github.com/SoraKenji))([Beregcamlost](https://github.com/beregcamlost))
+- Fix for Mac OS devices marked as missing, their reports now include screenshots and pictures. [\#832](https://github.com/prey/prey-node-client/pull/832) ([SoraKenji](https://github.com/SoraKenji))([Beregcamlost](https://github.com/beregcamlost))
 
-- Correction for Screen Lock issue when the user has multiple virtual desktops and is not in the main desktop, now all desktops are locked succesfully on Mac OS. [\#830](https://github.com/prey/prey-node-client/pull/830) ([SoraKenji](https://github.com/SoraKenji))
+- Screen Lock issue corrected for users with multiple virtual desktops, all desktops are now successfully locked on Mac OS. [\#830](https://github.com/prey/prey-node-client/pull/830) ([SoraKenji](https://github.com/SoraKenji))
 
-- Improvement for checking the `winsvc` version against the server version to upgrade for minimize further errors. [\#826](https://github.com/prey/prey-node-client/pull/826) ([SoraKenji](https://github.com/SoraKenji))
+- Improvement to minimize errors when checking the “winsvc” version against the server version upgrade. [\#826](https://github.com/prey/prey-node-client/pull/826) ([SoraKenji](https://github.com/SoraKenji))
 
-- Fix to mitigate errors when prey-user binary periodically checks on the main service on Mac OS. [\#824](https://github.com/prey/prey-node-client/pull/824) ([SoraKenji](https://github.com/SoraKenji))
+- Fix mitigates errors when prey-user binary periodically checks on the main service on Mac OS. [\#824](https://github.com/prey/prey-node-client/pull/824) ([SoraKenji](https://github.com/SoraKenji))
 
 ## [v1.11.6](https://github.com/prey/prey-node-client/tree/v1.11.6) (2023-07-24)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.11.5..v1.11.6)
