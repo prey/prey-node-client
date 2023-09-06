@@ -4,97 +4,40 @@
 <dict>
 	<key>files</key>
 	<dict>
-		<key>Resources/AlertIcon.png</key>
-		<data>
-		H7QTXumrVW3Ne2kwqf9vwuRy2e4=
-		</data>
-		<key>Resources/AlertIcon@2x.png</key>
-		<data>
-		ar3f79j/wQ1aM64KyLffvkm2gAA=
-		</data>
 		<key>Resources/AppIcon.icns</key>
 		<data>
-		WYR5fY5RSK5tXbom3UtMnJu15Po=
+		k0YS4Mmo3++UfeJ7b3v6dQIyJB0=
 		</data>
 		<key>Resources/Assets.car</key>
 		<data>
-		b41Sz0+vJIyyEFpgXHdoqWUKPBU=
+		A/4hXYcTQOo4Q632tYHzz0X01Hc=
 		</data>
-		<key>Resources/MainView.nib/keyedobjects-101300.nib</key>
+		<key>Resources/MainView.nib</key>
 		<data>
-		LWJgmwZs5kEn4tPv+7MMit7zDC8=
-		</data>
-		<key>Resources/MainView.nib/keyedobjects.nib</key>
-		<data>
-		xb/krzjHBZWy2GUJHmIGwXOZpyI=
+		ZbLE2IyurbrU82IjN4yEvU+VyUU=
 		</data>
 	</dict>
 	<key>files2</key>
 	<dict>
-		<key>Resources/AlertIcon.png</key>
-		<dict>
-			<key>hash</key>
-			<data>
-			H7QTXumrVW3Ne2kwqf9vwuRy2e4=
-			</data>
-			<key>hash2</key>
-			<data>
-			2udLYrBPS+24rBvGo9sq6l058N3Ol5Hko1xJr5aTHWY=
-			</data>
-		</dict>
-		<key>Resources/AlertIcon@2x.png</key>
-		<dict>
-			<key>hash</key>
-			<data>
-			ar3f79j/wQ1aM64KyLffvkm2gAA=
-			</data>
-			<key>hash2</key>
-			<data>
-			JnBAel+bPvfCUjMTQewMC5SIIcC51+NaUhRzxAqJQAQ=
-			</data>
-		</dict>
 		<key>Resources/AppIcon.icns</key>
 		<dict>
-			<key>hash</key>
-			<data>
-			WYR5fY5RSK5tXbom3UtMnJu15Po=
-			</data>
 			<key>hash2</key>
 			<data>
-			npj9FGpAB5OOO+qxf/ar++BO4WL6QQu94yfkFYwlDAQ=
+			rA14Hn1vpDHM8/1ym0gVvyCeDbXD5Fdq7leFgKirze8=
 			</data>
 		</dict>
 		<key>Resources/Assets.car</key>
 		<dict>
-			<key>hash</key>
-			<data>
-			b41Sz0+vJIyyEFpgXHdoqWUKPBU=
-			</data>
 			<key>hash2</key>
 			<data>
-			qo+uWfY6MD3G27E7rBQl4BlUaqDPv7p3zFUOX2hvjXA=
+			ZTHU+AZft106yY0qbmcGEOzTysXSih2w8UEfFp9+S2s=
 			</data>
 		</dict>
-		<key>Resources/MainView.nib/keyedobjects-101300.nib</key>
+		<key>Resources/MainView.nib</key>
 		<dict>
-			<key>hash</key>
-			<data>
-			LWJgmwZs5kEn4tPv+7MMit7zDC8=
-			</data>
 			<key>hash2</key>
 			<data>
-			+gTbTy2DwfPHXagS2gOuSMvsF2hGEN2mgpBUxsgF2p4=
-			</data>
-		</dict>
-		<key>Resources/MainView.nib/keyedobjects.nib</key>
-		<dict>
-			<key>hash</key>
-			<data>
-			xb/krzjHBZWy2GUJHmIGwXOZpyI=
-			</data>
-			<key>hash2</key>
-			<data>
-			itzAugidEpcMboUFzfnjKZJtwaPlxU9Xr2mVJO4QTTE=
+			VlYdJaSDf1UcEhrE9+Ha5iemt9jEOBOErlXUuT+v1Es=
 			</data>
 		</dict>
 	</dict>
