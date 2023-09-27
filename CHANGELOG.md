@@ -1,5 +1,12 @@
 # Change Log
 
+## [v1.11.9](https://github.com/prey/prey-node-client/tree/v1.11.9) (2023-09-28)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.11.8..v1.11.9)
+
+**Merged pull requests:**
+
+- Change Prey.app functionality to make sure Prey has access to Picture and Screenshot files when device is missing and it needs to take them. [\#876](https://github.com/prey/prey-node-client/pull/876) ([SoraKenji](https://github.com/SoraKenji))([Beregcamlost](https://github.com/beregcamlost))
+
 ## [v1.11.8](https://github.com/prey/prey-node-client/tree/v1.11.8) (2023-09-04)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.11.7..v1.11.8)
 
