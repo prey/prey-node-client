@@ -1,364 +1,190 @@
-#!/bin/sh
-''':'
-':'; python=$(command -v python)
-':'; [ -z "$python" ] || [ -n "${python##*usr*}" ] && python="/usr/bin/python3"
-':'; exec "$python" "$0" "$@"
-'''
+#!/usr/bin/env python3
 
-#############################################
-# Prey Linux Lock
-# By Tomas Pollak - (c) 2010 Fork Ltd.
-# http://preyproject.com
-# GPLv3 License
-#############################################
-
-import os
 import sys
+import os
+import hashlib
 import base64
-from hashlib import md5
-
 import gi
 
-gi.require_version("Gtk", "3.0")
-from gi.repository import Gtk
-from gi.repository import GLib
-from gi.repository import Gdk
-from gi.repository import GdkPixbuf
-from gi.repository import Pango
+gi.require_version('Gtk', '3.0')
+from gi.repository import Gtk, Gdk, GdkPixbuf, GLib
 
-image_file = "/../lib/bg-lock.png"
+class PreyLock(Gtk.Window):
+    def __init__(self, pwd, title, image_path, monitor_geometry, is_primary):
+        Gtk.Window.__init__(self, title="Prey Lock")
+        self.pwd = pwd
+        self.is_primary = is_primary
+        self.image_path = image_path
 
+        screen_width = monitor_geometry.width
+        screen_height = monitor_geometry.height
+        self.move(monitor_geometry.x, monitor_geometry.y)
+        self.set_size_request(screen_width, screen_height)
+        self.fullscreen()
+        self.set_keep_above(True)
+        self.set_type_hint(Gdk.WindowTypeHint.DIALOG)
+        self.set_decorated(False)
+        self.set_skip_taskbar_hint(True)
+
+        self.connect('show', self.on_window_show)
+        self.connect("focus-in-event", self.on_focus_in)
+        self.connect_after('show', self.on_window_show)
+        self.connect('hide', self.on_window_hide)
+
+        self.overlay = Gtk.Overlay()
+        self.add(self.overlay)
+
+        self.label = Gtk.Label(label=title)
+
+        if self.is_primary:
+            if os.path.exists(self.image_path):
+                pixbuf = GdkPixbuf.Pixbuf.new_from_file(self.image_path)
+                enlarged_pixbuf = pixbuf.scale_simple(
+                    int(pixbuf.get_width() * 1.1),
+                    int(pixbuf.get_height() * 1.1),
+                    GdkPixbuf.InterpType.BILINEAR
+                )
+                self.image = Gtk.Image.new_from_pixbuf(enlarged_pixbuf)
+
+            self.invalid_password_label = Gtk.Label(label="Invalid password")
+            self.invalid_password_label.get_style_context().add_class("error")
+            self.invalid_password_label.set_no_show_all(True)
+            self.invalid_password_label.set_visible(False)
+
+            self.password_entry = Gtk.Entry()
+            self.password_entry.set_visibility(False)
+            self.password_entry.set_invisible_char("*")
+            self.password_entry.set_max_length(140)
+            self.password_entry.set_can_focus(True)
+
+            event_box = Gtk.EventBox()
+            event_box.add(self.password_entry)
+            event_box.set_can_focus(True)
+            event_box.connect("key-release-event", self.on_key_press)
+
+            vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
+            if os.path.exists(self.image_path):
+                vbox.pack_start(self.image, True, True, 0)
+            vbox.pack_start(event_box, True, True, 0)
+            vbox.pack_start(self.invalid_password_label, True, True, 0)
+            vbox.pack_start(self.label, True, True, 0)
+
+            self.overlay.add_overlay(vbox)
+
+            vbox.set_halign(Gtk.Align.CENTER)
+            vbox.set_valign(Gtk.Align.CENTER)
+            
+            self.label.set_margin_top(300)
+
+            css_provider = Gtk.CssProvider()
+            css_style = """
+            window {
+                background-color: black;
+            }
+            label {
+                color: white;
+                font-family: Sans;
+                font-size: 16px;
+            }
+            label.error {
+                color: red;
+            }
+            entry {
+                background-color: white;
+                border: none;
+                outline: none;
+                min-width: 350px;
+                min-height: 40px;
+                font-size: 16px;
+            }
+            """
+            css_provider.load_from_data(bytes(css_style.encode()))
+            Gtk.StyleContext.add_provider_for_screen(
+                Gdk.Screen.get_default(),
+                css_provider,
+                Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
+            )
+        else:
+            vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
+            vbox.pack_start(self.label, True, True, 0)
+            self.overlay.add_overlay(vbox)
+            vbox.set_halign(Gtk.Align.CENTER)
+            vbox.set_valign(Gtk.Align.CENTER)
+
+    def on_window_show(self, widget):
+        if self.is_primary:
+            GLib.timeout_add(100, self.attempt_focus)
+
+    def on_window_hide(self, widget):
+        Gdk.keyboard_ungrab(Gdk.CURRENT_TIME)
+                        
+    def attempt_focus(self):
+        self.present()
+        self.password_entry.grab_focus()
+        result = Gdk.keyboard_grab(self.get_window(), True, Gdk.CURRENT_TIME)
+        if result != Gdk.GrabStatus.SUCCESS:
+            print("Warning: Could not grab the keyboard!")
+                           
+        return False
+
+
+    def on_focus_in(self, widget, event):
+        if self.is_primary:
+            self.password_entry.grab_focus()
+
+    def on_key_press(self, widget, event):
+        if event.state & Gdk.ModifierType.MOD1_MASK and event.keyval == Gdk.KEY_Tab:
+            return True
+
+        if event.state & Gdk.ModifierType.MOD1_MASK and event.keyval == Gdk.KEY_F4:
+            return True
+        
+        if event.keyval in [Gdk.KEY_Return, Gdk.KEY_KP_Enter]:
+            self.on_enter_pressed()
+        
+        return False
+
+    def on_enter_pressed(self):
+        password = self.password_entry.get_text()
+        encoded_pass = base64.b64encode(password.encode())
+        md5_pass = hashlib.md5(encoded_pass).hexdigest()
+        if md5_pass == self.pwd:
+            print("Password match!")
+            self.hide()
+            os._exit(66)
+        else:
+            print("Wrong password!")
+            self.invalid_password_label.set_visible(True)
+            GLib.timeout_add(1000, self.hide_invalid_password_label)
+            self.password_entry.set_text("")
+
+    def hide_invalid_password_label(self):
+        self.invalid_password_label.set_visible(False)
+        return False
 
 def write(text):
     print(text)
     sys.stdout.flush()
 
-
-class Lock:
-    def get_md5(self, string):
-        hashb64 = base64.b64encode(string.encode("utf-8"))
-        return md5(hashb64).hexdigest()
-
-    def hide_error(self):
-        self.label.hide()
-        return False  # stops timeout from repeating
-
-    def enter_callback(self, widget, entry):
-        hashed_text = self.get_md5(entry.get_text())
-        # print hashed_text
-
-        if hashed_text != passwd:
-            write("Invalid password")
-            self.label.show()
-            GLib.timeout_add(3000, self.hide_error)
-            return True
-        else:
-            enable_XF86Switch()
-            print("Correctomondo. PC Unlocked.")
-            # self.label.set_markup(
-            #     '<span foreground="green">Very good. Access granted.</span>'
-            # )
-            # self.label.show()
-            os._exit(66)
-
-    def on_delete_event(self, widget, event):
-        return True
-        # self.window.set_keep_above(True)
-
-    def on_focus_change(self, widget, event):
-        print("Focus changed.")
-        return True
-
-    def on_window_state_change(self, widget, event):
-        self.window.activate_focus()
-        print("Something happened.")
-        return False
-
-    def on_key_press(self, widget, event):
-        keyname = Gdk.keyval_name(event.keyval)
-        # print "Key %s (%d) was pressed" % (keyname, event.keyval)
-        if event.keyval > 65470 and event.keyval < 65481:  # F1 through F12
-            print(("Key %s (%d) was pressed" % (keyname, event.keyval)))
-            # return True
-        if event.get_state() & Gdk.ModifierType.CONTROL_MASK:
-            print("Control was being held down")
-            # return True
-        if event.get_state() & Gdk.ModifierType.MOD1_MASK:
-            print("Alt was being held down")
-            # return True
-        if event.get_state() & Gdk.ModifierType.SHIFT_MASK:
-            print("Shift was being held down")
-
-    def scale_image(self, pixbuf, scale):
-        new_width = int(scale * pixbuf.get_width())
-        new_height = int(scale * pixbuf.get_height())
-        # print "Scaled image to: %s x %s" % (new_width, new_height)
-        return pixbuf.scale_simple(new_width, new_height, GdkPixbuf.InterpType.BILINEAR)
-
-    def __init__(self):
-
-        # calculate number of screens
-        width = Gdk.Screen.width()
-        height = Gdk.Screen.height()
-
-        black = Gdk.RGBA()
-        black.parse("black")
-
-        ###################################
-        # black bg
-        ###################################
-
-        self.bg_window = Gtk.Window.new(Gtk.WindowType.POPUP)
-        self.bg_window.override_background_color(Gtk.StateType.NORMAL, black)
-        self.bg_window.resize(width, height)
-        self.bg_window.set_deletable(False)
-        self.bg_window.show()
-
-        # monitors = self.bg_window.get_screen().get_n_monitors()
-
-        ###################################
-        # window
-        ###################################
-
-        self.window = Gtk.Window.new(Gtk.WindowType.POPUP)
-        self.window.set_title("Prey Lock")
-        self.window.override_background_color(Gtk.StateType.NORMAL, black)
-
-        # prevents window from being closed
-        self.window.connect("delete_event", self.on_delete_event)
-        # capture keypresses
-        self.window.connect("key_press_event", self.on_key_press)
-
-        self.window.stick()
-        self.window.set_deletable(False)
-        # self.window.set_focus_on_map(True)
-        self.window.set_decorated(False)
-        self.window.set_border_width(0)
-        self.window.set_keep_above(True)
-        self.window.set_resizable(False)
-        self.window.fullscreen()
-
-        #_monitor = self.window.get_display().get_primary_monitor()
-        #main_screen_width = _monitor.get_geometry().width
-        #main_screen_height = _monitor.get_geometry().height
-        _monitor = Gdk.Screen.get_default()
-        main_screen_width = _monitor.get_width()
-        main_screen_height = _monitor.get_height()
-        main_screen_middle = main_screen_width / 2
-
-        # print "Main screen size: %s x %s" % (main_screen_width, main_screen_height)
-        # print "Main screen middle: %s" % main_screen_middle
-
-        vbox = Gtk.Box.new(Gtk.Orientation.VERTICAL, 0)
-        vbox.set_homogeneous(False)
-        vbox.set_size_request(main_screen_width, main_screen_height)
-        self.window.add(vbox)
-        # vbox.show()
-
-        ###################################
-        # background color and image
-        ###################################
-
-        image = Gtk.Image()
-        script_path = sys.path[0]
-        bg_path = script_path + image_file
-        pixbuf = GdkPixbuf.Pixbuf.new_from_file(bg_path)
-        image_width = pixbuf.get_width()
-        image_height = pixbuf.get_height()
-
-        # print 'Image size: %s x %s' % (image_width, image_height)
-        scale = 1
-        input_font = 16
-        error_font = 11
-
-        if image_width > main_screen_width or image_height > main_screen_height:
-            scale = min(
-                float(main_screen_width) / image_width,
-                float(main_screen_height) / image_height,
-            )
-            pixbuf = self.scale_image(pixbuf, scale)
-
-        elif main_screen_width > 2000:
-            scale = 2
-            pixbuf = self.scale_image(pixbuf, scale)
-            input_font -= 2
-            error_font -= 1
-
-        image.set_from_pixbuf(pixbuf)
-        image.set_size_request(main_screen_width, main_screen_height)
-        image.show()
-        vbox.add(image)
-
-        ###################################
-        # label
-        ###################################
-
-        self.entry = Gtk.Entry.new()
-        self.entry.set_max_length(40)
-
-        # self.entry.set_inner_border(None)  # FIXME: Ignored since Gtk 3.4
-        self.entry.set_width_chars(20)
-        self.entry.set_visibility(False)
-        self.entry.set_has_frame(False)
-        self.entry.override_background_color(
-            Gtk.StateType.NORMAL, Gdk.RGBA(red=1.0, green=1.0, blue=1.0, alpha=1.0)
-        )
-        self.entry.override_font(Pango.FontDescription("sans " + str(input_font)))
-        self.entry.set_can_focus(True)
-        self.entry.grab_focus()
-        self.entry.set_can_default(True)
-        self.entry.set_sensitive(True)
-        self.entry.set_input_purpose(Gtk.InputPurpose.PASSWORD)
-
-        self.entry.connect("activate", self.enter_callback, self.entry)
-        # self.entry.show()
-
-        input_size = 140
-        padding_left = int(input_size * scale)
-        padding_top = 5 * scale
-        # print 'Padding: left %s, top %s' % (padding_left, padding_top)
-
-        # if image was scaled down, calculate offset for positioning elements
-        if image_height > main_screen_height:
-            padding_top = 18 - int((image_height - main_screen_height) / 8)
-
-        x_position = main_screen_middle - padding_left
-        y_position = -(main_screen_height / 2) + padding_top
-        # print "Fixed position: %s, %s" % (x_position, y_position)
-
-        fixed = Gtk.Fixed.new()
-        fixed.put(self.entry, x_position, y_position)
-        fixed.show()
-        vbox.pack_start(fixed, False, False, 0)
-
-        text = "Invalid password. Access denied."
-        self.label = Gtk.Label()
-        self.label.set_markup('<span foreground="#b22222">' + text + "</span>")
-        self.label.override_font(Pango.FontDescription("sans " + str(error_font)))
-        # self.label.set_size_request(main_screen_width, 30)
-
-        fixed2 = Gtk.Fixed.new()
-        # push label down a bit, and left a bit so it remains centered
-        fixed2.put(self.label, x_position + 20, y_position + (46 * scale))
-        vbox.pack_start(fixed2, False, False, 0)
-
-
-        ###################################
-        # optional message
-        ###################################
-
-        if msgtext != "":
-            self.label2 = Gtk.Label()
-            self.label2.set_justify(2)
-            newtext, label_width = setLineBreaks(msgtext, findOccurrences(msgtext, " "), 100)
-
-            self.label2.set_markup('<span foreground="#FFFFFF">'+newtext+'</span>')
-            fixed3 = Gtk.Fixed.new()
-            fixed3.put(self.label2, main_screen_width/2 -(label_width*6.5)/2, y_position + (100 * scale))
-            fixed3.show()
-            vbox.pack_start(fixed3, False, False, 0)
-
-        ##############################################
-
-        #disable_XF86Switch()
-
-        self.window.show_all()
-        # self.window.set_focus(self.entry)
-        seat = self.window.get_display().get_default_seat()
-       
-        self.label.hide()
-
-
-original_keycodes = []
-
-
-def enable_XF86Switch():
-    import subprocess  # need at least python 2.4
-
-    try:
-        for x, y, z in original_keycodes:
-            cmd = ["xmodmap", "-e", "keycode %s=%s %s" % (x, y, z)]
-            subprocess.Popen(cmd)
-    except (OSError, subprocess.CalledProcessError):
-        return
-
-
-def disable_XF86Switch():
-    import subprocess  # need at least python 2.4
-    import re
-
-    try:
-        cmd = ["xmodmap", "-pk"]
-        # find all keys that allows switching to a VT
-        p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
-        output, serror = p.communicate()
-        matched = []
-
-        # retrieve the keycode and its value from xmodmap output
-        for line in output.split("\n"):
-            if re.search("XF86Switch_VT", line):
-                items = line.split()
-                keycode = items[0]
-                keysym = items[1]
-                keysym2 = items[7]
-                keyname = items[2][1:-1]
-                matched.append((keycode, keyname))
-                original_keycodes.append((keycode, keysym, keysym2))
-
-        # disable all key that allow to switch to a VT
-        for k, v in matched:
-            cmd = ["xmodmap", "-e", "keycode %s=%s" % (k, v)]
-            subprocess.Popen(cmd)
-
-    except IndexError:
-        print("Couldn't parse Xmodmap list.")
-
-    except (OSError, subprocess.CalledProcessError):
-        # print "Xmodmap not found"
-        # do nothing if xmodmap is not found or return an error
-        return
-
-def findOccurrences(str, ch):
-    return [i for i, letter in enumerate(str) if letter == ch]
-
-def setLineBreaks(string, arr, maxLength):
-    lineLength = maxLength
-    longerLine = 0
-    output = ""
-
-    if (len(string) < maxLength):
-        longerLine = len(string)
-        return string, longerLine
-
-    value0 = 0
-    for index, value in enumerate(arr):
-        diff = maxLength - value
-
-        if index == len(arr) - 1:
-            output += string[value0:]
-
-        if (diff >= 0 and diff < 10) or diff < 0:
-            if len(string[value0:value]) > longerLine:
-                longerLine = len(string[value0:value])
-            output += string[value0:value] + "\n"
-            value0 = value
-            maxLength += lineLength
-
-    return " " + output, longerLine
+def main(pwd, title, image_path):
+    display = Gdk.Display.get_default()
+    primary_monitor = display.get_primary_monitor()
+    n_monitors = display.get_n_monitors()
+    for i in range(n_monitors):
+        monitor = display.get_monitor(i)
+        monitor_geometry = monitor.get_geometry()
+        is_primary = (monitor == primary_monitor)
+        window = PreyLock(pwd, title, image_path, monitor_geometry, is_primary)
+        window.connect("delete-event", Gtk.main_quit)
+        window.show_all()
+    Gtk.main()
 
 if __name__ == "__main__":
-
-    msgtext = ""
     if len(sys.argv) < 2 or len(sys.argv[1]) != 32:
         print("You need to pass an MD5 hexdigested string.")
-        sys.exit(67)
-    else:
-        passwd = sys.argv[1]
-        if len(sys.argv) > 2:
-            msgtext = sys.argv[2]
-
-    print(msgtext)
-
+        sys.exit(1)
+    pwd = sys.argv[1]
+    title = sys.argv[2] if len(sys.argv) > 2 else 'Prey Lock'
+    image_path = sys.argv[3] if len(sys.argv) > 3 else '../lib/bg-lock.png'
     write("Process PID: %d" % os.getpid())
-    lock = Lock()
-    Gtk.main()
+    main(pwd, title, image_path)
