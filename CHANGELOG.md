@@ -1,5 +1,16 @@
 # Change Log
 
+## [v1.11.10](https://github.com/prey/prey-node-client/tree/v1.11.10) (2023-10-30)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.11.9..v1.11.10)
+
+**Merged pull requests:**
+
+- Fix on duplicate `api_key` on fresh install. This removes the second `api_key` on default value in `prey.conf`. [\#883](https://github.com/prey/prey-node-client/pull/883) ([SoraKenji](https://github.com/SoraKenji))([Beregcamlost](https://github.com/beregcamlost))
+
+- Wipe feature now can receive new options from service. [\#884](https://github.com/prey/prey-node-client/pull/884) ([SoraKenji](https://github.com/SoraKenji))([Beregcamlost](https://github.com/beregcamlost))
+
+- Refactor and fix of the `screen lock` feature for Ubuntu client, now it works on Ubuntu with Desktop Enviroment Gnome and KDE from Prey v1.11.10. [\#885](https://github.com/prey/prey-node-client/pull/885) ([SoraKenji](https://github.com/SoraKenji))([Beregcamlost](https://github.com/beregcamlost))
+
 ## [v1.11.9](https://github.com/prey/prey-node-client/tree/v1.11.9) (2023-09-28)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.11.8..v1.11.9)
 
