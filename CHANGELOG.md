@@ -7,7 +7,7 @@
 
 - Fix on duplicate `api_key` on fresh install. This removes the second `api_key` on default value in `prey.conf`. [\#883](https://github.com/prey/prey-node-client/pull/883) ([SoraKenji](https://github.com/SoraKenji))([Beregcamlost](https://github.com/beregcamlost))
 
-- Wipe feature now can receive new options from service. [\#884](https://github.com/prey/prey-node-client/pull/884) ([SoraKenji](https://github.com/SoraKenji))([Beregcamlost](https://github.com/beregcamlost))
+- Wipe feature now can receive more options from the service. This allows to configure the way wipe is going to work on the device. [\#884](https://github.com/prey/prey-node-client/pull/884) ([SoraKenji](https://github.com/SoraKenji))([Beregcamlost](https://github.com/beregcamlost))
 
 - Refactor and fix of the `screen lock` feature for Ubuntu client, now it works on Ubuntu with Desktop Enviroment Gnome and KDE from Prey v1.11.10. [\#885](https://github.com/prey/prey-node-client/pull/885) ([SoraKenji](https://github.com/SoraKenji))([Beregcamlost](https://github.com/beregcamlost))
 
