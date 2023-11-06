@@ -11,6 +11,10 @@
 
 - Refactor and fix of the `screen lock` feature for Ubuntu client, now it works on Ubuntu with Desktop Enviroment Gnome and KDE from Prey v1.11.10. [\#885](https://github.com/prey/prey-node-client/pull/885) ([SoraKenji](https://github.com/SoraKenji))([Beregcamlost](https://github.com/beregcamlost))
 
+- Remove `nircmd` from app cause it was being flagged as a threat despite is not a malware. [\#892](https://github.com/prey/prey-node-client/pull/892) ([SoraKenji](https://github.com/SoraKenji))([Beregcamlost](https://github.com/beregcamlost))
+
+- Change the take picture behavior on windows. Now uses snaphot.exe first instead of prey-webcam.exe and change the name of the picture and screenshot files to reduce size of temporary files stored. [\#893](https://github.com/prey/prey-node-client/pull/893) [\#894](https://github.com/prey/prey-node-client/pull/894) ([SoraKenji](https://github.com/SoraKenji))([Beregcamlost](https://github.com/beregcamlost))
+
 ## [v1.11.9](https://github.com/prey/prey-node-client/tree/v1.11.9) (2023-09-28)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.11.8..v1.11.9)
 
