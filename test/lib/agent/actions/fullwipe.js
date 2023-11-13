@@ -12,7 +12,7 @@ var helpers        = require('../../../helpers'),
     sys_index      = require(sys_index_path),
     sys_win        = require(join(sys_index_path, 'windows')),
     fullwipe_path   = join(lib_path, 'agent', 'actions', 'fullwipe'),
-    api            = require('./../../../../lib/agent/plugins/control-panel/api'),
+    api            = require('./../../../../lib/agent/control-panel/api'),
     fullwipe = require(fullwipe_path);
 
 describe('fullwipe', () => {
