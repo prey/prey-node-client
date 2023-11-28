@@ -44,7 +44,7 @@
     "iconv-lite": "0.6.2",
     "linus": "https://github.com/javo/linus.git#ebf4e2ba2e84364acb190c33a548591b9bfc666c",
     "memorize": "0.0.1",
-    "mime": "https://registry.npmjs.org/mime/-/mime-1.2.5.tgz",
+    "mime": "^3.0.0",
     "needle": "3.1.0",
     "network": "https://github.com/prey/node-network-utilities.git",
     "node-jsencrypt": "1.0.0",
