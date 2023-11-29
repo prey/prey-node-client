@@ -16,7 +16,7 @@ describe('Prey Conf file', () => {
     it('should verify default prey.conf - Good structure, but no api key or device key', (done) => {
       preyConfJs.preyConfPath = join(__dirname, 'utils', 'prey_default.conf');
       const dataVerifiedPreyConf = preyConfJs.startVerifyPreyConf();
-      should(dataVerifiedPreyConf).have.property('constitution', false);
+      should(dataVerifiedPreyConf).have.property('constitution', true);
       should(dataVerifiedPreyConf).have.property('apiKeyValue', false);
       should(dataVerifiedPreyConf).have.property('deviceKeyValue', false);
       done();
@@ -43,16 +43,16 @@ describe('Prey Conf file', () => {
     it('should verify prey.conf - Good structure, no api key and device key', (done) => {
       preyConfJs.preyConfPath = join(__dirname, 'utils', 'prey_noapikey_devicekey.conf');
       const dataVerifiedPreyConf = preyConfJs.startVerifyPreyConf();
-      should(dataVerifiedPreyConf).have.property('constitution', false);
+      should(dataVerifiedPreyConf).have.property('constitution', true);
       should(dataVerifiedPreyConf).have.property('apiKeyValue', false);
-      should(dataVerifiedPreyConf).have.property('deviceKeyValue', false);
+      should(dataVerifiedPreyConf).have.property('deviceKeyValue', true);
       done();
     });
 
     it('should verify prey.conf - Good structure, api key and no device key', (done) => {
       preyConfJs.preyConfPath = join(__dirname, 'utils', 'prey_apikey_nodevicekey.conf');
       const dataVerifiedPreyConf = preyConfJs.startVerifyPreyConf();
-      should(dataVerifiedPreyConf).have.property('constitution', false);
+      should(dataVerifiedPreyConf).have.property('constitution', true);
       should(dataVerifiedPreyConf).have.property('apiKeyValue', true);
       should(dataVerifiedPreyConf).have.property('deviceKeyValue', false);
       done();
@@ -70,18 +70,18 @@ describe('Prey Conf file', () => {
     it('should verify prey.conf - No host', (done) => {
       preyConfJs.preyConfPath = join(__dirname, 'utils', 'prey_nohost.conf');
       const dataVerifiedPreyConf = preyConfJs.startVerifyPreyConf();
-      should(dataVerifiedPreyConf).have.property('constitution', false);
-      should(dataVerifiedPreyConf).have.property('apiKeyValue', false);
-      should(dataVerifiedPreyConf).have.property('deviceKeyValue', false);
+      should(dataVerifiedPreyConf).have.property('constitution', true);
+      should(dataVerifiedPreyConf).have.property('apiKeyValue', true);
+      should(dataVerifiedPreyConf).have.property('deviceKeyValue', true);
       done();
     });
 
     it('should verify prey.conf - No protocol', (done) => {
       preyConfJs.preyConfPath = join(__dirname, 'utils', 'prey_noprotocol.conf');
       const dataVerifiedPreyConf = preyConfJs.startVerifyPreyConf();
-      should(dataVerifiedPreyConf).have.property('constitution', false);
-      should(dataVerifiedPreyConf).have.property('apiKeyValue', false);
-      should(dataVerifiedPreyConf).have.property('deviceKeyValue', false);
+      should(dataVerifiedPreyConf).have.property('constitution', true);
+      should(dataVerifiedPreyConf).have.property('apiKeyValue', true);
+      should(dataVerifiedPreyConf).have.property('deviceKeyValue', true);
       done();
     });
   });
@@ -90,63 +90,76 @@ describe('Prey Conf file', () => {
     it('should try to save default prey.conf - Good structure, but no api key or device key', (done) => {
       preyConfJs.preyConfPath = join(__dirname, 'utils', 'prey_default.conf');
       const dataToSave = preyConfJs.trySaveData();
-      console.log(dataToSave);
+      sinon.assert.match(dataToSave, null);
       done();
     });
 
     it('should verify default prey.conf - Good structure, but no api key or device key', (done) => {
       preyConfJs.preyConfPath = join(__dirname, 'utils', 'prey_default.conf');
       const dataToSave = preyConfJs.trySaveData();
-      console.log(dataToSave);
+      sinon.assert.match(dataToSave, null);
       done();
     });
 
     it('should verify prey.conf - Good structure, api key and device key', (done) => {
       preyConfJs.preyConfPath = join(__dirname, 'utils', 'prey_apikey_devicekey.conf');
       const dataToSave = preyConfJs.trySaveData();
-      console.log(dataToSave);
+      const whatever = {
+        auto_connect: 'false',
+        auto_update: 'true',
+        'control-panel.api_key': 'apikey',
+        'control-panel.device_key': 'devicekey',
+        'control-panel.host': 'solid.preyproject.com',
+        'control-panel.location_aware': 'false',
+        'control-panel.protocol': 'https',
+        'control-panel.scan_hardware': 'false',
+        'control-panel.send_status_info': 'true',
+        download_edge: 'false',
+        send_crash_reports: 'true',
+      };
+      sinon.assert.match(dataToSave, whatever);
       done();
     });
 
     it('should verify prey.conf - no structure', (done) => {
       preyConfJs.preyConfPath = join(__dirname, 'utils', 'prey_noformat.conf');
       const dataToSave = preyConfJs.trySaveData();
-      console.log(dataToSave);
+      sinon.assert.match(dataToSave, null);
       done();
     });
 
     it('should verify prey.conf - Good structure, no api key and device key', (done) => {
       preyConfJs.preyConfPath = join(__dirname, 'utils', 'prey_noapikey_devicekey.conf');
       const dataToSave = preyConfJs.trySaveData();
-      console.log(dataToSave);
+      sinon.assert.match(dataToSave, null);
       done();
     });
 
     it('should verify prey.conf - Good structure, api key and no device key', (done) => {
       preyConfJs.preyConfPath = join(__dirname, 'utils', 'prey_apikey_nodevicekey.conf');
       const dataToSave = preyConfJs.trySaveData();
-      console.log(dataToSave);
+      sinon.assert.match(dataToSave, null);
       done();
     });
 
     it('should verify prey.conf - Bad structure', (done) => {
       preyConfJs.preyConfPath = join(__dirname, 'utils', 'prey_bad_format.conf');
       const dataToSave = preyConfJs.trySaveData();
-      console.log(dataToSave);
+      sinon.assert.match(dataToSave, null);
       done();
     });
 
     it('should verify prey.conf - No host', (done) => {
       preyConfJs.preyConfPath = join(__dirname, 'utils', 'prey_nohost.conf');
       const dataToSave = preyConfJs.trySaveData();
-      console.log(dataToSave);
+      sinon.assert.match(dataToSave, null);
       done();
     });
 
     it('should verify prey.conf - No protocol', (done) => {
       preyConfJs.preyConfPath = join(__dirname, 'utils', 'prey_noprotocol.conf');
       const dataToSave = preyConfJs.trySaveData();
-      console.log(dataToSave);
+      sinon.assert.match(dataToSave, null);
       done();
     });
   });
