@@ -101,9 +101,9 @@
   "scripts": {
     "start": "./bin/prey",
     "test_jest": "jest",
-    "test": "./bin/prey test lib/agent/plugins test --recursive --reporter dot",
-    "test-ci": "./bin/prey test lib/agent/plugins test --recursive --reporter dot --timeout 10000 --exclude **/*.notgithub.js",
-    "coverage": "istanbul cover _mocha -- lib/agent/plugins test --recursive",
+    "test": "./bin/prey test lib/agent test --recursive --reporter dot",
+    "test-ci": "./bin/prey test lib/agent test --recursive --reporter dot --timeout 10000 --exclude **/*.notgithub.js",
+    "coverage": "istanbul cover _mocha -- lib/agent test --recursive",
     "post_install": "./bin/prey config hooks post_install",
     "post_update": "./bin/prey config hooks post_install",
     "pre_uninstall": "./bin/prey config hooks pre_uninstall",
