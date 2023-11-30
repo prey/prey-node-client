@@ -13,7 +13,7 @@ var fs            = require('fs'),
     child_process = require('child_process'),
     helpers       = require('../helpers'),
     shared        = require(helpers.lib_path('conf', 'shared')),
-    api           = require(helpers.lib_path('agent', 'plugins', 'control-panel', 'api')),
+    api           = require(helpers.lib_path('agent', 'control-panel', 'api')),
     common        = require(helpers.lib_path('common')),
     storage       = require(helpers.lib_path('agent', 'utils', 'storage'));
 

@@ -1,5 +1,0 @@
-{
-  "name": "prey-plugin-retry-failed-reports",
-  "description": "Attemps to redeliver reports that failed to be sent due to network errors.",
-  "version": "0.0.1"
-}
