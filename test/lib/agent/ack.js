@@ -4,7 +4,7 @@ const {
 const should = require('should');
 const sinon = require('sinon');
 const ack = require('../../../lib/agent/ack');
-const websocket = require('../../../lib/agent/plugins/control-panel/websockets');
+const websocket = require('../../../lib/agent/control-panel/websockets');
 
 describe('validation ack acknowledge', () => {
   describe('validation if json is valid', () => {
