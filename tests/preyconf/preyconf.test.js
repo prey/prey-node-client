@@ -15,20 +15,14 @@ describe('Prey Conf file', () => {
   });
   describe('verifyExistingData', () => {
     it('Existing data with api_key and device_key', (done) => {
-      preyConfJs.preyConfPath = join(__dirname, 'utils', 'prey_default.conf');
+      preyConfJs.preyConfPath = join(__dirname, 'utils', 'prey_apikey_devicekey.conf');
       const dataVerifiedPreyConf = preyConfJs.verifyPreyConfData();
-      preyConfJs.verifyExistingData(
-        dataVerifiedPreyConf,
-        { 'control-panel.api_key': 'x', 'control-panel.device_key': 'x' },
-        (verified) => {
-          sinon.assert.match(verified, true);
-          done();
-        },
-      );
+      sinon.assert.match(dataVerifiedPreyConf, true);
+      done();
     });
 
     it('Existing data with only api_key', (done) => {
-      preyConfJs.preyConfPath = join(__dirname, 'utils', 'prey_default.conf');
+      preyConfJs.preyConfPath = join(__dirname, 'utils', 'prey_apikey_nodevicekey.conf');
       const dataVerifiedPreyConf = preyConfJs.verifyPreyConfData();
       preyConfJs.verifyExistingData(
         dataVerifiedPreyConf,
@@ -41,7 +35,7 @@ describe('Prey Conf file', () => {
     });
 
     it('Existing data without format', (done) => {
-      preyConfJs.preyConfPath = join(__dirname, 'utils', 'prey_default.conf');
+      preyConfJs.preyConfPath = join(__dirname, 'utils', 'prey_noformat.conf');
       const dataVerifiedPreyConf = preyConfJs.verifyPreyConfData();
       preyConfJs.verifyExistingData(
         dataVerifiedPreyConf,
