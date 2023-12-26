@@ -3,7 +3,8 @@ const sinon = require('sinon');
 const { join } = require('path');
 // eslint-disable-next-line no-unused-vars
 const should = require('should');
-const preyConfJs = require('../../lib/agent/utils/prey-configuration/preyconf.js');
+const preyConfJs = require('../../lib/agent/utils/prey-configuration/preyconf');
+const { databaseData } = require('./utils/dummydata');
 
 describe('Prey Conf file', () => {
   beforeEach(() => {
@@ -11,6 +12,152 @@ describe('Prey Conf file', () => {
 
   afterEach(() => {
 
+  });
+  describe('verifyExistingData', () => {
+    it('Existing data with api_key and device_key', (done) => {
+      preyConfJs.preyConfPath = join(__dirname, 'utils', 'prey_apikey_devicekey.conf');
+      const dataVerifiedPreyConf = preyConfJs.verifyPreyConfData();
+      sinon.assert.match(dataVerifiedPreyConf, true);
+      done();
+    });
+
+    it('Existing data with only api_key', (done) => {
+      preyConfJs.preyConfPath = join(__dirname, 'utils', 'prey_apikey_nodevicekey.conf');
+      const dataVerifiedPreyConf = preyConfJs.verifyPreyConfData();
+      preyConfJs.verifyExistingData(
+        dataVerifiedPreyConf,
+        { 'control-panel.api_key': 'x' },
+        (verified) => {
+          sinon.assert.match(verified, false);
+          done();
+        },
+      );
+    });
+
+    it('Existing data without format', (done) => {
+      preyConfJs.preyConfPath = join(__dirname, 'utils', 'prey_noformat.conf');
+      const dataVerifiedPreyConf = preyConfJs.verifyPreyConfData();
+      preyConfJs.verifyExistingData(
+        dataVerifiedPreyConf,
+        1,
+        (verified) => {
+          sinon.assert.match(verified, false);
+          done();
+        },
+      );
+    });
+
+    it('Comparing data with null', (done) => {
+      preyConfJs.preyConfPath = join(__dirname, 'utils', 'prey_default.conf');
+      const dataVerifiedPreyConf = preyConfJs.verifyPreyConfData();
+      preyConfJs.verifyExistingData(
+        dataVerifiedPreyConf,
+        null,
+        (verified) => {
+          sinon.assert.match(verified, false);
+          done();
+        },
+      );
+    });
+    it('Existing data from database with prey_apikey_devicekey.conf', (done) => {
+      preyConfJs.preyConfPath = join(__dirname, 'utils', 'prey_default.conf');
+      const dataVerifiedPreyConf = preyConfJs.verifyPreyConfData();
+      preyConfJs.verifyExistingData(
+        dataVerifiedPreyConf,
+        databaseData,
+        (verified) => {
+          sinon.assert.match(verified, true);
+          done();
+        },
+      );
+    });
+    it('Existing data from database with prey_apikey_nodevicekey.conf', (done) => {
+      preyConfJs.preyConfPath = join(__dirname, 'utils', 'prey_apikey_nodevicekey.conf');
+      const dataVerifiedPreyConf = preyConfJs.verifyPreyConfData();
+      preyConfJs.verifyExistingData(
+        dataVerifiedPreyConf,
+        databaseData,
+        (verified) => {
+          sinon.assert.match(verified, true);
+          done();
+        },
+      );
+    });
+
+    it('Existing data from database with prey_bad_format.conf', (done) => {
+      preyConfJs.preyConfPath = join(__dirname, 'utils', 'prey_bad_format.conf');
+      const dataVerifiedPreyConf = preyConfJs.verifyPreyConfData();
+      preyConfJs.verifyExistingData(
+        dataVerifiedPreyConf,
+        databaseData,
+        (verified) => {
+          sinon.assert.match(verified, false);
+          done();
+        },
+      );
+    });
+
+    it('Existing data from database with prey_default.conf', (done) => {
+      preyConfJs.preyConfPath = join(__dirname, 'utils', 'prey_default.conf');
+      const dataVerifiedPreyConf = preyConfJs.verifyPreyConfData();
+      preyConfJs.verifyExistingData(
+        dataVerifiedPreyConf,
+        databaseData,
+        (verified) => {
+          sinon.assert.match(verified, true);
+          done();
+        },
+      );
+    });
+
+    it('Existing data from database with prey_noapikey_devicekey.conf', (done) => {
+      preyConfJs.preyConfPath = join(__dirname, 'utils', 'prey_noapikey_devicekey.conf');
+      const dataVerifiedPreyConf = preyConfJs.verifyPreyConfData();
+      preyConfJs.verifyExistingData(
+        dataVerifiedPreyConf,
+        databaseData,
+        (verified) => {
+          sinon.assert.match(verified, true);
+          done();
+        },
+      );
+    });
+    it('Existing data from database with prey_noformat.conf', (done) => {
+      preyConfJs.preyConfPath = join(__dirname, 'utils', 'prey_noformat.conf');
+      const dataVerifiedPreyConf = preyConfJs.verifyPreyConfData();
+      preyConfJs.verifyExistingData(
+        dataVerifiedPreyConf,
+        databaseData,
+        (verified) => {
+          sinon.assert.match(verified, false);
+          done();
+        },
+      );
+    });
+    it('Existing data from database with prey_noprotocol.conf', (done) => {
+      preyConfJs.preyConfPath = join(__dirname, 'utils', 'prey_noprotocol.conf');
+      const dataVerifiedPreyConf = preyConfJs.verifyPreyConfData();
+      preyConfJs.verifyExistingData(
+        dataVerifiedPreyConf,
+        databaseData,
+        (verified) => {
+          sinon.assert.match(verified, false);
+          done();
+        },
+      );
+    });
+    it('Existing data from database with prey_nohost.conf', (done) => {
+      preyConfJs.preyConfPath = join(__dirname, 'utils', 'prey_nohost.conf');
+      const dataVerifiedPreyConf = preyConfJs.verifyPreyConfData();
+      preyConfJs.verifyExistingData(
+        dataVerifiedPreyConf,
+        databaseData,
+        (verified) => {
+          sinon.assert.match(verified, true);
+          done();
+        },
+      );
+    });
   });
   describe('startVerifyPreyConf', () => {
     it('should verify default prey.conf - Good structure, but no api key or device key', (done) => {
@@ -34,7 +181,7 @@ describe('Prey Conf file', () => {
     it('should verify prey.conf - no structure', (done) => {
       preyConfJs.preyConfPath = join(__dirname, 'utils', 'prey_noformat.conf');
       const dataVerifiedPreyConf = preyConfJs.startVerifyPreyConf();
-      should(dataVerifiedPreyConf).have.property('constitution', false);
+      should(dataVerifiedPreyConf).have.property('constitution', {});
       should(dataVerifiedPreyConf).have.property('apiKeyValue', false);
       should(dataVerifiedPreyConf).have.property('deviceKeyValue', false);
       done();
