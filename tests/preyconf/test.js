@@ -1,7 +1,7 @@
 const fs = require('fs');
 const { join } = require('path');
 const { forEach } = require('underscore');
-const { reqPreyConf } = require('./lib/agent/utils/prey-configuration/util-preyconf');
+const { reqPreyConf } = require('../../lib/agent/utils/prey-configuration/util-preyconf');
 
 const getFileContent = (path) => {
   let allFileContents = '';
