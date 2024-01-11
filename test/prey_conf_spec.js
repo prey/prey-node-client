@@ -36,7 +36,7 @@ describe('prey_conf_spec', function() {
     var drivers = get_value('plugin_list');
     drivers.should.equal('control-panel');
 
-    var val = config.get('plugin_list');
+    var val = config.getData('plugin_list');
     val.should.be.a.Array;
     val[0].should.equal('control-panel');
   });
@@ -46,7 +46,7 @@ describe('prey_conf_spec', function() {
     host.should.equal('solid.preyproject.com');
 
     // it should be under the control-panel subkey
-    var val = config.get('control-panel', 'host');
+    var val = config.getData('control-panel', 'host');
     val.should.equal('solid.preyproject.com');
   });
 
@@ -55,7 +55,7 @@ describe('prey_conf_spec', function() {
     protocol.should.equal('https');
 
     // it should be under the control-panel subkey
-    var val = config.get('control-panel', 'protocol');
+    var val = config.getData('control-panel', 'protocol');
     val.should.equal('https');
   });
 
@@ -64,7 +64,7 @@ describe('prey_conf_spec', function() {
     api_key.should.be.empty;
 
     // it should be under the control-panel subkey
-    var obj = config.get('control-panel');
+    var obj = config.getData('control-panel');
     Object.keys(obj).should.containEql('api_key');
   });
 
@@ -73,7 +73,7 @@ describe('prey_conf_spec', function() {
     device_key.should.be.empty;
 
     // it should be under the control-panel subkey
-    var obj = config.get('control-panel');
+    var obj = config.getData('control-panel');
     Object.keys(obj).should.containEql('device_key');
   });
 

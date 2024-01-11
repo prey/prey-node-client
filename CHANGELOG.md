@@ -1,5 +1,20 @@
 # Change Log
 
+## [v1.11.11](https://github.com/prey/prey-node-client/tree/v1.11.11) (2023-12-13)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.11.10..v1.11.11)
+
+**Merged pull requests:**
+
+- It fixes the way Prey determinates OS architecture in MacOS. [\#905](https://github.com/prey/prey-node-client/pull/905) ([SoraKenji](https://github.com/SoraKenji))([Beregcamlost](https://github.com/beregcamlost))
+
+- New feature for Prey to heal its prey.conf file when the file is lacking critical information or format to being able to be read. [\#902](https://github.com/prey/prey-node-client/pull/902) ([SoraKenji](https://github.com/SoraKenji))([Beregcamlost](https://github.com/beregcamlost))
+
+- Removes plugin folder from repository since we're not offering a different service. [\#900](https://github.com/prey/prey-node-client/pull/900) ([SoraKenji](https://github.com/SoraKenji))([Beregcamlost](https://github.com/beregcamlost))
+
+- It adds a way to test if Killswitch feature is able to run on the device. [\#899](https://github.com/prey/prey-node-client/pull/899) ([SoraKenji](https://github.com/SoraKenji))([Beregcamlost](https://github.com/beregcamlost))
+
+- Fix on `heartbeatTimed` function implementation for Websocket in order to solve a bug where Prey could get stuck without connection to servers. [\#898](https://github.com/prey/prey-node-client/pull/898) ([SoraKenji](https://github.com/SoraKenji))([Beregcamlost](https://github.com/beregcamlost))
+
 ## [v1.11.10](https://github.com/prey/prey-node-client/tree/v1.11.10) (2023-10-30)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.11.9..v1.11.10)
 
@@ -7,9 +22,13 @@
 
 - Fix on duplicate `api_key` on fresh install. This removes the second `api_key` on default value in `prey.conf`. [\#883](https://github.com/prey/prey-node-client/pull/883) ([SoraKenji](https://github.com/SoraKenji))([Beregcamlost](https://github.com/beregcamlost))
 
-- Wipe feature now can receive new options from service. [\#884](https://github.com/prey/prey-node-client/pull/884) ([SoraKenji](https://github.com/SoraKenji))([Beregcamlost](https://github.com/beregcamlost))
+- Wipe feature now can receive more options from the service. This allows to configure the way wipe is going to work on the device. [\#884](https://github.com/prey/prey-node-client/pull/884) ([SoraKenji](https://github.com/SoraKenji))([Beregcamlost](https://github.com/beregcamlost))
 
 - Refactor and fix of the `screen lock` feature for Ubuntu client, now it works on Ubuntu with Desktop Enviroment Gnome and KDE from Prey v1.11.10. [\#885](https://github.com/prey/prey-node-client/pull/885) ([SoraKenji](https://github.com/SoraKenji))([Beregcamlost](https://github.com/beregcamlost))
+
+- Remove `nircmd` from app cause it was being flagged as a threat despite is not a malware. [\#892](https://github.com/prey/prey-node-client/pull/892) ([SoraKenji](https://github.com/SoraKenji))([Beregcamlost](https://github.com/beregcamlost))
+
+- Change the take picture behavior on windows. Now uses snaphot.exe first instead of prey-webcam.exe and change the name of the picture and screenshot files to reduce size of temporary files stored. [\#893](https://github.com/prey/prey-node-client/pull/893) [\#894](https://github.com/prey/prey-node-client/pull/894) ([SoraKenji](https://github.com/SoraKenji))([Beregcamlost](https://github.com/beregcamlost))
 
 ## [v1.11.9](https://github.com/prey/prey-node-client/tree/v1.11.9) (2023-09-28)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.11.8..v1.11.9)

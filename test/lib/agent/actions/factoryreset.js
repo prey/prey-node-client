@@ -12,7 +12,7 @@ var helpers        = require('./../../../helpers'),
     sys_win        = require(join(sys_index_path, 'windows')),
     factoryreset_path   = join(lib_path, 'agent', 'actions', 'factoryreset'),
     factoryreset   = require(factoryreset_path),
-    api            = require('./../../../../lib/agent/plugins/control-panel/api'),
+    api            = require('./../../../../lib/agent/control-panel/api'),
     system         = require('./../../../../lib/system'),
     fs             = require('fs');
 

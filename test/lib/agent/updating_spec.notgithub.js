@@ -25,7 +25,7 @@ describe('updating', function() {
   before(function() {
     common.logger.pause();
 
-    //ensure the config.get('download_edge') call returns false
+    //ensure the config.getData('download_edge') call returns false
     branch_stub = sinon.stub(common.config, 'get').callsFake(key => {
       return false;
     })
