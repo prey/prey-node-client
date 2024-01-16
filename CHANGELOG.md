@@ -1,9 +1,17 @@
 # Change Log
 
-## [v1.11.11](https://github.com/prey/prey-node-client/tree/v1.11.11) (2023-12-13)
+## [v1.11.11](https://github.com/prey/prey-node-client/tree/v1.11.11) (2024-01-17)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.11.10..v1.11.11)
 
 **Merged pull requests:**
+
+- New way to use the configuration, the prey.conf is no longer needed all the config data is stored on the sqlite database. [\#923](https://github.com/prey/prey-node-client/pull/923) ([SoraKenji](https://github.com/SoraKenji))([Beregcamlost](https://github.com/beregcamlost))
+
+- Update on Winsvc and Fenix binaries. [\#921](https://github.com/prey/prey-node-client/pull/921) ([SoraKenji](https://github.com/SoraKenji))([Beregcamlost](https://github.com/beregcamlost))
+
+- Improvement on check device type (laptop, desktop) on Windows. [\#919](https://github.com/prey/prey-node-client/pull/919) ([SoraKenji](https://github.com/SoraKenji))([Beregcamlost](https://github.com/beregcamlost))
+
+- Check Killswitch compatibility on Prey start. [\#913](https://github.com/prey/prey-node-client/pull/913) ([SoraKenji](https://github.com/SoraKenji))([Beregcamlost](https://github.com/beregcamlost))
 
 - It fixes the way Prey determinates OS architecture in MacOS. [\#905](https://github.com/prey/prey-node-client/pull/905) ([SoraKenji](https://github.com/SoraKenji))([Beregcamlost](https://github.com/beregcamlost))
 
