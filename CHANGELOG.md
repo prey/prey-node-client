@@ -1,17 +1,23 @@
 # Change Log
 
-## [v1.11.11](https://github.com/prey/prey-node-client/tree/v1.11.11) (2023-12-13)
-[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.11.10..v1.11.11)
+## [v1.12.0](https://github.com/prey/prey-node-client/tree/v1.12.0) (2024-01-17)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.11.10..v1.12.0)
 
 **Merged pull requests:**
 
-- It fixes the way Prey determinates OS architecture in MacOS. [\#905](https://github.com/prey/prey-node-client/pull/905) ([SoraKenji](https://github.com/SoraKenji))([Beregcamlost](https://github.com/beregcamlost))
+- New way to use the configuration. Prey.conf file is no longer needed since all the config data is stored in the sqlite database. [\#923](https://github.com/prey/prey-node-client/pull/923) ([SoraKenji](https://github.com/SoraKenji))([Beregcamlost](https://github.com/beregcamlost))
 
-- New feature for Prey to heal its prey.conf file when the file is lacking critical information or format to being able to be read. [\#902](https://github.com/prey/prey-node-client/pull/902) ([SoraKenji](https://github.com/SoraKenji))([Beregcamlost](https://github.com/beregcamlost))
+- Adds Winsvc 2.0.17 and a new version of Fenix binary. [\#921](https://github.com/prey/prey-node-client/pull/921) ([SoraKenji](https://github.com/SoraKenji))([Beregcamlost](https://github.com/beregcamlost))
 
-- Removes plugin folder from repository since we're not offering a different service. [\#900](https://github.com/prey/prey-node-client/pull/900) ([SoraKenji](https://github.com/SoraKenji))([Beregcamlost](https://github.com/beregcamlost))
+- Improvement in check device type (laptop, desktop) on Windows. [\#919](https://github.com/prey/prey-node-client/pull/919) ([SoraKenji](https://github.com/SoraKenji))([Beregcamlost](https://github.com/beregcamlost))
 
-- It adds a way to test if Killswitch feature is able to run on the device. [\#899](https://github.com/prey/prey-node-client/pull/899) ([SoraKenji](https://github.com/SoraKenji))([Beregcamlost](https://github.com/beregcamlost))
+- Checks Killswitch compatibility in Prey start. [\#913](https://github.com/prey/prey-node-client/pull/913) ([SoraKenji](https://github.com/SoraKenji))([Beregcamlost](https://github.com/beregcamlost))
+
+- Fixes the way Prey determinates OS architecture in MacOS. [\#905](https://github.com/prey/prey-node-client/pull/905) ([SoraKenji](https://github.com/SoraKenji))([Beregcamlost](https://github.com/beregcamlost))
+
+- Removes plugin folder from repository since Prey is not offering a different service. [\#900](https://github.com/prey/prey-node-client/pull/900) ([SoraKenji](https://github.com/SoraKenji))([Beregcamlost](https://github.com/beregcamlost))
+
+- Adds a way to test if Killswitch feature is able to run on the device. [\#899](https://github.com/prey/prey-node-client/pull/899) ([SoraKenji](https://github.com/SoraKenji))([Beregcamlost](https://github.com/beregcamlost))
 
 - Fix on `heartbeatTimed` function implementation for Websocket in order to solve a bug where Prey could get stuck without connection to servers. [\#898](https://github.com/prey/prey-node-client/pull/898) ([SoraKenji](https://github.com/SoraKenji))([Beregcamlost](https://github.com/beregcamlost))
 
