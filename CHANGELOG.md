@@ -5,7 +5,9 @@
 
 **Merged pull requests:**
 
-- Fix on hasBattery function when powershell is not found. [\#923](https://github.com/prey/prey-node-client/pull/929) ([SoraKenji](https://github.com/SoraKenji))([Beregcamlost](https://github.com/beregcamlost))
+- Remove memoize from get_firmware_info. [\#931](https://github.com/prey/prey-node-client/pull/931) ([SoraKenji](https://github.com/SoraKenji))([Beregcamlost](https://github.com/beregcamlost))
+
+- Fix on hasBattery function when powershell is not found. [\#929](https://github.com/prey/prey-node-client/pull/929) ([SoraKenji](https://github.com/SoraKenji))([Beregcamlost](https://github.com/beregcamlost))
 
 ## [v1.12.0](https://github.com/prey/prey-node-client/tree/v1.12.0) (2024-01-22)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.11.10..v1.12.0)
