@@ -7,7 +7,7 @@
 ########################################################
 
 ##### ENV VARS
-# NODE_AGENT_WINDOWS_VER="14.21.3
+# NODE_AGENT_WINDOWS_VER="14.21.3"
 if [ -z "${NODE_AGENT_VER}" ]; then 
   echo -e "NODE_AGENT_VER env variable is not set"
   return 1
