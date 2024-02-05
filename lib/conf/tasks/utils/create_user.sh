@@ -7,28 +7,36 @@ fi
 
 USER_NAME="$1"
 [ -z "$USER_NAME" ] && echo "User name required." && exit 1
-
 FULL_NAME="Prey Anti-Theft"
 
 SU_CMD=$(command -v su) || SU_CMD="/bin/su"
 
 # With SUDOERS_FILE user will be able to run commands as other users except root
 SUDOERS_ARGS="${SU_CMD} [A-z]*, !${SU_CMD} root*, !${SU_CMD} -*"
+TRINITY_CMD="/usr/local/lib/prey/current/bin/trinity"
+AIRPORT_CMD="/System/Library/PrivateFrameworks/Apple80211.framework/Versions/Current/Resources/airport"
+
+EXISTING_SUDOER_FILE="/etc/sudoers.d/51_${USER_NAME}_switcher"
 
 if [ "$(uname)" == "Linux" ]; then
   SUDOERS_FILE="/etc/sudoers.d/50_${USER_NAME}_switcher"
   USERS_PATH="/home"
   [ -n "$(which dmidecode)" ] && SUDOERS_ARGS="$(which dmidecode), ${SUDOERS_ARGS}"
   [ -n "$(which iwlist)" ] && SUDOERS_ARGS="$(which iwlist), ${SUDOERS_ARGS}"
+  [ -e $EXISTING_SUDOER_FILE ] && SUDOERS_ARGS="${TRINITY_CMD}, ${SUDOERS_ARGS}"
   # for security reasons, Prey user shouldn't have a login shell defined
   # also, since nologin path changes between linux distros, lets use /bin/false instead
   SHELL="/bin/false"
-else
+elif [ -e $EXISTING_SUDOER_FILE ]; then
+  SUDOERS_FILE="/etc/sudoers.d/52_${USER_NAME}_switcher"
+  USERS_PATH="/Users"
+  SHELL="/sbin/nologin"
+  SUDOERS_ARGS="$SUDOERS_ARGS, $AIRPORT_CMD, $TRINITY_CMD"
+else 
   SUDOERS_FILE="/etc/sudoers.d/51_${USER_NAME}_switcher" # New version for macOS
   USERS_PATH="/Users"
   SHELL="/sbin/nologin"
-  AIRPORT_CMD="/System/Library/PrivateFrameworks/Apple80211.framework/Versions/Current/Resources/airport"
-  SUDOERS_ARGS="$SUDOERS_ARGS, $AIRPORT_CMD"
+  SUDOERS_ARGS="$SUDOERS_ARGS, $AIRPORT_CMD, $TRINITY_CMD"
 fi
 
 SUDOERS_LINE="${USER_NAME} ALL = NOPASSWD: ${SUDOERS_ARGS}"
@@ -112,7 +120,8 @@ grant_privileges() {
 
   # Delete old sudoers file on macOS
   if [ "$(uname)" == "Darwin" ]; then
-    rm -rf "/etc/sudoers.d/etc/sudoers.d/50_${USER_NAME}_switcher"
+    rm -rf "/etc/sudoers.d/50_${USER_NAME}_switcher"
+    [ -e "/etc/sudoers.d/52_${USER_NAME}_switcher" ] && [ -e "/etc/sudoers.d/51_${USER_NAME}_switcher" ] && rm -rf "/etc/sudoers.d/51_${USER_NAME}_switcher"
   fi
 
 }
