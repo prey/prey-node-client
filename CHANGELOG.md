@@ -1,5 +1,12 @@
 # Change Log
 
+## [v1.12.1](https://github.com/prey/prey-node-client/tree/v1.12.2) (2024-02-07)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.12.1..v1.12.2)
+
+**Merged pull requests:**
+
+- fix on location aware tracking. [\#935](https://github.com/prey/prey-node-client/pull/935) ([SoraKenji](https://github.com/SoraKenji))([Beregcamlost](https://github.com/beregcamlost))
+
 ## [v1.12.1](https://github.com/prey/prey-node-client/tree/v1.12.1) (2024-01-22)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.12.0..v1.12.1)
 
