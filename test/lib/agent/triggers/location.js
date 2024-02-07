@@ -16,7 +16,7 @@ var dummy = {
     method: 'wifi' 
 }
 
-describe('location', () => {
+describe('location - TODO: change get_setting to config.getData behavior', () => {
 
   describe('send_location', () => {
 
