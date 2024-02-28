@@ -37,6 +37,7 @@
     "clean-exit": "0.0.3",
     "commander": "9.1.0",
     "compare-versions": "3.3.0",
+    "dotenv": "^16.4.5",
     "firewall": "0.0.5",
     "getset": "https://github.com/javo/getset.git#0e1a82e851591f34af6c5a7491ce223eefa58a95",
     "graceful-fs": "4.1.15",
