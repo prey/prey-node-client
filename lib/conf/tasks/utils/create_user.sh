@@ -14,24 +14,35 @@ SU_CMD=$(command -v su) || SU_CMD="/bin/su"
 
 # With SUDOERS_FILE user will be able to run commands as other users except root
 SUDOERS_ARGS="${SU_CMD} [A-z]*, !${SU_CMD} root*, !${SU_CMD} -*"
+SUDOERS_FILE_50="/etc/sudoers.d/50_${USER_NAME}_switcher"
+SUDOERS_FILE_51="/etc/sudoers.d/51_${USER_NAME}_switcher"
+SUDOERS_FILE_52="/etc/sudoers.d/52_${USER_NAME}_switcher" # New version for macOS
+AIRPORT_CMD="/System/Library/PrivateFrameworks/Apple80211.framework/Versions/Current/Resources/airport"
+TRINITY_CMD="/usr/local/lib/prey/current/bin/trinity"
+SHELL_MAC="/sbin/nologin"
+USERS_PATH_MAC="/Users"
 
 if [ "$(uname)" == "Linux" ]; then
-  SUDOERS_FILE="/etc/sudoers.d/50_${USER_NAME}_switcher"
   USERS_PATH="/home"
+  SUDOERS_FILE="$SUDOERS_FILE_50"
   [ -n "$(which dmidecode)" ] && SUDOERS_ARGS="$(which dmidecode), ${SUDOERS_ARGS}"
   [ -n "$(which iwlist)" ] && SUDOERS_ARGS="$(which iwlist), ${SUDOERS_ARGS}"
   # for security reasons, Prey user shouldn't have a login shell defined
   # also, since nologin path changes between linux distros, lets use /bin/false instead
   SHELL="/bin/false"
+elif [ -f "${SUDOERS_FILE_51}" ]; then
+  SUDOERS_FILE="$SUDOERS_FILE_52" # New version for macOS
+  USERS_PATH="$USERS_PATH_MAC"
+  SHELL="$SHELL_MAC"
+  SUDOERS_ARGS="$SUDOERS_ARGS, $AIRPORT_CMD, $TRINITY_CMD"
 else
-  SUDOERS_FILE="/etc/sudoers.d/51_${USER_NAME}_switcher" # New version for macOS
-  USERS_PATH="/Users"
-  SHELL="/sbin/nologin"
-  AIRPORT_CMD="/System/Library/PrivateFrameworks/Apple80211.framework/Versions/Current/Resources/airport"
-  SUDOERS_ARGS="$SUDOERS_ARGS, $AIRPORT_CMD"
+  SUDOERS_FILE="$SUDOERS_FILE_51"
+  USERS_PATH="$USERS_PATH_MAC"
+  SHELL="$SHELL_MAC"
+  SUDOERS_ARGS="$SUDOERS_ARGS, $AIRPORT_CMD, $TRINITY_CMD"
 fi
 
-SUDOERS_LINE="${USER_NAME} ALL = NOPASSWD: ${SUDOERS_ARGS}"
+SUDOERS_LINE="${USER_NAME} ALL=(ALL) NOPASSWD: ${SUDOERS_ARGS}"
 
 if [ "$(uname)" == "Linux" ]; then
   EXISTING_USER=$(cat /etc/passwd | grep -E "home.*bash" | tail -1 | cut -d":" -f1)
@@ -43,7 +54,6 @@ fi
 ADMIN_GROUP_ID=80
 # linux
 ADMIN_GROUP=adm
-
 ask_confirmation() {
   echo -e "\nWe will now create a user '${USER_NAME}' with (limited) impersonation privileges."
   echo -e "This means he will be able to run commands on behalf of other users, in order to give Prey"
@@ -95,9 +105,20 @@ create_user() {
   fi
 }
 
-grant_privileges() {
+remove_old_files() {
+  # Delete old sudoers file on macOS
+  if [ "$(uname)" == "Darwin" ]; then
+    if [ -f "${SUDOERS_FILE_50}" ]; then
+      echo "removing file on: ${SUDOERS_FILE_50}, output (empty is ok): $(rm -rf "${SUDOERS_FILE_50}")"
+    elif [[ -f "${SUDOERS_FILE_51}" && -f "${SUDOERS_FILE}" ]]; then
+      echo "removing file on: ${SUDOERS_FILE_51}, output (empty is ok): $(rm -rf "${SUDOERS_FILE_51}")" 
+    fi
+  fi
+}
 
+grant_privileges() {
   if [ -f "$SUDOERS_FILE" ]; then
+    remove_old_files
     echo "${USER_NAME} already seems to have impersonation privileges. Skipping..."
     return 0
   fi
@@ -109,11 +130,6 @@ grant_privileges() {
   grep -q "^#includedir.*/etc/sudoers.d" /etc/sudoers || echo "#includedir /etc/sudoers.d" >> /etc/sudoers
 
   ( umask 226 && echo "${SUDOERS_LINE}" > "$SUDOERS_FILE" )
-
-  # Delete old sudoers file on macOS
-  if [ "$(uname)" == "Darwin" ]; then
-    rm -rf "/etc/sudoers.d/etc/sudoers.d/50_${USER_NAME}_switcher"
-  fi
 
 }
 
