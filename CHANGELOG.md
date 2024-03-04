@@ -1,13 +1,20 @@
 # Change Log
 
-## [v1.12.1](https://github.com/prey/prey-node-client/tree/v1.12.2) (2024-02-07)
+## [v1.12.3](https://github.com/prey/prey-node-client/tree/v1.12.2) (2024-03-04)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.12.2..v1.12.3)
+
+- Adds osquery installation feature for Windows and Mac. [\#941](https://github.com/prey/prey-node-client/pull/941) ([SoraKenji](https://github.com/SoraKenji))([Beregcamlost](https://github.com/beregcamlost))
+
+- Change the way to switch between environments. [\#938](https://github.com/prey/prey-node-client/pull/938) ([SoraKenji](https://github.com/SoraKenji))([Beregcamlost](https://github.com/beregcamlost))
+
+## [v1.12.2](https://github.com/prey/prey-node-client/tree/v1.12.2) (2024-02-08)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.12.1..v1.12.2)
 
 **Merged pull requests:**
 
 - fix on location aware tracking. [\#935](https://github.com/prey/prey-node-client/pull/935) ([SoraKenji](https://github.com/SoraKenji))([Beregcamlost](https://github.com/beregcamlost))
 
-## [v1.12.1](https://github.com/prey/prey-node-client/tree/v1.12.1) (2024-01-22)
+## [v1.12.1](https://github.com/prey/prey-node-client/tree/v1.12.1) (2024-01-23)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.12.0..v1.12.1)
 
 **Merged pull requests:**
