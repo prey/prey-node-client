@@ -1,6 +1,16 @@
 # Change Log
 
-## [v1.12.3](https://github.com/prey/prey-node-client/tree/v1.12.2) (2024-03-04)
+## [v1.12.4](https://github.com/prey/prey-node-client/tree/v1.12.4) (2024-03-17)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.12.3..v1.12.4)
+
+- Fixes native strategy for Location in MacOS
+- MacOS permission (only Location) added to database in order to have a back up and update them accordingly.
+- Removes IP package dependency.
+- Adds local socket feature for MacOS in order to connect with new prey-user binary to interchange data.
+
+[\#945](https://github.com/prey/prey-node-client/pull/945) ([SoraKenji](https://github.com/SoraKenji))([Beregcamlost](https://github.com/beregcamlost))
+
+## [v1.12.3](https://github.com/prey/prey-node-client/tree/v1.12.3) (2024-03-04)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.12.2..v1.12.3)
 
 - Adds osquery installation feature for Windows and Mac. [\#941](https://github.com/prey/prey-node-client/pull/941) ([SoraKenji](https://github.com/SoraKenji))([Beregcamlost](https://github.com/beregcamlost))
