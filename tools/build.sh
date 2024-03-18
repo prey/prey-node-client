@@ -93,37 +93,28 @@ zip_file(){
   if [ -z "$OS" ]; then
     zip -9 -r "$ZIP" "$FOLDER" 1> /dev/null
   elif [ "$OS" = 'windows' ]; then
+    rm -rf "$FOLDER/node_modules/sqlite3/build/Release/node_sqlite3.node"
 
-    rm -rf "$FOLDER/node_modules/sqlite3/lib/binding/napi-v6-darwin-unknown-x64"
-    rm -rf "$FOLDER/node_modules/sqlite3/lib/binding/napi-v6-darwin-unknown-arm64"
-    rm -rf "$FOLDER/node_modules/sqlite3/lib/binding/napi-v6-win32-unknown-ia32"
-    rm -rf "$FOLDER/node_modules/sqlite3/lib/binding/napi-v6-win32-unknown-x64"
     if [ "$ARCH" == "x86" ]; then
-      cp -R "$CURRENT_PATH/tools/sqlite3/windows/napi-v6-win32-unknown-ia32" "$FOLDER/node_modules/sqlite3/lib/binding/"
+      cp -R "$CURRENT_PATH/tools/sqlite3/windows/napi-v6-win32-unknown-ia32/node_sqlite3.node" "$FOLDER/node_modules/sqlite3/build/Release/"
     fi
     if [ "$ARCH" == "x64" ]; then
-      cp -R "$CURRENT_PATH/tools/sqlite3/windows/napi-v6-win32-unknown-x64" "$FOLDER/node_modules/sqlite3/lib/binding/"
+      cp -R "$CURRENT_PATH/tools/sqlite3/windows/napi-v6-win32-unknown-x64/node_sqlite3.node" "$FOLDER/node_modules/sqlite3/build/Release/"
     fi
     zip -9 -r "$ZIP" "$FOLDER" -x \*.sh \*linux/* \*mac/* \*darwin/* 1> /dev/null
 
   elif [ "$OS" = 'mac' ]; then
-
-    rm -rf "$FOLDER/node_modules/sqlite3/lib/binding/napi-v6-darwin-unknown-x64"
-    rm -rf "$FOLDER/node_modules/sqlite3/lib/binding/napi-v6-darwin-unknown-arm64"
+    rm -rf "$FOLDER/node_modules/sqlite3/build/Release/node_sqlite3.node"
     if [ "$ARCH" == "x64" ]; then
-      cp -R "$CURRENT_PATH/tools/sqlite3/mac/napi-v6-darwin-unknown-x64" "$FOLDER/node_modules/sqlite3/lib/binding/"
+      cp -R "$CURRENT_PATH/tools/sqlite3/mac/napi-v6-darwin-unknown-x64/node_sqlite3.node" "$FOLDER/node_modules/sqlite3/build/Release/"
     fi
     if [ "$ARCH" == "arm64" ]; then
-      cp -R "$CURRENT_PATH/tools/sqlite3/mac/napi-v6-darwin-unknown-arm64" "$FOLDER/node_modules/sqlite3/lib/binding/"
+      cp -R "$CURRENT_PATH/tools/sqlite3/mac/napi-v6-darwin-unknown-arm64/node_sqlite3.node" "$FOLDER/node_modules/sqlite3/build/Release/"
     fi
     zip -9 -r "$ZIP" "$FOLDER" -x \*.cmd \*.exe \*.dll \*windows/* \*linux/* 1> /dev/null
   elif [ "$OS" = 'linux' ]; then
-    rm -rf "$FOLDER/node_modules/sqlite3/lib/binding/napi-v6-darwin-unknown-x64"
-    rm -rf "$FOLDER/node_modules/sqlite3/lib/binding/napi-v6-darwin-unknown-arm64"
-    rm -rf "$FOLDER/node_modules/sqlite3/lib/binding/napi-v6-win32-unknown-ia32"
-    rm -rf "$FOLDER/node_modules/sqlite3/lib/binding/napi-v6-win32-unknown-x64"
-    rm -rf "$FOLDER/node_modules/sqlite3/lib/binding/napi-v6-linux-glibc-x64"
-    cp -R "$CURRENT_PATH/tools/sqlite3/linux/napi-v6-linux-glibc-x64" "$FOLDER/node_modules/sqlite3/lib/binding/"
+    rm -rf "$FOLDER/node_modules/sqlite3/build/Release/node_sqlite3.node"
+    cp -R "$CURRENT_PATH/tools/sqlite3/linux/napi-v6-linux-x64/node_sqlite3.node" "$FOLDER/node_modules/sqlite3/build/Release/"
     zip -9 -r "$ZIP" "$FOLDER" -x \*.cmd \*.exe \*.dll \*windows/* \*mac/* \*darwin/* 1> /dev/null
   fi
 
