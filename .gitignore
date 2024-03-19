@@ -10,3 +10,4 @@ sandbox
 .DS_Store
 coverage
 .env
+**oq-installer.log
