@@ -1,5 +1,11 @@
 # Change Log
 
+## [v1.12.5](https://github.com/prey/prey-node-client/tree/v1.12.5) (2024-04-03)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.12.4..v1.12.5)
+
+- New binary prey-user's version 1.0.2 for universal usage. [\#972](https://github.com/prey/prey-node-client/pull/972) ([SoraKenji](https://github.com/SoraKenji))([Beregcamlost](https://github.com/beregcamlost))
+- New MacOS trinity binary for universal usage. [\#973](https://github.com/prey/prey-node-client/pull/973) ([SoraKenji](https://github.com/SoraKenji))([Beregcamlost](https://github.com/beregcamlost))
+
 ## [v1.12.4](https://github.com/prey/prey-node-client/tree/v1.12.4) (2024-03-17)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.12.3..v1.12.4)
 
