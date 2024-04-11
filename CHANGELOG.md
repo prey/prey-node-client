@@ -1,6 +1,11 @@
 # Change Log
 
-## [v1.12.5](https://github.com/prey/prey-node-client/tree/v1.12.5) (2024-04-03)
+## [v1.12.6](https://github.com/prey/prey-node-client/tree/v1.12.6) (2024-04-11)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.12.5..v1.12.6)
+
+- fix: new prey-user that fix owner permissions on binary. [\#986](https://github.com/prey/prey-node-client/pull/980) ([SoraKenji](https://github.com/SoraKenji))([Beregcamlost](https://github.com/beregcamlost))
+
+## [v1.12.5](https://github.com/prey/prey-node-client/tree/v1.12.5) (2024-04-10)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.12.4..v1.12.5)
 
 - Add new version of trinity bin for Windows and MacOS. [\#980](https://github.com/prey/prey-node-client/pull/980) ([SoraKenji](https://github.com/SoraKenji))([Beregcamlost](https://github.com/beregcamlost))
