@@ -1,5 +1,10 @@
 # Change Log
 
+## [v1.12.7](https://github.com/prey/prey-node-client/tree/v1.12.6) (2024-04-11)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.12.6..v1.12.7)
+
+- Fix: catch the exception in connection refused. [\#988](https://github.com/prey/prey-node-client/pull/980) ([SoraKenji](https://github.com/SoraKenji))([Beregcamlost](https://github.com/beregcamlost))
+
 ## [v1.12.6](https://github.com/prey/prey-node-client/tree/v1.12.6) (2024-04-11)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.12.5..v1.12.6)
 
