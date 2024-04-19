@@ -1,6 +1,13 @@
 # Change Log
 
-## [v1.12.7](https://github.com/prey/prey-node-client/tree/v1.12.6) (2024-04-11)
+## [v1.12.8](https://github.com/prey/prey-node-client/tree/v1.12.8) (2024-04-22)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.12.7..v1.12.8)
+
+- Fix: Added name of event in payload to backend API in push list of location permissions (native and wifi) in MacOS. [\#991](https://github.com/prey/prey-node-client/pull/991) ([SoraKenji](https://github.com/SoraKenji))([Beregcamlost](https://github.com/beregcamlost))
+
+- Fix: Removed verification of slots when links a device to user's account. [\#933](https://github.com/prey/prey-node-client/pull/933) ([SoraKenji](https://github.com/SoraKenji))([Beregcamlost](https://github.com/beregcamlost))
+
+## [v1.12.7](https://github.com/prey/prey-node-client/tree/v1.12.7) (2024-04-11)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.12.6..v1.12.7)
 
 - Fix: catch the exception in connection refused. [\#988](https://github.com/prey/prey-node-client/pull/980) ([SoraKenji](https://github.com/SoraKenji))([Beregcamlost](https://github.com/beregcamlost))
