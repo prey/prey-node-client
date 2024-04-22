@@ -3,6 +3,8 @@
 ## [v1.12.8](https://github.com/prey/prey-node-client/tree/v1.12.8) (2024-04-22)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.12.7..v1.12.8)
 
+- Fix: Removes the double device key request on PDC when installed through MSI. [\#996](https://github.com/prey/prey-node-client/pull/996) ([SoraKenji](https://github.com/SoraKenji))([Beregcamlost](https://github.com/beregcamlost))
+
 - Fix: Removes some code from updater.js. This piece of code had an error when the variable 'err' is falsy. [\#993](https://github.com/prey/prey-node-client/pull/993) ([SoraKenji](https://github.com/SoraKenji))([Beregcamlost](https://github.com/beregcamlost))
 
 - Fix: Added name of event in payload to backend API in push list of location permissions (native and wifi) in MacOS. [\#991](https://github.com/prey/prey-node-client/pull/991) ([SoraKenji](https://github.com/SoraKenji))([Beregcamlost](https://github.com/beregcamlost))
