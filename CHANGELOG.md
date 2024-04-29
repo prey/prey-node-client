@@ -1,5 +1,12 @@
 # Change Log
 
+## [v1.12.9](https://github.com/prey/prey-node-client/tree/v1.12.9) (2024-04-30)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.12.8..v1.12.9)
+
+- Fix: Add callback to function done in Osquery action. [\#997](https://github.com/prey/prey-node-client/pull/996) ([SoraKenji](https://github.com/SoraKenji))([Beregcamlost](https://github.com/beregcamlost))
+
+- Feat: Remove osquery on Prey uninstall hook. [\#990](https://github.com/prey/prey-node-client/pull/996) ([SoraKenji](https://github.com/SoraKenji))([Beregcamlost](https://github.com/beregcamlost))
+
 ## [v1.12.8](https://github.com/prey/prey-node-client/tree/v1.12.8) (2024-04-22)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.12.7..v1.12.8)
 
