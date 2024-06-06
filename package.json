@@ -111,6 +111,7 @@
     "pre_uninstall": "./bin/prey config hooks pre_uninstall",
     "lint": "eslint .",
     "lint-fix": "eslint . --fix",
+    "owasp": "owasp-dependency-check --project \"testcliente\" -f JSON",
     "format": "npx prettier --write"
   },
   "bugs": {
