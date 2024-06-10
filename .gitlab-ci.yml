@@ -1,0 +1,82 @@
+# -----------------------------------------------------------
+#                       WARNING
+# -----------------------------------------------------------
+# This CI/CD file is public.
+# Do not include credentials, secrets, or sensitive variables.
+# -----------------------------------------------------------
+#
+# Note:
+# Only the master branch, and TAG vx.x.x is mirrored to GITHUB.
+#
+# -----------------------------------------------------------
+
+variables:
+  BUILD_IMAGE: prey-local/node-client-build:latest
+  NODE_AGENT_WINDOWS_VER: 14.21.3
+  NODE_AGENT_UNIX_VER: 16.18.0
+
+stages:
+  - test
+  - sonar
+  - build_zip
+  - build_binaries
+  - release
+  
+include:
+  #######################################
+  # WORKFLOW #
+  #######################################
+  - project: 'deploy/ci-templates'
+    file: 'javascript/workflow_node_client.yml'
+    ref: master
+  # ###################################
+  # # Job Template for NODESEC TEST   #
+  # ###################################
+  - project: 'deploy/ci-templates'
+    file: 'javascript/job_nodesec_test.yml'
+    ref: master
+  ###################################
+  # Job Template for SONAR NODE TEST#
+  ###################################
+  - project: 'deploy/ci-templates'
+    file: 'javascript/job_node_sonar.yml'
+    ref: master
+  #######################################
+  # Job Template for BUILD ZIP BINARIES #
+  #######################################
+  - project: 'deploy/ci-templates'
+    file: 'javascript/job_build_zip_client.yml'
+    ref: master
+  #######################################
+  # Job Template for BUILD BINARIES     #
+  #######################################
+  - project: 'deploy/ci-templates'
+    file: 'javascript/job_build_pkg_macos.yml'
+    ref: master
+  - project: 'deploy/ci-templates'
+    file: 'javascript/job_build_exe_windows.yml'
+    ref: master
+  - project: 'deploy/ci-templates'
+    file: 'javascript/job_build_deb_ubuntu.yml'
+    ref: master
+  - project: 'deploy/ci-templates'
+    file: 'javascript/job_upload_clean.yml'
+    ref: master
+  #######################################
+  # Job Template upload binaries to NFS #
+  #######################################
+  - project: 'deploy/ci-templates'
+    file: 'nfs/job_upload_node_client.yml'
+    ref: master
+  #######################################
+  # Job Template create GIT releases    #
+  #######################################
+  - project: 'deploy/ci-templates'
+    file: 'releases/job_node_client.yml'
+    ref: master
+  #######################################
+  # Job Template create LATEST releases #
+  #######################################
+  - project: 'deploy/ci-templates'
+    file: 'go/job_latest_create.yml'
+    ref: master
