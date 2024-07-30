@@ -1,6 +1,11 @@
 # Change Log
 
-## [v1.12.11](https://github.com/prey/prey-node-client/tree/v1.12.12) (2024-07-30)
+## [v1.12.13](https://github.com/prey/prey-node-client/tree/v1.12.13) (2024-07-30)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.12.12..v1.12.13)
+
+- Fix: Fixes error with null variables in specs report. [\#1024](https://github.com/prey/prey-node-client/pull/1024) ([SoraKenji](https://github.com/SoraKenji))
+
+## [v1.12.12](https://github.com/prey/prey-node-client/tree/v1.12.12) (2024-07-30)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.12.11..v1.12.12)
 
 - Fix: Fixes problem with variable memory reference on specs report. [\#1022](https://github.com/prey/prey-node-client/pull/1022) ([SoraKenji](https://github.com/SoraKenji))
