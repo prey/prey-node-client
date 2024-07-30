@@ -1,5 +1,10 @@
 # Change Log
 
+## [v1.12.11](https://github.com/prey/prey-node-client/tree/v1.12.12) (2024-07-30)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.12.11..v1.12.12)
+
+- Fix: Fixes problem with variable memory reference on specs report. [\#1022](https://github.com/prey/prey-node-client/pull/1022) ([SoraKenji](https://github.com/SoraKenji))
+
 ## [v1.12.11](https://github.com/prey/prey-node-client/tree/v1.12.11) (2024-07-29)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.12.10..v1.12.11)
 
