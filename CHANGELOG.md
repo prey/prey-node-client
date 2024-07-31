@@ -1,5 +1,10 @@
 # Change Log
 
+## [v1.12.14](https://github.com/prey/prey-node-client/tree/v1.12.14) (2024-07-31)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.12.13..v1.12.14)
+
+- Fix: Removes send location when ws reconnection. [\#1026](https://github.com/prey/prey-node-client/pull/1026) ([SoraKenji](https://github.com/SoraKenji))
+
 ## [v1.12.13](https://github.com/prey/prey-node-client/tree/v1.12.13) (2024-07-30)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.12.12..v1.12.13)
 
