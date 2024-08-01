@@ -1,5 +1,42 @@
 # Change Log
 
+## [v1.12.14](https://github.com/prey/prey-node-client/tree/v1.12.14) (2024-07-31)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.12.13..v1.12.14)
+
+- Fix: Removes send location when ws reconnection. [\#1026](https://github.com/prey/prey-node-client/pull/1026) ([SoraKenji](https://github.com/SoraKenji))
+
+## [v1.12.13](https://github.com/prey/prey-node-client/tree/v1.12.13) (2024-07-30)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.12.12..v1.12.13)
+
+- Fix: Fixes error with null variables in specs report. [\#1024](https://github.com/prey/prey-node-client/pull/1024) ([SoraKenji](https://github.com/SoraKenji))
+
+## [v1.12.12](https://github.com/prey/prey-node-client/tree/v1.12.12) (2024-07-30)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.12.11..v1.12.12)
+
+- Fix: Fixes problem with variable memory reference on specs report. [\#1022](https://github.com/prey/prey-node-client/pull/1022) ([SoraKenji](https://github.com/SoraKenji))
+
+## [v1.12.11](https://github.com/prey/prey-node-client/tree/v1.12.11) (2024-07-29)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.12.10..v1.12.11)
+
+- Fix: Fixes issues with device key duplication on PDC start. [\#1015](https://github.com/prey/prey-node-client/pull/1015) ([SoraKenji](https://github.com/SoraKenji))
+
+- Feat: Adds feature that sends location on every recconnect on WS. Its going to help with connection state issues on Prey Platform. [\#1018](https://github.com/prey/prey-node-client/pull/1018) ([Beregcamlost](https://github.com/beregcamlost))
+
+- Fix: Removes data from hardware changed and triggers refactor. This is going to fix misrepresentation of device's current state and its changes. [\#1019](https://github.com/prey/prey-node-client/pull/1019) ([SoraKenji](https://github.com/SoraKenji))
+
+## [v1.12.10](https://github.com/prey/prey-node-client/tree/v1.12.10) (2024-07-01)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.12.9..v1.12.10)
+
+- Fix: Fixes the way that prey get the first time location. [\#981](https://github.com/prey/prey-node-client/pull/981) ([SoraKenji](https://github.com/SoraKenji)) 
+
+- Feat: Adds new action to request local location premission. [\#1002](https://github.com/prey/prey-node-client/pull/1002) ([SoraKenji](https://github.com/SoraKenji)) 
+
+- Fix: Improvement on get logged user function. [\#1005](https://github.com/prey/prey-node-client/pull/1005) ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Adds security improvements to prey lock binary. [\#1009](https://github.com/prey/prey-node-client/pull/1009) ([SoraKenji](https://github.com/SoraKenji))
+
+- Chore: Adds new cli command to enable debug logs on prey.log file. [\#1012](https://github.com/prey/prey-node-client/pull/1012) ([SoraKenji](https://github.com/SoraKenji))
+
 ## [v1.12.9](https://github.com/prey/prey-node-client/tree/v1.12.9) (2024-04-30)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.12.8..v1.12.9)
 
