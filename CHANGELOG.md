@@ -1,5 +1,10 @@
 # Change Log
 
+## [v1.12.15](https://github.com/prey/prey-node-client/tree/v1.12.15) (2024-08-05)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.12.14..v1.12.15)
+
+- Feat: Adds send location when ws reconnection. [\#1028](https://github.com/prey/prey-node-client/pull/1028) ([Beregcamlost](https://github.com/beregcamlost))
+
 ## [v1.12.14](https://github.com/prey/prey-node-client/tree/v1.12.14) (2024-07-31)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.12.13..v1.12.14)
 
