@@ -1,5 +1,16 @@
 # Change Log
 
+## [v1.12.16](https://github.com/prey/prey-node-client/tree/v1.12.16) (2024-08-06)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.12.15..v1.12.16)
+
+- Feat: Adds feature that sends location on every reconnect on WS. [\#1032](https://github.com/prey/prey-node-client/pull/1032) ([Beregcamlost](https://github.com/beregcamlost))
+
+
+## [v1.12.15](https://github.com/prey/prey-node-client/tree/v1.12.15) (2024-08-02)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.12.14..v1.12.15)
+
+- Fix: Removes device key configuration second layer. [\#1030](https://github.com/prey/prey-node-client/pull/1030) ([SoraKenji](https://github.com/SoraKenji))
+
 ## [v1.12.14](https://github.com/prey/prey-node-client/tree/v1.12.14) (2024-07-31)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.12.13..v1.12.14)
 
@@ -20,7 +31,7 @@
 
 - Fix: Fixes issues with device key duplication on PDC start. [\#1015](https://github.com/prey/prey-node-client/pull/1015) ([SoraKenji](https://github.com/SoraKenji))
 
-- Feat: Adds feature that sends location on every recconnect on WS. Its going to help with connection state issues on Prey Platform. [\#1018](https://github.com/prey/prey-node-client/pull/1018) ([Beregcamlost](https://github.com/beregcamlost))
+- Feat: Adds feature that sends location on every reconnect on WS. Its going to help with connection state issues on Prey Platform. [\#1018](https://github.com/prey/prey-node-client/pull/1018) ([Beregcamlost](https://github.com/beregcamlost))
 
 - Fix: Removes data from hardware changed and triggers refactor. This is going to fix misrepresentation of device's current state and its changes. [\#1019](https://github.com/prey/prey-node-client/pull/1019) ([SoraKenji](https://github.com/SoraKenji))
 
