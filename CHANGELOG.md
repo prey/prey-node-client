@@ -1,5 +1,12 @@
 # Change Log
 
+## [v1.12.17](https://github.com/prey/prey-node-client/tree/v1.12.17) (2024-08-12)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.12.16..v1.12.17)
+
+- Fix: Fixes issues with device key duplication on PDC start. [\#1037](https://github.com/prey/prey-node-client/pull/1037) ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Fixes issues with H key on prey lock. [\#1036](https://github.com/prey/prey-node-client/pull/1036) ([SoraKenji](https://github.com/SoraKenji))
+
 ## [v1.12.16](https://github.com/prey/prey-node-client/tree/v1.12.16) (2024-08-06)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.12.15..v1.12.16)
 
