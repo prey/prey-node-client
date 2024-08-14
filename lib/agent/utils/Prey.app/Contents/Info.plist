@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>BuildMachineOSBuild</key>
-	<string>23F79</string>
+	<string>23A344</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleExecutable</key>
@@ -45,15 +45,17 @@
 	<key>DTXcodeBuild</key>
 	<string>15A240d</string>
 	<key>LSMinimumSystemVersion</key>
-	<string>11.0</string>
+	<string>10.13</string>
 	<key>LSUIElement</key>
 	<true/>
 	<key>NSCameraUsageDescription</key>
 	<string>Prey utilizes the device's camera to take pictures when you request evidence reports.</string>
-	<key>NSLocationAlwaysUsageDescription</key>
-	<string>When Prey cannot get the Wifi MAC addresses, it will use the location of the device to track it.</string>
 	<key>NSLocationUsageDescription</key>
 	<string>When Prey cannot get the Wifi MAC addresses, it will use the location of the device to track it.</string>
+  <key>NSLocationAlwaysUsageDescription</key>
+  <string>When Prey cannot get the Wifi MAC addresses, it will use the location of the device to track it.</string>
+  <key>NSLocationWhenInUseUsageDescription</key>
+  <string>When Prey cannot get the Wifi MAC addresses, it will use the location of the device to track it.</string>
 	<key>NSMainNibFile</key>
 	<string>MainView</string>
 	<key>NSPrincipalClass</key>
