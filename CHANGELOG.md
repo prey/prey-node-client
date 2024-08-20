@@ -1,5 +1,10 @@
 # Change Log
 
+## [v1.12.18](https://github.com/prey/prey-node-client/tree/v1.12.18) (2024-08-20)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.12.17..v1.12.18)
+ 
+- Fix: Since MacOS v14 getting wifi information for wifi location strategy was removed so a new and improved way to get native location is added. New Prey.app's version is introduced in this fix and a new version of prey-user binary. [\#1006]([SoraKenji](https://github.com/SoraKenji))
+
 ## [v1.12.17](https://github.com/prey/prey-node-client/tree/v1.12.17) (2024-08-12)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.12.16..v1.12.17)
 
