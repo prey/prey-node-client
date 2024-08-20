@@ -1,5 +1,10 @@
 # Change Log
 
+## [v1.12.18](https://github.com/prey/prey-node-client/tree/v1.12.18) (2024-08-20)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.12.17..v1.12.18)
+ 
+- Fix: Fixes issues with device key duplication on PDC start. [\#1006]([SoraKenji](https://github.com/SoraKenji))
+
 ## [v1.12.17](https://github.com/prey/prey-node-client/tree/v1.12.17) (2024-08-12)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.12.16..v1.12.17)
 
