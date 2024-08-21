@@ -49,9 +49,9 @@ build() {
 	cd "$ROOT/$FOLDER"
 
 	# https://github.com/TryGhost/node-sqlite3/issues/1552#issuecomment-1073309408
-	npm config set python python3
+	# npm config set python python3
 
-	BUNDLE_ONLY=1 npm install --production # > /dev/null
+	BUNDLE_ONLY=1 npm ci --production # > /dev/null
 	if [ $? -ne 0 ]; then
 		abort "NPM install failed."
 	fi
