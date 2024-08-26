@@ -1,7 +1,7 @@
 # Change Log
 
-## [v1.12.19](https://github.com/prey/prey-node-client/tree/v1.12.19) (2024-08-26)
-[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.12.18..v1.12.19)
+## [v1.13.0](https://github.com/prey/prey-node-client/tree/v1.13.0) (2024-08-26)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.12.18..v1.13.0)
  
 - Feat: New version of Fenix added. Now fenix.log's history remains intact so it can provide more information ([Beregcamlost](https://github.com/beregcamlost)) ([SoraKenji](https://github.com/SoraKenji))
 
