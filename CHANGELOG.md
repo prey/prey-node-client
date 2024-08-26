@@ -11,6 +11,8 @@
 
 - Fix: Modify action of request native permission for MacOS. ([Beregcamlost](https://github.com/beregcamlost)) ([SoraKenji](https://github.com/SoraKenji))
 
+- Feat: Updates the version of NodeJS to 20.16.0. ([Beregcamlost](https://github.com/beregcamlost)) ([SoraKenji](https://github.com/SoraKenji))
+
 ## [v1.12.18](https://github.com/prey/prey-node-client/tree/v1.12.18) (2024-08-20)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.12.17..v1.12.18)
  
