@@ -1,5 +1,16 @@
 # Change Log
 
+## [v1.12.19](https://github.com/prey/prey-node-client/tree/v1.12.19) (2024-08-26)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.12.18..v1.12.19)
+ 
+- Feat: New version of Fenix added. Now fenix.log's history remains intact so it can provide more information ([Beregcamlost](https://github.com/beregcamlost)) ([SoraKenji](https://github.com/SoraKenji))
+
+- Feat: New version of Updater added. It solves an issue when Prey services couldn't get restarted ([Beregcamlost](https://github.com/beregcamlost)) ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Log retrieval action now adds fenix.log in Windows to the information gather by the action. ([Beregcamlost](https://github.com/beregcamlost)) ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Modify action of request native permission for MacOS. ([Beregcamlost](https://github.com/beregcamlost)) ([SoraKenji](https://github.com/SoraKenji))
+
 ## [v1.12.18](https://github.com/prey/prey-node-client/tree/v1.12.18) (2024-08-20)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.12.17..v1.12.18)
  
