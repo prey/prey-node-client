@@ -31,7 +31,7 @@ fetch_tar() {
 	fi
 	curl -L -o "$target_file" "$url"
 	[ $? -ne 0 ] && return 1
-	tar -zvxf ${target_file} -C ${dest} 2>/dev/null
+	tar -zxf ${target_file} -C ${dest} 2>/dev/null
 	if [[ $? -ne 0 ]]; then
 		echo "An error occurred while extracting the archive."
 	fi
