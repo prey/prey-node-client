@@ -1,5 +1,11 @@
 # Change Log
-## [v1.13.0](https://github.com/prey/prey-node-client/tree/v1.13.1) (2024-09-11)
+
+## [v1.13.2](https://github.com/prey/prey-node-client/tree/v1.13.2) (2024-09-12)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.1..v1.13.2)
+ 
+- Fix: Add Prey.app universal binary ([Beregcamlost](https://github.com/beregcamlost)) ([SoraKenji](https://github.com/SoraKenji))
+
+## [v1.13.1](https://github.com/prey/prey-node-client/tree/v1.13.1) (2024-09-11)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.0..v1.13.1)
  
 - Fix: Fixes error when moving plist file on MACOS. New prey-user binary 1.0.5 ([Beregcamlost](https://github.com/beregcamlost)) ([SoraKenji](https://github.com/SoraKenji))
