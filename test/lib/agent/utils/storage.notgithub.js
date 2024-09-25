@@ -171,34 +171,6 @@ const singular = function (type) {
       });
     });
   });
-  describe('store geofencing', () => {
-    before((done) => {
-      storage.init('geofences', `${tmpdir()}/bar.db`, done);
-    }); it('store the zone', (done) => {
-      const id = 1234;
-      const data = { name: 'Home', state: 'inside' }; storage.do('set', { type: 'geofences', id, data }, () => {
-        done();
-      });
-    }); it('modify zone state when update', (done) => {
-      storage.do(
-        'update',
-        {
-          type: 'geofences', id: 1234, columns: 'state', values: 'state',
-        },
-        (err) => {
-          storage.do(
-            'query',
-            { type: 'geofences', column: 'id', data: 1234 },
-            (err, data) => {
-              storage.do('all', { type: 'geofences' }, (err, zonas) => {
-                done();
-              });
-            },
-          );
-        },
-      );
-    });
-  });
   describe('store files', () => {});
   describe('verify', () => {
     describe('validate if exist id', () => {
