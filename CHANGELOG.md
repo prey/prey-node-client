@@ -1,7 +1,7 @@
 # Change Log
 
-## [v1.13.3](https://github.com/prey/prey-node-client/tree/v1.13.2) (2024-09-15)
-[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.21..v1.13.3)
+## [v1.13.3](https://github.com/prey/prey-node-client/tree/v1.13.2) (2024-10-15)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.2..v1.13.3)
 
 - Feat: PDC now informs if OS Query is running on the device or not. ([Beregcamlost](https://github.com/beregcamlost)) ([SoraKenji](https://github.com/SoraKenji))
 
