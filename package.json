@@ -91,7 +91,7 @@
     "node.extend": "^2.0.2",
     "nyc": "^17.1.0",
     "prettier": "^2.8.4",
-    "proxyquire": "^2.1.3",
+    "rewire": "^7.0.0",
     "sandboxed-module": "^2.0.3",
     "should": "^13.2.3",
     "sinon": "^7.5.0",
@@ -109,7 +109,9 @@
   },
   "mocha": {
     "recursive": "true",
-    "spec": ["./test/**/*.test.js"]
+    "spec": [
+      "./test/**/*.test.js"
+    ]
   },
   "scripts": {
     "start": "./bin/prey",
