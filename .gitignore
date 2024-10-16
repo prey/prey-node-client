@@ -8,6 +8,11 @@ bin/node.*
 npm-debug.log
 sandbox
 .DS_Store
+.scannerwork
 coverage
 .env
 **oq-installer.log
+sonar-project.properties
+**.sonar
+.nyc_output/**
+**.vscode
