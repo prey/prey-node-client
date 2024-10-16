@@ -3,5 +3,9 @@
     "storage",
     "factory-reset",
     "missing-report"
-  ]
+  ],
+  "sonarlint.connectedMode.project": {
+    "connectionId": "http-localhost-9000",
+    "projectKey": "my_project_key"
+  }
 }

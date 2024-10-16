@@ -1,7 +1,0 @@
-language: node_js
-os: osx
-node_js:
-- 14.16.0
-notifications:
-  slack:
-    secure: EZrbgZ2IaICLs4THyZil3bUS+cvRMx2QKqv2Vb6CcwAZO3Or3l89q/Wqspn1+eeHWJbdOEs0wyAkQgLO2A1NrPmSoeBc+wsJSYqDLieTZDh8wNKonWPoyu4rvGEjst/bC9QrMiFHW8XS0GmcvIl5t+d513N6Phu15Sl65giK6d4=
