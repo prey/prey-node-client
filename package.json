@@ -116,6 +116,7 @@
   "scripts": {
     "start": "./bin/prey",
     "test": "nyc --reporter=text --reporter=html mocha",
+    "test-sf": "mocha",
     "coverage": "nyc --reporter=text-summary --reporter=lcov mocha",
     "sonar": "npx sonarqube-scanner",
     "post_install": "./bin/prey config hooks post_install",
