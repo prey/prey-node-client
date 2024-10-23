@@ -137,23 +137,18 @@ describe('addAndWait', () => {
 });
 
 describe('tryToSendNew', () => {
-  let clock;
   let socketAddAndWait;
   beforeEach(() => {
     socketAddAndWait = rewire('../../../lib/agent/socket');
     // eslint-disable-next-line no-underscore-dangle
     socketAddAndWait.__set__('sendMessage', () => {});
-    // eslint-disable-next-line no-underscore-dangle
-    socketAddAndWait.__set__('tryToSendNew', () => {});
     socketAddAndWait.messagesData = [];
     socketAddAndWait.currentMessage = null;
     socketAddAndWait.intervalToSendMessages = null;
     socketAddAndWait.timeLimitPerMessageDefault = 15000;
-    clock = sinon.useFakeTimers();
   });
 
   afterEach(() => {
-    clock.restore();
   });
 
   it('removes messages with exceeded time limit and calls their callbacks with an error', () => {
@@ -161,74 +156,150 @@ describe('tryToSendNew', () => {
       time: Date.now() - 10000,
       timeLimitPerMessage: 5000,
       cbAttached: sinon.stub(),
-      functionName: 'test-function',
+      functionName: 'location-get-location-native',
     };
     socketAddAndWait.messagesData.push(message);
     socketAddAndWait.tryToSendNew.call();
     expect(message.cbAttached.calledOnce).to.be.true;
-    expect(message.cbAttached.args[0][0].message).to.equal('Time exceeded for test-function');
+    expect(message.cbAttached.args[0][0].message).to.equal('Time exceeded for location-get-location-native');
     expect(socketAddAndWait.messagesData.length).to.equal(0);
   });
 
-  // it('keeps messages within time limit in messagesData', () => {
-  //   const message = {
-  //     time: Date.now(),
-  //     timeLimitPerMessage: 5000,
-  //     cbAttached: sinon.stub(),
-  //     functionName: 'test-function',
-  //   };
-  //   socketAddAndWait.messagesData.push(message);
-  //   socketAddAndWait.tryToSendNew();
-  //   expect(socketAddAndWait.messagesData.length).to.equal(1);
-  //   expect(socketAddAndWait.messagesData[0]).to.eql(message);
-  // });
+  it('updates currentMessage when a message is completed', () => {
+    const message = {
+      time: Date.now(),
+      timeLimitPerMessage: 5000,
+      completed: true,
+    };
+    socketAddAndWait.messagesData.push(message);
+    socketAddAndWait.currentMessage = message;
+    socketAddAndWait.tryToSendNew.call();
+    expect(socketAddAndWait.currentMessage).to.be.null;
+  });
 
-  // it('updates currentMessage correctly when a message is completed', () => {
-  //   const message1 = {
-  //     time: Date.now(),
-  //     timeLimitPerMessage: 5000,
-  //     cbAttached: sinon.stub(),
-  //     functionName: 'test-function-1',
-  //   };
-  //   const message2 = {
-  //     time: Date.now(),
-  //     timeLimitPerMessage: 5000,
-  //     cbAttached: sinon.stub(),
-  //     functionName: 'test-function-2',
-  //   };
-  //   socketAddAndWait.messagesData.push(message1);
-  //   socketAddAndWait.messagesData.push(message2);
-  //   socketAddAndWait.currentMessage = message1;
-  //   message1.completed = true;
-  //   tryToSendNew.call(exportsStub);
-  //   expect(socketAddAndWait.currentMessage).toBe(message2);
-  // });
+  it('sets currentMessage to null when messagesData is empty', () => {
+    socketAddAndWait.messagesData = [];
+    socketAddAndWait.tryToSendNew.call();
+    expect(socketAddAndWait.currentMessage).to.be.null;
+  });
 
-  // it('sets currentMessage to null when messagesData is empty', () => {
-  //   exportsStub.messagesData = [];
-  //   tryToSendNew.call(exportsStub);
-  //   expect(exportsStub.currentMessage).toBe(null);
-  // });
+  it('calls callback function cbAttached with an error when time limit is exceeded', () => {
+    const message = {
+      time: new Date().getTime() - 10000,
+      timeLimitPerMessage: 5000,
+      cbAttached: sinon.stub(),
+    };
+    socketAddAndWait.messagesData.push(message);
+    socketAddAndWait.tryToSendNew.call();
+    expect(message.cbAttached.calledWith(sinon.match.instanceOf(Error))).to.be.true;
+  });
 
-  // it('calls sendMessage with the next message in messagesData when currentMessage is completed', () => {
-  //   const message1 = {
-  //     time: Date.now(),
-  //     timeLimitPerMessage: 5000,
-  //     cbAttached: sinon.stub(),
-  //     functionName: 'test-function-1',
-  //   };
-  //   const message2 = {
-  //     time: Date.now(),
-  //     timeLimitPerMessage: 5000,
-  //     cbAttached: sinon.stub(),
-  //     functionName: 'test-function-2',
-  //   };
-  //   exportsStub.messagesData.push(message1);
-  //   exportsStub.messagesData.push(message2);
-  //   exportsStub.currentMessage = message1;
-  //   message1.completed = true;
-  //   tryToSendNew.call(exportsStub);
-  //   expect(sendMessageStub.calledOnce).toBe(true);
-  //   expect(sendMessageStub.args[0][0]).toBe(message2);
-  // });
+  it('should delete message already completed', () => {
+    const message = {
+      completed: true,
+      time: new Date().getTime(),
+      timeLimitPerMessage: 15000,
+      cbAttached: sinon.stub(),
+    };
+    socketAddAndWait.currentMessage = message;
+    socketAddAndWait.messagesData.push(message);
+    socketAddAndWait.tryToSendNew.call();
+    expect(socketAddAndWait.messagesData).to.be.empty;
+  });
+
+  it('message should be deleted from messageData and currentMessage should be equal to second obj', () => {
+    const message = {
+      completed: true,
+      time: new Date().getTime(),
+      timeLimitPerMessage: 15000,
+      cbAttached: sinon.stub(),
+    };
+    const message2 = {
+      completed: false,
+      time: new Date().getTime(),
+      timeLimitPerMessage: 15000,
+      cbAttached: sinon.stub(),
+    };
+    socketAddAndWait.currentMessage = message;
+    socketAddAndWait.messagesData.push(message);
+    socketAddAndWait.messagesData.push(message2);
+    socketAddAndWait.tryToSendNew.call();
+    expect(socketAddAndWait.currentMessage).to.be.equal(message2);
+  });
+
+  it('message should be completed', () => {
+    const message = {
+      completed: false,
+      time: new Date().getTime() - 30000,
+      timeLimitPerMessage: 15000,
+      cbAttached: sinon.stub(),
+    };
+    socketAddAndWait.currentMessage = message;
+    socketAddAndWait.messagesData.push(message);
+    socketAddAndWait.tryToSendNew.call();
+    expect(socketAddAndWait.messagesData).to.be.empty;
+  });
+});
+
+// ////////////////////
+
+describe('handleDataConnection', () => {
+  let messageToSendSocket;
+  let data;
+  let cb;
+
+  beforeEach(() => {
+    socketAddAndWait = rewire('../../../lib/agent/socket');
+    // eslint-disable-next-line no-underscore-dangle
+    socketAddAndWait.__set__('verifyConsistencyData', () => true);
+    const timeSet = new Date().getTime();
+    cb = sinon.stub();
+    messageD = {
+      functionName: 'screenshot-native',
+      toSend: {},
+      completed: false,
+      cbAttached: () => { },
+      timeLimitPerMessage: 15000,
+      time: timeSet,
+    };
+    socketAddAndWait.currentMessage = messageD;
+    messageToSendSocket = {
+      message: messageD,
+      cb: () => {},
+    };
+    data = '{"success":"testName","function":"native", "output": "true", "name": "screenshot-native"}';
+  });
+
+  it('should handle successful data connection', () => {
+    socketAddAndWait.handleDataConnection(messageToSendSocket, data, cb);
+    expect(cb.calledOnce).to.be.true;
+    expect(cb.args[0][0]).to.be.null;
+  });
+
+  it('should handle invalid data parsing', () => {
+    data = 'invalid data';
+    socketAddAndWait.handleDataConnection(messageToSendSocket, data, cb);
+    expect(cb.calledOnce).to.be.true;
+    expect(cb.args[0][0] instanceof Error).to.be.true;
+  });
+
+  it('should handle current message already completed', () => {
+    const timeSet = new Date().getTime();
+    messageD = {
+      functionName: 'screenshot-native',
+      toSend: {},
+      completed: true,
+      cbAttached: () => { },
+      timeLimitPerMessage: 15000,
+      time: timeSet,
+    };
+    socketAddAndWait.currentMessage = messageD;
+    messageToSendSocket = {
+      message: messageD,
+      cb: () => {},
+    };
+    socketAddAndWait.handleDataConnection(messageToSendSocket, data, cb);
+    expect(cb.calledOnce).to.be.true;
+    expect(cb.args[0][0]).to.be.null;
+  });
 });
