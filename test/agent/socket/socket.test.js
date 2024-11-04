@@ -1,6 +1,7 @@
 /* eslint-disable no-unused-expressions */
 /* eslint-disable no-undef */
 const sinon = require('sinon');
+const net = require('net');
 // eslint-disable-next-line import/no-extraneous-dependencies
 const rewire = require('rewire');
 // eslint-disable-next-line import/no-extraneous-dependencies
@@ -137,15 +138,15 @@ describe('addAndWait', () => {
 });
 
 describe('tryToSendNew', () => {
-  let socketAddAndWait;
+  let socketTryToSendNew;
   beforeEach(() => {
-    socketAddAndWait = rewire('../../../lib/agent/socket');
+    socketTryToSendNew = rewire('../../../lib/agent/socket');
     // eslint-disable-next-line no-underscore-dangle
-    socketAddAndWait.__set__('sendMessage', () => {});
-    socketAddAndWait.messagesData = [];
-    socketAddAndWait.currentMessage = null;
-    socketAddAndWait.intervalToSendMessages = null;
-    socketAddAndWait.timeLimitPerMessageDefault = 15000;
+    socketTryToSendNew.__set__('sendMessage', () => {});
+    socketTryToSendNew.messagesData = [];
+    socketTryToSendNew.currentMessage = null;
+    socketTryToSendNew.intervalToSendMessages = null;
+    socketTryToSendNew.timeLimitPerMessageDefault = 15000;
   });
 
   afterEach(() => {
@@ -158,11 +159,11 @@ describe('tryToSendNew', () => {
       cbAttached: sinon.stub(),
       functionName: 'location-get-location-native',
     };
-    socketAddAndWait.messagesData.push(message);
-    socketAddAndWait.tryToSendNew.call();
+    socketTryToSendNew.messagesData.push(message);
+    socketTryToSendNew.tryToSendNew.call();
     expect(message.cbAttached.calledOnce).to.be.true;
     expect(message.cbAttached.args[0][0].message).to.equal('Time exceeded for location-get-location-native');
-    expect(socketAddAndWait.messagesData.length).to.equal(0);
+    expect(socketTryToSendNew.messagesData.length).to.equal(0);
   });
 
   it('updates currentMessage when a message is completed', () => {
@@ -171,16 +172,16 @@ describe('tryToSendNew', () => {
       timeLimitPerMessage: 5000,
       completed: true,
     };
-    socketAddAndWait.messagesData.push(message);
-    socketAddAndWait.currentMessage = message;
-    socketAddAndWait.tryToSendNew.call();
-    expect(socketAddAndWait.currentMessage).to.be.null;
+    socketTryToSendNew.messagesData.push(message);
+    socketTryToSendNew.currentMessage = message;
+    socketTryToSendNew.tryToSendNew.call();
+    expect(socketTryToSendNew.currentMessage).to.be.null;
   });
 
   it('sets currentMessage to null when messagesData is empty', () => {
-    socketAddAndWait.messagesData = [];
-    socketAddAndWait.tryToSendNew.call();
-    expect(socketAddAndWait.currentMessage).to.be.null;
+    socketTryToSendNew.messagesData = [];
+    socketTryToSendNew.tryToSendNew.call();
+    expect(socketTryToSendNew.currentMessage).to.be.null;
   });
 
   it('calls callback function cbAttached with an error when time limit is exceeded', () => {
@@ -189,8 +190,8 @@ describe('tryToSendNew', () => {
       timeLimitPerMessage: 5000,
       cbAttached: sinon.stub(),
     };
-    socketAddAndWait.messagesData.push(message);
-    socketAddAndWait.tryToSendNew.call();
+    socketTryToSendNew.messagesData.push(message);
+    socketTryToSendNew.tryToSendNew.call();
     expect(message.cbAttached.calledWith(sinon.match.instanceOf(Error))).to.be.true;
   });
 
@@ -201,10 +202,10 @@ describe('tryToSendNew', () => {
       timeLimitPerMessage: 15000,
       cbAttached: sinon.stub(),
     };
-    socketAddAndWait.currentMessage = message;
-    socketAddAndWait.messagesData.push(message);
-    socketAddAndWait.tryToSendNew.call();
-    expect(socketAddAndWait.messagesData).to.be.empty;
+    socketTryToSendNew.currentMessage = message;
+    socketTryToSendNew.messagesData.push(message);
+    socketTryToSendNew.tryToSendNew.call();
+    expect(socketTryToSendNew.messagesData).to.be.empty;
   });
 
   it('message should be deleted from messageData and currentMessage should be equal to second obj', () => {
@@ -220,11 +221,11 @@ describe('tryToSendNew', () => {
       timeLimitPerMessage: 15000,
       cbAttached: sinon.stub(),
     };
-    socketAddAndWait.currentMessage = message;
-    socketAddAndWait.messagesData.push(message);
-    socketAddAndWait.messagesData.push(message2);
-    socketAddAndWait.tryToSendNew.call();
-    expect(socketAddAndWait.currentMessage).to.be.equal(message2);
+    socketTryToSendNew.currentMessage = message;
+    socketTryToSendNew.messagesData.push(message);
+    socketTryToSendNew.messagesData.push(message2);
+    socketTryToSendNew.tryToSendNew.call();
+    expect(socketTryToSendNew.currentMessage).to.be.equal(message2);
   });
 
   it('message should be completed', () => {
@@ -234,24 +235,26 @@ describe('tryToSendNew', () => {
       timeLimitPerMessage: 15000,
       cbAttached: sinon.stub(),
     };
-    socketAddAndWait.currentMessage = message;
-    socketAddAndWait.messagesData.push(message);
-    socketAddAndWait.tryToSendNew.call();
-    expect(socketAddAndWait.messagesData).to.be.empty;
+    socketTryToSendNew.currentMessage = message;
+    socketTryToSendNew.messagesData.push(message);
+    socketTryToSendNew.tryToSendNew.call();
+    expect(socketTryToSendNew.messagesData).to.be.empty;
   });
 });
 
 // ////////////////////
 
 describe('handleDataConnection', () => {
+  let socketHandleDataConnection;
   let messageToSendSocket;
+  let messageD;
   let data;
   let cb;
 
   beforeEach(() => {
-    socketAddAndWait = rewire('../../../lib/agent/socket');
+    socketHandleDataConnection = rewire('../../../lib/agent/socket');
     // eslint-disable-next-line no-underscore-dangle
-    socketAddAndWait.__set__('verifyConsistencyData', () => true);
+    socketHandleDataConnection.__set__('verifyConsistencyData', () => true);
     const timeSet = new Date().getTime();
     cb = sinon.stub();
     messageD = {
@@ -262,7 +265,7 @@ describe('handleDataConnection', () => {
       timeLimitPerMessage: 15000,
       time: timeSet,
     };
-    socketAddAndWait.currentMessage = messageD;
+    socketHandleDataConnection.currentMessage = messageD;
     messageToSendSocket = {
       message: messageD,
       cb: () => {},
@@ -271,14 +274,14 @@ describe('handleDataConnection', () => {
   });
 
   it('should handle successful data connection', () => {
-    socketAddAndWait.handleDataConnection(messageToSendSocket, data, cb);
+    socketHandleDataConnection.handleDataConnection(messageToSendSocket, data, cb);
     expect(cb.calledOnce).to.be.true;
     expect(cb.args[0][0]).to.be.null;
   });
 
   it('should handle invalid data parsing', () => {
     data = 'invalid data';
-    socketAddAndWait.handleDataConnection(messageToSendSocket, data, cb);
+    socketHandleDataConnection.handleDataConnection(messageToSendSocket, data, cb);
     expect(cb.calledOnce).to.be.true;
     expect(cb.args[0][0] instanceof Error).to.be.true;
   });
@@ -293,13 +296,116 @@ describe('handleDataConnection', () => {
       timeLimitPerMessage: 15000,
       time: timeSet,
     };
-    socketAddAndWait.currentMessage = messageD;
+    socketHandleDataConnection.currentMessage = messageD;
     messageToSendSocket = {
       message: messageD,
       cb: () => {},
     };
-    socketAddAndWait.handleDataConnection(messageToSendSocket, data, cb);
+    socketHandleDataConnection.handleDataConnection(messageToSendSocket, data, cb);
     expect(cb.calledOnce).to.be.true;
     expect(cb.args[0][0]).to.be.null;
+  });
+});
+
+describe('ownerShipVerify', () => {
+  it('should call callback with error when err is truthy', () => {
+    const err = new Error('Test error');
+    const owner = 'prey';
+    const cb = sinon.spy();
+    socket.ownerShipVerify(err, owner, cb);
+    expect(cb.calledOnce).to.be.true;
+    expect(cb.args[0][0]).to.equal(err);
+  });
+
+  it('should call callback with error when owner does not include "prey"', () => {
+    const err = null;
+    const owner = 'other';
+    const cb = sinon.spy();
+    socket.ownerShipVerify(err, owner, cb);
+    expect(cb.calledOnce).to.be.true;
+    expect(cb.args[0][0].message).to.equal('The socket file is not owned by Prey');
+  });
+
+  it('should call callback without error when owner includes "prey" and no error', () => {
+    const err = null;
+    const owner = 'prey';
+    const cb = sinon.spy();
+    socket.ownerShipVerify(err, owner, cb);
+    expect(cb.calledOnce).to.be.true;
+    expect(cb.args[0][0]).to.be.undefined;
+  });
+});
+
+describe('handleConnection', () => {
+  let handleDataConnectionStub;
+  let socketConnectionInstance;
+  let messageToSendSocket;
+  let socketConnection;
+  let socketHandleConnection;
+  let cb;
+  beforeEach(() => {
+    handleDataConnectionStub = () => { console.log('handleDataConnectionStub BABYYYYYYYYY'); };
+    socketHandleConnection = rewire('../../../lib/agent/socket');
+    // eslint-disable-next-line no-underscore-dangle
+    socketHandleConnection.__set__('handleDataConnection', handleDataConnectionStub);
+    socketConnectionInstance = {
+      write: sinon.stub(),
+      on: sinon.stub(),
+      emit: sinon.stub(),
+      destroy: sinon.stub(),
+    };
+    socketConnection = sinon.stub(net, 'createConnection').returns(socketConnectionInstance);
+    messageToSendSocket = { functionName: 'test' };
+    cb = sinon.stub();
+  });
+
+  afterEach(() => {
+    socketConnection.restore();
+  });
+
+  it('creates a socket connection', () => {
+    socketHandleConnection.handleConnection(messageToSendSocket, cb);
+    expect(socketConnection.calledOnce).to.be.true;
+  });
+
+  it('writes to the socket connection', () => {
+    socketHandleConnection.handleConnection(messageToSendSocket, cb);
+    expect(socketConnection().write.calledOnce).to.be.true;
+  });
+});
+
+describe('createConnectionSocket', () => {
+  let checkSocketFileExists;
+  let getOwnerShip;
+  let ownerShipVerify;
+  let handleConnection;
+  let messageToSendSocket;
+  let cb;
+
+  beforeEach(() => {
+    // socketCreateConnectionSocket = rewire('../../../lib/agent/socket');
+    checkSocketFileExists = sinon.stub().returns(true);
+    getOwnerShip = sinon.stub().callsArgWith(0, null, 'prey');
+    ownerShipVerify = sinon.stub().callsArgWith(2, null);
+    handleConnection = sinon.stub();
+    messageToSendSocket = { functionName: 'test' };
+    cb = sinon.stub();
+  });
+
+  it('should log error and not call handleConnection when socket file does not exist', () => {
+    checkSocketFileExists.returns(false);
+    socket.createConnectionSocket(messageToSendSocket, cb);
+    expect(handleConnection.called).to.be.false;
+  });
+
+  it('should log error and not call handleConnection when ownership verification fails', () => {
+    ownerShipVerify.callsArgWith(2, new Error('Test error'));
+    socket.createConnectionSocket(messageToSendSocket, cb);
+    expect(handleConnection.called).to.be.false;
+  });
+
+  it('should log error when error occurs between ownership and local socket', () => {
+    getOwnerShip.callsArgWith(0, new Error('Test error'));
+    socket.createConnectionSocket(messageToSendSocket, cb);
   });
 });
