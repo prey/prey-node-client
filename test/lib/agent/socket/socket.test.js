@@ -7,7 +7,7 @@ const rewire = require('rewire');
 // eslint-disable-next-line import/no-extraneous-dependencies
 const { expect } = require('chai');
 
-const socket = require('../../../lib/agent/socket');
+const socket = require('../../../../lib/agent/socket');
 
 describe('verifyConsistencyData', () => {
   it('debería retornar true si el objeto tiene las propiedades requeridas', () => {
@@ -89,7 +89,7 @@ describe('writeMessage', () => {
 describe('addAndWait', () => {
   let socketAddAndWait;
   beforeEach(() => {
-    socketAddAndWait = rewire('../../../lib/agent/socket');
+    socketAddAndWait = rewire('../../../../lib/agent/socket');
     // eslint-disable-next-line no-underscore-dangle
     socketAddAndWait.__set__('sendMessage', () => {});
     // eslint-disable-next-line no-underscore-dangle
@@ -140,7 +140,7 @@ describe('addAndWait', () => {
 describe('tryToSendNew', () => {
   let socketTryToSendNew;
   beforeEach(() => {
-    socketTryToSendNew = rewire('../../../lib/agent/socket');
+    socketTryToSendNew = rewire('../../../../lib/agent/socket');
     // eslint-disable-next-line no-underscore-dangle
     socketTryToSendNew.__set__('sendMessage', () => {});
     socketTryToSendNew.messagesData = [];
@@ -252,7 +252,7 @@ describe('handleDataConnection', () => {
   let cb;
 
   beforeEach(() => {
-    socketHandleDataConnection = rewire('../../../lib/agent/socket');
+    socketHandleDataConnection = rewire('../../../../lib/agent/socket');
     // eslint-disable-next-line no-underscore-dangle
     socketHandleDataConnection.__set__('verifyConsistencyData', () => true);
     const timeSet = new Date().getTime();
@@ -344,8 +344,8 @@ describe('handleConnection', () => {
   let socketHandleConnection;
   let cb;
   beforeEach(() => {
-    handleDataConnectionStub = () => { console.log('handleDataConnectionStub BABYYYYYYYYY'); };
-    socketHandleConnection = rewire('../../../lib/agent/socket');
+    handleDataConnectionStub = () => {};
+    socketHandleConnection = rewire('../../../../lib/agent/socket');
     // eslint-disable-next-line no-underscore-dangle
     socketHandleConnection.__set__('handleDataConnection', handleDataConnectionStub);
     socketConnectionInstance = {

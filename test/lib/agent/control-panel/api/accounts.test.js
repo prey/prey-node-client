@@ -1,9 +1,9 @@
 const sinon = require('sinon');
 const { expect } = require('chai');
-const request = require('../../../../lib/agent/control-panel/api/request');
-const errors = require('../../../../lib/agent/control-panel/api/errors');
-const keys = require('../../../../lib/agent/control-panel/api/keys');
-const { authorize, signup, validate, set } = require('../../../../lib/agent/control-panel/api/accounts');
+const request = require('../../../../../lib/agent/control-panel/api/request');
+const errors = require('../../../../../lib/agent/control-panel/api/errors');
+const keys = require('../../../../../lib/agent/control-panel/api/keys');
+const { authorize, signup, validate, set } = require('../../../../../lib/agent/control-panel/api/accounts');
 
 describe('auth', () => {
   describe('authorize', () => {
