@@ -1,5 +1,12 @@
 # Change Log
 
+## [v1.13.4](https://github.com/prey/prey-node-client/tree/v1.13.4) (2024-10-29)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.3..v1.13.4)
+
+- Feat: Change location triggered by websocket connections to be an option select by the user. ([Beregcamlost](https://github.com/beregcamlost)) ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: better handling for websocket reconnection after a close event. ([Beregcamlost](https://github.com/beregcamlost)) ([SoraKenji](https://github.com/SoraKenji))
+
 ## [v1.13.3](https://github.com/prey/prey-node-client/tree/v1.13.3) (2024-10-15)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.2..v1.13.3)
 
