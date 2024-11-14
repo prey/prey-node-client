@@ -97,7 +97,7 @@ describe('addAndWait', () => {
     socketAddAndWait.messagesData = [];
     socketAddAndWait.currentMessage = null;
     socketAddAndWait.intervalToSendMessages = null;
-    socketAddAndWait.timeLimitPerMessageDefault = 15000;
+    socketAddAndWait.timeLimitPerMessageDefault = 7000;
   });
 
   afterEach(() => {
@@ -146,7 +146,7 @@ describe('tryToSendNew', () => {
     socketTryToSendNew.messagesData = [];
     socketTryToSendNew.currentMessage = null;
     socketTryToSendNew.intervalToSendMessages = null;
-    socketTryToSendNew.timeLimitPerMessageDefault = 15000;
+    socketTryToSendNew.timeLimitPerMessageDefault = 7000;
   });
 
   afterEach(() => {
@@ -154,12 +154,13 @@ describe('tryToSendNew', () => {
 
   it('removes messages with exceeded time limit and calls their callbacks with an error', () => {
     const message = {
-      time: Date.now() - 10000,
+      time: Date.now() - 7000,
       timeLimitPerMessage: 5000,
       cbAttached: sinon.stub(),
       functionName: 'location-get-location-native',
     };
     socketTryToSendNew.messagesData.push(message);
+    socketTryToSendNew.currentMessage = message;
     socketTryToSendNew.tryToSendNew.call();
     expect(message.cbAttached.calledOnce).to.be.true;
     expect(message.cbAttached.args[0][0].message).to.equal('Time exceeded for location-get-location-native');
@@ -191,6 +192,7 @@ describe('tryToSendNew', () => {
       cbAttached: sinon.stub(),
     };
     socketTryToSendNew.messagesData.push(message);
+    socketTryToSendNew.currentMessage = message;
     socketTryToSendNew.tryToSendNew.call();
     expect(message.cbAttached.calledWith(sinon.match.instanceOf(Error))).to.be.true;
   });
@@ -199,7 +201,7 @@ describe('tryToSendNew', () => {
     const message = {
       completed: true,
       time: new Date().getTime(),
-      timeLimitPerMessage: 15000,
+      timeLimitPerMessage: 7000,
       cbAttached: sinon.stub(),
     };
     socketTryToSendNew.currentMessage = message;
@@ -212,13 +214,13 @@ describe('tryToSendNew', () => {
     const message = {
       completed: true,
       time: new Date().getTime(),
-      timeLimitPerMessage: 15000,
+      timeLimitPerMessage: 7000,
       cbAttached: sinon.stub(),
     };
     const message2 = {
       completed: false,
       time: new Date().getTime(),
-      timeLimitPerMessage: 15000,
+      timeLimitPerMessage: 7000,
       cbAttached: sinon.stub(),
     };
     socketTryToSendNew.currentMessage = message;
@@ -232,7 +234,7 @@ describe('tryToSendNew', () => {
     const message = {
       completed: false,
       time: new Date().getTime() - 30000,
-      timeLimitPerMessage: 15000,
+      timeLimitPerMessage: 7000,
       cbAttached: sinon.stub(),
     };
     socketTryToSendNew.currentMessage = message;
@@ -262,7 +264,7 @@ describe('handleDataConnection', () => {
       toSend: {},
       completed: false,
       cbAttached: () => { },
-      timeLimitPerMessage: 15000,
+      timeLimitPerMessage: 7000,
       time: timeSet,
     };
     socketHandleDataConnection.currentMessage = messageD;
@@ -274,6 +276,13 @@ describe('handleDataConnection', () => {
   });
 
   it('should handle successful data connection', () => {
+    socketHandleDataConnection.handleDataConnection(messageToSendSocket, data, cb);
+    expect(cb.calledOnce).to.be.true;
+    expect(cb.args[0][0]).to.be.null;
+  });
+
+  it('should handle successful data connection when data from function is empty', () => {
+    data = '{"success":"testName","function":"", "output": "true", "name": "screenshot-native"}';
     socketHandleDataConnection.handleDataConnection(messageToSendSocket, data, cb);
     expect(cb.calledOnce).to.be.true;
     expect(cb.args[0][0]).to.be.null;
@@ -293,7 +302,7 @@ describe('handleDataConnection', () => {
       toSend: {},
       completed: true,
       cbAttached: () => { },
-      timeLimitPerMessage: 15000,
+      timeLimitPerMessage: 7000,
       time: timeSet,
     };
     socketHandleDataConnection.currentMessage = messageD;
