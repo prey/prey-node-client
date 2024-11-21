@@ -55,13 +55,13 @@ describe('Devices Tests', () => {
 
     it('should return NO_API_KEY error if API key is not set', () => {
       const cb = sinon.spy();
-      keysGetStub.returns({ api: null, device: null });
+      keysGetStub.returns({ api: null, device: null }); // Ensure `api` is null or undefined
       devices.link({ someData: true }, cb);
       const expectedError = errors.get('NO_API_KEY');
-      expect(cb.calledOnce).to.be.true;
-      expect(cb.args[0][0].message).to.equal(expectedError.message);
-      expect(cb.args[0][0].code).to.equal(expectedError.code);
-    });  
+      expect(cb.calledOnce).to.be.true; // Callback should be called once
+      expect(cb.args[0][0].message).to.equal(expectedError.message); // Compare error message
+      expect(cb.args[0][0].code).to.equal(expectedError.code); // Compare error code
+    });
     
     /* it('should handle a successful response with a new device key', () => {
       const cb = sinon.spy();
