@@ -1,7 +1,6 @@
 const { expect } = require('chai');
 const sinon = require('sinon');
-const errors = require('../../../../../lib/agent/control-panel/api/errors'); // Adjust this path as needed
-
+const errors = require('../../../../../lib/agent/control-panel/api/errors');
 describe('Errors Module', () => {
   describe('get function', () => {
     it('should return an error with the correct message for a known code', () => {
