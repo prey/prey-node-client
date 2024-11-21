@@ -1,5 +1,22 @@
 # Change Log
 
+## [v1.13.5](https://github.com/prey/prey-node-client/tree/v1.13.5) (2024-11-21)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.4..v1.13.5)
+
+- Feat: Adds new `skip permissions` command to instalation by command on MacOS. ([Beregcamlost](https://github.com/beregcamlost)) ([SoraKenji](https://github.com/SoraKenji)) ([Javo](https://github.com/javo))
+
+- Fix: Fixes MacOS instalation by command which didn't let device get recognized when there are not slot available. ([Beregcamlost](https://github.com/beregcamlost)) ([SoraKenji](https://github.com/SoraKenji)) ([Javo](https://github.com/javo))
+
+- Fix: Fixes a known issue on setting device key. ([Beregcamlost](https://github.com/beregcamlost)) ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Fixes on missing automation handling to be able to set device's status. ([Beregcamlost](https://github.com/beregcamlost)) ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Improvements on weboscket comunnication with our servers. ([Beregcamlost](https://github.com/beregcamlost)) ([SoraKenji](https://github.com/SoraKenji))
+
+- Feat: New wpxsvc version 2.0.20. Adds funcionality to change database's location. ([Beregcamlost](https://github.com/beregcamlost)) ([SoraKenji](https://github.com/SoraKenji))
+
+- Feat: New prey-user binary version 1.0.6. Fixes wdutil command error on MacOS 15+ with SSID information and map location. ([Beregcamlost](https://github.com/beregcamlost)) ([SoraKenji](https://github.com/SoraKenji))
+
 ## [v1.13.4](https://github.com/prey/prey-node-client/tree/v1.13.4) (2024-10-29)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.3..v1.13.4)
 
