@@ -1,5 +1,12 @@
 # Change Log
 
+## [v1.13.6](https://github.com/prey/prey-node-client/tree/v1.13.6) (2024-11-22)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.5..v1.13.6)
+
+- Fix: Better handling Prey software shutdown cases. ([Beregcamlost](https://github.com/beregcamlost)) ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Fix error when getting device status exceeded 3 minutes. ([Beregcamlost](https://github.com/beregcamlost)) ([SoraKenji](https://github.com/SoraKenji))
+
 ## [v1.13.5](https://github.com/prey/prey-node-client/tree/v1.13.5) (2024-11-21)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.4..v1.13.5)
 
