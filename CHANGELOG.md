@@ -1,5 +1,49 @@
 # Change Log
 
+## [v1.13.6](https://github.com/prey/prey-node-client/tree/v1.13.6) (2024-11-22)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.5..v1.13.6)
+
+- Fix: Better handling Prey software shutdown cases. ([Beregcamlost](https://github.com/beregcamlost)) ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Fix error when getting device status exceeded 3 minutes. ([Beregcamlost](https://github.com/beregcamlost)) ([SoraKenji](https://github.com/SoraKenji))
+
+## [v1.13.5](https://github.com/prey/prey-node-client/tree/v1.13.5) (2024-11-21)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.4..v1.13.5)
+
+- Feat: Adds new `skip permissions` command to instalation by command on MacOS. ([Beregcamlost](https://github.com/beregcamlost)) ([SoraKenji](https://github.com/SoraKenji)) ([Javo](https://github.com/javo))
+
+- Fix: Fixes MacOS instalation by command which didn't let device get recognized when there are not slot available. ([Beregcamlost](https://github.com/beregcamlost)) ([SoraKenji](https://github.com/SoraKenji)) ([Javo](https://github.com/javo))
+
+- Fix: Fixes a known issue on setting device key. ([Beregcamlost](https://github.com/beregcamlost)) ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Fixes on missing automation handling to be able to set device's status. ([Beregcamlost](https://github.com/beregcamlost)) ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Improvements on weboscket comunnication with our servers. ([Beregcamlost](https://github.com/beregcamlost)) ([SoraKenji](https://github.com/SoraKenji))
+
+- Feat: New wpxsvc version 2.0.20. Adds funcionality to change database's location. ([Beregcamlost](https://github.com/beregcamlost)) ([SoraKenji](https://github.com/SoraKenji))
+
+- Feat: New prey-user binary version 1.0.6. Fixes wdutil command error on MacOS 15+ with SSID information and map location. ([Beregcamlost](https://github.com/beregcamlost)) ([SoraKenji](https://github.com/SoraKenji))
+
+## [v1.13.4](https://github.com/prey/prey-node-client/tree/v1.13.4) (2024-10-29)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.3..v1.13.4)
+
+- Feat: Change location triggered by websocket connections to be an option select by the user. ([Beregcamlost](https://github.com/beregcamlost)) ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: better handling for websocket reconnection after a close event. ([Beregcamlost](https://github.com/beregcamlost)) ([SoraKenji](https://github.com/SoraKenji))
+
+## [v1.13.3](https://github.com/prey/prey-node-client/tree/v1.13.3) (2024-10-15)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.2..v1.13.3)
+
+- Feat: PDC now informs if OS Query is running on the device or not. ([Beregcamlost](https://github.com/beregcamlost)) ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Fix to get location properly after getting location permission from Prey.app requested for MacOS. ([Beregcamlost](https://github.com/beregcamlost)) ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Fix for "device not connected" trigger. It was not working properly. ([Beregcamlost](https://github.com/beregcamlost)) ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Remove difference between some triggers' actions being stored in DB or not. Now everything is persisted. ([Beregcamlost](https://github.com/beregcamlost)) ([SoraKenji](https://github.com/SoraKenji))
+ 
+- Fix: Fix a bug when two actions runs too quickly one after another and being marked as running with the same id ([Beregcamlost](https://github.com/beregcamlost)) ([SoraKenji](https://github.com/SoraKenji))
+
 ## [v1.13.2](https://github.com/prey/prey-node-client/tree/v1.13.2) (2024-09-12)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.1..v1.13.2)
  
