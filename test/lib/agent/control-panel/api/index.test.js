@@ -2,7 +2,7 @@ const { expect } = require('chai');
 const sinon = require('sinon');
 const logger = require('../../../../../lib/agent/control-panel/api/logger');
 const request = require('../../../../../lib/agent/control-panel/api/request');
-const index = require('../../../../../lib/agent/control-panel/api/index'); // Adjust this path
+const index = require('../../../../../lib/agent/control-panel/api/index');
 
 describe('Module Exports and use Function', () => {
   
