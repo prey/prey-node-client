@@ -6,12 +6,17 @@ const request = require('../../../../../lib/agent/control-panel/api/request');
 const devices = require('../../../../../lib/agent/control-panel/api/devices');
 
 describe('Devices Tests', () => {
-  let requestStub;
+  let requestPostStub;
   let keysSetStub;
   let keysGetStub;
 
   beforeEach(() => {
-    requestStub = sinon.stub(request, 'post');
+    requestPostStub = sinon.stub(request, 'post');
+
+    if (keys.get.restore) {
+      keys.get.restore();
+    }
+
     keysSetStub = sinon.stub(keys, 'set');
     keysGetStub = sinon.stub(keys, 'get');
   });
@@ -65,7 +70,7 @@ describe('Devices Tests', () => {
     
     /* it('should handle a successful response with a new device key', () => {
       const cb = sinon.spy();
-      requestStub.callsFake((url, data, opts, callback) => {
+      requestPostStub.callsFake((url, data, opts, callback) => {
         callback(null, { body: { key: 'new-key' } });
       });
 
@@ -75,7 +80,7 @@ describe('Devices Tests', () => {
 
     it('should handle response code 401 as INVALID_CREDENTIALS', () => {
       const cb = sinon.spy();
-      requestStub.callsFake((url, data, opts, callback) => {
+      requestPostStub.callsFake((url, data, opts, callback) => {
         callback(null, { statusCode: 401 });
       });
 
@@ -93,7 +98,7 @@ describe('Devices Tests', () => {
     });
 
     it('should successfully unset the device key on 200 response', () => {
-      requestStub.callsFake((url, opts, callback) => {
+      requestPostStub.callsFake((url, opts, callback) => {
         callback(null, { statusCode: 200 });
       });
 
@@ -112,7 +117,7 @@ describe('Devices Tests', () => {
     });
 
     it('should return state true for 200 response', () => {
-      requestStub.callsFake((url, data, opts, callback) => {
+      requestPostStub.callsFake((url, data, opts, callback) => {
         callback(null, { statusCode: 200 });
       });
 
@@ -130,7 +135,7 @@ describe('Devices Tests', () => {
     }); */
 
     it('should call the callback on a 200 response', () => {
-      requestStub.callsFake((url, data, opts, callback) => {
+      requestPostStub.callsFake((url, data, opts, callback) => {
         callback(null, { statusCode: 200 });
       });
 
@@ -148,7 +153,7 @@ describe('Devices Tests', () => {
     });
 
      it('should return SAME_MISSING_STATE for a 201 response', () => {
-      requestStub.callsFake((url, data, opts, callback) => {
+      requestPostStub.callsFake((url, data, opts, callback) => {
         callback(null, { statusCode: 201 });
       });
 
