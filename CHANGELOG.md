@@ -1,5 +1,10 @@
 # Change Log
 
+## [v1.13.8](https://github.com/prey/prey-node-client/tree/v1.13.8) (2024-12-19)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.7..v1.13.8)
+
+- Fix: Rollback at restore.js file. It was causing an error when there is a backup database on temporal folder. ([Beregcamlost](https://github.com/beregcamlost)) ([SoraKenji](https://github.com/SoraKenji))
+
 ## [v1.13.7](https://github.com/prey/prey-node-client/tree/v1.13.7) (2024-12-19)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.6..v1.13.7)
 
