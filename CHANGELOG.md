@@ -1,5 +1,19 @@
 # Change Log
 
+## [v1.13.7](https://github.com/prey/prey-node-client/tree/v1.13.7) (2024-12-19)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.6..v1.13.7)
+
+- Feat: Add new WinSVC version v2.0.21. It includes a way to change wifi permission on Windows. ([Beregcamlost](https://github.com/beregcamlost)) ([SoraKenji](https://github.com/SoraKenji))
+
+- Feat: Add new MacSVC (prey-user binary) version v1.0.7. It resolves an error when a new version of prey get downloaded and doesn't get configurated correctly, leaving the software unable to continue working. ([Beregcamlost](https://github.com/beregcamlost)) ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Fix an error related to network reconnections when getting device information leaving it unable to keep processing that data. ([Beregcamlost](https://github.com/beregcamlost)) ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Fix an error when replacing older MacSVC (prey-user binary) version with new one on MacOS bellow version 13.0. ([Beregcamlost](https://github.com/beregcamlost)) ([SoraKenji](https://github.com/SoraKenji))
+
+- Chore: Remove code in software related to geofencing, since now that data is processed by backend. ([Javo](https://github.com/javo)) ([Beregcamlost](https://github.com/beregcamlost)) ([SoraKenji](https://github.com/SoraKenji))
+
+
 ## [v1.13.6](https://github.com/prey/prey-node-client/tree/v1.13.6) (2024-11-22)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.5..v1.13.6)
 
