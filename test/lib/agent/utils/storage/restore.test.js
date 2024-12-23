@@ -55,15 +55,15 @@ describe('restore function', () => {
     });
   });
   // eslint-disable-next-line no-undef
-  it('should return error when backupDatabase fails', () => {
+  it('should return error when stepDatabase fails', () => {
     restoreRewired.osName = 'windows';
     restoreRewired.verifyTempDatabase = sinon.stub().callsFake(() => true);
     restoreRewired.database = {
-      createDatabase: sinon.stub().callsFake((backupDBPath, cb) => {
+      createDatabase: sinon.stub().callsFake((_backupDBPath, cb) => {
         cb(null, {});
       }),
-      backupDatabase: sinon.stub().callsFake((db, cb) => cb(new Error('backupDatabase error'))),
-      closeDatabase: sinon.stub().callsFake((db, cb) => cb(null)),
+      backupDatabase: sinon.stub().callsFake((_db, _dbpath, cb) => cb({})),
+      stepDatabase: sinon.stub().callsFake((db, cb) => cb(new Error('backupDatabase error'))),
     };
     restoreRewired.restore((err) => {
       expect(err.message).to.be.equal('backupDatabase error');
@@ -74,11 +74,14 @@ describe('restore function', () => {
     restoreRewired.osName = 'windows';
     restoreRewired.verifyTempDatabase = sinon.stub().callsFake(() => true);
     restoreRewired.database = {
-      createDatabase: sinon.stub().callsFake((backupDBPath, cb) => {
+      createDatabase: sinon.stub().callsFake((_backupDBPath, cb) => {
         cb(null, {});
       }),
-      backupDatabase: sinon.stub().callsFake((db, cb) => cb()),
-      closeDatabase: sinon.stub().callsFake((db, cb) => cb(new Error('closeDatabase error'))),
+      backupDatabase: sinon.stub().callsFake((_db, _dbpath, cb) => cb({})),
+      stepDatabase: sinon.stub().callsFake((_db, cb) => cb()),
+      closeDatabase: sinon.stub().callsFake((_db, _dbpath, cb) => {
+        cb('closeDatabase error');
+      }),
     };
     restoreRewired.restore((err) => {
       expect(err.message).to.be.equal(`${storageConst.BACKUP.CLOSING_ERROR}: closeDatabase error`);
@@ -90,13 +93,16 @@ describe('restore function', () => {
 
     restoreRewired.verifyTempDatabase = sinon.stub().callsFake(() => true);
     restoreRewired.database = {
-      createDatabase: sinon.stub().callsFake((backupDBPath, cb) => {
+      createDatabase: sinon.stub().callsFake((_backupDBPath, cb) => {
         cb(null, {});
       }),
-      backupDatabase: sinon.stub().callsFake((db, cb) => cb()),
-      closeDatabase: sinon.stub().callsFake((db, cb) => cb()),
+      backupDatabase: sinon.stub().callsFake((_db, _dbpath, cb) => cb({})),
+      stepDatabase: sinon.stub().callsFake((_db, cb) => cb()),
+      closeDatabase: sinon.stub().callsFake((_db, _dbpath, cb) => {
+        cb();
+      }),
+      deleteDatabase: sinon.stub().callsFake((_cmd, cb) => cb('delete error', null, null)),
     };
-    restoreRewired.execCmd = sinon.stub().callsFake((cmd, cb) => cb(new Error('delete error'), null, null));
     restoreRewired.restore((err) => {
       expect(err.message).to.be.equal(`${storageConst.BACKUP.DELETING_ERROR}: delete error`);
     });
@@ -106,15 +112,18 @@ describe('restore function', () => {
     restoreRewired.osName = 'windows';
     restoreRewired.verifyTempDatabase = sinon.stub().callsFake(() => true);
     restoreRewired.database = {
-      createDatabase: sinon.stub().callsFake((backupDBPath, cb) => {
+      createDatabase: sinon.stub().callsFake((_backupDBPath, cb) => {
         cb(null, {});
       }),
-      backupDatabase: sinon.stub().callsFake((db, cb) => cb()),
-      closeDatabase: sinon.stub().callsFake((db, cb) => cb()),
+      backupDatabase: sinon.stub().callsFake((_db, _dbpath, cb) => cb({})),
+      stepDatabase: sinon.stub().callsFake((_db, cb) => cb()),
+      closeDatabase: sinon.stub().callsFake((_db, _dbpath, cb) => {
+        cb();
+      }),
+      deleteDatabase: sinon.stub().callsFake((_cmd, cb) => cb(null, null, null)),
     };
-    const cb = sinon.stub();
-    restoreRewired.restore(cb);
-    // eslint-disable-next-line no-unused-expressions
-    expect(cb.calledWith(`${storageConst.BACKUP.RESTORE_SUCCESS}`)).to.be.true;
+    restoreRewired.restore((_err, msg) => {
+      expect(msg).to.be.equal(`${storageConst.BACKUP.RESTORE_SUCCESS}`);
+    });
   });
 });
