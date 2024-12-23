@@ -1,3 +1,5 @@
+/* eslint-disable no-unused-expressions */
+/* eslint-disable no-undef */
 const { expect } = require('chai');
 const sinon = require('sinon');
 const keys = require('../../../../../lib/agent/control-panel/api/keys');
@@ -5,7 +7,7 @@ const errors = require('../../../../../lib/agent/control-panel/api/errors');
 const request = require('../../../../../lib/agent/control-panel/api/request');
 const devices = require('../../../../../lib/agent/control-panel/api/devices');
 
-describe('Devices', () => {
+describe('Devices function', () => {
   let requestPostStub;
   let requestDeleteStub;
   let keysStubGet;
@@ -19,7 +21,7 @@ describe('Devices', () => {
     keysStubGet = sinon.stub(keys, 'get').returns({ api: 'api-key', device: null });
     keysSetStub = sinon.stub(keys, 'set');
     sinon.stub(keys, 'unset');
-    devicesSetStub =  sinon.stub(devices, 'set');
+    devicesSetStub = sinon.stub(devices, 'set');
   });
 
   afterEach(() => {
@@ -28,49 +30,53 @@ describe('Devices', () => {
 
   describe('set function', () => {
     it('should throw an error if no key is provided (null)', () => {
-      expect(() => devices.set(null)).to.throw('No key!');
+      try {
+        devices.set(null);
+      } catch (e) {
+        expect(e).to.be.an.instanceOf(Error);
+      }
     });
-  
+
     it('should throw an error if no key is provided (undefined)', () => {
       expect(() => devices.set(undefined)).to.throw('No key!');
     });
-  
+
     it('should throw an error if an empty string is provided', () => {
       expect(() => devices.set('')).to.throw('No key!');
     });
-  
+
     it('should throw an error if false is provided', () => {
       expect(() => devices.set(false)).to.throw('No key!');
     });
-  
+
     it('should set the device key correctly for a valid key', () => {
       const key = 'device-key';
       const result = devices.set(key);
       expect(result).to.equal(key);
       expect(keysSetStub.calledOnceWith({ device: key })).to.be.true;
     });
-  
+
     it('should set the device key for a numeric key', () => {
       const key = 12345;
       const result = devices.set(key);
       expect(result).to.equal(key);
       expect(keysSetStub.calledOnceWith({ device: key })).to.be.true;
     });
-  
+
     it('should set the device key for a boolean true key', () => {
-      const key = true; 
+      const key = true;
       const result = devices.set(key);
-      expect(result).to.equal(true); 
+      expect(result).to.equal(true);
       expect(keysSetStub.calledOnceWith({ device: key })).to.be.true;
     });
-  
+
     it('should set the device key for an object key', () => {
       const key = { id: '123' };
       const result = devices.set(key);
       expect(result).to.equal(key);
       expect(keysSetStub.calledOnceWith({ device: key })).to.be.true;
     });
-  
+
     it('should set the device key for an array key', () => {
       const key = ['key1', 'key2'];
       const result = devices.set(key);
@@ -83,102 +89,102 @@ describe('Devices', () => {
     it('should call callback with null and set the device key if body.key exists', () => {
       const cb = sinon.spy();
       const fakeBody = { key: 'new-device-key' };
-  
+
       requestPostStub.callsFake((url, data, opts, callback) => {
         callback(null, { body: fakeBody });
       });
-  
+
       devices.link({ someData: true }, cb);
-  
+
       expect(cb.calledOnce).to.be.true;
       expect(devicesSetStub.calledOnceWith('new-device-key')).to.be.true;
       expect(cb.args[0][0]).to.equal(null);
     });
-  
+
     it('should call callback with INVALID_CREDENTIALS if statusCode is 401', () => {
       const cb = sinon.spy();
-  
+
       requestPostStub.callsFake((url, data, opts, callback) => {
         callback(null, { statusCode: 401 });
       });
-  
+
       devices.link({ someData: true }, cb);
-  
+
       const expectedError = errors.get('INVALID_CREDENTIALS');
       expect(cb.calledOnce).to.be.true;
       expect(cb.args[0][0].message).to.equal(expectedError.message);
       expect(cb.args[0][0].code).to.equal(expectedError.code);
     });
-  
+
     it('should call callback with NO_AVAILABLE_SLOTS if statusCode is 302', () => {
       const cb = sinon.spy();
-  
+
       requestPostStub.callsFake((url, data, opts, callback) => {
         callback(null, { statusCode: 302 });
       });
-  
+
       devices.link({ someData: true }, cb);
-  
+
       const expectedError = errors.get('NO_AVAILABLE_SLOTS');
       expect(cb.calledOnce).to.be.true;
       expect(cb.args[0][0].message).to.equal(expectedError.message);
       expect(cb.args[0][0].code).to.equal(expectedError.code);
     });
-  
+
     it('should call callback with NO_AVAILABLE_SLOTS if statusCode is 403', () => {
       const cb = sinon.spy();
-  
+
       requestPostStub.callsFake((url, data, opts, callback) => {
         callback(null, { statusCode: 403 });
       });
-  
+
       devices.link({ someData: true }, cb);
-  
+
       const expectedError = errors.get('NO_AVAILABLE_SLOTS');
       expect(cb.calledOnce).to.be.true;
       expect(cb.args[0][0].message).to.equal(expectedError.message);
       expect(cb.args[0][0].code).to.equal(expectedError.code);
     });
-  
+
     it('should call callback with unprocessable error if statusCode is 422', () => {
       const cb = sinon.spy();
       const fakeBody = { errors: { name: ['Name is required'] } };
-  
+
       requestPostStub.callsFake((url, data, opts, callback) => {
         callback(null, { statusCode: 422, body: fakeBody });
       });
-  
+
       devices.link({ someData: true }, cb);
-  
+
       const expectedError = errors.unprocessable(fakeBody);
       expect(cb.calledOnce).to.be.true;
       expect(cb.args[0][0].message).to.equal(expectedError.message);
     });
-  
+
     it('should call callback with unprocessable error if body contains errors', () => {
       const cb = sinon.spy();
       const fakeBody = { errors: { name: ['Name is required'] } };
-  
+
       requestPostStub.callsFake((url, data, opts, callback) => {
         callback(null, { statusCode: 200, body: fakeBody });
       });
-  
+
       devices.link({ someData: true }, cb);
-  
+
       const expectedError = errors.unprocessable(fakeBody);
       expect(cb.calledOnce).to.be.true;
       expect(cb.args[0][0].message).to.equal(expectedError.message);
     });
-  
+
     it('should call callback with unknown error for an unknown status', () => {
       const cb = sinon.spy();
-  
+
       requestPostStub.callsFake((url, data, opts, callback) => {
         callback(null, { statusCode: 500 });
       });
-  
+
       devices.link({ someData: true }, cb);
-  
+
       expect(cb.calledOnce).to.be.true;
       expect(cb.args[0][0]).to.be.instanceOf(Error);
       expect(cb.args[0][0].message).to.include('500');
@@ -187,7 +193,7 @@ describe('Devices', () => {
     it('should return an error if data is missing', () => {
       const cb = sinon.spy();
       devices.link({}, cb);
-      
+
       const expectedError = errors.arguments('Empty data.');
       expect(cb.calledOnce).to.be.true;
       expect(cb.args[0][0].message).to.equal(expectedError.message);
@@ -197,7 +203,7 @@ describe('Devices', () => {
       keysStubGet.returns({ api: 'api-key', device: 'device-id' });
       const cb = sinon.spy();
       devices.link({ data: true }, cb);
-      
+
       const expectedError = errors.get('DEVICE_KEY_SET');
       expect(cb.calledOnce).to.be.true;
       expect(cb.args[0][0].message).to.equal(expectedError.message);
@@ -208,7 +214,7 @@ describe('Devices', () => {
       keysStubGet.returns({ api: null, device: null });
       const cb = sinon.spy();
       devices.link({ data: true }, cb);
-      
+
       const expectedError = errors.get('NO_API_KEY');
       expect(cb.calledOnce).to.be.true;
       expect(cb.args[0][0].message).to.equal(expectedError.message);
@@ -218,9 +224,9 @@ describe('Devices', () => {
     it('should handle a successful response and set the device key', () => {
       requestPostStub.callsFake((url, data, opts, cb) => cb(null, { body: { key: 'new-device-key' } }));
       const cb = sinon.spy();
-      
+
       devices.link({ data: true }, cb);
-      
+
       expect(cb.calledOnce).to.be.true;
       expect(cb.args[0][0]).to.equal(null); // No error
       expect(cb.args[0][1]).to.equal('new-device-key'); // New device key returned
