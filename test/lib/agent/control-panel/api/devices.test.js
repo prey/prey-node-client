@@ -11,7 +11,6 @@ describe('Devices function', () => {
   let requestPostStub;
   let requestDeleteStub;
   let keysStubGet;
-  let devicesSetStub;
   let keysSetStub;
 
   beforeEach(() => {
@@ -21,7 +20,6 @@ describe('Devices function', () => {
     keysStubGet = sinon.stub(keys, 'get').returns({ api: 'api-key', device: null });
     keysSetStub = sinon.stub(keys, 'set');
     sinon.stub(keys, 'unset');
-    devicesSetStub = sinon.stub(devices, 'set');
   });
 
   afterEach(() => {
@@ -30,11 +28,7 @@ describe('Devices function', () => {
 
   describe('set function', () => {
     it('should throw an error if no key is provided (null)', () => {
-      try {
-        devices.set(null);
-      } catch (e) {
-        expect(e).to.be.an.instanceOf(Error);
-      }
+      expect(() => devices.set(null)).to.throw('No key!');
     });
 
     it('should throw an error if no key is provided (undefined)', () => {
@@ -88,6 +82,7 @@ describe('Devices function', () => {
   describe('link function', () => {
     it('should call callback with null and set the device key if body.key exists', () => {
       const cb = sinon.spy();
+      const devicesSetStub = sinon.stub(devices, 'set')
       const fakeBody = { key: 'new-device-key' };
 
       requestPostStub.callsFake((url, data, opts, callback) => {
@@ -148,22 +143,22 @@ describe('Devices function', () => {
 
     it('should call callback with unprocessable error if statusCode is 422', () => {
       const cb = sinon.spy();
-      const fakeBody = { errors: { name: ['Name is required'] } };
-
+      const fakeBody = { error: ['Validation error'] };
+    
       requestPostStub.callsFake((url, data, opts, callback) => {
         callback(null, { statusCode: 422, body: fakeBody });
       });
-
+    
       devices.link({ someData: true }, cb);
-
+    
       const expectedError = errors.unprocessable(fakeBody);
       expect(cb.calledOnce).to.be.true;
       expect(cb.args[0][0].message).to.equal(expectedError.message);
     });
-
+    
     it('should call callback with unprocessable error if body contains errors', () => {
       const cb = sinon.spy();
-      const fakeBody = { errors: { name: ['Name is required'] } };
+      const fakeBody = { error: ['Name is required'] };
 
       requestPostStub.callsFake((url, data, opts, callback) => {
         callback(null, { statusCode: 200, body: fakeBody });
@@ -172,22 +167,23 @@ describe('Devices function', () => {
       devices.link({ someData: true }, cb);
 
       const expectedError = errors.unprocessable(fakeBody);
-      expect(cb.calledOnce).to.be.true;
-      expect(cb.args[0][0].message).to.equal(expectedError.message);
+      expect(expectedError.message).to.include('Name is required');
+      expect(expectedError.code).to.equal('UNPROCESSABLE_DATA');
     });
 
     it('should call callback with unknown error for an unknown status', () => {
       const cb = sinon.spy();
-
+      const fakeError = 'Unknown error';
       requestPostStub.callsFake((url, data, opts, callback) => {
-        callback(null, { statusCode: 500 });
+        callback(null, { statusCode: 500, body: fakeError });
       });
 
       devices.link({ someData: true }, cb);
 
       expect(cb.calledOnce).to.be.true;
       expect(cb.args[0][0]).to.be.instanceOf(Error);
-      expect(cb.args[0][0].message).to.include('500');
+      expect(cb.args[0][0].message).to.be.equal('Unknown error (500)');
+      expect(cb.args[0][0].code).to.equal('UNKNOWN_RESPONSE');
     });
 
     it('should return an error if data is missing', () => {
@@ -295,8 +291,48 @@ describe('Devices function', () => {
       expect(cb.args[0][0].code).to.equal(expectedError.code);
     });
 
+    it('should return an error if there is no data', () => {
+      keysStubGet.returns({ api: 'api-key', device: 'device-id' });
+      const cb = sinon.spy();
+      devices.post_location(undefined, cb);
+      const expectedError = errors.arguments('Empty data.');
+      expect(cb.calledOnce).to.be.true;
+      expect(cb.args[0][0].message).to.equal(expectedError.message);
+      expect(cb.args[0][0].code).to.equal(expectedError.code);
+    });
+
+    it('should return an error', () => {
+      const errorMessage = new Error('Some error');
+      request.post.callsFake((url, data, opts, cb) => cb(errorMessage, { statusCode: 500 }));
+      keysStubGet.returns({ api: 'api-key', device: 'device-id' });
+      const cb = sinon.spy();
+      devices.post_location({ location: true }, cb);
+      expect(cb.calledOnce).to.be.true;
+      expect(cb.args[0][0]).to.equal(errorMessage);
+    });
+
+    it('should handle a 401 response', () => {
+      request.post.callsFake((url, data, opts, cb) => cb(null, { statusCode: 401 }));
+      keysStubGet.returns({ api: 'api-key', device: 'device-id' });
+      const cb = sinon.spy();
+      devices.post_location({ location: true }, cb);
+      console.log(cb.args[0][0]);
+
+      const expectedError = errors.get('INVALID_CREDENTIALS');
+      expect(cb.args[0][0].message).to.equal(expectedError.message);
+      expect(cb.args[0][0].code).to.equal(expectedError.code);
+    });
+
     it('should handle a successful 200 response', () => {
       request.post.callsFake((url, data, opts, cb) => cb(null, { statusCode: 200 }));
+      keysStubGet.returns({ api: 'api-key', device: 'device-id' });
+      const cb = sinon.spy();
+      devices.post_location({ location: true }, cb);
+      expect(cb.calledWith(null, true)).to.be.true;
+    });
+
+    it('should handle a successful 201 response', () => {
+      request.post.callsFake((url, data, opts, cb) => cb(null, { statusCode: 201 }));
       keysStubGet.returns({ api: 'api-key', device: 'device-id' });
       const cb = sinon.spy();
       devices.post_location({ location: true }, cb);
