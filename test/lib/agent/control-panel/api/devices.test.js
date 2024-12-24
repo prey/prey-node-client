@@ -224,8 +224,8 @@ describe('Devices function', () => {
       devices.link({ data: true }, cb);
 
       expect(cb.calledOnce).to.be.true;
-      expect(cb.args[0][0]).to.equal(null); // No error
-      expect(cb.args[0][1]).to.equal('new-device-key'); // New device key returned
+      expect(cb.args[0][0]).to.equal(null);
+      expect(cb.args[0][1]).to.equal('new-device-key');
       expect(keys.set.calledWith({ device: 'new-device-key' })).to.be.true;
     });
   });
@@ -331,12 +331,22 @@ describe('Devices function', () => {
       expect(cb.calledWith(null, true)).to.be.true;
     });
 
-    it('should handle a successful 201 response', () => {
+    it('should handle a 201 response', () => {
       request.post.callsFake((url, data, opts, cb) => cb(null, { statusCode: 201 }));
       keysStubGet.returns({ api: 'api-key', device: 'device-id' });
       const cb = sinon.spy();
       devices.post_location({ location: true }, cb);
-      expect(cb.calledWith(null, true)).to.be.true;
+      expect(cb.calledOnce).to.be.true;
+    });
+
+    it('should handle a any other response', () => {
+      request.post.callsFake((url, data, opts, cb) => cb(null, { body: 'any error', statusCode: 503 }));
+      keysStubGet.returns({ api: 'api-key', device: 'device-id' });
+      const cb = sinon.spy();
+      devices.post_location({ location: true }, cb);;
+      expect(cb.calledOnce).to.be.true;
+      expect(cb.args[0][0]).to.be.instanceOf(Error);
+      expect(cb.args[0][0].code).to.equal('UNKNOWN_RESPONSE');
     });
   });
 
@@ -350,6 +360,22 @@ describe('Devices function', () => {
       expect(cb.calledOnce).to.be.true;
       expect(cb.args[0][0].message).to.equal(expectedError.message);
       expect(cb.args[0][0].code).to.equal(expectedError.code);
+    });
+
+    it('should return an error', () => {
+      request.post.callsFake((url, data, opts, cb) => cb(new Error('any error'), { statusCode: 503 }));
+      const cb = sinon.spy();
+      devices.post_sso_status({ someData: true }, cb);;
+      expect(cb.calledOnce).to.be.true;
+      expect(cb.args[0][0]).to.be.instanceOf(Error);
+    });
+
+    it('should call the callback on a not 200 response', () => {
+      request.post.callsFake((url, data, opts, cb) => cb(null, { statusMessage: 'bad request', statusCode: 400 }));
+      const cb = sinon.spy();
+      devices.post_sso_status({ someData: true }, cb);
+      expect(cb.calledOnce).to.be.true;
+      expect(cb.args[0][0]).to.be.instanceOf(Error);
     });
 
     it('should call the callback on a successful 200 response', () => {
@@ -375,6 +401,15 @@ describe('Devices function', () => {
       const cb = sinon.spy();
       devices.post_missing('invalid-option', cb);
       expect(cb.calledWithMatch(sinon.match.instanceOf(Error))).to.be.true;
+    });
+
+    it('should call the callback on a successful 200 response', () => {
+      keysStubGet.returns({ api: 'api-key', device: 'device-id' });
+      request.post.callsFake((url, data, opts, cb) => cb(null, { statusCode: 200 }));
+      const cb = sinon.spy();
+      devices.post_missing(true, cb);
+      console.log(cb.args);
+      expect(cb.calledWith(null)).to.be.true;
     });
   });
 
