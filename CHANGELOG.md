@@ -1,5 +1,12 @@
 # Change Log
 
+## [v1.13.9](https://github.com/prey/prey-node-client/tree/v1.13.8) (2024-1-20)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.8..v1.13.9)
+
+- Feat: Remove wmic from file retrieval functionality. ([Beregcamlost](https://github.com/beregcamlost)) ([SoraKenji](https://github.com/SoraKenji))
+- Feat: Add wifi report to log retrieval to improve debugging data. ([Beregcamlost](https://github.com/beregcamlost)) ([SoraKenji](https://github.com/SoraKenji))
+- Feat: Disables advanced startup option on factory reset. ([Beregcamlost](https://github.com/beregcamlost)) ([SoraKenji](https://github.com/SoraKenji))
+
 ## [v1.13.8](https://github.com/prey/prey-node-client/tree/v1.13.8) (2024-12-19)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.7..v1.13.8)
 
