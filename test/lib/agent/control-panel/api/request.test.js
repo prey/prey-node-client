@@ -1,27 +1,49 @@
 const { expect } = require('chai');
 const sinon = require('sinon');
 const needle = require('needle');
-const api = require('../../../../../lib/agent/control-panel/api/request');
+const logger = require('../../../../../lib/agent/common').logger.prefix('api');
+const request = require('../../../../../lib/agent/control-panel/api/request');
 
-describe('API Module', () => {
+describe('request Module', () => {
   let needleRequestStub;
+  let originalClient;
+  let loggerErrorStub;
 
   beforeEach(() => {
     needleRequestStub = sinon.stub(needle, 'request');
+    originalClient = request.defaults.client;
+    console.log('Logger:', logger);
+    console.log('Logger.error:', logger.error);
   });
 
   afterEach(() => {
+    request.defaults.client = originalClient;
+    loggerErrorStub = sinon.stub(logger, 'error');
     sinon.restore();
   });
 
   describe('send function', () => {
+    it('should return an error if defaults.client is not set', () => {
+      request.defaults.client = null;
+      const cb = sinon.spy();
+      const resultWithCallback = request.send(1, 'GET', '/mock-path', null, {}, cb);
+      const expectedError = new Error('No HTTP client set!');
+  
+      expect(cb.calledOnce).to.be.true;
+      expect(cb.args[0][0].message).to.equal(expectedError.message);
+      expect(resultWithCallback).to.be.undefined; // Function does not return when cb is provided
+      const resultWithoutCallback = request.send(1, 'GET', '/mock-path', null, {});
+      expect(resultWithoutCallback).to.be.an.instanceOf(Error);
+      expect(resultWithoutCallback.message).to.equal(expectedError.message);
+    });
+
     it('should send a GET request with the correct parameters', () => {
       needleRequestStub.callsFake((method, url, data, opts, cb) => {
         cb(null, { statusCode: 200 }, 'response body');
       });
 
       const cb = sinon.spy();
-      api.get('/mock-path', { timeout: 5000 }, cb);
+      request.get('/mock-path', { timeout: 5000 }, cb);
 
       expect(needleRequestStub.calledOnceWith('GET')).to.be.true;
       const calledWithUrl = needleRequestStub.args[0][1];
@@ -35,7 +57,7 @@ describe('API Module', () => {
       });
 
       const cb = sinon.spy();
-      api.get('/mock-path', {}, cb);
+      request.get('/mock-path', {}, cb);
 
       expect(cb.calledOnce).to.be.true;
       const err = cb.args[0][0];
@@ -53,7 +75,7 @@ describe('API Module', () => {
           }
         });
       
-        api.send(1, 'GET', '/mock-path', null, options, cb);
+        request.send(1, 'GET', '/mock-path', null, options, cb);
       
         expect(cb.calledOnce).to.be.true;
         expect(cb.args[0][0]).to.be.null;
@@ -71,7 +93,7 @@ describe('API Module', () => {
       });
 
       const cb = sinon.spy();
-      api.post('/mock-path', { key: 'value' }, { timeout: 5000 }, cb);
+      request.post('/mock-path', { key: 'value' }, { timeout: 5000 }, cb);
 
       expect(needleRequestStub.calledOnceWith('POST')).to.be.true;
       const calledWithUrl = needleRequestStub.args[0][1];
@@ -87,7 +109,7 @@ describe('API Module', () => {
       });
 
       const cb = sinon.spy();
-      api.post('/mock-path', { key: 'value' }, {}, cb);
+      request.post('/mock-path', { key: 'value' }, {}, cb);
 
       expect(cb.calledOnce).to.be.false;
     });
@@ -100,7 +122,7 @@ describe('API Module', () => {
       });
 
       const cb = sinon.spy();
-      api.delete('/mock-path', {}, cb);
+      request.delete('/mock-path', {}, cb);
 
       expect(needleRequestStub.calledOnceWith('DELETE')).to.be.true;
       const calledWithUrl = needleRequestStub.args[0][1];
@@ -116,7 +138,7 @@ describe('API Module', () => {
         host: 'new-host.com',
       };
 
-      const updatedDefaults = api.use(newDefaults);
+      const updatedDefaults = request.use(newDefaults);
       expect(updatedDefaults.protocol).to.equal('https');
       expect(updatedDefaults.host).to.equal('new-host.com');
     });
