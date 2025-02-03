@@ -1,6 +1,12 @@
 # Change Log
 
-## [v1.13.9](https://github.com/prey/prey-node-client/tree/v1.13.8) (2024-1-20)
+## [v1.13.10](https://github.com/prey/prey-node-client/tree/v1.13.10) (2024-2-3)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.9..v1.13.10)
+
+- Fix: Improve the updater logic for the first-time update. ([Beregcamlost](https://github.com/beregcamlost)) ([SoraKenji](https://github.com/SoraKenji))
+- Feat: Replace all WMIC instances in the project; we are now using native WMI through PowerShell. ([Beregcamlost](https://github.com/beregcamlost)) ([SoraKenji](https://github.com/SoraKenji))
+
+## [v1.13.9](https://github.com/prey/prey-node-client/tree/v1.13.9) (2024-1-20)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.8..v1.13.9)
 
 - Feat: Remove wmic from file retrieval functionality. ([Beregcamlost](https://github.com/beregcamlost)) ([SoraKenji](https://github.com/SoraKenji))
