@@ -16,3 +16,4 @@ sonar-project.properties
 **.sonar
 .nyc_output/**
 **.vscode
+**files.json
