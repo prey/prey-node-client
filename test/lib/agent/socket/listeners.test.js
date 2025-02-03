@@ -9,7 +9,7 @@ const listeners = require('../../../../lib/agent/socket/listeners');
 
 describe('listeners', () => {
   // Aquí van a ir nuestros tests
-  it('debería actualizar la información de ubicación nativa y wifi', () => {
+  it('debería actualizar la información de ubicación nativa y wifi si es MacOs', () => {
     const data = [
       'check_location_perms',
       { result: true },
@@ -24,6 +24,7 @@ describe('listeners', () => {
     });
     const apiStub = sinon.stub().callsFake(() => {});
 
+    listeners.osName = 'mac';
     listeners.getDataFromPermissionFile = permissionFileStub;
     listeners.isWifiPermissionActive = networkStub;
     listeners.callApi = apiStub;
@@ -32,6 +33,32 @@ describe('listeners', () => {
 
     expect(permissionFileStub.calledWith('nativeLocation', true)).to.be.true;
     expect(networkStub.called).to.be.true;
+    expect(apiStub.called).to.be.true;
+  });
+
+  it('debería actualizar la información de ubicación nativa y wifi si es Windows', () => {
+    const data = [
+      'check_location_perms',
+      'Allow',
+      sinon.stub(),
+    ];
+
+    const permissionFileStub = sinon.stub().callsFake((_x, _y, z) => {
+      z();
+    });
+    const networkStub = sinon.stub().callsFake((z) => {
+      z({ lat: 1, log: 2, accuracy: 3 });
+    });
+    const apiStub = sinon.stub().callsFake(() => {});
+
+    listeners.osName = 'windows';
+    listeners.getDataFromPermissionFile = permissionFileStub;
+    listeners.isWifiPermissionActive = networkStub;
+    listeners.callApi = apiStub;
+
+    listeners.reactToCheckLocationPerms(data);
+
+    expect(permissionFileStub.calledWith('wifiLocation', 'true')).to.be.true;
     expect(apiStub.called).to.be.true;
   });
 

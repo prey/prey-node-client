@@ -1,6 +1,6 @@
 {
   "name": "prey",
-  "version": "1.13.9",
+  "version": "1.13.10",
   "author": "Engineering <tec@preyhq.com>",
   "keywords": [
     "prey",
@@ -62,7 +62,7 @@
     "semver": "^7.5.2",
     "sqlite3": "^5.1.7",
     "sudoer": "https://github.com/prey/node-sudoer.git",
-    "systeminformation": "^5.9.17",
+    "systeminformation": "^5.25.6",
     "tuna": "0.0.2",
     "uid-number": "0.0.5",
     "underscore": "^1.9.1",
@@ -70,7 +70,6 @@
     "whenever": "0.0.3",
     "wink": "0.0.1",
     "winssh": "0.0.3",
-    "wmic": "0.0.7",
     "ws": "^7.5.10",
     "xml2js": "^0.5.0"
   },
