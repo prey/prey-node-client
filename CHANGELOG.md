@@ -1,12 +1,21 @@
 # Change Log
 
-## [v1.13.10](https://github.com/prey/prey-node-client/tree/v1.13.10) (2024-2-3)
+## [v1.13.11](https://github.com/prey/prey-node-client/tree/v1.13.11) (2025-2-24)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.10..v1.13.11)
+
+- Fix: Remove unused libraries to fix vulnerabilities. ([Beregcamlost](https://github.com/beregcamlost)) ([SoraKenji](https://github.com/SoraKenji))
+- Fix: Fixes error on ack_id undefined on websocket comunication. ([Beregcamlost](https://github.com/beregcamlost)) ([SoraKenji](https://github.com/SoraKenji))
+- Fix: Added valid signatures to files with expired signatures for Windows binaries. ([Beregcamlost](https://github.com/beregcamlost)) ([SoraKenji](https://github.com/SoraKenji))
+- Fix: Fixes an issue where Prey Lock would start when the user was locked out on Windows. This causes a problem when writing out the password to log in again.. ([Beregcamlost](https://github.com/beregcamlost)) ([SoraKenji](https://github.com/SoraKenji))
+- Feat: New Fenix version. It fixes an issue when trying to read device key from current installation. It also improves issue when deleting Prey service. ([Beregcamlost](https://github.com/beregcamlost)) ([SoraKenji](https://github.com/SoraKenji))
+
+## [v1.13.10](https://github.com/prey/prey-node-client/tree/v1.13.10) (2025-2-3)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.9..v1.13.10)
 
 - Fix: Improve the updater logic for the first-time update. ([Beregcamlost](https://github.com/beregcamlost)) ([SoraKenji](https://github.com/SoraKenji))
 - Feat: Replace all WMIC instances in the project; we are now using native WMI through PowerShell. ([Beregcamlost](https://github.com/beregcamlost)) ([SoraKenji](https://github.com/SoraKenji))
 
-## [v1.13.9](https://github.com/prey/prey-node-client/tree/v1.13.9) (2024-1-20)
+## [v1.13.9](https://github.com/prey/prey-node-client/tree/v1.13.9) (2025-1-20)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.8..v1.13.9)
 
 - Feat: Remove wmic from file retrieval functionality. ([Beregcamlost](https://github.com/beregcamlost)) ([SoraKenji](https://github.com/SoraKenji))
