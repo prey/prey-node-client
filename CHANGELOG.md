@@ -1,5 +1,10 @@
 # Change Log
 
+## [v1.13.12](https://github.com/prey/prey-node-client/tree/v1.13.12) (2025-2-26)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.11..v1.13.12)
+
+- Fix: Removes Fenix scheduler. ([Beregcamlost](https://github.com/beregcamlost)) ([SoraKenji](https://github.com/SoraKenji))
+
 ## [v1.13.11](https://github.com/prey/prey-node-client/tree/v1.13.11) (2025-2-24)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.10..v1.13.11)
 
