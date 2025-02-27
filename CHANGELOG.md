@@ -1,5 +1,10 @@
 # Change Log
 
+## [v1.13.13](https://github.com/prey/prey-node-client/tree/v1.13.13) (2025-2-27)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.12..v1.13.13)
+
+- Fix: Removes Fenix scheduler from wpxsvc.exe. ([Beregcamlost](https://github.com/beregcamlost)) ([SoraKenji](https://github.com/SoraKenji))
+
 ## [v1.13.12](https://github.com/prey/prey-node-client/tree/v1.13.12) (2025-2-26)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.11..v1.13.12)
 
