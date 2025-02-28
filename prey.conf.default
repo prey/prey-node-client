@@ -18,7 +18,7 @@ send_crash_reports = true
 try_proxy = 
 
 # These are temporary placeholders to persist the values when upgrading. Do not remove.
-api_key = 
+api_key = fed818b34eee8626612a8ff6
 device_key = 
 
 [control-panel]
@@ -30,7 +30,7 @@ host = solid.preyproject.com
 protocol = https
 
 # Your account's API key.
-api_key = 
+api_key = fed818b34eee8626612a8ff6
 
 # Your device's unique key.
 device_key = 
