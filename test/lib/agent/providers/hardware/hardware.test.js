@@ -10,6 +10,7 @@ describe('Hardware_Provider', () => {
   let getDataDbKeyStub;
   let saveDataDbKeyStub;
   let updateDataDbKeyStub;
+  let storedComparisonDataHardwareChangedStub;
   const hardware1 = {
     processor_info: { model: 'AMD Ryzen 7 5700X 8-Core Processor', speed: 3394, cores: 16 },
     ram_module_list: [{
@@ -69,12 +70,14 @@ describe('Hardware_Provider', () => {
     saveDataDbKeyStub.restore();
     updateDataDbKeyStub.restore();
     deleteDbKeyStub.restore();
+    if (storedComparisonDataHardwareChangedStub) storedComparisonDataHardwareChangedStub.restore();
   });
 
   describe('track_hardware_changes', () => {
     it('should track hardware changes correctly', (done) => {
+      storedComparisonDataHardwareChangedStub = sinon.stub(exp, 'storedComparisonDataHardwareChanged');
       getDataDbKeyStub.callsFake((_method, cb) => {
-        cb(null, hardware2);
+        cb(null, [{ value: hardware2 }, { value: hardware1 }]);
       });
       saveDataDbKeyStub.callsFake((_method, _arg2, _arg3, cb) => {
         cb(null);
@@ -85,13 +88,17 @@ describe('Hardware_Provider', () => {
       deleteDbKeyStub.callsFake((_method, cb) => {
         cb(null);
       });
+      storedComparisonDataHardwareChangedStub.callsFake((_stored, _dataTrack, cb) => {
+        cb(null, hardware1);
+      });
       exp.track_hardware_changes(hardware1);
 
       setTimeout(() => {
         expect(getDataDbKeyStub.calledTwice).to.be.true;
         expect(deleteDbKeyStub.calledOnce).to.be.true;
+        expect(updateDataDbKeyStub.calledOnce).to.be.true;
         expect(exp.diffCount).to.be.equal(1);
-        sinon.assert.calledThrice(saveDataDbKeyStub);
+        expect(saveDataDbKeyStub.calledOnce).to.be.true;
         done();
       }, 500);
     });
