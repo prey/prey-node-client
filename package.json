@@ -1,6 +1,6 @@
 {
   "name": "prey",
-  "version": "1.13.13",
+  "version": "1.13.14",
   "author": "Engineering <tec@preyhq.com>",
   "keywords": [
     "prey",
@@ -47,6 +47,7 @@
     "memorize": "0.0.1",
     "mime": "^3.0.0",
     "needle": "3.1.0",
+    "network": "github:prey/node-network-utilities",
     "node-jsencrypt": "1.0.0",
     "node-schedule": "1.3.2",
     "ocelot": "0.0.5",
@@ -57,7 +58,6 @@
     "remover": "0.1.2",
     "reply": "^0.3.1",
     "rimraf": "3.0.2",
-    "network": "https://github.com/prey/node-network-utilities.git",
     "satan": "https://github.com/prey/node-daemon.git",
     "semver": "^7.5.2",
     "sqlite3": "^5.1.7",
