@@ -17,3 +17,4 @@ sonar-project.properties
 .nyc_output/**
 **.vscode
 **files.json
+.aider*
