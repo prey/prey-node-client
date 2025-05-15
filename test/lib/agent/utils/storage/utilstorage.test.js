@@ -1,7 +1,10 @@
+/* eslint-disable no-unused-expressions */
+/* eslint-disable no-undef */
 const { expect } = require('chai');
 const sinon = require('sinon');
-const storage = require('../../../../../lib/agent/utils/storage.js');
+const storage = require('../../../../../lib/agent/utils/storage');
 const { saveDataWifi, retrieveDataWifi } = require('../../../../../lib/agent/utils/storage/utilstorage');
+
 describe('WiFi Data Module', () => {
   let storageDoStub;
 
