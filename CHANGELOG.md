@@ -1,6 +1,6 @@
 # Change Log
 
-## [v1.13.14](https://github.com/prey/prey-node-client/tree/v1.13.14) (2025-4-10)
+## [v1.13.14](https://github.com/prey/prey-node-client/tree/v1.13.14) (2025-05-23)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.13..v1.13.14)
 
 - Fix: Fixes textbox on password error screen on Windows. ([Beregcamlost](https://github.com/beregcamlost)) ([SoraKenji](https://github.com/SoraKenji))
