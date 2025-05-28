@@ -1,7 +1,7 @@
 # Change Log
 
 ## [v1.13.15](https://github.com/prey/prey-node-client/tree/v1.13.14) (2025-05-28)
-[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.13..v1.13.14)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.14..v1.13.15)
 
 - Fix: Fixes error on empty file for log retrieval action. ([Beregcamlost](https://github.com/beregcamlost)) ([SoraKenji](https://github.com/SoraKenji))
 
