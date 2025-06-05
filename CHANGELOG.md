@@ -3,7 +3,9 @@
 ## [v1.13.16](https://github.com/prey/prey-node-client/tree/v1.13.16) (2025-05-30)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.15..v1.13.16)
 
-- Fix: Fixes an case when trying to send a new location for location aware tracking and it didn't added "force" parameter. ([SoraKenji](https://github.com/SoraKenji))
+- Fix: Fixes an bug killing Prey services when calling directly to updater.exe in order to mantain wpxsvc up to date. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Fixes a case when trying to send a new location for location aware tracking and it didn't added "force" parameter. ([SoraKenji](https://github.com/SoraKenji))
 
 ## [v1.13.15](https://github.com/prey/prey-node-client/tree/v1.13.15) (2025-05-29)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.14..v1.13.15)
