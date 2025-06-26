@@ -6,7 +6,11 @@
 	<dict>
 		<key>Resources/Assets.car</key>
 		<data>
-		ahvA6y/DPi2C2Ms0ip6w1+XgKRs=
+		bmG6m19ZyfupwNBeDTsd3487KDg=
+		</data>
+		<key>Resources/Base.lproj/MainMenu.nib</key>
+		<data>
+		PADilwMY7yCmntn1BO3Wrf9Hxc8=
 		</data>
 		<key>Resources/bg-lock.png</key>
 		<data>
@@ -17,15 +21,6 @@
 			<key>hash</key>
 			<data>
 			ZCS20/v19Tnn8On+Tee2GpzF85o=
-			</data>
-			<key>optional</key>
-			<true/>
-		</dict>
-		<key>Resources/en.lproj/MainMenu.nib</key>
-		<dict>
-			<key>hash</key>
-			<data>
-			5quJd1ZNzFjFvyv5j9RLQ7XHhzA=
 			</data>
 			<key>optional</key>
 			<true/>
@@ -43,7 +38,7 @@
 		<dict>
 			<key>hash</key>
 			<data>
-			5quJd1ZNzFjFvyv5j9RLQ7XHhzA=
+			l2LcjaqgKd61Re1+ay3DWDYRYAk=
 			</data>
 			<key>optional</key>
 			<true/>
@@ -55,7 +50,14 @@
 		<dict>
 			<key>hash2</key>
 			<data>
-			xd/IvtgDOBBpp2DE7hKLMikdPpem8A6Xofz1CXidUwI=
+			RP3xvlbyVwA1DjRJP9jcQKhy1HF8FQdYarxcBSaaYr8=
+			</data>
+		</dict>
+		<key>Resources/Base.lproj/MainMenu.nib</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			Bjq+5l6I0xxl4MliXLoYaq//OGki+fbKkz1cGs/ndac=
 			</data>
 		</dict>
 		<key>Resources/bg-lock.png</key>
@@ -74,15 +76,6 @@
 			<key>optional</key>
 			<true/>
 		</dict>
-		<key>Resources/en.lproj/MainMenu.nib</key>
-		<dict>
-			<key>hash2</key>
-			<data>
-			OK262tGEo2TWlgHT8OjvTXLo0l811m4NdMOic3cXX1I=
-			</data>
-			<key>optional</key>
-			<true/>
-		</dict>
 		<key>Resources/es.lproj/Localizable.strings</key>
 		<dict>
 			<key>hash2</key>
@@ -96,7 +89,7 @@
 		<dict>
 			<key>hash2</key>
 			<data>
-			OK262tGEo2TWlgHT8OjvTXLo0l811m4NdMOic3cXX1I=
+			swJk+ZWwfkDpdl/scudNBSq5CUNrdfjHHom5AZ/tRK4=
 			</data>
 			<key>optional</key>
 			<true/>
