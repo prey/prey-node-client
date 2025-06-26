@@ -25,7 +25,7 @@ describe('listeners', () => {
     const apiStub = sinon.stub().callsFake(() => {});
 
     listeners.osName = 'mac';
-    listeners.getDataFromPermissionFile = permissionFileStub;
+    listeners.setDataToPermissionFile = permissionFileStub;
     listeners.isWifiPermissionActive = networkStub;
     listeners.callApi = apiStub;
 
@@ -52,7 +52,7 @@ describe('listeners', () => {
     const apiStub = sinon.stub().callsFake(() => {});
 
     listeners.osName = 'windows';
-    listeners.getDataFromPermissionFile = permissionFileStub;
+    listeners.setDataToPermissionFile = permissionFileStub;
     listeners.isWifiPermissionActive = networkStub;
     listeners.callApi = apiStub;
 
