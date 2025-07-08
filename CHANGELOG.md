@@ -1,5 +1,28 @@
 # Change Log
 
+## [v1.13.17](https://github.com/prey/prey-node-client/tree/v1.13.17) (2025-07-08)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.16..v1.13.17)
+
+- Feat: Now, the system will encode "prey status" values more effectively when needed. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: We've made Factory Reset much more reliable, so it works consistently. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: There's no longer any difference in how device keys are set, whether it's done through code or the command line. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: The database now stores 100 Wi-Fi networks instead of 200, which optimizes performance. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: We've resolved an error related to bad file descriptors that was impacting Sentry (our error reporting system). ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: A bug has been squashed that caused errors during disk encryption when there was an issue with the Windows service (winsvc). ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: We've fixed an issue where commands wouldn't stop running if there was no active user logged in. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Information about location permissions will now accurately sync with the control panel. ([javo](https://github.com/javo))
+
+- Feat: The Windows service (winsvc) has been updated to version 2.0.28, and we now log the time it takes for factory resets to complete. ([javo](https://github.com/javo))
+
+- Fix: If location accuracy is poor when Mac address changes occur, the system will retry to get a better location reading. ([SoraKenji](https://github.com/SoraKenji))
+
 ## [v1.13.16](https://github.com/prey/prey-node-client/tree/v1.13.16) (2025-05-30)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.15..v1.13.16)
 
