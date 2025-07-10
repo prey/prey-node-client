@@ -94,13 +94,6 @@
     "sinon": "^7.5.0",
     "sonarqube-scanner": "^4.2.3"
   },
-  "overrides": {
-    "sqlite3": {
-      "prebuild-install": {
-        "tar-fs": "^3.0.0"
-      }
-    }
-  },
   "main": "./lib/common",
   "bin": {
     "prey": "./bin/prey"
