@@ -21,7 +21,7 @@ stages:
   - build_zip
   - build_binaries
   - release
-  
+
 include:
   #######################################
   # WORKFLOW #
@@ -79,4 +79,10 @@ include:
   #######################################
   - project: 'deploy/ci-templates'
     file: 'go/job_latest_create.yml'
+    ref: master
+  #######################################
+  # Job Template trigger QA pipeline    #
+  #######################################
+  - project: 'deploy/ci-templates'
+    file: 'qa/job_qa_triggers.yml'
     ref: master
