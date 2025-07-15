@@ -1,5 +1,10 @@
 # Change Log
 
+## [v1.13.18](https://github.com/prey/prey-node-client/tree/v1.13.18) (2025-07-15)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.17..v1.13.18)
+
+- Feat: Removes redundancy from the code to obtain the status report. ([SoraKenji](https://github.com/SoraKenji))
+
 ## [v1.13.17](https://github.com/prey/prey-node-client/tree/v1.13.17) (2025-07-08)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.16..v1.13.17)
 
