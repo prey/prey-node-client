@@ -12,8 +12,8 @@
 
 variables:
   BUILD_IMAGE: prey-local/node-client-build:latest
-  NODE_AGENT_WINDOWS_VER: 20.16.0
-  NODE_AGENT_UNIX_VER: 20.16.0
+  NODE_AGENT_WINDOWS_VER: 22.17.1
+  NODE_AGENT_UNIX_VER: 22.17.1
 
 stages:
   - test
