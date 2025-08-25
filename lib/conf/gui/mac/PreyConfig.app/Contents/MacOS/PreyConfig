@@ -1,5 +1,0 @@
-#!/bin/sh
-
-# export PATH="$PATH:/usr/local/bin"
-# [ "$(whoami)" != "root" ] && prefix="sudo"
-$prefix /usr/bin/python "`dirname "$0"`/prey-config.py"
