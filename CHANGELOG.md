@@ -1,15 +1,21 @@
 # Change Log
 
-## [v1.13.18](https://github.com/prey/prey-node-client/tree/v1.13.19) (2025-08-25)
+
+## [v1.13.20](https://github.com/prey/prey-node-client/tree/v1.13.20) (2025-08-29)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.19..v1.13.20)
+
+- Fix: Decrease amout of location request retries when Prey was not recently autoupdated. ([SoraKenji](https://github.com/SoraKenji))
+
+## [v1.13.19](https://github.com/prey/prey-node-client/tree/v1.13.19) (2025-08-25)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.18..v1.13.19)
 
-- Fix:  Added a wait mechanism to ensure a healthy connection to the WebSocket (WS) before proceeding. ([SoraKenji](https://github.com/SoraKenji))
+- Fix: Added a wait mechanism to ensure a healthy connection to the WebSocket (WS) before proceeding. ([SoraKenji](https://github.com/SoraKenji))
 
 - Feat: Implemented retries for location when Prey starts, reconnects in different WiFi networks, or forces a reconnect. ([SoraKenji](https://github.com/SoraKenji))
 
 - Fix: Modified the code to group equal tasks by structure and run each group in parallel, improving efficiency. ([SoraKenji](https://github.com/SoraKenji))
 
-- Fix:  Fixed an issue where the RAM size was not being sent correctly in MB for Ubuntu systems. ([javo](https://github.com/javo))
+- Fix: Fixed an issue where the RAM size was not being sent correctly in MB for Ubuntu systems. ([javo](https://github.com/javo))
 
 - Chore: Resolved a vulnerability related to form-data package. ([javo](https://github.com/javo))
 
@@ -17,9 +23,9 @@
 
 - Fix: fix error when data config data is corrupted from db. ([SoraKenji](https://github.com/SoraKenji))
 
-- Fix:  Implemented a fix to handle old geofencing commands. ([javo](https://github.com/javo))
+- Fix: Implemented a fix to handle old geofencing commands. ([javo](https://github.com/javo))
 
-- Fix:  Fixed an issue where all Python instances were not being removed on macOS systems. ([javo](https://github.com/javo))
+- Fix: Fixed an issue where all Python instances were not being removed on macOS systems. ([javo](https://github.com/javo))
 
 
 
