@@ -1,5 +1,17 @@
 # Change Log
 
+## [v1.13.21](https://github.com/prey/prey-node-client/tree/v1.13.21) (2025-11-07)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.20..v1.13.21)
+
+- Fix: Adds restrictions to changing some of the database settings for Prey software. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Improves the code that handles obtaining Wi-Fi network information in Ubuntu, which is used to triangulate the device's location. ([SoraKenji](https://github.com/SoraKenji))
+
+- feat: It adds a piece of code to identify MacOS devices with a T2 security chip and report potential problems with Apple's Factory Reset. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: It ensures that if a database backup exists in temporary files and needs to be recovered, it marks and deletes it to avoid causing potential errors in the future. ([SoraKenji](https://github.com/SoraKenji))
+
+- Chore: Adds newest wpxsvc binary version 2.0.29 and updater.exe version 1.0.6 to Prey Windows client. ([SoraKenji](https://github.com/SoraKenji))
 
 ## [v1.13.20](https://github.com/prey/prey-node-client/tree/v1.13.20) (2025-08-29)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.19..v1.13.20)
