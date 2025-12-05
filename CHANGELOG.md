@@ -1,5 +1,11 @@
 # Change Log
 
+## [v1.13.22](https://github.com/prey/prey-node-client/tree/v1.13.22) (2025-12-05)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.21..v1.13.22)
+
+- Feat: Adds new Fenix and WinSVC version. WinSVC now schedules Fenix task, but only if Fenix version is greater or equal to 1.0.6. ([SoraKenji](https://github.com/SoraKenji))
+
+
 ## [v1.13.21](https://github.com/prey/prey-node-client/tree/v1.13.21) (2025-11-07)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.20..v1.13.21)
 
