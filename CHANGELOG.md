@@ -1,5 +1,12 @@
 # Change Log
 
+## [v1.13.23](https://github.com/prey/prey-node-client/tree/v1.13.23) (2026-01-06)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.22..v1.13.23)
+
+- Fix: This implementation correctly manages asynchronous WebSocket actions that occur with high frequency or minimal latency between events. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: For Ubuntu, it adds a new configuration workflow for device registration. Implemented core improvements to the Alert and Lock modules for enhanced stability. ([javo](https://github.com/javo))
+
 ## [v1.13.22](https://github.com/prey/prey-node-client/tree/v1.13.22) (2025-12-05)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.21..v1.13.22)
 
