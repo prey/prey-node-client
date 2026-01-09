@@ -62,7 +62,7 @@
     "semver": "^7.5.2",
     "sqlite3": "^5.1.7",
     "sudoer": "https://github.com/prey/node-sudoer.git",
-    "systeminformation": "^5.25.6",
+    "systeminformation": "^5.27.14",
     "uid-number": "0.0.5",
     "underscore": "^1.9.1",
     "uuid": "^8.3.2",
