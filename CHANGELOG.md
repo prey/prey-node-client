@@ -1,5 +1,10 @@
 # Change Log
 
+## [v1.13.24](https://github.com/prey/prey-node-client/tree/v1.13.24) (2026-01-09)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.23..v1.13.24)
+
+- Fix: Fixes an issue where WebSocket connections failed to reconnect after the system woke from sleep mode. ([SoraKenji](https://github.com/SoraKenji))
+
 ## [v1.13.23](https://github.com/prey/prey-node-client/tree/v1.13.23) (2026-01-06)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.22..v1.13.23)
 
