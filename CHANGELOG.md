@@ -1,5 +1,10 @@
 # Change Log
 
+## [v1.13.25](https://github.com/prey/prey-node-client/tree/v1.13.25) (2026-01-15)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.24..v1.13.25)
+
+- Fix: Rollback to old websocket code. ([SoraKenji](https://github.com/SoraKenji))
+
 ## [v1.13.24](https://github.com/prey/prey-node-client/tree/v1.13.24) (2026-01-09)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.23..v1.13.24)
 
