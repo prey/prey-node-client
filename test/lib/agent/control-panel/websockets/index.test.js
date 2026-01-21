@@ -11,6 +11,8 @@ describe('WebSocket index.js', () => {
   let mockHooks;
   let mockStorage;
   let mockLogger;
+  let intervalsToClean = [];
+  let timeoutsToClean = [];
 
   beforeEach(() => {
     websocketsRewired = rewire('../../../../../lib/agent/control-panel/websockets');
@@ -52,13 +54,41 @@ describe('WebSocket index.js', () => {
     websocketsRewired.__set__('hooks', mockHooks);
     websocketsRewired.__set__('storage', mockStorage);
     websocketsRewired.__set__('logger', mockLogger);
+
+    // Clear any existing intervals/timeouts in the module
+    websocketsRewired.__set__('pingTimeout', null);
+    websocketsRewired.__set__('pingInterval', null);
+    websocketsRewired.__set__('setAliveTimeInterval', null);
+    websocketsRewired.__set__('timeOutCancelIntervalHearBeat', null);
+    websocketsRewired.__set__('setIntervalWSStatus', null);
+    websocketsRewired.__set__('notifyActionInterval', null);
+    websocketsRewired.__set__('notifyAckInterval', null);
+    websocketsRewired.__set__('getStatusInterval', null);
+    websocketsRewired.__set__('idTimeoutToCancel', null);
   });
 
   afterEach(() => {
+    // Clean up all intervals and timeouts
+    intervalsToClean.forEach(clearInterval);
+    timeoutsToClean.forEach(clearTimeout);
+    intervalsToClean = [];
+    timeoutsToClean = [];
+
+    // Clear module intervals
+    const clearAndResetIntervals = websocketsRewired.__get__('clearAndResetIntervals');
+    if (clearAndResetIntervals) {
+      try {
+        clearAndResetIntervals(true);
+      } catch (e) {
+        // Ignore errors during cleanup
+      }
+    }
+
     sinon.restore();
     websocketsRewired.resetReconnectDelay();
     websocketsRewired.responses_queue = [];
     websocketsRewired.responsesAck = [];
+    websocketsRewired.__set__('isReconnecting', false);
   });
 
   // ==================== Queue Management Tests ====================
@@ -271,22 +301,20 @@ describe('WebSocket index.js', () => {
     });
 
     describe('heartbeatTimed', () => {
-      let clock;
-
-      beforeEach(() => {
-        clock = sinon.useFakeTimers();
-      });
-
-      afterEach(() => {
-        clock.restore();
-      });
-
       it('should set timeout for heartbeat', () => {
+        // Clear any existing timeout first
+        const existingTimeout = websocketsRewired.__get__('pingTimeout');
+        if (existingTimeout) clearTimeout(existingTimeout);
+
         websocketsRewired.heartbeatTimed();
 
         // Verify timeout was set (it's internal, so we check side effects)
         const pingTimeout = websocketsRewired.__get__('pingTimeout');
         expect(pingTimeout).to.not.be.null;
+
+        // Clean up the timeout we created
+        clearTimeout(pingTimeout);
+        websocketsRewired.__set__('pingTimeout', null);
       });
     });
   });
