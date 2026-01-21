@@ -8,8 +8,7 @@ const { expect } = chai;
 const listeners = require('../../../../lib/agent/socket/listeners');
 
 describe('listeners', () => {
-  // Aquí van a ir nuestros tests
-  it('debería actualizar la información de ubicación nativa y wifi si es MacOs', () => {
+  it('should update native and wifi location info on MacOs', () => {
     const data = [
       'check_location_perms',
       { result: true },
@@ -36,7 +35,7 @@ describe('listeners', () => {
     expect(apiStub.called).to.be.true;
   });
 
-  it('debería actualizar la información de ubicación nativa y wifi si es Windows', () => {
+  it('should update native and wifi location info on Windows', () => {
     const data = [
       'check_location_perms',
       'Allow',
@@ -62,14 +61,14 @@ describe('listeners', () => {
     expect(apiStub.called).to.be.true;
   });
 
-  it('debería procesar la información de WiFi y llamar al callback con el resultado', () => {
+  it('should process WiFi info and call callback with result', () => {
     const data = [
       'wdutil',
       {
         wdutil: {
           WIFI: {
             RSSI: '-50',
-            SSID: 'mi_wifi',
+            SSID: 'my_wifi',
             'MAC Address': '00:11:22:33:44:55',
             Channel: '6',
             Security: 'WPA2',
@@ -86,10 +85,10 @@ describe('listeners', () => {
     expect(callbackStub.calledWith(null, sinon.match.object)).to.be.true;
   });
 
-  it('debería llamar al callback con la información de ubicación', () => {
+  it('should call callback with location info', () => {
     const data = [
       'get_location_mac_svc',
-      { location: 'mi ubicación' },
+      { location: 'my location' },
       sinon.stub(),
     ];
 
@@ -98,10 +97,10 @@ describe('listeners', () => {
     expect(callbackStub.calledWith(null, sinon.match.object)).to.be.true;
   });
 
-  it('debería llamar al callback con la información de la imagen', () => {
+  it('should call callback with picture info', () => {
     const data = [
       'get_picture_mac_svc',
-      { picture: 'mi imagen' },
+      { picture: 'my picture' },
       sinon.stub(),
     ];
 
@@ -110,10 +109,10 @@ describe('listeners', () => {
     expect(callbackStub.calledWith(null, sinon.match.object)).to.be.true;
   });
 
-  it('debería llamar al callback con la información de la captura de pantalla', () => {
+  it('should call callback with screenshot info', () => {
     const data = [
       'get_screenshot_mac_svc',
-      { screenshot: 'mi captura de pantalla' },
+      { screenshot: 'my screenshot' },
       sinon.stub(),
     ];
 
@@ -122,10 +121,10 @@ describe('listeners', () => {
     expect(callbackStub.calledWith(null, sinon.match.object)).to.be.true;
   });
 
-  it('debería llamar al callback con la información de la captura de pantalla del agente', () => {
+  it('should call callback with agent screenshot info', () => {
     const data = [
       'get_screenshot_agent_mac_svc',
-      { screenshot: 'mi captura de pantalla del agente' },
+      { screenshot: 'my agent screenshot' },
       sinon.stub(),
     ];
 
@@ -134,10 +133,10 @@ describe('listeners', () => {
     expect(callbackStub.calledWith(null, sinon.match.object)).to.be.true;
   });
 
-  it('debería llamar al callback con la información de la captura de pantalla del agente', () => {
+  it('should call callback with agent screenshot data', () => {
     const data = [
       'get_screenshot_agent_mac_svc',
-      { screenshot: 'mi captura de pantalla del agente' },
+      { screenshot: 'my agent screenshot' },
       sinon.stub(),
     ];
 
@@ -146,7 +145,7 @@ describe('listeners', () => {
     expect(callbackStub.calledWith(null, sinon.match.object)).to.be.true;
   });
 
-  it('debería llamar al callback', () => {
+  it('should call callback', () => {
     const data = [
       'reac_to_watcher',
       {},

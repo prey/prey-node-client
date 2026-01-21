@@ -10,29 +10,29 @@ const { expect } = require('chai');
 const socket = require('../../../../lib/agent/socket');
 
 describe('verifyConsistencyData', () => {
-  it('debería retornar true si el objeto tiene las propiedades requeridas', () => {
+  it('should return true if object has required properties', () => {
     const dataObj = { function: 'test', success: true, output: 'output' };
     expect(socket.verifyConsistencyData(dataObj)).to.be.true;
   });
 
-  it('debería retornar false si el objeto no tiene la propiedad "function"', () => {
+  it('should return false if object does not have "function" property', () => {
     const dataObj = { success: true, output: 'output' };
     expect(socket.verifyConsistencyData(dataObj)).to.be.false;
   });
 
-  it('debería retornar false si el objeto no tiene la propiedad "success"', () => {
+  it('should return false if object does not have "success" property', () => {
     const dataObj = { function: 'test', output: 'output' };
     expect(socket.verifyConsistencyData(dataObj)).to.be.false;
   });
 
-  it('debería retornar false si el objeto no tiene la propiedad "output"', () => {
+  it('should return false if object does not have "output" property', () => {
     const dataObj = { function: 'test', success: true };
     expect(socket.verifyConsistencyData(dataObj)).to.be.false;
   });
 });
 
 describe('processOwnershipResult', () => {
-  it('Deberia devolver un array con el owner de manera correcta', (done) => {
+  it('should return an array with owner correctly', (done) => {
     socket.processOwnershipResult((err, owner) => {
       expect(err).to.be.null;
       expect(owner[0]).to.equal('owner');
@@ -40,14 +40,14 @@ describe('processOwnershipResult', () => {
     }, null, 'owner', null);
   });
 
-  it('debería llamar al callback con un error', (done) => {
+  it('should call callback with an error', (done) => {
     const error = new Error('Test error');
     socket.processOwnershipResult((err) => {
       expect(err).to.equal(error.message);
       done();
     }, error, null, null);
   });
-  it('debería llamar al callback con un standard error', (done) => {
+  it('should call callback with a standard error', (done) => {
     const error = 'Test error';
     socket.processOwnershipResult((err) => {
       expect(err).to.equal(error);
@@ -56,20 +56,20 @@ describe('processOwnershipResult', () => {
   });
 });
 describe('writeMessage', () => {
-  it('debería llamar al callback en Mac', () => {
+  it('should call callback on Mac', () => {
     const cb = sinon.stub();
     socket.writeMessage('location-get-location-native', cb);
     expect(cb.calledOnce).to.be.true;
   });
 
-  it('debería no llamar al callback en no Mac', () => {
+  it('should not call callback on non-Mac', () => {
     socket.osName = 'windows';
     socket.writeMessage('location-get-location-native', (err) => {
       expect(err).to.be.undefined;
     });
   });
 
-  it('debería devolver un error si el nombre de la funcion no existe', () => {
+  it('should return an error if function name does not exist', () => {
     socket.activeToSend = false;
     socket.osName = 'mac';
     socket.writeMessage('functionName', (error) => {
@@ -77,7 +77,7 @@ describe('writeMessage', () => {
     });
   });
 
-  it('debería llamar al callback con error en inactive', () => {
+  it('should call callback with error when inactive', () => {
     socket.activeToSend = false;
     socket.osName = 'mac';
     socket.writeMessage('location-get-location-native', (error) => {

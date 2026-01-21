@@ -117,7 +117,7 @@ describe('accounts conf module', () => {
       sharedPanelVerifyKeysStub.restore();
     });
 
-    it('debería llamar a set_api_device_key con los parámetros correctos', (done) => {
+    it('should call set_api_device_key with correct parameters', (done) => {
       const keysData = { api_key: 'api_key', device_key: 'device_key' };
       sharedKeysStub = sinon.stub(keys, 'set_api_device_key').callsFake((key, cb) => {
         cb(null);
@@ -132,10 +132,10 @@ describe('accounts conf module', () => {
       });
     });
 
-    it('debería llamar al callback con un error si set_api_device_key falla', (done) => {
+    it('should call callback with error if set_api_device_key fails', (done) => {
       const keysData = { api_key: 'api_key', device_key: 'device_key' };
       const cb = sinon.spy();
-      const error = new Error('Error de prueba');
+      const error = new Error('Test error');
       sharedKeysStub = sinon.stub(keys, 'set_api_device_key').callsFake((key, cbz) => {
         cbz(null);
       });
@@ -150,10 +150,10 @@ describe('accounts conf module', () => {
       done();
     });
 
-    it('debería llamar al callback con un error si verify_keys falla', (done) => {
+    it('should call callback with error if verify_keys fails', (done) => {
       const keysData = { api_key: 'api_key', device_key: 'device_key' };
       const cb = sinon.spy();
-      const error = new Error('Error de prueba');
+      const error = new Error('Test error');
       sharedKeysStub = sinon.stub(keys, 'set_api_device_key').callsFake((key, cbz) => {
         cbz(error);
       });
@@ -162,7 +162,7 @@ describe('accounts conf module', () => {
       done();
     });
 
-    it('debería llamar al callback sin errores si todo sale bien', (done) => {
+    it('should call callback without errors if everything succeeds', (done) => {
       const keysData = { api_key: 'api_key', device_key: 'device_key' };
       sharedKeysStub = sinon.stub(keys, 'set_api_device_key').callsFake((key, cbz) => {
         cbz(null);
@@ -190,7 +190,7 @@ describe('accounts conf module', () => {
       sharedPanelLinkStub.restore();
     });
 
-    it('debería llamar a set_api_key con el API key proporcionado', (done) => {
+    it('should call set_api_key with provided API key', (done) => {
       const apiKey = 'api_key';
       const cb = sinon.spy();
 
@@ -201,7 +201,7 @@ describe('accounts conf module', () => {
       done();
     });
 
-    it('debería llamar a link después de set_api_key', (done) => {
+    it('should call link after set_api_key', (done) => {
       const apiKey = 'api_key';
       const cb = sinon.spy();
 
@@ -216,10 +216,10 @@ describe('accounts conf module', () => {
       done();
     });
 
-    it('debería llamar al callback con un error si set_api_key falla', (done) => {
+    it('should call callback with error if set_api_key fails', (done) => {
       const apiKey = 'api_key';
       const cb = sinon.spy();
-      const error = new Error('Error de prueba');
+      const error = new Error('Test error');
 
       sharedKeysStub.callsFake((key, callback) => {
         callback(error);
@@ -232,10 +232,10 @@ describe('accounts conf module', () => {
       done();
     });
 
-    it('debería llamar al callback con un error si link falla', (done) => {
+    it('should call callback with error if link fails', (done) => {
       const apiKey = 'api_key';
       const cb = sinon.spy();
-      const error = new Error('Error de prueba');
+      const error = new Error('Test error');
 
       sharedKeysStub.callsFake((key, callback) => {
         callback(null);
@@ -252,7 +252,7 @@ describe('accounts conf module', () => {
       done();
     });
 
-    it('debería llamar al callback sin errores si todo sale bien', (done) => {
+    it('should call callback without errors if everything succeeds', (done) => {
       const apiKey = 'api_key';
 
       sharedKeysStub.callsFake((key, callback) => {
