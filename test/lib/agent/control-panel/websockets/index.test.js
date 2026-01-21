@@ -5,17 +5,35 @@ const sinon = require('sinon');
 const { expect } = require('chai');
 const { EventEmitter } = require('events');
 
-describe('WebSocket index.js', () => {
+describe('WebSocket Module', () => {
   let websocketsRewired;
+  let reconnectionRewired;
+  let heartbeatRewired;
+  let responseQueueRewired;
+  let ackQueueRewired;
+  let handlersRewired;
+  let notificationsRewired;
+  let connectionRewired;
+  let constantsModule;
+  let utilsModule;
+
   let mockWs;
   let mockHooks;
   let mockStorage;
   let mockLogger;
-  let intervalsToClean = [];
-  let timeoutsToClean = [];
 
   beforeEach(() => {
+    // Rewire all modules
     websocketsRewired = rewire('../../../../../lib/agent/control-panel/websockets');
+    reconnectionRewired = rewire('../../../../../lib/agent/control-panel/websockets/reconnection');
+    heartbeatRewired = rewire('../../../../../lib/agent/control-panel/websockets/heartbeat');
+    responseQueueRewired = rewire('../../../../../lib/agent/control-panel/websockets/queues/response-queue');
+    ackQueueRewired = rewire('../../../../../lib/agent/control-panel/websockets/queues/ack-queue');
+    handlersRewired = rewire('../../../../../lib/agent/control-panel/websockets/handlers');
+    notificationsRewired = rewire('../../../../../lib/agent/control-panel/websockets/notifications');
+    connectionRewired = rewire('../../../../../lib/agent/control-panel/websockets/connection');
+    constantsModule = require('../../../../../lib/agent/control-panel/websockets/constants');
+    utilsModule = require('../../../../../lib/agent/control-panel/websockets/utils');
 
     // Mock WebSocket
     mockWs = {
@@ -49,283 +67,903 @@ describe('WebSocket index.js', () => {
       warn: sinon.stub(),
     };
 
-    // Inject mocks
-    websocketsRewired.__set__('ws', mockWs);
-    websocketsRewired.__set__('hooks', mockHooks);
-    websocketsRewired.__set__('storage', mockStorage);
-    websocketsRewired.__set__('logger', mockLogger);
-
-    // Clear any existing intervals/timeouts in the module
-    websocketsRewired.__set__('pingTimeout', null);
-    websocketsRewired.__set__('pingInterval', null);
-    websocketsRewired.__set__('setAliveTimeInterval', null);
-    websocketsRewired.__set__('timeOutCancelIntervalHearBeat', null);
-    websocketsRewired.__set__('setIntervalWSStatus', null);
-    websocketsRewired.__set__('notifyActionInterval', null);
-    websocketsRewired.__set__('notifyAckInterval', null);
-    websocketsRewired.__set__('getStatusInterval', null);
-    websocketsRewired.__set__('idTimeoutToCancel', null);
+    // Reset queue states
+    responseQueueRewired.clearQueue();
+    ackQueueRewired.clearQueue();
+    reconnectionRewired.resetReconnectDelay();
+    connectionRewired.reset();
   });
 
   afterEach(() => {
-    // Clean up all intervals and timeouts
-    intervalsToClean.forEach(clearInterval);
-    timeoutsToClean.forEach(clearTimeout);
-    intervalsToClean = [];
-    timeoutsToClean = [];
-
-    // Clear module intervals
-    const clearAndResetIntervals = websocketsRewired.__get__('clearAndResetIntervals');
-    if (clearAndResetIntervals) {
-      try {
-        clearAndResetIntervals(true);
-      } catch (e) {
-        // Ignore errors during cleanup
-      }
-    }
-
     sinon.restore();
-    websocketsRewired.resetReconnectDelay();
-    websocketsRewired.responses_queue = [];
-    websocketsRewired.responsesAck = [];
-    websocketsRewired.__set__('isReconnecting', false);
+    heartbeatRewired.clearAll();
   });
 
-  // ==================== Queue Management Tests ====================
-  describe('Queue Management', () => {
-    describe('responses_queue', () => {
-      it('should be an array', () => {
-        expect(websocketsRewired.responses_queue).to.be.an('array');
+  // ==================== Constants Tests ====================
+  describe('Constants Module', () => {
+    it('should have correct STARTUP_TIMEOUT', () => {
+      expect(constantsModule.STARTUP_TIMEOUT).to.equal(5000);
+    });
+
+    it('should have correct HEARTBEAT_TIMEOUT', () => {
+      expect(constantsModule.HEARTBEAT_TIMEOUT).to.equal(121000);
+    });
+
+    it('should have correct BASE_RECONNECT_DELAY', () => {
+      expect(constantsModule.BASE_RECONNECT_DELAY).to.equal(5000);
+    });
+
+    it('should have correct MAX_RECONNECT_DELAY', () => {
+      expect(constantsModule.MAX_RECONNECT_DELAY).to.equal(300000);
+    });
+
+    it('should have correct MAX_RETRIES', () => {
+      expect(constantsModule.MAX_RETRIES).to.equal(10);
+    });
+
+    it('should have correct MAX_ACK_RETRIES', () => {
+      expect(constantsModule.MAX_ACK_RETRIES).to.equal(4);
+    });
+
+    it('should have correct WS_ERROR_NO_CONNECTION', () => {
+      expect(constantsModule.WS_ERROR_NO_CONNECTION).to.equal(1006);
+    });
+
+    it('should have correct PONG_WAIT_TIMEOUT', () => {
+      expect(constantsModule.PONG_WAIT_TIMEOUT).to.equal(15000);
+    });
+
+    it('should have correct LOCATION_TIME_LIMIT', () => {
+      expect(constantsModule.LOCATION_TIME_LIMIT).to.equal(7 * 60 * 1000);
+    });
+  });
+
+  // ==================== Utils Tests ====================
+  describe('Utils Module', () => {
+    describe('isConnectionReady', () => {
+      it('should return true when ws is ready', () => {
+        expect(utilsModule.isConnectionReady({ readyState: 1 })).to.be.true;
       });
 
-      it('should be empty initially', () => {
-        expect(websocketsRewired.responses_queue).to.have.length(0);
+      it('should return false when ws is null', () => {
+        expect(utilsModule.isConnectionReady(null)).to.be.false;
+      });
+
+      it('should return false when readyState is not 1', () => {
+        expect(utilsModule.isConnectionReady({ readyState: 0 })).to.be.false;
+        expect(utilsModule.isConnectionReady({ readyState: 2 })).to.be.false;
+        expect(utilsModule.isConnectionReady({ readyState: 3 })).to.be.false;
       });
     });
 
-    describe('responsesAck', () => {
-      it('should be an array', () => {
-        expect(websocketsRewired.responsesAck).to.be.an('array');
-      });
-
-      it('should be empty initially', () => {
-        expect(websocketsRewired.responsesAck).to.have.length(0);
+    describe('propagateError', () => {
+      it('should trigger error hook and log message', () => {
+        utilsModule.propagateError(mockHooks, mockLogger, 'Test error');
+        expect(mockHooks.trigger.calledWith('error')).to.be.true;
+        expect(mockLogger.debug.calledWith('Test error')).to.be.true;
       });
     });
 
-    describe('retryQueuedResponses', () => {
-      it('should do nothing when queue is empty', () => {
-        websocketsRewired.responses_queue = [];
-        const retryQueuedResponses = websocketsRewired.__get__('retryQueuedResponses');
-        retryQueuedResponses();
-        expect(websocketsRewired.responses_queue).to.have.length(0);
-      });
-
-      it('should retry queued responses', () => {
-        const notifyActionStub = sinon.stub(websocketsRewired, 'notify_action');
-        websocketsRewired.responses_queue = [{
-          body: { status: 'started', target: 'lock' },
-          reply_id: '123',
-          opts: null,
-          error: null,
-          out: null,
-          time: new Date().toISOString(),
-          id: 'resp-1',
-          retries: 0,
-        }];
-
-        const retryQueuedResponses = websocketsRewired.__get__('retryQueuedResponses');
-        retryQueuedResponses();
-
-        expect(notifyActionStub.calledOnce).to.be.true;
-        notifyActionStub.restore();
-      });
-    });
-
-    describe('retryAckResponses', () => {
-      it('should do nothing when ack queue is empty', () => {
-        websocketsRewired.responsesAck = [];
-        const retryAckResponses = websocketsRewired.__get__('retryAckResponses');
-        retryAckResponses();
-        expect(websocketsRewired.responsesAck).to.have.length(0);
-      });
-
-      it('should retry ack responses', () => {
-        const notifyAckStub = sinon.stub(websocketsRewired, 'notifyAck');
-        websocketsRewired.responsesAck = [{
-          ack_id: 'ack-123',
-          type: 'ack',
-          id: 'cmd-1',
-          sent: false,
-          retries: 0,
-        }];
-
-        const retryAckResponses = websocketsRewired.__get__('retryAckResponses');
-        retryAckResponses();
-
-        expect(notifyAckStub.calledOnce).to.be.true;
-        notifyAckStub.restore();
+    describe('delay', () => {
+      it('should return timeout id', () => {
+        const cb = sinon.stub();
+        const timeoutId = utilsModule.delay(100, cb);
+        expect(timeoutId).to.not.be.undefined;
+        clearTimeout(timeoutId);
       });
     });
   });
 
-  // ==================== ACK Functions Tests ====================
-  describe('ACK Functions', () => {
-    describe('removeAckFromArray', () => {
-      it('should remove ack by ack_id', () => {
-        websocketsRewired.responsesAck = [
-          { ack_id: 'ack-1', type: 'ack' },
-          { ack_id: 'ack-2', type: 'ack' },
-        ];
+  // ==================== Reconnection Tests ====================
+  describe('Reconnection Module', () => {
+    beforeEach(() => {
+      reconnectionRewired.resetReconnectDelay();
+    });
 
-        const removeAckFromArray = websocketsRewired.__get__('removeAckFromArray');
-        removeAckFromArray('ack-1');
+    describe('getReconnectDelay', () => {
+      it('should return delay with exponential backoff', () => {
+        const firstDelay = reconnectionRewired.getReconnectDelay();
+        expect(firstDelay).to.be.at.least(4000);
+        expect(firstDelay).to.be.at.most(6000);
 
-        expect(websocketsRewired.responsesAck).to.have.length(1);
-        expect(websocketsRewired.responsesAck[0].ack_id).to.equal('ack-2');
+        const secondDelay = reconnectionRewired.getReconnectDelay();
+        expect(secondDelay).to.be.at.least(8000);
+        expect(secondDelay).to.be.at.most(12000);
       });
 
-      it('should do nothing if ack_id not found', () => {
-        websocketsRewired.responsesAck = [{ ack_id: 'ack-1', type: 'ack' }];
-
-        const removeAckFromArray = websocketsRewired.__get__('removeAckFromArray');
-        removeAckFromArray('ack-999');
-
-        expect(websocketsRewired.responsesAck).to.have.length(1);
+      it('should cap delay at max', () => {
+        for (let i = 0; i < 20; i++) {
+          reconnectionRewired.getReconnectDelay();
+        }
+        const delay = reconnectionRewired.getReconnectDelay();
+        expect(delay).to.be.at.most(360000);
       });
     });
 
-    describe('setValueRetriesToJsonInAckArray', () => {
-      it('should increment retries for matching ack_id', () => {
-        websocketsRewired.responsesAck = [
-          { ack_id: 'ack-1', retries: 0 },
-          { ack_id: 'ack-2', retries: 1 },
-        ];
+    describe('resetReconnectDelay', () => {
+      it('should reset attempts to 0', () => {
+        reconnectionRewired.getReconnectDelay();
+        reconnectionRewired.getReconnectDelay();
+        reconnectionRewired.resetReconnectDelay();
 
-        const setValueRetriesToJsonInAckArray = websocketsRewired.__get__('setValueRetriesToJsonInAckArray');
-        setValueRetriesToJsonInAckArray('ack-1');
-
-        expect(websocketsRewired.responsesAck[0].retries).to.equal(1);
-        expect(websocketsRewired.responsesAck[1].retries).to.equal(1);
-      });
-
-      it('should do nothing if ack_id not found', () => {
-        websocketsRewired.responsesAck = [{ ack_id: 'ack-1', retries: 0 }];
-
-        const setValueRetriesToJsonInAckArray = websocketsRewired.__get__('setValueRetriesToJsonInAckArray');
-        setValueRetriesToJsonInAckArray('ack-999');
-
-        expect(websocketsRewired.responsesAck[0].retries).to.equal(0);
+        const delay = reconnectionRewired.getReconnectDelay();
+        expect(delay).to.be.at.least(4000);
+        expect(delay).to.be.at.most(6000);
       });
     });
 
-    describe('sendAckToServer', () => {
-      it('should send ack when ws is ready', () => {
-        websocketsRewired.responsesAck = [{ ack_id: 'ack-1', type: 'ack', sent: false }];
-        websocketsRewired.__set__('ws', mockWs);
-
-        websocketsRewired.sendAckToServer({ ack_id: 'ack-1', type: 'ack' });
-
-        expect(mockWs.send.calledOnce).to.be.true;
-        const sentData = JSON.parse(mockWs.send.firstCall.args[0]);
-        expect(sentData.ack_id).to.equal('ack-1');
-        expect(sentData.type).to.equal('ack');
+    describe('isReconnecting state', () => {
+      it('should be false initially', () => {
+        reconnectionRewired.setIsReconnecting(false);
+        expect(reconnectionRewired.getIsReconnecting()).to.be.false;
       });
 
-      it('should not send when ws is not ready', () => {
-        websocketsRewired.__set__('ws', null);
-
-        websocketsRewired.sendAckToServer({ ack_id: 'ack-1', type: 'ack' });
-
-        expect(mockWs.send.called).to.be.false;
-      });
-
-      it('should not send when ws readyState is not 1', () => {
-        mockWs.readyState = 0;
-        websocketsRewired.__set__('ws', mockWs);
-
-        websocketsRewired.sendAckToServer({ ack_id: 'ack-1', type: 'ack' });
-
-        expect(mockWs.send.called).to.be.false;
-      });
-    });
-
-    describe('notifyAck', () => {
-      it('should remove ack when retries exceed max', () => {
-        websocketsRewired.responsesAck = [{ ack_id: 'ack-1', type: 'ack', retries: 4 }];
-
-        websocketsRewired.notifyAck('ack-1', 'ack', '', false, 4);
-
-        expect(websocketsRewired.responsesAck).to.have.length(0);
-      });
-
-      it('should send ack when found by id and not sent', () => {
-        const sendAckStub = sinon.stub(websocketsRewired, 'sendAckToServer');
-        websocketsRewired.responsesAck = [{
-          ack_id: 'ack-1',
-          type: 'ack',
-          id: 'cmd-1',
-          sent: false,
-          retries: 0,
-        }];
-
-        websocketsRewired.notifyAck('ack-1', 'ack', 'cmd-1', false, 0);
-
-        expect(sendAckStub.calledOnce).to.be.true;
-        sendAckStub.restore();
+      it('should be settable', () => {
+        reconnectionRewired.setIsReconnecting(true);
+        expect(reconnectionRewired.getIsReconnecting()).to.be.true;
+        reconnectionRewired.setIsReconnecting(false);
       });
     });
   });
 
   // ==================== Heartbeat Tests ====================
-  describe('Heartbeat Functions', () => {
-    describe('heartbeat', () => {
-      it('should trigger device_unseen and restart when ws is not ready', () => {
-        websocketsRewired.__set__('ws', null);
-        websocketsRewired.__set__('hooks', mockHooks);
-
-        websocketsRewired.heartbeat();
-
-        expect(mockHooks.trigger.calledWith('device_unseen')).to.be.true;
-      });
-
-      it('should trigger reconnection when readyState is not 1', () => {
-        mockWs.readyState = 3; // CLOSED
-        websocketsRewired.__set__('ws', mockWs);
-        websocketsRewired.__set__('hooks', mockHooks);
-
-        websocketsRewired.heartbeat();
-
-        expect(mockHooks.trigger.calledWith('device_unseen')).to.be.true;
-      });
+  describe('Heartbeat Module', () => {
+    afterEach(() => {
+      heartbeatRewired.clearAll();
     });
 
     describe('heartbeatTimed', () => {
-      it('should set timeout for heartbeat', () => {
-        // Clear any existing timeout first
-        const existingTimeout = websocketsRewired.__get__('pingTimeout');
-        if (existingTimeout) clearTimeout(existingTimeout);
+      it('should set timeout', () => {
+        const callback = sinon.stub();
+        heartbeatRewired.heartbeatTimed(callback);
 
-        websocketsRewired.heartbeatTimed();
+        const timeout = heartbeatRewired.getPingTimeout();
+        expect(timeout).to.not.be.null;
+        heartbeatRewired.clearPingTimeout();
+      });
 
-        // Verify timeout was set (it's internal, so we check side effects)
-        const pingTimeout = websocketsRewired.__get__('pingTimeout');
-        expect(pingTimeout).to.not.be.null;
+      it('should clear existing timeout before setting new one', () => {
+        const callback1 = sinon.stub();
+        const callback2 = sinon.stub();
 
-        // Clean up the timeout we created
-        clearTimeout(pingTimeout);
-        websocketsRewired.__set__('pingTimeout', null);
+        heartbeatRewired.heartbeatTimed(callback1);
+        const timeout1 = heartbeatRewired.getPingTimeout();
+
+        heartbeatRewired.heartbeatTimed(callback2);
+        const timeout2 = heartbeatRewired.getPingTimeout();
+
+        expect(timeout1).to.not.equal(timeout2);
+      });
+    });
+
+    describe('clearAll', () => {
+      it('should clear all timers', () => {
+        heartbeatRewired.heartbeatTimed(() => {});
+        heartbeatRewired.clearAll();
+
+        expect(heartbeatRewired.getPingTimeout()).to.be.null;
+        expect(heartbeatRewired.getPingInterval()).to.be.null;
+      });
+    });
+
+    describe('clearPingTimeout', () => {
+      it('should clear ping timeout', () => {
+        heartbeatRewired.heartbeatTimed(() => {});
+        expect(heartbeatRewired.getPingTimeout()).to.not.be.null;
+
+        heartbeatRewired.clearPingTimeout();
+        expect(heartbeatRewired.getPingTimeout()).to.be.null;
+      });
+    });
+
+    describe('clearPingInterval', () => {
+      it('should not throw when pingInterval is null', () => {
+        expect(() => heartbeatRewired.clearPingInterval()).to.not.throw();
+      });
+    });
+
+    describe('pongReceived', () => {
+      it('should be false initially', () => {
+        heartbeatRewired.setPongReceived(false);
+        expect(heartbeatRewired.getPongReceived()).to.be.false;
+      });
+
+      it('should be settable', () => {
+        heartbeatRewired.setPongReceived(true);
+        expect(heartbeatRewired.getPongReceived()).to.be.true;
+        heartbeatRewired.setPongReceived(false);
+      });
+    });
+
+    describe('startPingInterval', () => {
+      let clock;
+      let localHeartbeat;
+
+      beforeEach(() => {
+        clock = sinon.useFakeTimers();
+        // Re-rewire after fake timers are set up so module uses fake setInterval
+        localHeartbeat = rewire('../../../../../lib/agent/control-panel/websockets/heartbeat');
+      });
+
+      afterEach(() => {
+        localHeartbeat.clearAll();
+        clock.restore();
+      });
+
+      it('should set ping interval', () => {
+        localHeartbeat.startPingInterval(mockWs, mockLogger, () => {});
+
+        const interval = localHeartbeat.getPingInterval();
+        expect(interval).to.not.be.null;
+      });
+
+      it('should send ping via websocket', () => {
+        const pingWs = {
+          readyState: 1,
+          ping: sinon.stub().callsFake((data, cb) => {
+            if (cb) cb();
+          }),
+        };
+
+        localHeartbeat.startPingInterval(pingWs, mockLogger, () => {});
+
+        // Advance time past PING_INTERVAL (60000ms)
+        clock.tick(60001);
+
+        expect(pingWs.ping.called).to.be.true;
+      });
+
+      it('should call onFailure when pong not received', () => {
+        const onFailure = sinon.stub();
+        localHeartbeat.setPongReceived(false);
+
+        const pingWs = {
+          readyState: 1,
+          ping: sinon.stub().callsFake((data, cb) => {
+            if (cb) cb();
+          }),
+        };
+
+        localHeartbeat.startPingInterval(pingWs, mockLogger, onFailure);
+
+        // Advance time past PING_INTERVAL (60000ms) + PONG_WAIT_TIMEOUT (15000ms)
+        clock.tick(60001);
+        clock.tick(15001);
+
+        expect(onFailure.called).to.be.true;
+      });
+
+      it('should not call onFailure when pong received', () => {
+        const onFailure = sinon.stub();
+
+        const pingWs = {
+          readyState: 1,
+          ping: sinon.stub().callsFake((data, cb) => {
+            if (cb) cb();
+            // Simulate pong received
+            localHeartbeat.setPongReceived(true);
+          }),
+        };
+
+        localHeartbeat.startPingInterval(pingWs, mockLogger, onFailure);
+
+        // Advance time past PING_INTERVAL + PONG_WAIT_TIMEOUT
+        clock.tick(60001);
+        clock.tick(15001);
+
+        expect(onFailure.called).to.be.false;
+      });
+
+      it('should log when ping fails', () => {
+        const pingWs = {
+          readyState: 1,
+          ping: sinon.stub().callsFake((data, cb) => {
+            if (cb) cb(new Error('Ping failed'));
+          }),
+        };
+
+        localHeartbeat.startPingInterval(pingWs, mockLogger, () => {});
+
+        // Advance time to trigger the interval
+        clock.tick(60001);
+
+        expect(mockLogger.error.called).to.be.true;
+      });
+
+      it('should skip ping when ws is not ready', () => {
+        const notReadyWs = {
+          readyState: 0,
+          ping: sinon.stub(),
+        };
+
+        localHeartbeat.startPingInterval(notReadyWs, mockLogger, () => {});
+
+        // Advance time past PING_INTERVAL
+        clock.tick(60001);
+
+        expect(notReadyWs.ping.called).to.be.false;
+      });
+    });
+
+    describe('handlePing', () => {
+      it('should call heartbeatTimedFn', () => {
+        const heartbeatTimedFn = sinon.stub();
+        heartbeatRewired.handlePing(mockWs, heartbeatTimedFn);
+        expect(heartbeatTimedFn.calledOnce).to.be.true;
+      });
+
+      it('should call ws.pong when connection is ready', () => {
+        const heartbeatTimedFn = sinon.stub();
+        heartbeatRewired.handlePing(mockWs, heartbeatTimedFn);
+        expect(mockWs.pong.calledOnce).to.be.true;
+      });
+
+      it('should not call ws.pong when connection is not ready', () => {
+        const notReadyWs = {
+          readyState: 0,
+          pong: sinon.stub(),
+        };
+        const heartbeatTimedFn = sinon.stub();
+        heartbeatRewired.handlePing(notReadyWs, heartbeatTimedFn);
+        expect(notReadyWs.pong.called).to.be.false;
       });
     });
   });
 
-  // ==================== Notification Functions Tests ====================
-  describe('Notification Functions', () => {
-    describe('notify_status', () => {
-      it('should send status when ws is ready', () => {
-        websocketsRewired.__set__('ws', mockWs);
+  // ==================== Response Queue Tests ====================
+  describe('Response Queue Module', () => {
+    beforeEach(() => {
+      responseQueueRewired.clearQueue();
+    });
 
-        websocketsRewired.notify_status({ online: true });
+    describe('getQueue', () => {
+      it('should return empty array initially', () => {
+        expect(responseQueueRewired.getQueue()).to.be.an('array');
+        expect(responseQueueRewired.getQueue()).to.have.length(0);
+      });
+    });
+
+    describe('addToQueue', () => {
+      it('should add response to queue', () => {
+        responseQueueRewired.addToQueue({ id: 'test-1' });
+        expect(responseQueueRewired.getQueue()).to.have.length(1);
+      });
+
+      it('should add multiple responses to queue', () => {
+        responseQueueRewired.addToQueue({ id: 'test-1' });
+        responseQueueRewired.addToQueue({ id: 'test-2' });
+        responseQueueRewired.addToQueue({ id: 'test-3' });
+        expect(responseQueueRewired.getQueue()).to.have.length(3);
+      });
+    });
+
+    describe('removeFromQueue', () => {
+      it('should remove response by id', () => {
+        responseQueueRewired.addToQueue({ id: 'test-1' });
+        responseQueueRewired.addToQueue({ id: 'test-2' });
+        responseQueueRewired.removeFromQueue('test-1');
+
+        expect(responseQueueRewired.getQueue()).to.have.length(1);
+        expect(responseQueueRewired.getQueue()[0].id).to.equal('test-2');
+      });
+
+      it('should not throw when removing non-existent id', () => {
+        responseQueueRewired.addToQueue({ id: 'test-1' });
+        expect(() => responseQueueRewired.removeFromQueue('non-existent')).to.not.throw();
+        expect(responseQueueRewired.getQueue()).to.have.length(1);
+      });
+    });
+
+    describe('findInQueue', () => {
+      it('should find response by id', () => {
+        responseQueueRewired.addToQueue({ id: 'test-1', data: 'found' });
+        const result = responseQueueRewired.findInQueue('test-1');
+        expect(result.data).to.equal('found');
+      });
+
+      it('should return undefined if not found', () => {
+        const result = responseQueueRewired.findInQueue('nonexistent');
+        expect(result).to.be.undefined;
+      });
+    });
+
+    describe('addToMarkedToBePushed', () => {
+      it('should add to markedToBePushed array', () => {
+        responseQueueRewired.addToMarkedToBePushed({ id: 'marked-1' });
+        const marked = responseQueueRewired.getMarkedToBePushed();
+        expect(marked).to.have.length(1);
+        expect(marked[0].id).to.equal('marked-1');
+      });
+    });
+
+    describe('getMarkedToBePushed', () => {
+      it('should return empty array initially', () => {
+        expect(responseQueueRewired.getMarkedToBePushed()).to.be.an('array');
+        expect(responseQueueRewired.getMarkedToBePushed()).to.have.length(0);
+      });
+    });
+
+    describe('clearQueue', () => {
+      it('should clear all queues', () => {
+        responseQueueRewired.addToQueue({ id: 'test-1' });
+        responseQueueRewired.addToMarkedToBePushed({ id: 'marked-1' });
+
+        responseQueueRewired.clearQueue();
+
+        expect(responseQueueRewired.getQueue()).to.have.length(0);
+        expect(responseQueueRewired.getMarkedToBePushed()).to.have.length(0);
+      });
+    });
+
+    describe('retryQueuedResponses', () => {
+      it('should do nothing when queue is empty', () => {
+        const notifyFn = sinon.stub();
+        responseQueueRewired.retryQueuedResponses(notifyFn);
+        expect(notifyFn.called).to.be.false;
+      });
+
+      it('should call notify for each response', () => {
+        responseQueueRewired.addToQueue({
+          id: 'resp-1',
+          body: { status: 'started', target: 'lock' },
+          reply_id: '123',
+        });
+
+        const notifyFn = sinon.stub();
+        responseQueueRewired.retryQueuedResponses(notifyFn);
+        expect(notifyFn.calledOnce).to.be.true;
+      });
+
+      it('should pass all parameters to notify function', () => {
+        responseQueueRewired.addToQueue({
+          id: 'resp-1',
+          body: { status: 'started', target: 'lock' },
+          reply_id: '123',
+          time: '2023-01-01T00:00:00.000Z',
+          retries: 2,
+        });
+
+        const notifyFn = sinon.stub();
+        responseQueueRewired.retryQueuedResponses(notifyFn);
+
+        expect(notifyFn.firstCall.args[0]).to.equal('started');
+        expect(notifyFn.firstCall.args[1]).to.equal('123');
+        expect(notifyFn.firstCall.args[2]).to.equal('lock');
+      });
+
+      it('should also process markedToBePushed and move to queue', () => {
+        responseQueueRewired.addToMarkedToBePushed({
+          id: 'marked-1',
+          body: { status: 'pending', target: 'alarm' },
+          reply_id: '456',
+        });
+
+        const notifyFn = sinon.stub();
+        responseQueueRewired.retryQueuedResponses(notifyFn);
+
+        expect(notifyFn.calledOnce).to.be.true;
+        expect(responseQueueRewired.getQueue()).to.have.length(1);
+        expect(responseQueueRewired.getMarkedToBePushed()).to.have.length(0);
+      });
+    });
+
+    describe('loadFromStorage', () => {
+      it('should load responses from storage', () => {
+        const storedResponses = [
+          { id: 'stored-1', status: 'pending', action: 'lock', action_id: '123', time: '2023-01-01', retries: 0, opts: 'target1' },
+        ];
+        const mockStorageLoad = {
+          do: sinon.stub().callsFake((action, opts, cb) => {
+            if (action === 'all' && opts.type === 'responses') {
+              cb(null, storedResponses);
+            }
+          }),
+        };
+
+        responseQueueRewired.loadFromStorage(mockStorageLoad, () => {});
+
+        expect(responseQueueRewired.getQueue().length).to.be.greaterThan(0);
+      });
+
+      it('should handle storage error', () => {
+        const mockStorageError = {
+          do: sinon.stub().callsFake((action, opts, cb) => {
+            cb(new Error('Storage error'));
+          }),
+        };
+
+        expect(() => {
+          responseQueueRewired.loadFromStorage(mockStorageError, () => {});
+        }).to.not.throw();
+      });
+
+      it('should handle null stored data', () => {
+        const mockStorageNull = {
+          do: sinon.stub().callsFake((action, opts, cb) => {
+            cb(null, null);
+          }),
+        };
+
+        expect(() => {
+          responseQueueRewired.loadFromStorage(mockStorageNull, () => {});
+        }).to.not.throw();
+      });
+
+      it('should handle empty stored array', () => {
+        const mockStorageEmpty = {
+          do: sinon.stub().callsFake((action, opts, cb) => {
+            cb(null, []);
+          }),
+        };
+
+        responseQueueRewired.loadFromStorage(mockStorageEmpty, () => {});
+        // Should complete without error
+      });
+
+      it('should parse reason from JSON string', () => {
+        const storedResponses = [
+          {
+            id: 'stored-1',
+            status: 'stopped',
+            action: 'lock',
+            action_id: '123',
+            time: '2023-01-01',
+            retries: 0,
+            reason: '{"message":"Error occurred"}',
+          },
+        ];
+        const mockStorageLoad = {
+          do: sinon.stub().callsFake((action, opts, cb) => {
+            if (action === 'all') {
+              cb(null, storedResponses);
+            }
+          }),
+        };
+
+        responseQueueRewired.loadFromStorage(mockStorageLoad, () => {});
+
+        const queue = responseQueueRewired.getQueue();
+        expect(queue.length).to.be.greaterThan(0);
+      });
+    });
+  });
+
+  // ==================== ACK Queue Tests ====================
+  describe('ACK Queue Module', () => {
+    beforeEach(() => {
+      ackQueueRewired.clearQueue();
+    });
+
+    describe('getQueue', () => {
+      it('should return empty array initially', () => {
+        expect(ackQueueRewired.getQueue()).to.be.an('array');
+        expect(ackQueueRewired.getQueue()).to.have.length(0);
+      });
+    });
+
+    describe('addAck', () => {
+      it('should add ack to queue', () => {
+        ackQueueRewired.addAck({ ack_id: 'ack-1' });
+        expect(ackQueueRewired.getQueue()).to.have.length(1);
+      });
+
+      it('should add multiple acks to queue', () => {
+        ackQueueRewired.addAck({ ack_id: 'ack-1' });
+        ackQueueRewired.addAck({ ack_id: 'ack-2' });
+        ackQueueRewired.addAck({ ack_id: 'ack-3' });
+        expect(ackQueueRewired.getQueue()).to.have.length(3);
+      });
+    });
+
+    describe('removeAck', () => {
+      it('should remove ack by ack_id', () => {
+        ackQueueRewired.addAck({ ack_id: 'ack-1' });
+        ackQueueRewired.addAck({ ack_id: 'ack-2' });
+        ackQueueRewired.removeAck('ack-1');
+
+        expect(ackQueueRewired.getQueue()).to.have.length(1);
+        expect(ackQueueRewired.getQueue()[0].ack_id).to.equal('ack-2');
+      });
+
+      it('should not throw when removing non-existent ack_id', () => {
+        ackQueueRewired.addAck({ ack_id: 'ack-1' });
+        expect(() => ackQueueRewired.removeAck('non-existent')).to.not.throw();
+        expect(ackQueueRewired.getQueue()).to.have.length(1);
+      });
+    });
+
+    describe('findAck', () => {
+      it('should find ack by ack_id', () => {
+        ackQueueRewired.addAck({ ack_id: 'ack-1', data: 'found' });
+        const result = ackQueueRewired.findAck('ack-1');
+        expect(result.data).to.equal('found');
+      });
+
+      it('should return undefined if not found', () => {
+        const result = ackQueueRewired.findAck('nonexistent');
+        expect(result).to.be.undefined;
+      });
+    });
+
+    describe('incrementRetries', () => {
+      it('should increment retries for matching ack', () => {
+        ackQueueRewired.addAck({ ack_id: 'ack-1', retries: 0 });
+        ackQueueRewired.incrementRetries('ack-1');
+        expect(ackQueueRewired.getQueue()[0].retries).to.equal(1);
+      });
+
+      it('should not increment if not found', () => {
+        ackQueueRewired.addAck({ ack_id: 'ack-1', retries: 0 });
+        ackQueueRewired.incrementRetries('nonexistent');
+        expect(ackQueueRewired.getQueue()[0].retries).to.equal(0);
+      });
+    });
+
+    describe('clearQueue', () => {
+      it('should clear all acks', () => {
+        ackQueueRewired.addAck({ ack_id: 'ack-1' });
+        ackQueueRewired.addAck({ ack_id: 'ack-2' });
+
+        ackQueueRewired.clearQueue();
+
+        expect(ackQueueRewired.getQueue()).to.have.length(0);
+      });
+    });
+
+    describe('sendAckToServer', () => {
+      it('should send ack when ws is ready', () => {
+        ackQueueRewired.addAck({ ack_id: 'ack-1', type: 'ack' });
+        ackQueueRewired.sendAckToServer(mockWs, { ack_id: 'ack-1', type: 'ack' }, mockLogger);
+
+        expect(mockWs.send.calledOnce).to.be.true;
+        const sentData = JSON.parse(mockWs.send.firstCall.args[0]);
+        expect(sentData.ack_id).to.equal('ack-1');
+      });
+
+      it('should not send when ws is not ready', () => {
+        ackQueueRewired.sendAckToServer(null, { ack_id: 'ack-1', type: 'ack' }, mockLogger);
+        expect(mockWs.send.called).to.be.false;
+      });
+
+      it('should add ack to queue if not already present', () => {
+        ackQueueRewired.sendAckToServer(mockWs, { ack_id: 'new-ack', type: 'ack', retries: 0 }, mockLogger);
+        expect(ackQueueRewired.getQueue()).to.have.length(1);
+      });
+
+      it('should not duplicate ack in queue', () => {
+        ackQueueRewired.addAck({ ack_id: 'ack-1', type: 'ack', retries: 0 });
+        ackQueueRewired.sendAckToServer(mockWs, { ack_id: 'ack-1', type: 'ack', retries: 0 }, mockLogger);
+        expect(ackQueueRewired.getQueue()).to.have.length(1);
+      });
+
+      it('should catch and log error when ws.send throws', () => {
+        const throwingWs = {
+          readyState: 1,
+          send: sinon.stub().throws(new Error('Send failed')),
+        };
+
+        expect(() => {
+          ackQueueRewired.sendAckToServer(throwingWs, { ack_id: 'ack-1', type: 'ack' }, mockLogger);
+        }).to.not.throw();
+
+        expect(mockLogger.error.called).to.be.true;
+      });
+    });
+
+    describe('notifyAck', () => {
+      it('should remove ack when retries exceed max', () => {
+        ackQueueRewired.addAck({ ack_id: 'ack-1', type: 'ack', retries: 4 });
+        ackQueueRewired.notifyAck(mockWs, 'ack-1', 'ack', '', false, 4, mockLogger);
+        expect(ackQueueRewired.getQueue()).to.have.length(0);
+      });
+
+      it('should send ack when ws is ready', () => {
+        ackQueueRewired.addAck({ ack_id: 'ack-1', type: 'ack', id: 'cmd-1', sent: true, retries: 0 });
+        ackQueueRewired.notifyAck(mockWs, 'ack-1', 'ack', 'cmd-1', true, 0, mockLogger);
+
+        expect(mockWs.send.calledOnce).to.be.true;
+      });
+
+      it('should not send when ws is not ready', () => {
+        ackQueueRewired.addAck({ ack_id: 'ack-1', type: 'ack', id: 'cmd-1', sent: true, retries: 0 });
+        ackQueueRewired.notifyAck(null, 'ack-1', 'ack', 'cmd-1', true, 0, mockLogger);
+
+        expect(mockWs.send.called).to.be.false;
+      });
+
+      it('should add new ack if not in queue', () => {
+        ackQueueRewired.notifyAck(mockWs, 'new-ack', 'ack', 'cmd-1', true, 0, mockLogger);
+        expect(ackQueueRewired.getQueue()).to.have.length(1);
+      });
+
+      it('should increment retries for existing ack', () => {
+        ackQueueRewired.addAck({ ack_id: 'ack-1', type: 'ack', id: 'cmd-1', sent: true, retries: 1 });
+        ackQueueRewired.notifyAck(mockWs, 'ack-1', 'ack', 'cmd-1', true, 1, mockLogger);
+
+        const ack = ackQueueRewired.findAck('ack-1');
+        expect(ack.retries).to.equal(2);
+      });
+    });
+
+    describe('retryAckResponses', () => {
+      it('should do nothing when queue is empty', () => {
+        ackQueueRewired.retryAckResponses(mockWs, mockLogger);
+        expect(mockWs.send.called).to.be.false;
+      });
+
+      it('should retry acks in queue', () => {
+        ackQueueRewired.addAck({ ack_id: 'ack-1', type: 'ack', id: 'cmd-1', sent: true, retries: 0 });
+        ackQueueRewired.retryAckResponses(mockWs, mockLogger);
+
+        expect(mockWs.send.called).to.be.true;
+      });
+
+      it('should remove acks that exceed max retries', () => {
+        ackQueueRewired.addAck({ ack_id: 'ack-1', type: 'ack', id: 'cmd-1', sent: true, retries: 5 });
+        ackQueueRewired.retryAckResponses(mockWs, mockLogger);
+
+        expect(ackQueueRewired.getQueue()).to.have.length(0);
+      });
+
+      it('should not send when ws is not ready', () => {
+        ackQueueRewired.addAck({ ack_id: 'ack-1', type: 'ack', id: 'cmd-1', sent: true, retries: 0 });
+        ackQueueRewired.retryAckResponses(null, mockLogger);
+
+        expect(mockWs.send.called).to.be.false;
+      });
+    });
+
+    describe('processAcks', () => {
+      it('should process array of acks', () => {
+        const mockAckModule = {
+          processAck: sinon.stub().callsFake((item, cb) => {
+            cb(null, { ack_id: item.ack_id, type: 'ack', id: item.id });
+          }),
+        };
+
+        ackQueueRewired.processAcks(
+          [{ ack_id: 'ack-1', id: 'cmd-1' }],
+          mockAckModule,
+          mockLogger,
+        );
+
+        expect(ackQueueRewired.getQueue()).to.have.length(1);
+      });
+
+      it('should log error when processAck fails', () => {
+        const mockAckModule = {
+          processAck: sinon.stub().callsFake((item, cb) => {
+            cb(new Error('Processing failed'));
+          }),
+        };
+
+        ackQueueRewired.processAcks([{ ack_id: 'ack-1' }], mockAckModule, mockLogger);
+        expect(mockLogger.error.called).to.be.true;
+      });
+
+      it('should handle empty array', () => {
+        const mockAckModule = {
+          processAck: sinon.stub(),
+        };
+
+        ackQueueRewired.processAcks([], mockAckModule, mockLogger);
+        expect(mockAckModule.processAck.called).to.be.false;
+      });
+
+      it('should process multiple acks', () => {
+        const mockAckModule = {
+          processAck: sinon.stub().callsFake((item, cb) => {
+            cb(null, { ack_id: item.ack_id, type: 'ack', id: item.id });
+          }),
+        };
+
+        ackQueueRewired.processAcks(
+          [
+            { ack_id: 'ack-1', id: 'cmd-1' },
+            { ack_id: 'ack-2', id: 'cmd-2' },
+            { ack_id: 'ack-3', id: 'cmd-3' },
+          ],
+          mockAckModule,
+          mockLogger,
+        );
+
+        expect(ackQueueRewired.getQueue()).to.have.length(3);
+      });
+    });
+  });
+
+  // ==================== Handlers Tests ====================
+  describe('Handlers Module', () => {
+    describe('groupByStructure', () => {
+      it('should group objects by structure signature', () => {
+        const objects = [
+          { action: 'lock', id: '1' },
+          { action: 'alarm', id: '2' },
+          { action: 'wipe', target: 'disk', id: '3' },
+        ];
+
+        const grouped = handlersRewired.groupByStructure(objects);
+        const keys = Object.keys(grouped);
+        expect(keys).to.have.length(2);
+      });
+
+      it('should handle empty array', () => {
+        const grouped = handlersRewired.groupByStructure([]);
+        expect(grouped).to.deep.equal({});
+      });
+
+      it('should handle nested objects', () => {
+        const objects = [
+          { action: 'lock', options: { force: true } },
+          { action: 'alarm', options: { force: false } },
+        ];
+
+        const grouped = handlersRewired.groupByStructure(objects);
+        const keys = Object.keys(grouped);
+        expect(keys).to.have.length(1);
+      });
+    });
+
+    describe('processCommands', () => {
+      it('should emit commands via emitter', (done) => {
+        const emitterMock = new EventEmitter();
+        emitterMock.on('command', (cmd) => {
+          expect(cmd.action).to.equal('lock');
+          done();
+        });
+
+        handlersRewired.processCommands(
+          [{ action: 'lock', id: '1' }],
+          emitterMock,
+          mockHooks,
+          mockLogger,
+        );
+      });
+    });
+
+    describe('handleMessage', () => {
+      it('should handle invalid JSON', () => {
+        const context = {
+          responseQueue: responseQueueRewired,
+          ackQueue: ackQueueRewired,
+          storage: mockStorage,
+          ackModule: { processAck: sinon.stub() },
+          hooks: mockHooks,
+          logger: mockLogger,
+          emitter: new EventEmitter(),
+        };
+
+        handlersRewired.handleMessage('invalid json', context);
+        expect(mockHooks.trigger.calledWith('error')).to.be.true;
+      });
+
+      it('should handle OK status response', () => {
+        responseQueueRewired.addToQueue({
+          id: 'resp-123',
+          type: 'response',
+        });
+
+        const context = {
+          responseQueue: responseQueueRewired,
+          ackQueue: ackQueueRewired,
+          storage: mockStorage,
+          ackModule: { processAck: sinon.stub() },
+          hooks: mockHooks,
+          logger: mockLogger,
+          emitter: new EventEmitter(),
+        };
+
+        handlersRewired.handleMessage('{"status":"OK","id":"resp-123"}', context);
+        expect(responseQueueRewired.getQueue()).to.have.length(0);
+      });
+    });
+  });
+
+  // ==================== Notifications Tests ====================
+  describe('Notifications Module', () => {
+    describe('notifyStatus', () => {
+      it('should send status when ws is ready', () => {
+        notificationsRewired.notifyStatus(mockWs, { online: true }, mockLogger);
 
         expect(mockWs.send.calledOnce).to.be.true;
         const sentData = JSON.parse(mockWs.send.firstCall.args[0]);
@@ -334,17 +972,12 @@ describe('WebSocket index.js', () => {
       });
 
       it('should not send when ws is not ready', () => {
-        websocketsRewired.__set__('ws', null);
-
-        websocketsRewired.notify_status({ online: true });
-
+        notificationsRewired.notifyStatus(null, { online: true }, mockLogger);
         expect(mockWs.send.called).to.be.false;
       });
 
-      it('should include id, type, time and body in message', () => {
-        websocketsRewired.__set__('ws', mockWs);
-
-        websocketsRewired.notify_status({ cpu: 50 });
+      it('should include id, type, time and body', () => {
+        notificationsRewired.notifyStatus(mockWs, { cpu: 50 }, mockLogger);
 
         const sentData = JSON.parse(mockWs.send.firstCall.args[0]);
         expect(sentData).to.have.property('id');
@@ -352,113 +985,943 @@ describe('WebSocket index.js', () => {
         expect(sentData).to.have.property('time');
         expect(sentData).to.have.property('body');
       });
+
+      it('should catch and log error when ws.send throws', () => {
+        const throwingWs = {
+          readyState: 1,
+          send: sinon.stub().throws(new Error('Send failed')),
+        };
+
+        expect(() => {
+          notificationsRewired.notifyStatus(throwingWs, { online: true }, mockLogger);
+        }).to.not.throw();
+
+        expect(mockLogger.error.called).to.be.true;
+      });
     });
 
-    describe('notify_action', () => {
+    describe('notifyAction', () => {
+      beforeEach(() => {
+        responseQueueRewired.clearQueue();
+      });
+
       it('should not send when id is missing', () => {
-        websocketsRewired.__set__('ws', mockWs);
-
-        websocketsRewired.notify_action('started', null, 'lock');
-
+        const context = { ws: mockWs, storage: mockStorage, responseQueue: responseQueueRewired, logger: mockLogger };
+        notificationsRewired.notifyAction(context, { status: 'started', id: null, action: 'lock' });
         expect(mockWs.send.called).to.be.false;
       });
 
       it('should not send when id is "report"', () => {
-        websocketsRewired.__set__('ws', mockWs);
-
-        websocketsRewired.notify_action('started', 'report', 'lock');
-
+        const context = { ws: mockWs, storage: mockStorage, responseQueue: responseQueueRewired, logger: mockLogger };
+        notificationsRewired.notifyAction(context, { status: 'started', id: 'report', action: 'lock' });
         expect(mockWs.send.called).to.be.false;
       });
 
       it('should not send when action is "triggers"', () => {
-        websocketsRewired.__set__('ws', mockWs);
-
-        websocketsRewired.notify_action('started', '123', 'triggers');
-
+        const context = { ws: mockWs, storage: mockStorage, responseQueue: responseQueueRewired, logger: mockLogger };
+        notificationsRewired.notifyAction(context, { status: 'started', id: '123', action: 'triggers' });
         expect(mockWs.send.called).to.be.false;
       });
 
-      it('should not send when action is factoryreset and status is stopped', () => {
-        websocketsRewired.__set__('ws', mockWs);
-
-        websocketsRewired.notify_action('stopped', '123', 'factoryreset');
-
+      it('should not send when factoryreset action has stopped status', () => {
+        const context = { ws: mockWs, storage: mockStorage, responseQueue: responseQueueRewired, logger: mockLogger };
+        notificationsRewired.notifyAction(context, { status: 'stopped', id: '123', action: 'factoryreset' });
         expect(mockWs.send.called).to.be.false;
       });
 
-      it('should remove from queue when retries exceed max', () => {
-        websocketsRewired.__set__('ws', mockWs);
-        websocketsRewired.responses_queue = [{ id: 'resp-1' }];
-
-        websocketsRewired.notify_action('started', '123', 'lock', null, null, null, null, 'resp-1', 10);
-
-        expect(websocketsRewired.responses_queue).to.have.length(0);
-      });
-
-      it('should send action when ws is ready and valid params', () => {
-        websocketsRewired.__set__('ws', mockWs);
-
-        websocketsRewired.notify_action('started', '123', 'lock');
+      it('should send action when valid params', () => {
+        const context = { ws: mockWs, storage: mockStorage, responseQueue: responseQueueRewired, logger: mockLogger };
+        notificationsRewired.notifyAction(context, { status: 'started', id: '123', action: 'lock' });
 
         expect(mockWs.send.calledOnce).to.be.true;
         const sentData = JSON.parse(mockWs.send.firstCall.args[0]);
         expect(sentData.reply_id).to.equal('123');
         expect(sentData.type).to.equal('response');
-        expect(sentData.body.status).to.equal('started');
-        expect(sentData.body.target).to.equal('lock');
       });
 
       it('should include error reason when error is provided', () => {
-        websocketsRewired.__set__('ws', mockWs);
+        const context = { ws: mockWs, storage: mockStorage, responseQueue: responseQueueRewired, logger: mockLogger };
         const error = new Error('Test error');
-
-        websocketsRewired.notify_action('stopped', '123', 'lock', null, error);
+        notificationsRewired.notifyAction(context, { status: 'stopped', id: '123', action: 'lock', err: error });
 
         const sentData = JSON.parse(mockWs.send.firstCall.args[0]);
         expect(sentData.body.reason).to.equal('Test error');
       });
 
       it('should handle diskencryption action with out', () => {
-        websocketsRewired.__set__('ws', mockWs);
-
-        websocketsRewired.notify_action('started', '123', 'diskencryption', null, null, 'encrypted');
+        const context = { ws: mockWs, storage: mockStorage, responseQueue: responseQueueRewired, logger: mockLogger };
+        notificationsRewired.notifyAction(context, { status: 'started', id: '123', action: 'diskencryption', out: 'encrypted' });
 
         const sentData = JSON.parse(mockWs.send.firstCall.args[0]);
         expect(sentData.body.reason.encryption).to.equal('encrypted');
       });
 
-      it('should handle factoryreset action with out', () => {
-        websocketsRewired.__set__('ws', mockWs);
+      it('should handle diskencryption action with error', () => {
+        const context = { ws: mockWs, storage: mockStorage, responseQueue: responseQueueRewired, logger: mockLogger };
+        notificationsRewired.notifyAction(context, {
+          status: 'stopped',
+          id: '123',
+          action: 'diskencryption',
+          err: 'Encryption failed',
+        });
 
-        websocketsRewired.notify_action('started', '123', 'factoryreset', null, null, { data: 0, message: 'success' });
+        const sentData = JSON.parse(mockWs.send.firstCall.args[0]);
+        expect(sentData.body.reason.encryption).to.equal('Encryption failed');
+      });
+
+      it('should handle fullwipe with out data', () => {
+        const context = { ws: mockWs, storage: mockStorage, responseQueue: responseQueueRewired, logger: mockLogger };
+        notificationsRewired.notifyAction(context, {
+          status: 'started',
+          id: '123',
+          action: 'fullwipe',
+          out: { data: 0, message: 'success' },
+        });
 
         const sentData = JSON.parse(mockWs.send.firstCall.args[0]);
         expect(sentData.body.reason.status_code).to.equal(0);
-        expect(sentData.body.reason.status_msg).to.equal('success');
+      });
+
+      it('should handle factoryreset with out data', () => {
+        const context = { ws: mockWs, storage: mockStorage, responseQueue: responseQueueRewired, logger: mockLogger };
+        notificationsRewired.notifyAction(context, {
+          status: 'started',
+          id: '123',
+          action: 'factoryreset',
+          out: { data: 0, message: 'reset started' },
+        });
+
+        const sentData = JSON.parse(mockWs.send.firstCall.args[0]);
+        expect(sentData.body.reason.status_code).to.equal(0);
+        expect(sentData.body.reason.status_msg).to.equal('reset started');
+      });
+
+      it('should handle factoryreset with error', () => {
+        const context = { ws: mockWs, storage: mockStorage, responseQueue: responseQueueRewired, logger: mockLogger };
+        const error = new Error('Reset failed');
+        error.code = 2;
+        notificationsRewired.notifyAction(context, {
+          status: 'started',
+          id: '123',
+          action: 'factoryreset',
+          err: error,
+        });
+
+        const sentData = JSON.parse(mockWs.send.firstCall.args[0]);
+        expect(sentData.body.reason.status_code).to.equal(2);
+        expect(sentData.body.reason.status_msg).to.equal('Reset failed');
+        expect(sentData.body.status).to.equal('stopped');
+      });
+
+      it('should handle fullwipe with error', () => {
+        const context = { ws: mockWs, storage: mockStorage, responseQueue: responseQueueRewired, logger: mockLogger };
+        const error = new Error('Wipe failed');
+        error.code = 3;
+        notificationsRewired.notifyAction(context, {
+          status: 'started',
+          id: '123',
+          action: 'fullwipe',
+          err: error,
+        });
+
+        const sentData = JSON.parse(mockWs.send.firstCall.args[0]);
+        expect(sentData.body.reason.status_code).to.equal(3);
+        expect(sentData.body.status).to.equal('stopped');
+      });
+
+      it('should handle fullwipewindows action with opts', () => {
+        const context = { ws: mockWs, storage: mockStorage, responseQueue: responseQueueRewired, logger: mockLogger };
+        notificationsRewired.notifyAction(context, {
+          status: 'started',
+          id: '123',
+          action: 'fullwipewindows',
+          opts: { target: 'C:' },
+        });
+
+        const sentData = JSON.parse(mockWs.send.firstCall.args[0]);
+        expect(sentData.body.target).to.equal('C:');
+      });
+
+      it('should delete response from storage when max retries exceeded', () => {
+        const context = { ws: mockWs, storage: mockStorage, responseQueue: responseQueueRewired, logger: mockLogger };
+        notificationsRewired.notifyAction(context, {
+          status: 'started',
+          id: '123',
+          action: 'lock',
+          retries: 10,
+          respId: 'resp-123',
+        });
+
+        expect(mockStorage.do.calledWith('del')).to.be.true;
+      });
+
+      it('should use existing time if provided', () => {
+        const context = { ws: mockWs, storage: mockStorage, responseQueue: responseQueueRewired, logger: mockLogger };
+        const customTime = '2023-01-01T00:00:00.000Z';
+        notificationsRewired.notifyAction(context, {
+          status: 'started',
+          id: '123',
+          action: 'lock',
+          time: customTime,
+        });
+
+        const sentData = JSON.parse(mockWs.send.firstCall.args[0]);
+        expect(sentData.time).to.equal(customTime);
+      });
+
+      it('should replace NULL time with current time', () => {
+        const context = { ws: mockWs, storage: mockStorage, responseQueue: responseQueueRewired, logger: mockLogger };
+        notificationsRewired.notifyAction(context, {
+          status: 'started',
+          id: '123',
+          action: 'lock',
+          time: 'NULL',
+        });
+
+        const sentData = JSON.parse(mockWs.send.firstCall.args[0]);
+        expect(sentData.time).to.not.equal('NULL');
+      });
+
+      it('should use respId when provided', () => {
+        const context = { ws: mockWs, storage: mockStorage, responseQueue: responseQueueRewired, logger: mockLogger };
+        notificationsRewired.notifyAction(context, {
+          status: 'started',
+          id: '123',
+          action: 'lock',
+          respId: 'custom-resp-id',
+        });
+
+        const sentData = JSON.parse(mockWs.send.firstCall.args[0]);
+        expect(sentData.id).to.equal('custom-resp-id');
+      });
+
+      it('should add to markedToBePushed when fromWithin is true', () => {
+        const context = { ws: mockWs, storage: mockStorage, responseQueue: responseQueueRewired, logger: mockLogger };
+        notificationsRewired.notifyAction(context, {
+          status: 'started',
+          id: '123',
+          action: 'lock',
+          fromWithin: true,
+        });
+
+        const markedToBePushed = responseQueueRewired.getMarkedToBePushed();
+        expect(markedToBePushed.length).to.be.greaterThan(0);
+      });
+
+      it('should update existing response in queue', () => {
+        const context = { ws: mockWs, storage: mockStorage, responseQueue: responseQueueRewired, logger: mockLogger };
+
+        // First call adds to queue
+        notificationsRewired.notifyAction(context, {
+          status: 'started',
+          id: '123',
+          action: 'lock',
+          respId: 'existing-resp',
+        });
+
+        // Second call updates
+        notificationsRewired.notifyAction(context, {
+          status: 'completed',
+          id: '123',
+          action: 'lock',
+          respId: 'existing-resp',
+          retries: 1,
+        });
+
+        expect(mockStorage.do.calledWith('update')).to.be.true;
+      });
+
+      it('should not send when ws is not ready', () => {
+        const context = { ws: null, storage: mockStorage, responseQueue: responseQueueRewired, logger: mockLogger };
+        notificationsRewired.notifyAction(context, {
+          status: 'started',
+          id: '123',
+          action: 'lock',
+        });
+
+        expect(mockWs.send.called).to.be.false;
+      });
+
+      it('should catch and log error when ws.send throws', () => {
+        const throwingWs = {
+          readyState: 1,
+          send: sinon.stub().throws(new Error('Send failed')),
+        };
+        const context = { ws: throwingWs, storage: mockStorage, responseQueue: responseQueueRewired, logger: mockLogger };
+
+        expect(() => {
+          notificationsRewired.notifyAction(context, {
+            status: 'started',
+            id: '123',
+            action: 'lock',
+          });
+        }).to.not.throw();
+
+        expect(mockLogger.error.called).to.be.true;
       });
     });
   });
 
-  // ==================== Utility Functions Tests ====================
-  describe('Utility Functions', () => {
-    describe('check_timestamp', () => {
-      it('should return false when lastTime is null', () => {
-        websocketsRewired.__set__('lastTime', null);
+  // ==================== Connection Tests ====================
+  describe('Connection Module', () => {
+    let MockWebSocket;
 
+    beforeEach(() => {
+      connectionRewired.reset();
+
+      // Create mock WebSocket constructor
+      MockWebSocket = sinon.stub().callsFake(function MockWS() {
+        this.readyState = 1;
+        this.send = sinon.stub();
+        this.terminate = sinon.stub();
+        this.ping = sinon.stub();
+        this.pong = sinon.stub();
+        this.on = sinon.stub().callsFake((event, handler) => {
+          this[`_${event}Handler`] = handler;
+        });
+        // Store for triggering events
+        this.triggerOpen = () => this._openHandler && this._openHandler();
+        this.triggerClose = (code) => this._closeHandler && this._closeHandler(code);
+        this.triggerMessage = (data) => this._messageHandler && this._messageHandler(data);
+        this.triggerError = (err) => this._errorHandler && this._errorHandler(err);
+        this.triggerPong = () => this._pongHandler && this._pongHandler();
+        this.triggerPing = () => this._pingHandler && this._pingHandler();
+      });
+    });
+
+    describe('isReady', () => {
+      it('should return false when not connected', () => {
+        expect(connectionRewired.isReady()).to.be.false;
+      });
+    });
+
+    describe('isConnected', () => {
+      it('should return false initially', () => {
+        expect(connectionRewired.isConnected()).to.be.false;
+      });
+    });
+
+    describe('setConnected', () => {
+      it('should update connected status', () => {
+        connectionRewired.setConnected(true);
+        expect(connectionRewired.isConnected()).to.be.true;
+        connectionRewired.setConnected(false);
+      });
+    });
+
+    describe('getWebSocket', () => {
+      it('should return null initially', () => {
+        expect(connectionRewired.getWebSocket()).to.be.null;
+      });
+    });
+
+    describe('getWorkingWithProxy', () => {
+      it('should return true initially', () => {
+        expect(connectionRewired.getWorkingWithProxy()).to.be.true;
+      });
+    });
+
+    describe('getProxyFailureCount', () => {
+      it('should return 0 initially', () => {
+        expect(connectionRewired.getProxyFailureCount()).to.equal(0);
+      });
+    });
+
+    describe('incrementProxyFailureCount', () => {
+      it('should increment count', () => {
+        connectionRewired.incrementProxyFailureCount();
+        expect(connectionRewired.getProxyFailureCount()).to.equal(1);
+        connectionRewired.incrementProxyFailureCount();
+        expect(connectionRewired.getProxyFailureCount()).to.equal(2);
+      });
+    });
+
+    describe('validateProxyConnection', () => {
+      it('should toggle workingWithProxy after max failures', () => {
+        connectionRewired.reset();
+        // Simulate 5 failures
+        for (let i = 0; i < 5; i++) {
+          connectionRewired.incrementProxyFailureCount();
+        }
+
+        connectionRewired.validateProxyConnection('http://proxy.example.com');
+        expect(connectionRewired.getWorkingWithProxy()).to.be.false;
+        expect(connectionRewired.getProxyFailureCount()).to.equal(0);
+      });
+
+      it('should not toggle when no proxy config', () => {
+        connectionRewired.reset();
+        for (let i = 0; i < 5; i++) {
+          connectionRewired.incrementProxyFailureCount();
+        }
+
+        connectionRewired.validateProxyConnection(null);
+        expect(connectionRewired.getWorkingWithProxy()).to.be.true;
+      });
+
+      it('should not toggle when below max failures', () => {
+        connectionRewired.reset();
+        connectionRewired.incrementProxyFailureCount();
+        connectionRewired.incrementProxyFailureCount();
+
+        connectionRewired.validateProxyConnection('http://proxy.example.com');
+        expect(connectionRewired.getWorkingWithProxy()).to.be.true;
+        expect(connectionRewired.getProxyFailureCount()).to.equal(2);
+      });
+    });
+
+    describe('terminate', () => {
+      it('should not throw when ws is null', () => {
+        expect(() => connectionRewired.terminate()).to.not.throw();
+      });
+
+      it('should call ws.terminate when ws exists', () => {
+        connectionRewired.__set__('ws', mockWs);
+        connectionRewired.terminate();
+        expect(mockWs.terminate.calledOnce).to.be.true;
+      });
+    });
+
+    describe('send', () => {
+      it('should return false when ws is not ready', () => {
+        connectionRewired.__set__('ws', null);
+        expect(connectionRewired.send('test')).to.be.false;
+      });
+
+      it('should send data when ws is ready', () => {
+        connectionRewired.__set__('ws', mockWs);
+        expect(connectionRewired.send('test')).to.be.true;
+        expect(mockWs.send.calledWith('test')).to.be.true;
+      });
+    });
+
+    describe('create', () => {
+      it('should create WebSocket with correct URL for https', () => {
+        connectionRewired.__set__('WebSocket', MockWebSocket);
+
+        connectionRewired.create(
+          {
+            protocol: 'https',
+            host: 'panel.preyproject.com',
+            deviceKey: 'device-123',
+            apiKey: 'api-456',
+            userAgent: 'Prey/1.0',
+            proxy: null,
+          },
+          {
+            onOpen: sinon.stub(),
+            onClose: sinon.stub(),
+            onMessage: sinon.stub(),
+            onError: sinon.stub(),
+            onPong: sinon.stub(),
+            onPing: sinon.stub(),
+          },
+          mockLogger,
+        );
+
+        expect(MockWebSocket.calledOnce).to.be.true;
+        const wsUrl = MockWebSocket.firstCall.args[0];
+        expect(wsUrl).to.include('wss://');
+        expect(wsUrl).to.include('device-123.ws');
+      });
+
+      it('should create WebSocket with ws protocol for http', () => {
+        connectionRewired.__set__('WebSocket', MockWebSocket);
+
+        connectionRewired.create(
+          {
+            protocol: 'http',
+            host: 'localhost',
+            deviceKey: 'device-123',
+            apiKey: 'api-456',
+            userAgent: 'Prey/1.0',
+            proxy: null,
+          },
+          {
+            onOpen: sinon.stub(),
+            onClose: sinon.stub(),
+            onMessage: sinon.stub(),
+            onError: sinon.stub(),
+            onPong: sinon.stub(),
+            onPing: sinon.stub(),
+          },
+          mockLogger,
+        );
+
+        const wsUrl = MockWebSocket.firstCall.args[0];
+        expect(wsUrl).to.include('ws://');
+      });
+
+      it('should include Authorization header', () => {
+        connectionRewired.__set__('WebSocket', MockWebSocket);
+
+        connectionRewired.create(
+          {
+            protocol: 'https',
+            host: 'panel.preyproject.com',
+            deviceKey: 'device-123',
+            apiKey: 'api-456',
+            userAgent: 'Prey/1.0',
+            proxy: null,
+          },
+          {
+            onOpen: sinon.stub(),
+            onClose: sinon.stub(),
+            onMessage: sinon.stub(),
+            onError: sinon.stub(),
+            onPong: sinon.stub(),
+            onPing: sinon.stub(),
+          },
+          mockLogger,
+        );
+
+        const options = MockWebSocket.firstCall.args[1];
+        expect(options.headers.Authorization).to.include('Basic');
+      });
+
+      it('should set up proxy agent when proxy is configured', () => {
+        connectionRewired.__set__('WebSocket', MockWebSocket);
+        connectionRewired.reset();
+
+        connectionRewired.create(
+          {
+            protocol: 'https',
+            host: 'panel.preyproject.com',
+            deviceKey: 'device-123',
+            apiKey: 'api-456',
+            userAgent: 'Prey/1.0',
+            proxy: 'http://proxy.example.com:8080',
+          },
+          {
+            onOpen: sinon.stub(),
+            onClose: sinon.stub(),
+            onMessage: sinon.stub(),
+            onError: sinon.stub(),
+            onPong: sinon.stub(),
+            onPing: sinon.stub(),
+          },
+          mockLogger,
+        );
+
+        expect(mockLogger.info.calledWith('Setting up proxy')).to.be.true;
+      });
+
+      it('should call onOpen callback when connection opens', () => {
+        connectionRewired.__set__('WebSocket', MockWebSocket);
+        const onOpen = sinon.stub();
+
+        const ws = connectionRewired.create(
+          {
+            protocol: 'https',
+            host: 'panel.preyproject.com',
+            deviceKey: 'device-123',
+            apiKey: 'api-456',
+            userAgent: 'Prey/1.0',
+            proxy: null,
+          },
+          {
+            onOpen,
+            onClose: sinon.stub(),
+            onMessage: sinon.stub(),
+            onError: sinon.stub(),
+            onPong: sinon.stub(),
+            onPing: sinon.stub(),
+          },
+          mockLogger,
+        );
+
+        ws.triggerOpen();
+        expect(onOpen.calledOnce).to.be.true;
+        expect(connectionRewired.isConnected()).to.be.true;
+      });
+
+      it('should call onClose callback when connection closes', () => {
+        connectionRewired.__set__('WebSocket', MockWebSocket);
+        const onClose = sinon.stub();
+
+        const ws = connectionRewired.create(
+          {
+            protocol: 'https',
+            host: 'panel.preyproject.com',
+            deviceKey: 'device-123',
+            apiKey: 'api-456',
+            userAgent: 'Prey/1.0',
+            proxy: null,
+          },
+          {
+            onOpen: sinon.stub(),
+            onClose,
+            onMessage: sinon.stub(),
+            onError: sinon.stub(),
+            onPong: sinon.stub(),
+            onPing: sinon.stub(),
+          },
+          mockLogger,
+        );
+
+        ws.triggerClose(1006);
+        expect(onClose.calledWith(1006)).to.be.true;
+      });
+
+      it('should call onMessage callback when message received', () => {
+        connectionRewired.__set__('WebSocket', MockWebSocket);
+        const onMessage = sinon.stub();
+
+        const ws = connectionRewired.create(
+          {
+            protocol: 'https',
+            host: 'panel.preyproject.com',
+            deviceKey: 'device-123',
+            apiKey: 'api-456',
+            userAgent: 'Prey/1.0',
+            proxy: null,
+          },
+          {
+            onOpen: sinon.stub(),
+            onClose: sinon.stub(),
+            onMessage,
+            onError: sinon.stub(),
+            onPong: sinon.stub(),
+            onPing: sinon.stub(),
+          },
+          mockLogger,
+        );
+
+        ws.triggerMessage('{"test": true}');
+        expect(onMessage.calledWith('{"test": true}')).to.be.true;
+      });
+
+      it('should call onError callback and log error', () => {
+        connectionRewired.__set__('WebSocket', MockWebSocket);
+        const onError = sinon.stub();
+
+        const ws = connectionRewired.create(
+          {
+            protocol: 'https',
+            host: 'panel.preyproject.com',
+            deviceKey: 'device-123',
+            apiKey: 'api-456',
+            userAgent: 'Prey/1.0',
+            proxy: null,
+          },
+          {
+            onOpen: sinon.stub(),
+            onClose: sinon.stub(),
+            onMessage: sinon.stub(),
+            onError,
+            onPong: sinon.stub(),
+            onPing: sinon.stub(),
+          },
+          mockLogger,
+        );
+
+        const testError = new Error('Connection failed');
+        ws.triggerError(testError);
+        expect(onError.calledWith(testError)).to.be.true;
+        expect(mockLogger.error.called).to.be.true;
+      });
+
+      it('should call onPong callback when pong received', () => {
+        connectionRewired.__set__('WebSocket', MockWebSocket);
+        const onPong = sinon.stub();
+
+        const ws = connectionRewired.create(
+          {
+            protocol: 'https',
+            host: 'panel.preyproject.com',
+            deviceKey: 'device-123',
+            apiKey: 'api-456',
+            userAgent: 'Prey/1.0',
+            proxy: null,
+          },
+          {
+            onOpen: sinon.stub(),
+            onClose: sinon.stub(),
+            onMessage: sinon.stub(),
+            onError: sinon.stub(),
+            onPong,
+            onPing: sinon.stub(),
+          },
+          mockLogger,
+        );
+
+        ws.triggerPong();
+        expect(onPong.calledOnce).to.be.true;
+      });
+
+      it('should call onPing callback when ping received', () => {
+        connectionRewired.__set__('WebSocket', MockWebSocket);
+        const onPing = sinon.stub();
+
+        const ws = connectionRewired.create(
+          {
+            protocol: 'https',
+            host: 'panel.preyproject.com',
+            deviceKey: 'device-123',
+            apiKey: 'api-456',
+            userAgent: 'Prey/1.0',
+            proxy: null,
+          },
+          {
+            onOpen: sinon.stub(),
+            onClose: sinon.stub(),
+            onMessage: sinon.stub(),
+            onError: sinon.stub(),
+            onPong: sinon.stub(),
+            onPing,
+          },
+          mockLogger,
+        );
+
+        ws.triggerPing();
+        expect(onPing.calledOnce).to.be.true;
+      });
+
+      it('should terminate existing connection before creating new one', () => {
+        connectionRewired.__set__('WebSocket', MockWebSocket);
+
+        // First create a connection
+        const ws1 = connectionRewired.create(
+          {
+            protocol: 'https',
+            host: 'panel.preyproject.com',
+            deviceKey: 'device-123',
+            apiKey: 'api-456',
+            userAgent: 'Prey/1.0',
+            proxy: null,
+          },
+          {
+            onOpen: sinon.stub(),
+            onClose: sinon.stub(),
+            onMessage: sinon.stub(),
+            onError: sinon.stub(),
+            onPong: sinon.stub(),
+            onPing: sinon.stub(),
+          },
+          mockLogger,
+        );
+
+        // Create another connection
+        connectionRewired.create(
+          {
+            protocol: 'https',
+            host: 'panel.preyproject.com',
+            deviceKey: 'device-456',
+            apiKey: 'api-789',
+            userAgent: 'Prey/1.0',
+            proxy: null,
+          },
+          {
+            onOpen: sinon.stub(),
+            onClose: sinon.stub(),
+            onMessage: sinon.stub(),
+            onError: sinon.stub(),
+            onPong: sinon.stub(),
+            onPing: sinon.stub(),
+          },
+          mockLogger,
+        );
+
+        expect(ws1.terminate.calledOnce).to.be.true;
+      });
+
+      it('should return the WebSocket instance', () => {
+        connectionRewired.__set__('WebSocket', MockWebSocket);
+
+        const ws = connectionRewired.create(
+          {
+            protocol: 'https',
+            host: 'panel.preyproject.com',
+            deviceKey: 'device-123',
+            apiKey: 'api-456',
+            userAgent: 'Prey/1.0',
+            proxy: null,
+          },
+          {
+            onOpen: sinon.stub(),
+            onClose: sinon.stub(),
+            onMessage: sinon.stub(),
+            onError: sinon.stub(),
+            onPong: sinon.stub(),
+            onPing: sinon.stub(),
+          },
+          mockLogger,
+        );
+
+        expect(ws).to.not.be.null;
+      });
+    });
+
+    describe('reset', () => {
+      it('should reset all state', () => {
+        connectionRewired.setConnected(true);
+        connectionRewired.incrementProxyFailureCount();
+
+        connectionRewired.reset();
+
+        expect(connectionRewired.isConnected()).to.be.false;
+        expect(connectionRewired.getProxyFailureCount()).to.equal(0);
+        expect(connectionRewired.getWorkingWithProxy()).to.be.true;
+        expect(connectionRewired.getWebSocket()).to.be.null;
+      });
+    });
+  });
+
+  // ==================== Index Module Facade Tests ====================
+  describe('Index Module (Facade)', () => {
+    let mockConfig;
+    let mockKeys;
+    let mockStatusTrigger;
+    let mockConnection;
+    let mockServer;
+    let mockTriggers;
+    let mockFileretrieval;
+    let mockNetwork;
+
+    beforeEach(() => {
+      // Mock config
+      mockConfig = {
+        getData: sinon.stub().callsFake((key) => {
+          const data = {
+            'try_proxy': null,
+            'control-panel.protocol': 'https',
+            'control-panel.host': 'panel.preyproject.com',
+            'control-panel.send_location_on_connect': 'false',
+          };
+          return data[key];
+        }),
+      };
+
+      // Mock keys
+      mockKeys = {
+        get: sinon.stub().returns({ device: 'device-key-123', api: 'api-key-456' }),
+      };
+
+      // Mock status trigger
+      mockStatusTrigger = {
+        get_status: sinon.stub().callsFake((cb) => cb(null, { online: true })),
+      };
+
+      // Mock connection module
+      mockConnection = {
+        getWebSocket: sinon.stub().returns(mockWs),
+        isReady: sinon.stub().returns(true),
+        isConnected: sinon.stub().returns(true),
+        setConnected: sinon.stub(),
+        create: sinon.stub(),
+        terminate: sinon.stub(),
+        validateProxyConnection: sinon.stub(),
+        incrementProxyFailureCount: sinon.stub(),
+        reset: sinon.stub(),
+      };
+
+      // Mock server
+      mockServer = {
+        create_server: sinon.stub().callsFake((cb) => cb(null)),
+      };
+
+      // Mock triggers
+      mockTriggers = {
+        start: sinon.stub(),
+        currentTriggers: [],
+      };
+
+      // Mock fileretrieval
+      mockFileretrieval = {
+        check_pending_files: sinon.stub(),
+      };
+
+      // Mock network
+      mockNetwork = {
+        get_connection_status: sinon.stub().callsFake((cb) => cb('connected')),
+      };
+    });
+
+    describe('exported properties', () => {
+      it('should export re_schedule as true', () => {
+        expect(websocketsRewired.re_schedule).to.be.true;
+      });
+
+      it('should export responses_queue as array', () => {
+        expect(websocketsRewired.responses_queue).to.be.an('array');
+      });
+
+      it('should export responsesAck as array', () => {
+        expect(websocketsRewired.responsesAck).to.be.an('array');
+      });
+
+      it('should export isReconnecting as false initially', () => {
+        expect(websocketsRewired.isReconnecting).to.be.false;
+      });
+    });
+
+    describe('exported functions', () => {
+      it('should export getReconnectDelay', () => {
+        expect(websocketsRewired.getReconnectDelay).to.be.a('function');
+      });
+
+      it('should export resetReconnectDelay', () => {
+        expect(websocketsRewired.resetReconnectDelay).to.be.a('function');
+      });
+
+      it('should export heartbeat', () => {
+        expect(websocketsRewired.heartbeat).to.be.a('function');
+      });
+
+      it('should export heartbeatTimed', () => {
+        expect(websocketsRewired.heartbeatTimed).to.be.a('function');
+      });
+
+      it('should export notify_action', () => {
+        expect(websocketsRewired.notify_action).to.be.a('function');
+      });
+
+      it('should export notify_status', () => {
+        expect(websocketsRewired.notify_status).to.be.a('function');
+      });
+
+      it('should export check_timestamp', () => {
+        expect(websocketsRewired.check_timestamp).to.be.a('function');
+      });
+
+      it('should export lastConnection', () => {
+        expect(websocketsRewired.lastConnection).to.be.a('function');
+      });
+
+      it('should export sendAckToServer', () => {
+        expect(websocketsRewired.sendAckToServer).to.be.a('function');
+      });
+
+      it('should export notifyAck', () => {
+        expect(websocketsRewired.notifyAck).to.be.a('function');
+      });
+
+      it('should export load', () => {
+        expect(websocketsRewired.load).to.be.a('function');
+      });
+
+      it('should export unload', () => {
+        expect(websocketsRewired.unload).to.be.a('function');
+      });
+
+      it('should export startWebsocket', () => {
+        expect(websocketsRewired.startWebsocket).to.be.a('function');
+      });
+    });
+
+    describe('check_timestamp', () => {
+      it('should return false when lastTime is not set', () => {
+        websocketsRewired.__set__('lastTime', null);
         expect(websocketsRewired.check_timestamp()).to.be.false;
       });
 
-      it('should return false when lastTime is older than 5 minutes', () => {
-        const oldTime = Date.now() - (6 * 60 * 1000);
-        websocketsRewired.__set__('lastTime', oldTime);
-
+      it('should return false when lastTime is old', () => {
+        websocketsRewired.__set__('lastTime', Date.now() - (6 * 60 * 1000));
         expect(websocketsRewired.check_timestamp()).to.be.false;
       });
 
       it('should return true when lastTime is recent', () => {
         websocketsRewired.__set__('lastTime', Date.now());
-
         expect(websocketsRewired.check_timestamp()).to.be.true;
       });
     });
@@ -466,539 +1929,109 @@ describe('WebSocket index.js', () => {
     describe('lastConnection', () => {
       it('should return lastConnection value', () => {
         websocketsRewired.__set__('lastConnection', 1234567890);
-
         expect(websocketsRewired.lastConnection()).to.equal(1234567890);
       });
 
       it('should return undefined when not set', () => {
         websocketsRewired.__set__('lastConnection', undefined);
-
         expect(websocketsRewired.lastConnection()).to.be.undefined;
       });
     });
 
-    describe('delay', () => {
-      it('should return a timeout id', () => {
-        const delay = websocketsRewired.__get__('delay');
-        const callback = sinon.stub();
-
-        const timeoutId = delay(1000, callback);
-
-        expect(timeoutId).to.not.be.undefined;
-        clearTimeout(timeoutId);
-      });
-
-      it('should be a function that takes ms and callback', () => {
-        const delay = websocketsRewired.__get__('delay');
-
-        expect(delay).to.be.a('function');
-        expect(delay.length).to.equal(2);
-      });
-    });
-
-    describe('propagateError', () => {
-      it('should trigger error hook and log message', () => {
-        websocketsRewired.__set__('hooks', mockHooks);
-        websocketsRewired.__set__('logger', mockLogger);
-
-        const propagateError = websocketsRewired.__get__('propagateError');
-        propagateError('Test error message');
-
-        expect(mockHooks.trigger.calledWith('error')).to.be.true;
-        expect(mockLogger.debug.calledWith('Test error message')).to.be.true;
-      });
-    });
-  });
-
-  // ==================== Message Handler Tests ====================
-  describe('Message Handlers', () => {
-    describe('groupByStructure (agruparPorEstructuraAnidada)', () => {
-      it('should group objects by structure signature', () => {
-        const groupByStructure = websocketsRewired.__get__('agruparPorEstructuraAnidada');
-
-        const objects = [
-          { action: 'lock', id: '1' },
-          { action: 'alarm', id: '2' },
-          { action: 'wipe', target: 'disk', id: '3' },
-        ];
-
-        const grouped = groupByStructure(objects);
-
-        // First two have same structure (action, id)
-        // Third has different structure (action, id, target)
-        const keys = Object.keys(grouped);
-        expect(keys).to.have.length(2);
-      });
-
-      it('should handle empty array', () => {
-        const groupByStructure = websocketsRewired.__get__('agruparPorEstructuraAnidada');
-
-        const grouped = groupByStructure([]);
-
-        expect(grouped).to.deep.equal({});
-      });
-
-      it('should handle nested objects', () => {
-        const groupByStructure = websocketsRewired.__get__('agruparPorEstructuraAnidada');
-
-        const objects = [
-          { action: 'lock', options: { force: true } },
-          { action: 'alarm', options: { force: false } },
-        ];
-
-        const grouped = groupByStructure(objects);
-
-        // Both have same structure
-        const keys = Object.keys(grouped);
-        expect(keys).to.have.length(1);
-        expect(grouped[keys[0]]).to.have.length(2);
-      });
-    });
-
-    describe('processAcks', () => {
-      it('should process array of acks', () => {
-        const processAcks = websocketsRewired.__get__('processAcks');
-
-        const acks = [
-          { ack_id: 'ack-1', id: 'cmd-1' },
-          { ack_id: 'ack-2', id: 'cmd-2' },
-        ];
-
-        processAcks(acks);
-
-        expect(websocketsRewired.responsesAck).to.have.length(2);
-      });
-
-      it('should not process items without ack_id', () => {
-        const processAcks = websocketsRewired.__get__('processAcks');
-
-        const items = [
-          { id: 'cmd-1' }, // No ack_id
-          { ack_id: 'ack-2', id: 'cmd-2' },
-        ];
-
-        processAcks(items);
-
-        // Only one should be added (the one with ack_id)
-        expect(websocketsRewired.responsesAck).to.have.length(1);
-      });
-
-      it('should only process if input has forEach method', () => {
-        const processAcks = websocketsRewired.__get__('processAcks');
-
-        // Objects without forEach are handled by the if check in processAcks
-        // The function checks if arr.forEach exists before calling it
-        processAcks([]);
-        expect(websocketsRewired.responsesAck).to.have.length(0);
-      });
-    });
-
-    describe('processCommands', () => {
-      it('should emit commands via emitter', (done) => {
-        const emitterMock = new EventEmitter();
-        websocketsRewired.__set__('emitter', emitterMock);
-
-        const processCommands = websocketsRewired.__get__('processCommands');
-
-        emitterMock.on('command', (cmd) => {
-          expect(cmd.action).to.equal('lock');
-          done();
-        });
-
-        const commands = [{ action: 'lock', id: '1' }];
-
-        processCommands(commands);
-      });
-
-      it('should handle empty array', () => {
-        const emitterMock = new EventEmitter();
-        websocketsRewired.__set__('emitter', emitterMock);
-
-        const processCommands = websocketsRewired.__get__('processCommands');
-        const commandSpy = sinon.spy();
-        emitterMock.on('command', commandSpy);
-
-        processCommands([]);
-
-        expect(commandSpy.called).to.be.false;
-      });
-    });
-  });
-
-  // ==================== Interval Management Tests ====================
-  describe('Interval Management', () => {
-    describe('clearAndResetIntervals', () => {
-      it('should clear all intervals and timeouts', () => {
-        const clearAndResetIntervals = websocketsRewired.__get__('clearAndResetIntervals');
-
-        // Set some intervals
-        websocketsRewired.__set__('notifyActionInterval', setInterval(() => {}, 1000));
-        websocketsRewired.__set__('notifyAckInterval', setInterval(() => {}, 1000));
-        websocketsRewired.__set__('getStatusInterval', setInterval(() => {}, 1000));
-        websocketsRewired.__set__('pingInterval', setInterval(() => {}, 1000));
-
-        // Should not throw
-        expect(() => clearAndResetIntervals()).to.not.throw();
-      });
-
-      it('should handle null intervals gracefully', () => {
-        const clearAndResetIntervals = websocketsRewired.__get__('clearAndResetIntervals');
-
-        websocketsRewired.__set__('notifyActionInterval', null);
-        websocketsRewired.__set__('pingTimeout', null);
-
-        expect(() => clearAndResetIntervals()).to.not.throw();
-      });
-    });
-  });
-
-  // ==================== Proxy Validation Tests ====================
-  describe('Proxy Validation', () => {
-    describe('validationConnectionsProxy', () => {
-      it('should toggle workingWithProxy after max failures', () => {
-        const configMock = {
-          getData: sinon.stub().returns(true),
-        };
-        websocketsRewired.__set__('config', configMock);
-        websocketsRewired.__set__('countNotConnectionProxy', 5);
-        websocketsRewired.__set__('workingWithProxy', true);
-
-        const validationConnectionsProxy = websocketsRewired.__get__('validationConnectionsProxy');
-        validationConnectionsProxy();
-
-        expect(websocketsRewired.__get__('workingWithProxy')).to.be.false;
-        expect(websocketsRewired.__get__('countNotConnectionProxy')).to.equal(0);
-      });
-
-      it('should not toggle when proxy is not configured', () => {
-        const configMock = {
-          getData: sinon.stub().returns(false),
-        };
-        websocketsRewired.__set__('config', configMock);
-        websocketsRewired.__set__('countNotConnectionProxy', 5);
-        websocketsRewired.__set__('workingWithProxy', true);
-
-        const validationConnectionsProxy = websocketsRewired.__get__('validationConnectionsProxy');
-        validationConnectionsProxy();
-
-        expect(websocketsRewired.__get__('workingWithProxy')).to.be.true;
-      });
-    });
-  });
-
-  // ==================== Lifecycle Tests ====================
-  describe('Lifecycle Functions', () => {
-    describe('unload', () => {
-      it('should clear intervals and terminate ws', () => {
-        websocketsRewired.__set__('ws', mockWs);
-        websocketsRewired.__set__('hooks', mockHooks);
-        const emitterMock = new EventEmitter();
-        websocketsRewired.__set__('emitter', emitterMock);
-
-        websocketsRewired.unload(() => {});
-
-        expect(mockWs.terminate.calledOnce).to.be.true;
-        expect(websocketsRewired.re_schedule).to.be.false;
-      });
-
-      it('should call callback', (done) => {
-        websocketsRewired.__set__('ws', null);
-        websocketsRewired.__set__('hooks', mockHooks);
-        websocketsRewired.__set__('emitter', null);
-
-        websocketsRewired.unload(() => {
-          done();
-        });
-      });
-
-      it('should remove emitter listeners', () => {
-        const emitterMock = new EventEmitter();
-        emitterMock.on('test', () => {});
-        websocketsRewired.__set__('emitter', emitterMock);
-        websocketsRewired.__set__('ws', null);
-        websocketsRewired.__set__('hooks', mockHooks);
-
-        websocketsRewired.unload(() => {});
-
-        expect(websocketsRewired.__get__('emitter')).to.be.null;
-      });
-    });
-  });
-
-  // ==================== Connection State Tests ====================
-  describe('Connection State', () => {
-    describe('websocketConnected flag', () => {
-      it('should be false initially', () => {
-        const websocketConnected = websocketsRewired.__get__('websocketConnected');
-        expect(websocketConnected).to.be.false;
-      });
-    });
-
-    describe('restartWebsocketCall', () => {
-      it('should not restart if already reconnecting', () => {
-        websocketsRewired.__set__('isReconnecting', true);
-        websocketsRewired.__set__('ws', mockWs);
-
-        const restartWebsocketCall = websocketsRewired.__get__('restartWebsocketCall');
-        restartWebsocketCall();
-
-        expect(mockWs.terminate.called).to.be.false;
-      });
-
-      it('should terminate ws when starting reconnection', () => {
-        websocketsRewired.__set__('isReconnecting', false);
-        websocketsRewired.__set__('ws', mockWs);
-        websocketsRewired.__set__('hooks', mockHooks);
-        websocketsRewired.resetReconnectDelay();
-
-        const restartWebsocketCall = websocketsRewired.__get__('restartWebsocketCall');
-        restartWebsocketCall();
-
-        expect(mockWs.terminate.calledOnce).to.be.true;
-      });
-
-      it('should set isReconnecting to true', () => {
-        websocketsRewired.__set__('isReconnecting', false);
-        websocketsRewired.__set__('ws', mockWs);
-        websocketsRewired.__set__('hooks', mockHooks);
-        websocketsRewired.resetReconnectDelay();
-
-        const restartWebsocketCall = websocketsRewired.__get__('restartWebsocketCall');
-        restartWebsocketCall();
-
-        expect(websocketsRewired.__get__('isReconnecting')).to.be.true;
-      });
-
-      it('should clear existing timeout before setting new one', () => {
-        websocketsRewired.__set__('isReconnecting', false);
-        websocketsRewired.__set__('ws', mockWs);
-        websocketsRewired.__set__('hooks', mockHooks);
-        const existingTimeout = setTimeout(() => {}, 10000);
-        websocketsRewired.__set__('idTimeoutToCancel', existingTimeout);
-        websocketsRewired.resetReconnectDelay();
-
-        const restartWebsocketCall = websocketsRewired.__get__('restartWebsocketCall');
-        restartWebsocketCall();
-
-        // New timeout should be set
-        const newTimeout = websocketsRewired.__get__('idTimeoutToCancel');
-        expect(newTimeout).to.not.be.null;
-        clearTimeout(existingTimeout);
-        clearTimeout(newTimeout);
-      });
-    });
-  });
-
-  // ==================== Reconnection Delay Tests ====================
-  describe('Reconnection Delay', () => {
-    describe('getReconnectDelay', () => {
-      beforeEach(() => {
-        websocketsRewired.resetReconnectDelay();
-      });
-
-      it('should return a delay with exponential backoff', () => {
-        const firstDelay = websocketsRewired.getReconnectDelay();
-        const secondDelay = websocketsRewired.getReconnectDelay();
-
-        // First delay should be around baseReconnectDelay (5000ms) with jitter
-        expect(firstDelay).to.be.at.least(4000);
-        expect(firstDelay).to.be.at.most(6000);
-
-        // Second delay should be roughly double (around 10000ms with jitter)
-        expect(secondDelay).to.be.at.least(8000);
-        expect(secondDelay).to.be.at.most(12000);
-      });
-
-      it('should cap delay at maxReconnectDelay (5 minutes)', () => {
-        // Make many attempts to reach the max
-        for (let i = 0; i < 20; i++) {
-          websocketsRewired.getReconnectDelay();
-        }
-        const delay = websocketsRewired.getReconnectDelay();
-
-        // Max delay is 300000ms (5 minutes) with jitter
-        expect(delay).to.be.at.most(360000);
-      });
-
-      it('should increment reconnectAttempts', () => {
-        websocketsRewired.getReconnectDelay();
-        websocketsRewired.getReconnectDelay();
-        websocketsRewired.getReconnectDelay();
-
-        // After 3 calls, the internal counter should be 3
-        // We can verify this indirectly by the delay pattern
-        const delay = websocketsRewired.getReconnectDelay();
-        // After 3 attempts, delay should be around 40000ms (5000 * 2^3)
-        expect(delay).to.be.at.least(32000);
-      });
-    });
-
-    describe('resetReconnectDelay', () => {
-      it('should reset reconnectAttempts to 0', () => {
-        // Make some attempts
-        websocketsRewired.getReconnectDelay();
-        websocketsRewired.getReconnectDelay();
-
-        // Reset
-        websocketsRewired.resetReconnectDelay();
-
-        // Next delay should be like the first attempt
-        const delay = websocketsRewired.getReconnectDelay();
-        expect(delay).to.be.at.least(4000);
-        expect(delay).to.be.at.most(6000);
-      });
-    });
-  });
-
-  // ==================== Status Functions Tests ====================
-  describe('Status Functions', () => {
     describe('getStatusByInterval', () => {
-      it('should not call get_status when already getting status', () => {
-        const mockStatusTrigger = {
-          get_status: sinon.stub(),
-        };
-        websocketsRewired.__set__('statusTrigger', mockStatusTrigger);
+      it('should not call get_status when gettingStatus is true', () => {
         websocketsRewired.__set__('gettingStatus', true);
+        websocketsRewired.__set__('statusTrigger', mockStatusTrigger);
 
         const getStatusByInterval = websocketsRewired.__get__('getStatusByInterval');
         getStatusByInterval();
 
         expect(mockStatusTrigger.get_status.called).to.be.false;
+        websocketsRewired.__set__('gettingStatus', false);
       });
 
-      it('should call get_status and notify_status when not getting status', () => {
-        const notifyStatusStub = sinon.stub(websocketsRewired, 'notify_status');
-        const mockStatusTrigger = {
-          get_status: sinon.stub().callsFake((cb) => cb(null, { online: true })),
-        };
-        websocketsRewired.__set__('statusTrigger', mockStatusTrigger);
+      it('should call get_status when gettingStatus is false', () => {
         websocketsRewired.__set__('gettingStatus', false);
+        websocketsRewired.__set__('statusTrigger', mockStatusTrigger);
 
         const getStatusByInterval = websocketsRewired.__get__('getStatusByInterval');
         getStatusByInterval();
 
         expect(mockStatusTrigger.get_status.calledOnce).to.be.true;
-        expect(notifyStatusStub.calledOnce).to.be.true;
-        expect(notifyStatusStub.calledWith({ online: true })).to.be.true;
-        notifyStatusStub.restore();
       });
 
-      it('should reset gettingStatus flag after callback', () => {
-        const mockStatusTrigger = {
-          get_status: sinon.stub().callsFake((cb) => cb(null, {})),
-        };
-        websocketsRewired.__set__('statusTrigger', mockStatusTrigger);
+      it('should call notify_status with the status result', () => {
         websocketsRewired.__set__('gettingStatus', false);
+        mockStatusTrigger.get_status = sinon.stub().callsFake((cb) => cb(null, { cpu: 50 }));
+        websocketsRewired.__set__('statusTrigger', mockStatusTrigger);
+
+        const notifyStatusSpy = sinon.spy();
+        websocketsRewired.notify_status = notifyStatusSpy;
 
         const getStatusByInterval = websocketsRewired.__get__('getStatusByInterval');
         getStatusByInterval();
 
-        expect(websocketsRewired.__get__('gettingStatus')).to.be.false;
+        expect(notifyStatusSpy.calledWith({ cpu: 50 })).to.be.true;
       });
     });
-  });
 
-  // ==================== Storage Functions Tests ====================
-  describe('Storage Functions', () => {
-    describe('updateStoredConnection', () => {
-      it('should call storage.do with update action', () => {
-        websocketsRewired.__set__('storage', mockStorage);
+    describe('clearAndResetIntervals', () => {
+      it('should clear all intervals', () => {
+        const clearAndResetIntervals = websocketsRewired.__get__('clearAndResetIntervals');
 
-        const updateStoredConnection = websocketsRewired.__get__('updateStoredConnection');
-        updateStoredConnection(1234567890);
+        // Set up some intervals
+        websocketsRewired.__set__('timeOutCancelIntervalHearBeat', setTimeout(() => {}, 10000));
+        websocketsRewired.__set__('notifyAckInterval', setInterval(() => {}, 10000));
+        websocketsRewired.__set__('notifyActionInterval', setInterval(() => {}, 10000));
+        websocketsRewired.__set__('getStatusInterval', setInterval(() => {}, 10000));
+        websocketsRewired.__set__('setIntervalWSStatus', setInterval(() => {}, 10000));
 
-        expect(mockStorage.do.calledOnce).to.be.true;
-        expect(mockStorage.do.firstCall.args[0]).to.equal('update');
-        expect(mockStorage.do.firstCall.args[1].type).to.equal('keys');
-        expect(mockStorage.do.firstCall.args[1].id).to.equal('last_connection');
-        expect(mockStorage.do.firstCall.args[1].values).to.equal(1234567890);
+        // Should not throw
+        expect(() => clearAndResetIntervals()).to.not.throw();
       });
 
-      it('should log error when storage update fails', () => {
-        const errorStorage = {
-          do: sinon.stub().callsFake((action, opts, cb) => cb(new Error('Storage error'))),
-        };
-        websocketsRewired.__set__('storage', errorStorage);
-        websocketsRewired.__set__('logger', mockLogger);
+      it('should clear alive time interval when aliveTimeReset is true', () => {
+        const clearAndResetIntervals = websocketsRewired.__get__('clearAndResetIntervals');
 
-        const updateStoredConnection = websocketsRewired.__get__('updateStoredConnection');
-        updateStoredConnection(1234567890);
+        websocketsRewired.__set__('setAliveTimeInterval', setInterval(() => {}, 10000));
 
-        expect(mockLogger.info.calledWith('Unable to update the local last connection value')).to.be.true;
+        expect(() => clearAndResetIntervals(true)).to.not.throw();
       });
     });
 
     describe('updateTimestamp', () => {
-      it('should set lastTime to current timestamp', () => {
-        const beforeTime = Date.now();
+      it('should update lastTime to current time', () => {
         const updateTimestamp = websocketsRewired.__get__('updateTimestamp');
+        const before = Date.now();
         updateTimestamp();
-        const afterTime = Date.now();
+        const after = Date.now();
 
         const lastTime = websocketsRewired.__get__('lastTime');
-        expect(lastTime).to.be.at.least(beforeTime);
-        expect(lastTime).to.be.at.most(afterTime);
+        expect(lastTime).to.be.at.least(before);
+        expect(lastTime).to.be.at.most(after);
       });
     });
 
     describe('setLastConnection', () => {
-      it('should query storage for last_connection', () => {
-        const freshMockStorage = {
-          do: sinon.stub().callsFake((action, opts, cb) => {
-            if (cb) cb(null, []);
-          }),
-        };
-        websocketsRewired.__set__('storage', freshMockStorage);
-
-        const setLastConnection = websocketsRewired.__get__('setLastConnection');
-        setLastConnection();
-
-        expect(freshMockStorage.do.called).to.be.true;
-        const queryCall = freshMockStorage.do.getCalls().find(c => c.args[0] === 'query');
-        expect(queryCall).to.not.be.undefined;
-        expect(queryCall.args[1].type).to.equal('keys');
-        expect(queryCall.args[1].data).to.equal('last_connection');
-      });
-
-      it('should set lastConnection from stored value when exists', () => {
-        const storedValue = 1640000000;
-        const storageWithValue = {
-          do: sinon.stub().callsFake((action, opts, cb) => {
-            cb(null, [{ value: storedValue.toString() }]);
-          }),
-        };
-        websocketsRewired.__set__('storage', storageWithValue);
-
-        const setLastConnection = websocketsRewired.__get__('setLastConnection');
-        setLastConnection();
-
-        expect(websocketsRewired.__get__('lastConnection')).to.equal(storedValue);
-      });
-
-      it('should set lastConnection to current time when no stored value', () => {
-        const storageEmpty = {
+      it('should set lastConnection from storage when data exists', () => {
+        const mockStorageWithData = {
           do: sinon.stub().callsFake((action, opts, cb) => {
             if (action === 'query') {
-              cb(null, []);
-            } else {
-              cb(null);
+              cb(null, [{ value: '1609459200' }]);
             }
           }),
         };
-        websocketsRewired.__set__('storage', storageEmpty);
+        websocketsRewired.__set__('storage', mockStorageWithData);
 
-        const beforeTime = Math.round(Date.now() / 1000);
         const setLastConnection = websocketsRewired.__get__('setLastConnection');
         setLastConnection();
-        const afterTime = Math.round(Date.now() / 1000);
 
         const lastConnection = websocketsRewired.__get__('lastConnection');
-        expect(lastConnection).to.be.at.least(beforeTime);
-        expect(lastConnection).to.be.at.most(afterTime);
+        expect(lastConnection).to.equal(1609459200);
       });
 
-      it('should store new last_connection when no stored value', () => {
-        const storageEmpty = {
+      it('should create new lastConnection when no data exists', () => {
+        const mockStorageEmpty = {
           do: sinon.stub().callsFake((action, opts, cb) => {
             if (action === 'query') {
               cb(null, []);
@@ -1007,75 +2040,89 @@ describe('WebSocket index.js', () => {
             }
           }),
         };
-        websocketsRewired.__set__('storage', storageEmpty);
-        websocketsRewired.__set__('logger', mockLogger);
+        websocketsRewired.__set__('storage', mockStorageEmpty);
 
         const setLastConnection = websocketsRewired.__get__('setLastConnection');
         setLastConnection();
 
-        // Check that storage.do was called with 'set' action
-        const setCalls = storageEmpty.do.getCalls().filter(call => call.args[0] === 'set');
-        expect(setCalls.length).to.equal(1);
-        expect(setCalls[0].args[1].type).to.equal('keys');
-        expect(setCalls[0].args[1].id).to.equal('last_connection');
+        const lastConnection = websocketsRewired.__get__('lastConnection');
+        expect(lastConnection).to.be.a('number');
       });
 
       it('should log error when storage query fails', () => {
-        const errorStorage = {
-          do: sinon.stub().callsFake((action, opts, cb) => cb(new Error('Query error'))),
+        const mockStorageError = {
+          do: sinon.stub().callsFake((action, opts, cb) => {
+            cb(new Error('Storage error'));
+          }),
         };
-        websocketsRewired.__set__('storage', errorStorage);
+        websocketsRewired.__set__('storage', mockStorageError);
         websocketsRewired.__set__('logger', mockLogger);
 
         const setLastConnection = websocketsRewired.__get__('setLastConnection');
         setLastConnection();
 
-        expect(mockLogger.error.calledWith('Error getting the last connection data')).to.be.true;
+        expect(mockLogger.error.called).to.be.true;
       });
     });
-  });
 
-  // ==================== Hook and Server Functions Tests ====================
-  describe('Hook and Server Functions', () => {
-    describe('loadHooks', () => {
-      it('should call setLastConnection', () => {
-        const mockTriggers = { start: sinon.stub() };
-        const mockFileretrieval = { check_pending_files: sinon.stub() };
-        websocketsRewired.__set__('triggers', mockTriggers);
-        websocketsRewired.__set__('fileretrieval', mockFileretrieval);
-        websocketsRewired.__set__('hooks', mockHooks);
-        websocketsRewired.__set__('storage', mockStorage);
+    describe('updateStoredConnection', () => {
+      it('should update storage with new connection time', () => {
+        const mockStorageUpdate = {
+          do: sinon.stub().callsFake((action, opts, cb) => cb(null)),
+        };
+        websocketsRewired.__set__('storage', mockStorageUpdate);
 
-        const loadHooks = websocketsRewired.__get__('loadHooks');
-        loadHooks();
+        const updateStoredConnection = websocketsRewired.__get__('updateStoredConnection');
+        updateStoredConnection(1609459200);
 
-        // setLastConnection should have called storage.do
-        expect(mockStorage.do.called).to.be.true;
+        expect(mockStorageUpdate.do.calledWith('update')).to.be.true;
       });
 
-      it('should start triggers', () => {
-        const mockTriggers = { start: sinon.stub() };
-        const mockFileretrieval = { check_pending_files: sinon.stub() };
-        websocketsRewired.__set__('triggers', mockTriggers);
-        websocketsRewired.__set__('fileretrieval', mockFileretrieval);
-        websocketsRewired.__set__('hooks', mockHooks);
-        websocketsRewired.__set__('storage', mockStorage);
+      it('should log when update fails', () => {
+        const mockStorageError = {
+          do: sinon.stub().callsFake((action, opts, cb) => cb(new Error('Update failed'))),
+        };
+        websocketsRewired.__set__('storage', mockStorageError);
+        websocketsRewired.__set__('logger', mockLogger);
 
-        const loadHooks = websocketsRewired.__get__('loadHooks');
+        const updateStoredConnection = websocketsRewired.__get__('updateStoredConnection');
+        updateStoredConnection(1609459200);
+
+        expect(mockLogger.info.called).to.be.true;
+      });
+    });
+
+    describe('loadHooks', () => {
+      let clock;
+      let localWebsockets;
+
+      beforeEach(() => {
+        clock = sinon.useFakeTimers();
+        // Re-rewire after fake timers are set up
+        localWebsockets = rewire('../../../../../lib/agent/control-panel/websockets');
+        localWebsockets.__set__('hooks', mockHooks);
+        localWebsockets.__set__('triggers', mockTriggers);
+        localWebsockets.__set__('storage', mockStorage);
+      });
+
+      afterEach(() => {
+        clock.restore();
+      });
+
+      it('should call setLastConnection and start triggers', () => {
+        const loadHooks = localWebsockets.__get__('loadHooks');
         loadHooks();
 
         expect(mockTriggers.start.calledOnce).to.be.true;
+
+        // Advance time past DEVICE_UNSEEN_DELAY (15000ms)
+        clock.tick(15001);
+
+        expect(mockHooks.trigger.calledWith('device_unseen')).to.be.true;
       });
 
       it('should register connected hook', () => {
-        const mockTriggers = { start: sinon.stub() };
-        const mockFileretrieval = { check_pending_files: sinon.stub() };
-        websocketsRewired.__set__('triggers', mockTriggers);
-        websocketsRewired.__set__('fileretrieval', mockFileretrieval);
-        websocketsRewired.__set__('hooks', mockHooks);
-        websocketsRewired.__set__('storage', mockStorage);
-
-        const loadHooks = websocketsRewired.__get__('loadHooks');
+        const loadHooks = localWebsockets.__get__('loadHooks');
         loadHooks();
 
         expect(mockHooks.on.calledWith('connected')).to.be.true;
@@ -1084,1588 +2131,440 @@ describe('WebSocket index.js', () => {
 
     describe('loadServer', () => {
       it('should create server after timeout', (done) => {
-        const mockServer = {
-          create_server: sinon.stub().callsFake((cb) => cb(null)),
-        };
         websocketsRewired.__set__('server', mockServer);
-        websocketsRewired.__set__('startupTimeout', 10); // Short timeout for testing
 
         const loadServer = websocketsRewired.__get__('loadServer');
         loadServer();
 
+        // Wait for setTimeout to fire
         setTimeout(() => {
           expect(mockServer.create_server.calledOnce).to.be.true;
           done();
-        }, 50);
-      });
-
-      it('should log error when server creation fails', (done) => {
-        const mockServer = {
-          create_server: sinon.stub().callsFake((cb) => cb(new Error('Server error'))),
-        };
-        websocketsRewired.__set__('server', mockServer);
-        websocketsRewired.__set__('logger', mockLogger);
-        websocketsRewired.__set__('startupTimeout', 10);
-
-        const loadServer = websocketsRewired.__get__('loadServer');
-        loadServer();
-
-        setTimeout(() => {
-          expect(mockLogger.debug.called).to.be.true;
-          done();
-        }, 50);
-      });
-
-      it('should set interval for updateTimestamp after server creation', (done) => {
-        const mockServer = {
-          create_server: sinon.stub().callsFake((cb) => cb(null)),
-        };
-        websocketsRewired.__set__('server', mockServer);
-        websocketsRewired.__set__('startupTimeout', 10);
-
-        const loadServer = websocketsRewired.__get__('loadServer');
-        loadServer();
-
-        setTimeout(() => {
-          const interval = websocketsRewired.__get__('setAliveTimeInterval');
-          expect(interval).to.not.be.null;
-          clearInterval(interval);
-          done();
-        }, 50);
-      });
+        }, 6000);
+      }).timeout(7000);
     });
-  });
 
-  // ==================== Query Triggers Tests ====================
-  describe('Query Triggers', () => {
     describe('queryTriggers', () => {
-      it('should query all triggers from storage', () => {
-        websocketsRewired.__set__('storage', mockStorage);
+      it('should query triggers from storage', () => {
+        const mockStorageTriggers = {
+          do: sinon.stub().callsFake((action, opts, cb) => {
+            if (action === 'all' && opts.type === 'triggers') {
+              cb(null, []);
+            }
+          }),
+        };
+        websocketsRewired.__set__('storage', mockStorageTriggers);
 
         const queryTriggers = websocketsRewired.__get__('queryTriggers');
         queryTriggers();
 
-        expect(mockStorage.do.calledOnce).to.be.true;
-        expect(mockStorage.do.firstCall.args[0]).to.equal('all');
-        expect(mockStorage.do.firstCall.args[1].type).to.equal('triggers');
+        expect(mockStorageTriggers.do.calledWith('all')).to.be.true;
       });
 
-      it('should return early when storage returns error', () => {
-        const errorStorage = {
-          do: sinon.stub().callsFake((action, opts, cb) => cb(new Error('Storage error'))),
+      it('should handle storage error gracefully', () => {
+        const mockStorageError = {
+          do: sinon.stub().callsFake((action, opts, cb) => cb(new Error('Error'))),
         };
-        websocketsRewired.__set__('storage', errorStorage);
+        websocketsRewired.__set__('storage', mockStorageError);
 
         const queryTriggers = websocketsRewired.__get__('queryTriggers');
-
-        // Should not throw
         expect(() => queryTriggers()).to.not.throw();
       });
 
-      it('should return early when stored is null', () => {
-        const nullStorage = {
-          do: sinon.stub().callsFake((action, opts, cb) => cb(null, null)),
-        };
-        websocketsRewired.__set__('storage', nullStorage);
+      it('should filter and reset device_unseen triggers', () => {
+        const triggersData = [
+          {
+            id: 'trigger-1',
+            automation_events: JSON.stringify([{ type: 'device_unseen' }]),
+          },
+        ];
+        mockTriggers.currentTriggers = [{ id: 'trigger-1', last_exec: Date.now() }];
 
-        const queryTriggers = websocketsRewired.__get__('queryTriggers');
-
-        expect(() => queryTriggers()).to.not.throw();
-      });
-
-      it('should filter triggers with device_unseen events', () => {
-        const mockTriggersModule = {
-          currentTriggers: [
-            { id: 'trigger-1', last_exec: Date.now() },
-          ],
-        };
-        const triggersStorage = {
+        const mockStorageTriggers = {
           do: sinon.stub().callsFake((action, opts, cb) => {
-            if (action === 'all') {
-              cb(null, [{
-                id: 'trigger-1',
-                automation_events: JSON.stringify([{ type: 'device_unseen' }]),
-              }]);
+            if (action === 'all' && opts.type === 'triggers') {
+              cb(null, triggersData);
             } else if (action === 'update') {
               cb(null);
             }
           }),
         };
-        websocketsRewired.__set__('storage', triggersStorage);
-        websocketsRewired.__set__('triggers', mockTriggersModule);
 
-        const queryTriggers = websocketsRewired.__get__('queryTriggers');
-        queryTriggers();
-
-        // Should have queried and updated
-        const updateCalls = triggersStorage.do.getCalls().filter(call => call.args[0] === 'update');
-        expect(updateCalls.length).to.be.at.least(1);
-      });
-
-      it('should reset last_exec for matching triggers', () => {
-        const mockTriggersModule = {
-          currentTriggers: [
-            { id: 'trigger-1', last_exec: 1640000000 },
-          ],
-        };
-        const triggersStorage = {
-          do: sinon.stub().callsFake((action, opts, cb) => {
-            if (action === 'all') {
-              cb(null, [{
-                id: 'trigger-1',
-                automation_events: JSON.stringify([{ type: 'device_unseen' }]),
-              }]);
-            } else if (action === 'update') {
-              cb(null);
-            }
-          }),
-        };
-        websocketsRewired.__set__('storage', triggersStorage);
-        websocketsRewired.__set__('triggers', mockTriggersModule);
-
-        const queryTriggers = websocketsRewired.__get__('queryTriggers');
-        queryTriggers();
-
-        // last_exec should be reset to null
-        expect(mockTriggersModule.currentTriggers[0].last_exec).to.be.null;
-      });
-    });
-  });
-
-  // ==================== Load Function Tests ====================
-  describe('Load Function', () => {
-    describe('load', () => {
-      let mockServer;
-      let mockTriggers;
-      let mockFileretrieval;
-      let mockStatusTrigger;
-      let mockConfig;
-      let mockKeys;
-
-      beforeEach(() => {
-        mockServer = { create_server: sinon.stub().callsFake((cb) => cb(null)) };
-        mockTriggers = { start: sinon.stub(), currentTriggers: [] };
-        mockFileretrieval = { check_pending_files: sinon.stub() };
-        mockStatusTrigger = { get_status: sinon.stub().callsFake((cb, tag) => cb(null, {})) };
-        mockConfig = {
-          getData: sinon.stub().callsFake((key) => {
-            if (key === 'control-panel.protocol') return 'https';
-            if (key === 'control-panel.host') return 'api.test.com';
-            if (key === 'control-panel.send_location_on_connect') return 'false';
-            return null;
-          }),
-        };
-        mockKeys = {
-          get: sinon.stub().returns({ device: 'test-device', api: 'test-api' }),
-        };
-
-        websocketsRewired.__set__('server', mockServer);
+        websocketsRewired.__set__('storage', mockStorageTriggers);
         websocketsRewired.__set__('triggers', mockTriggers);
-        websocketsRewired.__set__('fileretrieval', mockFileretrieval);
-        websocketsRewired.__set__('statusTrigger', mockStatusTrigger);
+
+        const queryTriggers = websocketsRewired.__get__('queryTriggers');
+        queryTriggers();
+
+        expect(mockStorageTriggers.do.calledWith('update')).to.be.true;
+      });
+    });
+
+    describe('restartWebsocketCall', () => {
+      it('should skip if already reconnecting', () => {
+        const mockReconnection = {
+          getIsReconnecting: sinon.stub().returns(true),
+          setIsReconnecting: sinon.stub(),
+          getReconnectDelay: sinon.stub().returns(5000),
+          getReconnectAttempts: sinon.stub().returns(1),
+        };
+        websocketsRewired.__set__('reconnection', mockReconnection);
+        websocketsRewired.__set__('logger', mockLogger);
+
+        const restartWebsocketCall = websocketsRewired.__get__('restartWebsocketCall');
+        restartWebsocketCall();
+
+        expect(mockLogger.debug.calledWith('Reconnection already in progress, skipping')).to.be.true;
+      });
+
+      it('should schedule reconnection with delay', (done) => {
+        const mockReconnection = {
+          getIsReconnecting: sinon.stub().returns(false),
+          setIsReconnecting: sinon.stub(),
+          getReconnectDelay: sinon.stub().returns(100),
+          getReconnectAttempts: sinon.stub().returns(1),
+        };
+        websocketsRewired.__set__('reconnection', mockReconnection);
+        websocketsRewired.__set__('connection', mockConnection);
         websocketsRewired.__set__('config', mockConfig);
-        websocketsRewired.__set__('keys', mockKeys);
-        websocketsRewired.__set__('hooks', mockHooks);
-        websocketsRewired.__set__('storage', mockStorage);
-      });
+        websocketsRewired.__set__('logger', mockLogger);
 
-      it('should return emitter in callback', (done) => {
-        // Mock WebSocket constructor
-        const MockWebSocket = function() {
-          this.on = sinon.stub();
-          this.readyState = 1;
-        };
-        websocketsRewired.__set__('WebSocket', MockWebSocket);
+        // Mock startWebsocket to avoid side effects
+        const startWebsocketStub = sinon.stub();
+        websocketsRewired.startWebsocket = startWebsocketStub;
 
-        websocketsRewired.load((err, emitter) => {
-          expect(err).to.be.null;
-          expect(emitter).to.be.an.instanceof(require('events').EventEmitter);
+        const restartWebsocketCall = websocketsRewired.__get__('restartWebsocketCall');
+        restartWebsocketCall();
+
+        expect(websocketsRewired.isReconnecting).to.be.true;
+
+        setTimeout(() => {
+          expect(startWebsocketStub.called).to.be.true;
           done();
-        });
-      });
-
-      it('should return same emitter on subsequent calls', (done) => {
-        const MockWebSocket = function() {
-          this.on = sinon.stub();
-          this.readyState = 1;
-          this.terminate = sinon.stub();
-          this.send = sinon.stub();
-        };
-        websocketsRewired.__set__('WebSocket', MockWebSocket);
-
-        websocketsRewired.load((err, firstEmitter) => {
-          websocketsRewired.load((err2, secondEmitter) => {
-            expect(firstEmitter).to.equal(secondEmitter);
-            done();
-          });
-        });
-      });
-
-      it('should call loadServer', (done) => {
-        const MockWebSocket = function() {
-          this.on = sinon.stub();
-          this.readyState = 1;
-        };
-        websocketsRewired.__set__('WebSocket', MockWebSocket);
-        websocketsRewired.__set__('startupTimeout', 10);
-
-        websocketsRewired.load((err, emitter) => {
-          setTimeout(() => {
-            expect(mockServer.create_server.called).to.be.true;
-            done();
-          }, 50);
-        });
-      });
-
-      it('should call loadHooks', (done) => {
-        const MockWebSocket = function() {
-          this.on = sinon.stub();
-          this.readyState = 1;
-        };
-        websocketsRewired.__set__('WebSocket', MockWebSocket);
-
-        websocketsRewired.load((err, emitter) => {
-          expect(mockTriggers.start.called).to.be.true;
-          done();
-        });
+        }, 200);
       });
     });
-  });
 
-  // ==================== WebSocket Settings Tests ====================
-  describe('WebSocket Settings', () => {
-    describe('webSocketSettings', () => {
-      let mockConfig;
-      let mockKeys;
-      let mockStatusTrigger;
-      let MockWebSocket;
-
-      beforeEach(() => {
-        mockConfig = {
-          getData: sinon.stub().callsFake((key) => {
-            if (key === 'control-panel.protocol') return 'https';
-            if (key === 'control-panel.host') return 'api.test.com';
-            if (key === 'control-panel.send_location_on_connect') return 'false';
-            if (key === 'try_proxy') return null;
-            return null;
-          }),
+    describe('heartbeat', () => {
+      it('should trigger reconnection when connection is not ready', () => {
+        const mockConnectionNotReady = {
+          ...mockConnection,
+          isReady: sinon.stub().returns(false),
         };
-        mockKeys = {
-          get: sinon.stub().returns({ device: 'test-device', api: 'test-api' }),
-        };
-        mockStatusTrigger = {
-          get_status: sinon.stub().callsFake((cb, tag) => cb(null, {})),
+        const mockReconnection = {
+          getIsReconnecting: sinon.stub().returns(false),
+          setIsReconnecting: sinon.stub(),
+          getReconnectDelay: sinon.stub().returns(5000),
+          getReconnectAttempts: sinon.stub().returns(1),
         };
 
-        MockWebSocket = function() {
-          this.on = sinon.stub();
-          this.readyState = 1;
-          this.send = sinon.stub();
-          this.terminate = sinon.stub();
-        };
-
+        websocketsRewired.__set__('hooks', mockHooks);
+        websocketsRewired.__set__('connection', mockConnectionNotReady);
         websocketsRewired.__set__('config', mockConfig);
-        websocketsRewired.__set__('keys', mockKeys);
-        websocketsRewired.__set__('statusTrigger', mockStatusTrigger);
-        websocketsRewired.__set__('WebSocket', MockWebSocket);
-        websocketsRewired.__set__('hooks', mockHooks);
-        websocketsRewired.__set__('storage', mockStorage);
-      });
-
-      it('should set up intervals for retry queues', () => {
-        const webSocketSettings = websocketsRewired.__get__('webSocketSettings');
-        webSocketSettings();
-
-        const notifyActionInterval = websocketsRewired.__get__('notifyActionInterval');
-        const notifyAckInterval = websocketsRewired.__get__('notifyAckInterval');
-
-        expect(notifyActionInterval).to.not.be.null;
-        expect(notifyAckInterval).to.not.be.null;
-
-        clearInterval(notifyActionInterval);
-        clearInterval(notifyAckInterval);
-      });
-
-      it('should propagate error when no device key', () => {
-        mockKeys.get.returns({ device: null, api: 'test-api' });
-        const unloadStub = sinon.stub(websocketsRewired, 'unload').callsFake((cb) => cb && cb());
-
-        const webSocketSettings = websocketsRewired.__get__('webSocketSettings');
-        webSocketSettings();
-
-        expect(mockHooks.trigger.calledWith('error')).to.be.true;
-        expect(unloadStub.called).to.be.true;
-        unloadStub.restore();
-      });
-
-      it('should use wss protocol when config is https', () => {
-        let capturedUrl;
-        const CaptureWebSocket = function(url, options) {
-          capturedUrl = url;
-          this.on = sinon.stub();
-          this.readyState = 1;
-        };
-        websocketsRewired.__set__('WebSocket', CaptureWebSocket);
-
-        const webSocketSettings = websocketsRewired.__get__('webSocketSettings');
-        webSocketSettings();
-
-        expect(capturedUrl).to.include('wss://');
-      });
-
-      it('should use ws protocol when config is http', () => {
-        mockConfig.getData = sinon.stub().callsFake((key) => {
-          if (key === 'control-panel.protocol') return 'http';
-          if (key === 'control-panel.host') return 'api.test.com';
-          if (key === 'control-panel.send_location_on_connect') return 'false';
-          return null;
-        });
-
-        let capturedUrl;
-        const CaptureWebSocket = function(url, options) {
-          capturedUrl = url;
-          this.on = sinon.stub();
-          this.readyState = 1;
-        };
-        websocketsRewired.__set__('WebSocket', CaptureWebSocket);
-
-        const webSocketSettings = websocketsRewired.__get__('webSocketSettings');
-        webSocketSettings();
-
-        expect(capturedUrl).to.include('ws://');
-      });
-
-      it('should include Authorization header', () => {
-        let capturedOptions;
-        const CaptureWebSocket = function(url, options) {
-          capturedOptions = options;
-          this.on = sinon.stub();
-          this.readyState = 1;
-        };
-        websocketsRewired.__set__('WebSocket', CaptureWebSocket);
-
-        const webSocketSettings = websocketsRewired.__get__('webSocketSettings');
-        webSocketSettings();
-
-        expect(capturedOptions.headers.Authorization).to.include('Basic ');
-      });
-    });
-  });
-
-  // ==================== Notify Action Edge Cases ====================
-  describe('Notify Action Edge Cases', () => {
-    describe('fullwipe action handling', () => {
-      it('should handle fullwipe with error', () => {
-        websocketsRewired.__set__('ws', mockWs);
-        const error = { code: 1, message: 'Wipe failed' };
-
-        websocketsRewired.notify_action('stopped', '123', 'fullwipe', null, error);
-
-        const sentData = JSON.parse(mockWs.send.firstCall.args[0]);
-        expect(sentData.body.status).to.equal('stopped');
-        expect(sentData.body.reason.status_code).to.equal(1);
-        expect(sentData.body.reason.status_msg).to.equal('Wipe failed');
-      });
-
-      it('should handle fullwipe with opts target', () => {
-        websocketsRewired.__set__('ws', mockWs);
-
-        websocketsRewired.notify_action('started', '123', 'fullwipe', { target: 'disk1' });
-
-        const sentData = JSON.parse(mockWs.send.firstCall.args[0]);
-        expect(sentData.body.target).to.equal('disk1');
-      });
-
-      it('should handle fullwipewindows with error', () => {
-        websocketsRewired.__set__('ws', mockWs);
-        const error = { message: 'Windows wipe failed' };
-
-        websocketsRewired.notify_action('stopped', '123', 'fullwipewindows', null, error);
-
-        const sentData = JSON.parse(mockWs.send.firstCall.args[0]);
-        expect(sentData.body.status).to.equal('stopped');
-        expect(sentData.body.reason.status_msg).to.equal('Windows wipe failed');
-      });
-    });
-
-    describe('factoryreset error handling', () => {
-      it('should handle factoryreset with error', () => {
-        websocketsRewired.__set__('ws', mockWs);
-        const error = { code: 2, message: 'Reset failed' };
-
-        websocketsRewired.notify_action('started', '123', 'factoryreset', null, error);
-
-        const sentData = JSON.parse(mockWs.send.firstCall.args[0]);
-        expect(sentData.body.status).to.equal('stopped');
-        expect(sentData.body.reason.status_code).to.equal(2);
-      });
-
-      it('should use default code 1 when error has no code', () => {
-        websocketsRewired.__set__('ws', mockWs);
-        const error = { message: 'Reset failed' };
-
-        websocketsRewired.notify_action('started', '123', 'factoryreset', null, error);
-
-        const sentData = JSON.parse(mockWs.send.firstCall.args[0]);
-        expect(sentData.body.reason.status_code).to.equal(1);
-      });
-    });
-
-    describe('diskencryption error handling', () => {
-      it('should handle diskencryption with error', () => {
-        websocketsRewired.__set__('ws', mockWs);
-
-        websocketsRewired.notify_action('stopped', '123', 'diskencryption', null, 'encryption_error');
-
-        const sentData = JSON.parse(mockWs.send.firstCall.args[0]);
-        expect(sentData.body.reason.encryption).to.equal('encryption_error');
-      });
-    });
-
-    describe('response queue management', () => {
-      it('should update existing response in queue', () => {
-        websocketsRewired.__set__('ws', mockWs);
-        const existingId = 'existing-resp-id';
-        websocketsRewired.responses_queue = [{
-          id: existingId,
-          retries: 1,
-          body: { status: 'started', target: 'lock' },
-        }];
-
-        websocketsRewired.notify_action('started', '123', 'lock', null, null, null, null, existingId, 1);
-
-        // Should update retries in existing response
-        expect(websocketsRewired.responses_queue[0].retries).to.equal(3);
-      });
-
-      it('should use provided time or create new one', () => {
-        websocketsRewired.__set__('ws', mockWs);
-        const customTime = '2024-01-01T00:00:00.000Z';
-
-        websocketsRewired.notify_action('started', '123', 'lock', null, null, null, customTime);
-
-        const sentData = JSON.parse(mockWs.send.firstCall.args[0]);
-        expect(sentData.time).to.equal(customTime);
-      });
-
-      it('should replace NULL time with current time', () => {
-        websocketsRewired.__set__('ws', mockWs);
-
-        websocketsRewired.notify_action('started', '123', 'lock', null, null, null, 'NULL');
-
-        const sentData = JSON.parse(mockWs.send.firstCall.args[0]);
-        expect(sentData.time).to.not.equal('NULL');
-        expect(sentData.time).to.match(/^\d{4}-\d{2}-\d{2}T/);
-      });
-    });
-  });
-
-  // ==================== isReconnecting Export Tests ====================
-  describe('isReconnecting Export', () => {
-    it('should export isReconnecting as false initially', () => {
-      expect(websocketsRewired.isReconnecting).to.be.false;
-    });
-
-    it('should update exported isReconnecting when reconnecting', () => {
-      websocketsRewired.__set__('isReconnecting', false);
-      websocketsRewired.__set__('ws', mockWs);
-      websocketsRewired.__set__('hooks', mockHooks);
-      websocketsRewired.resetReconnectDelay();
-
-      const restartWebsocketCall = websocketsRewired.__get__('restartWebsocketCall');
-      restartWebsocketCall();
-
-      expect(websocketsRewired.isReconnecting).to.be.true;
-    });
-  });
-
-  // ==================== Constants Tests ====================
-  describe('Constants', () => {
-    it('should have correct maxCountNotConnectionProxy', () => {
-      const maxCountNotConnectionProxy = websocketsRewired.__get__('maxCountNotConnectionProxy');
-      expect(maxCountNotConnectionProxy).to.equal(5);
-    });
-
-    it('should have correct codeErrorNoConnectionWebSocket', () => {
-      const codeErrorNoConnectionWebSocket = websocketsRewired.__get__('codeErrorNoConnectionWebSocket');
-      expect(codeErrorNoConnectionWebSocket).to.equal(1006);
-    });
-
-    it('should have correct heartbeatTimeout', () => {
-      const heartbeatTimeout = websocketsRewired.__get__('heartbeatTimeout');
-      expect(heartbeatTimeout).to.equal(121000); // 120000 + 1000
-    });
-
-    it('should have correct retriesMax', () => {
-      const retriesMax = websocketsRewired.__get__('retriesMax');
-      expect(retriesMax).to.equal(10);
-    });
-
-    it('should have correct retriesMaxAck', () => {
-      const retriesMaxAck = websocketsRewired.__get__('retriesMaxAck');
-      expect(retriesMaxAck).to.equal(4);
-    });
-
-    it('should have correct pongWaitTimeout', () => {
-      const pongWaitTimeout = websocketsRewired.__get__('pongWaitTimeout');
-      expect(pongWaitTimeout).to.equal(15000);
-    });
-
-    it('should have correct baseReconnectDelay', () => {
-      const baseReconnectDelay = websocketsRewired.__get__('baseReconnectDelay');
-      expect(baseReconnectDelay).to.equal(5000);
-    });
-
-    it('should have correct maxReconnectDelay', () => {
-      const maxReconnectDelay = websocketsRewired.__get__('maxReconnectDelay');
-      expect(maxReconnectDelay).to.equal(300000);
-    });
-
-    it('should have correct timeLimitForLocation', () => {
-      const timeLimitForLocation = websocketsRewired.__get__('timeLimitForLocation');
-      expect(timeLimitForLocation).to.equal(7 * 60 * 1000);
-    });
-
-    it('should have correct startupTimeout', () => {
-      const startupTimeout = websocketsRewired.__get__('startupTimeout');
-      expect(startupTimeout).to.equal(5000);
-    });
-  });
-
-  // ==================== Error Handling in Send Operations ====================
-  describe('Error Handling in Send Operations', () => {
-    describe('notify_action send error', () => {
-      it('should catch and log error when ws.send throws', () => {
-        const throwingWs = {
-          readyState: 1,
-          send: sinon.stub().throws(new Error('Send failed')),
-        };
-        websocketsRewired.__set__('ws', throwingWs);
+        websocketsRewired.__set__('reconnection', mockReconnection);
         websocketsRewired.__set__('logger', mockLogger);
 
-        // Should not throw
-        expect(() => {
-          websocketsRewired.notify_action('started', '123', 'lock');
-        }).to.not.throw();
-
-        expect(mockLogger.error.called).to.be.true;
-      });
-    });
-
-    describe('notify_status send error', () => {
-      it('should catch and log error when ws.send throws', () => {
-        const throwingWs = {
-          readyState: 1,
-          send: sinon.stub().throws(new Error('Send failed')),
-        };
-        websocketsRewired.__set__('ws', throwingWs);
-        websocketsRewired.__set__('logger', mockLogger);
-
-        // Should not throw
-        expect(() => {
-          websocketsRewired.notify_status({ online: true });
-        }).to.not.throw();
-
-        expect(mockLogger.error.called).to.be.true;
-      });
-    });
-
-    describe('sendAckToServer error handling', () => {
-      it('should catch and log error when ws.send throws', () => {
-        const throwingWs = {
-          readyState: 1,
-          send: sinon.stub().throws(new Error('Send failed')),
-        };
-        websocketsRewired.__set__('ws', throwingWs);
-        websocketsRewired.__set__('logger', mockLogger);
-        websocketsRewired.responsesAck = [{ ack_id: 'ack-1', type: 'ack' }];
-
-        // Should not throw
-        expect(() => {
-          websocketsRewired.sendAckToServer({ ack_id: 'ack-1', type: 'ack' });
-        }).to.not.throw();
-      });
-    });
-  });
-
-  // ==================== fullwipe with out parameter ====================
-  describe('Fullwipe with out parameter', () => {
-    it('should handle fullwipe with out data containing status_code and status_msg', () => {
-      websocketsRewired.__set__('ws', mockWs);
-
-      websocketsRewired.notify_action('started', '123', 'fullwipe', null, null, { data: 0, message: 'Wipe successful' });
-
-      const sentData = JSON.parse(mockWs.send.firstCall.args[0]);
-      expect(sentData.body.reason.status_code).to.equal(0);
-      expect(sentData.body.reason.status_msg).to.equal('Wipe successful');
-    });
-  });
-
-  // ==================== startWebsocket Function ====================
-  describe('startWebsocket Function', () => {
-    it('should call clearAndResetIntervals', () => {
-      const mockConfig = {
-        getData: sinon.stub().returns(null),
-      };
-      const mockKeys = {
-        get: sinon.stub().returns({ device: 'test-device', api: 'test-api' }),
-      };
-      const mockStatusTrigger = {
-        get_status: sinon.stub().callsFake((cb, tag) => cb(null, {})),
-      };
-      const MockWebSocket = function() {
-        this.on = sinon.stub();
-        this.readyState = 1;
-      };
-
-      websocketsRewired.__set__('config', mockConfig);
-      websocketsRewired.__set__('keys', mockKeys);
-      websocketsRewired.__set__('statusTrigger', mockStatusTrigger);
-      websocketsRewired.__set__('WebSocket', MockWebSocket);
-      websocketsRewired.__set__('hooks', mockHooks);
-      websocketsRewired.__set__('storage', mockStorage);
-
-      // Set some intervals to verify they get cleared
-      const testInterval = setInterval(() => {}, 10000);
-      websocketsRewired.__set__('notifyActionInterval', testInterval);
-
-      websocketsRewired.startWebsocket();
-
-      // The interval should be replaced
-      const newInterval = websocketsRewired.__get__('notifyActionInterval');
-      expect(newInterval).to.not.equal(testInterval);
-      clearInterval(testInterval);
-      clearInterval(newInterval);
-    });
-  });
-
-  // ==================== re_schedule Flag ====================
-  describe('re_schedule Flag', () => {
-    it('should be true by default', () => {
-      expect(websocketsRewired.re_schedule).to.be.true;
-    });
-
-    it('should be set to false on unload', () => {
-      websocketsRewired.__set__('ws', null);
-      websocketsRewired.__set__('hooks', mockHooks);
-      websocketsRewired.__set__('emitter', null);
-
-      websocketsRewired.unload(() => {});
-
-      expect(websocketsRewired.re_schedule).to.be.false;
-    });
-  });
-
-  // ==================== markedToBePushed with fromWithin ====================
-  describe('markedToBePushed with fromWithin', () => {
-    it('should add to markedToBePushed when fromWithin is true', () => {
-      websocketsRewired.__set__('ws', mockWs);
-      websocketsRewired.__set__('markedToBePushed', []);
-
-      websocketsRewired.notify_action('started', '123', 'lock', null, null, null, null, null, 0, true);
-
-      const markedToBePushed = websocketsRewired.__get__('markedToBePushed');
-      expect(markedToBePushed).to.have.length(1);
-    });
-
-    it('should add to responses_queue when fromWithin is false', () => {
-      websocketsRewired.__set__('ws', mockWs);
-      websocketsRewired.responses_queue = [];
-
-      websocketsRewired.notify_action('started', '123', 'lock', null, null, null, null, null, 0, false);
-
-      expect(websocketsRewired.responses_queue).to.have.length(1);
-    });
-  });
-
-  // ==================== UUID Generation ====================
-  describe('UUID Generation', () => {
-    it('should generate uuid when respId is undefined', () => {
-      websocketsRewired.__set__('ws', mockWs);
-
-      websocketsRewired.notify_action('started', '123', 'lock', null, null, null, null, undefined, 0);
-
-      const sentData = JSON.parse(mockWs.send.firstCall.args[0]);
-      expect(sentData.id).to.be.a('string');
-      expect(sentData.id).to.have.length(36); // UUID format
-    });
-
-    it('should generate uuid when respId is string "undefined"', () => {
-      websocketsRewired.__set__('ws', mockWs);
-
-      websocketsRewired.notify_action('started', '123', 'lock', null, null, null, null, 'undefined', 0);
-
-      const sentData = JSON.parse(mockWs.send.firstCall.args[0]);
-      expect(sentData.id).to.be.a('string');
-      expect(sentData.id).to.have.length(36);
-    });
-
-    it('should use provided respId when valid', () => {
-      websocketsRewired.__set__('ws', mockWs);
-
-      websocketsRewired.notify_action('started', '123', 'lock', null, null, null, null, 'custom-id', 0);
-
-      const sentData = JSON.parse(mockWs.send.firstCall.args[0]);
-      expect(sentData.id).to.equal('custom-id');
-    });
-  });
-
-  // ==================== Storage Update on Response ====================
-  describe('Storage Update on Response', () => {
-    it('should store response when not in queue', () => {
-      const storageMock = {
-        do: sinon.stub().callsFake((action, opts, cb) => {
-          if (cb) cb(null);
-        }),
-      };
-      websocketsRewired.__set__('ws', mockWs);
-      websocketsRewired.__set__('storage', storageMock);
-      websocketsRewired.responses_queue = [];
-
-      websocketsRewired.notify_action('started', '123', 'lock');
-
-      const setCalls = storageMock.do.getCalls().filter(c => c.args[0] === 'set');
-      expect(setCalls.length).to.equal(1);
-      expect(setCalls[0].args[1].type).to.equal('responses');
-    });
-
-    it('should log error when storage set fails', () => {
-      const errorStorage = {
-        do: sinon.stub().callsFake((action, opts, cb) => {
-          if (cb) cb({ error: 'Storage error' });
-        }),
-      };
-      websocketsRewired.__set__('ws', mockWs);
-      websocketsRewired.__set__('storage', errorStorage);
-      websocketsRewired.__set__('logger', mockLogger);
-      websocketsRewired.responses_queue = [];
-
-      websocketsRewired.notify_action('started', '123', 'lock');
-
-      expect(mockLogger.error.called).to.be.true;
-    });
-
-    it('should log error when storage update fails', () => {
-      const errorStorage = {
-        do: sinon.stub().callsFake((action, opts, cb) => {
-          if (cb) cb({ error: 'Update error' });
-        }),
-      };
-      websocketsRewired.__set__('ws', mockWs);
-      websocketsRewired.__set__('storage', errorStorage);
-      websocketsRewired.__set__('logger', mockLogger);
-      // Pre-populate queue to trigger update path
-      websocketsRewired.responses_queue = [{
-        id: 'existing-id',
-        retries: 1,
-        body: { status: 'started', target: 'lock' },
-      }];
-
-      websocketsRewired.notify_action('started', '123', 'lock', null, null, null, null, 'existing-id', 1);
-
-      expect(mockLogger.error.called).to.be.true;
-    });
-  });
-
-  // ==================== gettingStatus Flag ====================
-  describe('gettingStatus Flag', () => {
-    it('should set gettingStatus to true when calling getStatusByInterval', () => {
-      const mockStatusTrigger = {
-        get_status: sinon.stub(), // Don't call callback immediately
-      };
-      websocketsRewired.__set__('statusTrigger', mockStatusTrigger);
-      websocketsRewired.__set__('gettingStatus', false);
-
-      const getStatusByInterval = websocketsRewired.__get__('getStatusByInterval');
-      getStatusByInterval();
-
-      expect(websocketsRewired.__get__('gettingStatus')).to.be.true;
-    });
-  });
-
-  // ==================== workingWithProxy Flag ====================
-  describe('workingWithProxy Flag', () => {
-    it('should be true initially', () => {
-      const workingWithProxy = websocketsRewired.__get__('workingWithProxy');
-      expect(workingWithProxy).to.be.true;
-    });
-
-    it('should toggle when proxy failures exceed max', () => {
-      const configMock = {
-        getData: sinon.stub().returns('http://proxy.example.com'),
-      };
-      websocketsRewired.__set__('config', configMock);
-      websocketsRewired.__set__('workingWithProxy', true);
-      websocketsRewired.__set__('countNotConnectionProxy', 5);
-
-      const validationConnectionsProxy = websocketsRewired.__get__('validationConnectionsProxy');
-      validationConnectionsProxy();
-
-      expect(websocketsRewired.__get__('workingWithProxy')).to.be.false;
-      expect(websocketsRewired.__get__('countNotConnectionProxy')).to.equal(0);
-    });
-  });
-
-  // ==================== lastStored Variable ====================
-  describe('lastStored Variable', () => {
-    it('should be set when storage has value', () => {
-      const storageWithValue = {
-        do: sinon.stub().callsFake((action, opts, cb) => {
-          cb(null, [{ value: '1640000000' }]);
-        }),
-      };
-      websocketsRewired.__set__('storage', storageWithValue);
-
-      const setLastConnection = websocketsRewired.__get__('setLastConnection');
-      setLastConnection();
-
-      const lastStored = websocketsRewired.__get__('lastStored');
-      expect(lastStored).to.equal(1640000000);
-    });
-  });
-
-  // ==================== Pong Received Flag ====================
-  describe('pongReceived Flag', () => {
-    it('should be false initially', () => {
-      const pongReceived = websocketsRewired.__get__('pongReceived');
-      expect(pongReceived).to.be.false;
-    });
-  });
-
-  // ==================== WebSocket Connection States ====================
-  describe('WebSocket Connection States', () => {
-    it('should handle ws readyState 0 (CONNECTING)', () => {
-      mockWs.readyState = 0;
-      websocketsRewired.__set__('ws', mockWs);
-
-      websocketsRewired.notify_status({ online: true });
-
-      expect(mockWs.send.called).to.be.false;
-    });
-
-    it('should handle ws readyState 2 (CLOSING)', () => {
-      mockWs.readyState = 2;
-      websocketsRewired.__set__('ws', mockWs);
-
-      websocketsRewired.notify_status({ online: true });
-
-      expect(mockWs.send.called).to.be.false;
-    });
-
-    it('should handle ws readyState 3 (CLOSED)', () => {
-      mockWs.readyState = 3;
-      websocketsRewired.__set__('ws', mockWs);
-
-      websocketsRewired.notify_status({ online: true });
-
-      expect(mockWs.send.called).to.be.false;
-    });
-  });
-
-  // ==================== Nested Object Structure ====================
-  describe('Nested Object Grouping', () => {
-    it('should handle deeply nested objects', () => {
-      const groupByStructure = websocketsRewired.__get__('agruparPorEstructuraAnidada');
-
-      const objects = [
-        { action: 'lock', options: { settings: { force: true } } },
-        { action: 'alarm', options: { settings: { force: false } } },
-        { action: 'wipe', simple: true },
-      ];
-
-      const grouped = groupByStructure(objects);
-
-      const keys = Object.keys(grouped);
-      expect(keys).to.have.length(2);
-    });
-
-    it('should handle arrays in objects without recursing into them', () => {
-      const groupByStructure = websocketsRewired.__get__('agruparPorEstructuraAnidada');
-
-      const objects = [
-        { action: 'lock', targets: ['disk1', 'disk2'] },
-        { action: 'alarm', targets: ['speaker'] },
-      ];
-
-      const grouped = groupByStructure(objects);
-
-      const keys = Object.keys(grouped);
-      expect(keys).to.have.length(1);
-      expect(grouped[keys[0]]).to.have.length(2);
-    });
-  });
-
-  // ==================== Process Acks with ack module ====================
-  describe('Process Acks Integration', () => {
-    it('should call ack.processAck for each item', () => {
-      const mockAck = {
-        processAck: sinon.stub().callsFake((item, cb) => {
-          cb(null, { ack_id: item.ack_id, type: 'ack', id: item.id });
-        }),
-      };
-      websocketsRewired.__set__('ack', mockAck);
-      websocketsRewired.responsesAck = [];
-
-      const processAcks = websocketsRewired.__get__('processAcks');
-      processAcks([
-        { ack_id: 'ack-1', id: 'cmd-1' },
-        { ack_id: 'ack-2', id: 'cmd-2' },
-      ]);
-
-      expect(mockAck.processAck.calledTwice).to.be.true;
-    });
-
-    it('should log error when ack.processAck returns error', () => {
-      const mockAck = {
-        processAck: sinon.stub().callsFake((item, cb) => {
-          cb(new Error('Processing failed'));
-        }),
-      };
-      websocketsRewired.__set__('ack', mockAck);
-      websocketsRewired.__set__('logger', mockLogger);
-      websocketsRewired.responsesAck = [];
-
-      const processAcks = websocketsRewired.__get__('processAcks');
-      processAcks([{ ack_id: 'ack-1', id: 'cmd-1' }]);
-
-      expect(mockLogger.error.called).to.be.true;
-    });
-  });
-
-  // ==================== Response deletion on storage ====================
-  describe('Response Deletion', () => {
-    it('should delete response from storage when retries exceed max', () => {
-      const deletingStorage = {
-        do: sinon.stub().callsFake((action, opts, cb) => {
-          if (cb) cb(null);
-        }),
-      };
-      websocketsRewired.__set__('ws', mockWs);
-      websocketsRewired.__set__('storage', deletingStorage);
-      websocketsRewired.responses_queue = [{ id: 'resp-1' }];
-
-      websocketsRewired.notify_action('started', '123', 'lock', null, null, null, null, 'resp-1', 10);
-
-      const delCalls = deletingStorage.do.getCalls().filter(c => c.args[0] === 'del');
-      expect(delCalls.length).to.equal(1);
-      expect(delCalls[0].args[1].type).to.equal('responses');
-      expect(delCalls[0].args[1].id).to.equal('resp-1');
-    });
-  });
-
-  // ==================== Opts Target ====================
-  describe('Opts Target Handling', () => {
-    it('should store opts.target when provided', () => {
-      const storageMock = {
-        do: sinon.stub().callsFake((action, opts, cb) => {
-          if (cb) cb(null);
-        }),
-      };
-      websocketsRewired.__set__('ws', mockWs);
-      websocketsRewired.__set__('storage', storageMock);
-      websocketsRewired.responses_queue = [];
-
-      websocketsRewired.notify_action('started', '123', 'lock', { target: 'specific-target' });
-
-      const setCalls = storageMock.do.getCalls().filter(c => c.args[0] === 'set');
-      expect(setCalls[0].args[1].data.opts).to.equal('specific-target');
-    });
-
-    it('should store null when opts is not provided', () => {
-      const storageMock = {
-        do: sinon.stub().callsFake((action, opts, cb) => {
-          if (cb) cb(null);
-        }),
-      };
-      websocketsRewired.__set__('ws', mockWs);
-      websocketsRewired.__set__('storage', storageMock);
-      websocketsRewired.responses_queue = [];
-
-      websocketsRewired.notify_action('started', '123', 'lock', null);
-
-      const setCalls = storageMock.do.getCalls().filter(c => c.args[0] === 'set');
-      expect(setCalls[0].args[1].data.opts).to.be.null;
-    });
-  });
-
-  // ==================== WebSocket Events Simulation ====================
-  describe('WebSocket Events Simulation', () => {
-    let wsEventHandlers;
-    let mockConfig;
-    let mockKeys;
-    let mockStatusTrigger;
-    let mockNetwork;
-
-    beforeEach(() => {
-      wsEventHandlers = {};
-      mockConfig = {
-        getData: sinon.stub().callsFake((key) => {
-          if (key === 'control-panel.protocol') return 'https';
-          if (key === 'control-panel.host') return 'api.test.com';
-          if (key === 'control-panel.send_location_on_connect') return 'false';
-          if (key === 'try_proxy') return null;
-          return null;
-        }),
-      };
-      mockKeys = {
-        get: sinon.stub().returns({ device: 'test-device', api: 'test-api' }),
-      };
-      mockStatusTrigger = {
-        get_status: sinon.stub().callsFake((cb, tag) => cb(null, {})),
-      };
-      mockNetwork = {
-        get_connection_status: sinon.stub().callsFake((cb) => cb('connected')),
-      };
-
-      const CaptureWebSocket = function(url, options) {
-        this.readyState = 1;
-        this.send = sinon.stub();
-        this.terminate = sinon.stub();
-        this.ping = sinon.stub().callsFake((data, cb) => cb && cb());
-        this.pong = sinon.stub();
-        this.on = sinon.stub().callsFake((event, handler) => {
-          wsEventHandlers[event] = handler;
-        });
-      };
-
-      websocketsRewired.__set__('config', mockConfig);
-      websocketsRewired.__set__('keys', mockKeys);
-      websocketsRewired.__set__('statusTrigger', mockStatusTrigger);
-      websocketsRewired.__set__('network', mockNetwork);
-      websocketsRewired.__set__('WebSocket', CaptureWebSocket);
-      websocketsRewired.__set__('hooks', mockHooks);
-      websocketsRewired.__set__('storage', mockStorage);
-    });
-
-    describe('on open event', () => {
-      it('should register open handler', () => {
-        const webSocketSettings = websocketsRewired.__get__('webSocketSettings');
-        webSocketSettings();
-
-        expect(wsEventHandlers.open).to.be.a('function');
-      });
-
-      it('should set websocketConnected to true on open', () => {
-        websocketsRewired.__set__('websocketConnected', false);
-        const webSocketSettings = websocketsRewired.__get__('webSocketSettings');
-        webSocketSettings();
-
-        wsEventHandlers.open();
-
-        expect(websocketsRewired.__get__('websocketConnected')).to.be.true;
-      });
-
-      it('should reset reconnect delay on open', () => {
-        // Make some reconnection attempts first
-        websocketsRewired.getReconnectDelay();
-        websocketsRewired.getReconnectDelay();
-
-        const webSocketSettings = websocketsRewired.__get__('webSocketSettings');
-        webSocketSettings();
-        wsEventHandlers.open();
-
-        // After reset, delay should be back to base
-        const delay = websocketsRewired.getReconnectDelay();
-        expect(delay).to.be.at.least(4000);
-        expect(delay).to.be.at.most(6000);
-      });
-    });
-
-    describe('on close event', () => {
-      it('should register close handler', () => {
-        const webSocketSettings = websocketsRewired.__get__('webSocketSettings');
-        webSocketSettings();
-
-        expect(wsEventHandlers.close).to.be.a('function');
-      });
-
-      it('should restart websocket on close when re_schedule is true and was connected', () => {
-        websocketsRewired.re_schedule = true;
-        websocketsRewired.__set__('websocketConnected', true);
-        websocketsRewired.__set__('isReconnecting', false);
-
-        const webSocketSettings = websocketsRewired.__get__('webSocketSettings');
-        webSocketSettings();
-        wsEventHandlers.open(); // First open the connection
-
-        websocketsRewired.__set__('isReconnecting', false); // Reset for close test
-        wsEventHandlers.close(1000);
-
-        expect(websocketsRewired.__get__('websocketConnected')).to.be.false;
-      });
-
-      it('should increment countNotConnectionProxy on 1006 error with proxy', () => {
-        websocketsRewired.re_schedule = true;
-        websocketsRewired.__set__('websocketConnected', true);
-        websocketsRewired.__set__('isReconnecting', false);
-        websocketsRewired.__set__('countNotConnectionProxy', 0);
-
-        mockConfig.getData = sinon.stub().callsFake((key) => {
-          if (key === 'try_proxy') return 'http://proxy.example.com';
-          if (key === 'control-panel.protocol') return 'https';
-          if (key === 'control-panel.host') return 'api.test.com';
-          if (key === 'control-panel.send_location_on_connect') return 'false';
-          return null;
-        });
-
-        const webSocketSettings = websocketsRewired.__get__('webSocketSettings');
-        webSocketSettings();
-        wsEventHandlers.open();
-
-        websocketsRewired.__set__('isReconnecting', false);
-        wsEventHandlers.close(1006);
-
-        expect(websocketsRewired.__get__('countNotConnectionProxy')).to.equal(1);
-      });
-    });
-
-    describe('on message event', () => {
-      it('should register message handler', () => {
-        const webSocketSettings = websocketsRewired.__get__('webSocketSettings');
-        webSocketSettings();
-
-        expect(wsEventHandlers.message).to.be.a('function');
-      });
-
-      it('should handle invalid JSON', () => {
-        const webSocketSettings = websocketsRewired.__get__('webSocketSettings');
-        webSocketSettings();
-
-        const result = wsEventHandlers.message('invalid json');
-
-        expect(mockHooks.trigger.calledWith('error')).to.be.true;
-      });
-
-      it('should process array of commands', () => {
-        const emitterMock = new EventEmitter();
-        websocketsRewired.__set__('emitter', emitterMock);
-
-        const webSocketSettings = websocketsRewired.__get__('webSocketSettings');
-        webSocketSettings();
-
-        const commands = JSON.stringify([{ action: 'lock', id: '1' }]);
-        const result = wsEventHandlers.message(commands);
-
-        expect(result).to.equal(0);
-      });
-
-      it('should handle OK status response and remove from queue', () => {
-        websocketsRewired.responses_queue = [{
-          id: 'resp-123',
-          type: 'response',
-          body: { status: 'started', target: 'lock' },
-        }];
-
-        const webSocketSettings = websocketsRewired.__get__('webSocketSettings');
-        webSocketSettings();
-
-        const response = JSON.stringify({ status: 'OK', id: 'resp-123' });
-        wsEventHandlers.message(response);
-
-        expect(websocketsRewired.responses_queue).to.have.length(0);
-      });
-
-      it('should delete from storage when removing response type', () => {
-        websocketsRewired.responses_queue = [{
-          id: 'resp-123',
-          type: 'response',
-          body: { status: 'started', target: 'lock' },
-        }];
-
-        const webSocketSettings = websocketsRewired.__get__('webSocketSettings');
-        webSocketSettings();
-
-        const response = JSON.stringify({ status: 'OK', id: 'resp-123' });
-        wsEventHandlers.message(response);
-
-        const delCalls = mockStorage.do.getCalls().filter(c => c.args[0] === 'del');
-        expect(delCalls.length).to.be.at.least(1);
-      });
-    });
-
-    describe('on error event', () => {
-      it('should register error handler', () => {
-        const webSocketSettings = websocketsRewired.__get__('webSocketSettings');
-        webSocketSettings();
-
-        expect(wsEventHandlers.error).to.be.a('function');
-      });
-
-      it('should log error message', () => {
-        const webSocketSettings = websocketsRewired.__get__('webSocketSettings');
-        webSocketSettings();
-
-        wsEventHandlers.error({ message: 'Connection failed' });
-
-        expect(mockLogger.error.called).to.be.true;
-      });
-
-      it('should trigger reconnection when connected and not already reconnecting', () => {
-        websocketsRewired.__set__('websocketConnected', true);
-        websocketsRewired.__set__('isReconnecting', false);
-
-        const webSocketSettings = websocketsRewired.__get__('webSocketSettings');
-        webSocketSettings();
-        wsEventHandlers.open();
-
-        websocketsRewired.__set__('isReconnecting', false);
-        wsEventHandlers.error({ message: 'Connection lost' });
-
-        expect(websocketsRewired.__get__('isReconnecting')).to.be.true;
-      });
-    });
-
-    describe('on pong event', () => {
-      it('should register pong handler', () => {
-        const webSocketSettings = websocketsRewired.__get__('webSocketSettings');
-        webSocketSettings();
-
-        expect(wsEventHandlers.pong).to.be.a('function');
-      });
-
-      it('should set pongReceived to true', () => {
-        websocketsRewired.__set__('pongReceived', false);
-
-        const webSocketSettings = websocketsRewired.__get__('webSocketSettings');
-        webSocketSettings();
-
-        wsEventHandlers.pong();
-
-        expect(websocketsRewired.__get__('pongReceived')).to.be.true;
-      });
-
-      it('should trigger device_unseen hook', () => {
-        const webSocketSettings = websocketsRewired.__get__('webSocketSettings');
-        webSocketSettings();
-
-        wsEventHandlers.pong();
+        websocketsRewired.heartbeat();
 
         expect(mockHooks.trigger.calledWith('device_unseen')).to.be.true;
       });
 
-      it('should update lastConnection', () => {
-        const beforeTime = Math.round(Date.now() / 1000);
+      it('should not trigger reconnection when connection is ready', () => {
+        const mockConnectionReady = {
+          ...mockConnection,
+          isReady: sinon.stub().returns(true),
+        };
 
-        const webSocketSettings = websocketsRewired.__get__('webSocketSettings');
-        webSocketSettings();
-        wsEventHandlers.pong();
+        websocketsRewired.__set__('hooks', mockHooks);
+        websocketsRewired.__set__('connection', mockConnectionReady);
 
-        const afterTime = Math.round(Date.now() / 1000);
-        const lastConnection = websocketsRewired.__get__('lastConnection');
+        websocketsRewired.heartbeat();
 
-        expect(lastConnection).to.be.at.least(beforeTime);
-        expect(lastConnection).to.be.at.most(afterTime);
-      });
-
-      it('should trigger disconnected when diff >= 30 minutes and connected', () => {
-        // Set last connection to 31 minutes ago
-        const thirtyOneMinutesAgo = Math.round(Date.now() / 1000) - (31 * 60);
-        websocketsRewired.__set__('lastConnection', thirtyOneMinutesAgo);
-
-        const webSocketSettings = websocketsRewired.__get__('webSocketSettings');
-        webSocketSettings();
-        wsEventHandlers.pong();
-
-        expect(mockHooks.trigger.calledWith('disconnected')).to.be.true;
-      });
-
-      it('should not trigger disconnected when diff < 30 minutes', () => {
-        // Set last connection to 5 minutes ago
-        const fiveMinutesAgo = Math.round(Date.now() / 1000) - (5 * 60);
-        websocketsRewired.__set__('lastConnection', fiveMinutesAgo);
-
-        const webSocketSettings = websocketsRewired.__get__('webSocketSettings');
-        webSocketSettings();
-        mockHooks.trigger.resetHistory();
-        wsEventHandlers.pong();
-
-        expect(mockHooks.trigger.calledWith('disconnected')).to.be.false;
+        // Should not trigger device_unseen when ready
+        expect(mockHooks.trigger.calledWith('device_unseen')).to.be.false;
       });
     });
 
-    describe('on ping event', () => {
-      it('should register ping handler', () => {
+    describe('heartbeatTimed', () => {
+      it('should call heartbeat module heartbeatTimed', () => {
+        const mockHeartbeat = {
+          heartbeatTimed: sinon.stub(),
+          clearAll: sinon.stub(),
+        };
+        websocketsRewired.__set__('heartbeat', mockHeartbeat);
+
+        websocketsRewired.heartbeatTimed();
+
+        expect(mockHeartbeat.heartbeatTimed.calledOnce).to.be.true;
+      });
+    });
+
+    describe('notify_status', () => {
+      it('should call notifications.notifyStatus', () => {
+        const mockNotifications = {
+          notifyStatus: sinon.stub(),
+          notifyAction: sinon.stub(),
+        };
+        websocketsRewired.__set__('notifications', mockNotifications);
+        websocketsRewired.__set__('connection', mockConnection);
+        websocketsRewired.__set__('logger', mockLogger);
+
+        websocketsRewired.notify_status({ online: true });
+
+        expect(mockNotifications.notifyStatus.calledOnce).to.be.true;
+        expect(mockNotifications.notifyStatus.firstCall.args[1]).to.deep.equal({ online: true });
+      });
+    });
+
+    describe('notify_action', () => {
+      it('should call notifications.notifyAction with all parameters', () => {
+        const mockNotifications = {
+          notifyStatus: sinon.stub(),
+          notifyAction: sinon.stub(),
+        };
+        const mockResponseQueue = {
+          getQueue: sinon.stub().returns([]),
+        };
+        websocketsRewired.__set__('notifications', mockNotifications);
+        websocketsRewired.__set__('connection', mockConnection);
+        websocketsRewired.__set__('storage', mockStorage);
+        websocketsRewired.__set__('responseQueue', mockResponseQueue);
+        websocketsRewired.__set__('logger', mockLogger);
+
+        websocketsRewired.notify_action('started', '123', 'lock', null, null, null, null, 'resp-1', 0, false);
+
+        expect(mockNotifications.notifyAction.calledOnce).to.be.true;
+      });
+
+      it('should sync responses_queue after notification', () => {
+        const mockNotifications = {
+          notifyStatus: sinon.stub(),
+          notifyAction: sinon.stub(),
+        };
+        const mockResponseQueue = {
+          getQueue: sinon.stub().returns([{ id: 'queued-1' }]),
+        };
+        websocketsRewired.__set__('notifications', mockNotifications);
+        websocketsRewired.__set__('connection', mockConnection);
+        websocketsRewired.__set__('storage', mockStorage);
+        websocketsRewired.__set__('responseQueue', mockResponseQueue);
+        websocketsRewired.__set__('logger', mockLogger);
+
+        websocketsRewired.notify_action('started', '123', 'lock');
+
+        expect(websocketsRewired.responses_queue).to.deep.equal([{ id: 'queued-1' }]);
+      });
+    });
+
+    describe('sendAckToServer', () => {
+      it('should call ackQueue.sendAckToServer', () => {
+        const mockAckQueue = {
+          sendAckToServer: sinon.stub(),
+          getQueue: sinon.stub().returns([]),
+        };
+        websocketsRewired.__set__('ackQueue', mockAckQueue);
+        websocketsRewired.__set__('connection', mockConnection);
+        websocketsRewired.__set__('logger', mockLogger);
+
+        websocketsRewired.sendAckToServer({ ack_id: 'ack-1' });
+
+        expect(mockAckQueue.sendAckToServer.calledOnce).to.be.true;
+      });
+    });
+
+    describe('notifyAck', () => {
+      it('should call ackQueue.notifyAck with all parameters', () => {
+        const mockAckQueue = {
+          notifyAck: sinon.stub(),
+          getQueue: sinon.stub().returns([]),
+        };
+        websocketsRewired.__set__('ackQueue', mockAckQueue);
+        websocketsRewired.__set__('connection', mockConnection);
+        websocketsRewired.__set__('logger', mockLogger);
+
+        websocketsRewired.notifyAck('ack-1', 'ack', 'cmd-1', true, 0);
+
+        expect(mockAckQueue.notifyAck.calledOnce).to.be.true;
+        expect(mockAckQueue.notifyAck.firstCall.args[1]).to.equal('ack-1');
+      });
+    });
+
+    describe('startWebsocket', () => {
+      it('should clear intervals and call webSocketSettings', () => {
+        const mockHeartbeat = {
+          heartbeatTimed: sinon.stub(),
+          clearAll: sinon.stub(),
+          startPingInterval: sinon.stub(),
+        };
+        websocketsRewired.__set__('heartbeat', mockHeartbeat);
+        websocketsRewired.__set__('config', mockConfig);
+        websocketsRewired.__set__('keys', mockKeys);
+        websocketsRewired.__set__('statusTrigger', mockStatusTrigger);
+        websocketsRewired.__set__('connection', mockConnection);
+        websocketsRewired.__set__('logger', mockLogger);
+        websocketsRewired.__set__('storage', mockStorage);
+        websocketsRewired.__set__('hooks', mockHooks);
+
+        expect(() => websocketsRewired.startWebsocket()).to.not.throw();
+      });
+    });
+
+    describe('webSocketSettings', () => {
+      it('should unload when no device key', () => {
+        const mockKeysNoDevice = {
+          get: sinon.stub().returns({ device: null, api: 'api-key' }),
+        };
+        const mockErrors = {
+          get: sinon.stub().returns(new Error('NO_DEVICE_KEY')),
+        };
+        const mockUtils = {
+          propagateError: sinon.stub(),
+        };
+
+        websocketsRewired.__set__('keys', mockKeysNoDevice);
+        websocketsRewired.__set__('errors', mockErrors);
+        websocketsRewired.__set__('utils', mockUtils);
+        websocketsRewired.__set__('config', mockConfig);
+        websocketsRewired.__set__('hooks', mockHooks);
+        websocketsRewired.__set__('logger', mockLogger);
+        websocketsRewired.__set__('statusTrigger', mockStatusTrigger);
+
         const webSocketSettings = websocketsRewired.__get__('webSocketSettings');
         webSocketSettings();
 
-        expect(wsEventHandlers.ping).to.be.a('function');
+        expect(mockUtils.propagateError.called).to.be.true;
       });
 
-      it('should call heartbeatTimed', () => {
-        const heartbeatTimedSpy = sinon.spy(websocketsRewired, 'heartbeatTimed');
+      it('should create connection when device key exists', () => {
+        const mockHeartbeat = {
+          heartbeatTimed: sinon.stub(),
+          clearAll: sinon.stub(),
+          startPingInterval: sinon.stub(),
+        };
+        const mockResponseQueue = {
+          getQueue: sinon.stub().returns([]),
+          loadFromStorage: sinon.stub().callsFake((storage, cb) => cb()),
+          retryQueuedResponses: sinon.stub(),
+        };
+
+        websocketsRewired.__set__('keys', mockKeys);
+        websocketsRewired.__set__('config', mockConfig);
+        websocketsRewired.__set__('statusTrigger', mockStatusTrigger);
+        websocketsRewired.__set__('connection', mockConnection);
+        websocketsRewired.__set__('heartbeat', mockHeartbeat);
+        websocketsRewired.__set__('responseQueue', mockResponseQueue);
+        websocketsRewired.__set__('storage', mockStorage);
+        websocketsRewired.__set__('hooks', mockHooks);
+        websocketsRewired.__set__('logger', mockLogger);
+        websocketsRewired.__set__('emitter', new EventEmitter());
 
         const webSocketSettings = websocketsRewired.__get__('webSocketSettings');
         webSocketSettings();
 
-        // Set ws to ready state
-        websocketsRewired.__set__('ws', {
-          readyState: 1,
-          pong: sinon.stub(),
-        });
-
-        wsEventHandlers.ping();
-
-        expect(heartbeatTimedSpy.calledOnce).to.be.true;
-        heartbeatTimedSpy.restore();
+        expect(mockConnection.create.calledOnce).to.be.true;
       });
     });
-  });
 
-  // ==================== Location Sending ====================
-  describe('Location Sending on Connect', () => {
-    it('should send location when config is true and enough time has passed', (done) => {
-      const wsEventHandlers = {};
-      const mockConfig = {
-        getData: sinon.stub().callsFake((key) => {
-          if (key === 'control-panel.send_location_on_connect') return 'true';
-          if (key === 'control-panel.protocol') return 'https';
-          if (key === 'control-panel.host') return 'api.test.com';
-          return null;
-        }),
-      };
-      const mockKeys = {
-        get: sinon.stub().returns({ device: 'test-device', api: 'test-api' }),
-      };
-      const mockStatusTrigger = {
-        get_status: sinon.stub().callsFake((cb) => cb(null, {})),
-      };
+    describe('load', () => {
+      it('should return emitter via callback', (done) => {
+        websocketsRewired.__set__('hooks', mockHooks);
+        websocketsRewired.__set__('server', mockServer);
+        websocketsRewired.__set__('triggers', mockTriggers);
+        websocketsRewired.__set__('storage', mockStorage);
+        websocketsRewired.__set__('config', mockConfig);
+        websocketsRewired.__set__('keys', mockKeys);
+        websocketsRewired.__set__('statusTrigger', mockStatusTrigger);
+        websocketsRewired.__set__('connection', mockConnection);
+        websocketsRewired.__set__('logger', mockLogger);
+        websocketsRewired.__set__('emitter', null);
 
-      const CaptureWebSocket = function() {
-        this.readyState = 1;
-        this.send = sinon.stub();
-        this.terminate = sinon.stub();
-        this.on = sinon.stub().callsFake((event, handler) => {
-          wsEventHandlers[event] = handler;
+        websocketsRewired.load((err, emitter) => {
+          expect(err).to.be.null;
+          expect(emitter).to.be.instanceOf(EventEmitter);
+          done();
         });
-      };
+      });
 
-      websocketsRewired.__set__('config', mockConfig);
-      websocketsRewired.__set__('keys', mockKeys);
-      websocketsRewired.__set__('statusTrigger', mockStatusTrigger);
-      websocketsRewired.__set__('WebSocket', CaptureWebSocket);
-      websocketsRewired.__set__('hooks', mockHooks);
-      websocketsRewired.__set__('storage', mockStorage);
-      websocketsRewired.__set__('lastLocationTime', null);
+      it('should return existing emitter if already created', (done) => {
+        const existingEmitter = new EventEmitter();
+        websocketsRewired.__set__('emitter', existingEmitter);
+        websocketsRewired.__set__('hooks', mockHooks);
+        websocketsRewired.__set__('server', mockServer);
+        websocketsRewired.__set__('triggers', mockTriggers);
+        websocketsRewired.__set__('storage', mockStorage);
+        websocketsRewired.__set__('config', mockConfig);
+        websocketsRewired.__set__('keys', mockKeys);
+        websocketsRewired.__set__('statusTrigger', mockStatusTrigger);
+        websocketsRewired.__set__('connection', mockConnection);
+        websocketsRewired.__set__('logger', mockLogger);
 
-      const webSocketSettings = websocketsRewired.__get__('webSocketSettings');
-      webSocketSettings();
-      wsEventHandlers.open();
-
-      // The timer is set for 10 seconds, but we can check the flag was set
-      const timerSendLocation = websocketsRewired.__get__('timerSendLocation');
-      expect(timerSendLocation).to.not.be.null;
-      clearTimeout(timerSendLocation);
-      done();
-    });
-  });
-
-  // ==================== Stored Actions Loading ====================
-  describe('Stored Actions Loading on Open', () => {
-    it('should load stored actions into responses_queue on open', () => {
-      const wsEventHandlers = {};
-      const storedActions = [
-        { action_id: '123', status: 'started', action: 'lock', id: 'stored-1' },
-      ];
-      const mockStorageWithActions = {
-        do: sinon.stub().callsFake((action, opts, cb) => {
-          if (action === 'all' && opts.type === 'responses') {
-            cb(null, storedActions);
-          } else {
-            cb(null, []);
-          }
-        }),
-      };
-      const mockConfig = {
-        getData: sinon.stub().callsFake((key) => {
-          if (key === 'control-panel.protocol') return 'https';
-          if (key === 'control-panel.host') return 'api.test.com';
-          if (key === 'control-panel.send_location_on_connect') return 'false';
-          return null;
-        }),
-      };
-      const mockKeys = {
-        get: sinon.stub().returns({ device: 'test-device', api: 'test-api' }),
-      };
-      const mockStatusTrigger = {
-        get_status: sinon.stub().callsFake((cb) => cb(null, {})),
-      };
-
-      const CaptureWebSocket = function() {
-        this.readyState = 1;
-        this.send = sinon.stub();
-        this.terminate = sinon.stub();
-        this.on = sinon.stub().callsFake((event, handler) => {
-          wsEventHandlers[event] = handler;
+        websocketsRewired.load((err, emitter) => {
+          expect(err).to.be.null;
+          expect(emitter).to.equal(existingEmitter);
+          done();
         });
-      };
-
-      websocketsRewired.__set__('config', mockConfig);
-      websocketsRewired.__set__('keys', mockKeys);
-      websocketsRewired.__set__('statusTrigger', mockStatusTrigger);
-      websocketsRewired.__set__('WebSocket', CaptureWebSocket);
-      websocketsRewired.__set__('hooks', mockHooks);
-      websocketsRewired.__set__('storage', mockStorageWithActions);
-      websocketsRewired.responses_queue = [];
-
-      const webSocketSettings = websocketsRewired.__get__('webSocketSettings');
-      webSocketSettings();
-      wsEventHandlers.open();
-
-      expect(websocketsRewired.responses_queue).to.have.length(1);
-      expect(websocketsRewired.responses_queue[0].reply_id).to.equal('123');
+      });
     });
 
-    it('should handle single stored action (not array)', () => {
-      const wsEventHandlers = {};
-      const singleAction = { action_id: '456', status: 'started', action: 'alarm', id: 'stored-2' };
-      const mockStorageWithSingleAction = {
-        do: sinon.stub().callsFake((action, opts, cb) => {
-          if (action === 'all' && opts.type === 'responses') {
-            cb(null, singleAction);
-          } else {
-            cb(null, []);
-          }
-        }),
-      };
-      const mockConfig = {
-        getData: sinon.stub().callsFake((key) => {
-          if (key === 'control-panel.protocol') return 'https';
-          if (key === 'control-panel.host') return 'api.test.com';
-          if (key === 'control-panel.send_location_on_connect') return 'false';
-          return null;
-        }),
-      };
-      const mockKeys = {
-        get: sinon.stub().returns({ device: 'test-device', api: 'test-api' }),
-      };
-      const mockStatusTrigger = {
-        get_status: sinon.stub().callsFake((cb) => cb(null, {})),
-      };
+    describe('unload', () => {
+      it('should set re_schedule to false', (done) => {
+        websocketsRewired.__set__('hooks', mockHooks);
+        websocketsRewired.__set__('emitter', null);
+        websocketsRewired.__set__('connection', mockConnection);
 
-      const CaptureWebSocket = function() {
-        this.readyState = 1;
-        this.send = sinon.stub();
-        this.terminate = sinon.stub();
-        this.on = sinon.stub().callsFake((event, handler) => {
-          wsEventHandlers[event] = handler;
+        const mockHeartbeat = {
+          clearPingTimeout: sinon.stub(),
+          clearAll: sinon.stub(),
+        };
+        websocketsRewired.__set__('heartbeat', mockHeartbeat);
+
+        websocketsRewired.unload(() => {
+          expect(websocketsRewired.re_schedule).to.be.false;
+          // Reset for other tests
+          websocketsRewired.re_schedule = true;
+          done();
         });
-      };
+      });
 
-      websocketsRewired.__set__('config', mockConfig);
-      websocketsRewired.__set__('keys', mockKeys);
-      websocketsRewired.__set__('statusTrigger', mockStatusTrigger);
-      websocketsRewired.__set__('WebSocket', CaptureWebSocket);
-      websocketsRewired.__set__('hooks', mockHooks);
-      websocketsRewired.__set__('storage', mockStorageWithSingleAction);
-      websocketsRewired.responses_queue = [];
+      it('should remove emitter listeners and set to null', (done) => {
+        const testEmitter = new EventEmitter();
+        testEmitter.on('test', () => {});
 
-      const webSocketSettings = websocketsRewired.__get__('webSocketSettings');
-      webSocketSettings();
-      wsEventHandlers.open();
+        websocketsRewired.__set__('emitter', testEmitter);
+        websocketsRewired.__set__('hooks', mockHooks);
+        websocketsRewired.__set__('connection', mockConnection);
 
-      expect(websocketsRewired.responses_queue).to.have.length(1);
-      expect(websocketsRewired.responses_queue[0].reply_id).to.equal('456');
-    });
-  });
+        const mockHeartbeat = {
+          clearPingTimeout: sinon.stub(),
+          clearAll: sinon.stub(),
+        };
+        websocketsRewired.__set__('heartbeat', mockHeartbeat);
 
-  // ==================== Ping Interval with Error ====================
-  describe('Ping Interval with Error', () => {
-    it('should trigger reconnection when ping callback has error', (done) => {
-      const wsEventHandlers = {};
-      const mockConfig = {
-        getData: sinon.stub().callsFake((key) => {
-          if (key === 'control-panel.protocol') return 'https';
-          if (key === 'control-panel.host') return 'api.test.com';
-          if (key === 'control-panel.send_location_on_connect') return 'false';
-          return null;
-        }),
-      };
-      const mockKeys = {
-        get: sinon.stub().returns({ device: 'test-device', api: 'test-api' }),
-      };
-      const mockStatusTrigger = {
-        get_status: sinon.stub().callsFake((cb) => cb(null, {})),
-      };
-
-      const CaptureWebSocket = function() {
-        this.readyState = 1;
-        this.send = sinon.stub();
-        this.terminate = sinon.stub();
-        this.ping = sinon.stub().callsFake((data, cb) => {
-          cb({ error: 'ping failed' }); // Error in ping
+        websocketsRewired.unload(() => {
+          const emitterAfter = websocketsRewired.__get__('emitter');
+          expect(emitterAfter).to.be.null;
+          websocketsRewired.re_schedule = true;
+          done();
         });
-        this.on = sinon.stub().callsFake((event, handler) => {
-          wsEventHandlers[event] = handler;
+      });
+
+      it('should call connection.terminate', (done) => {
+        websocketsRewired.__set__('hooks', mockHooks);
+        websocketsRewired.__set__('emitter', null);
+        websocketsRewired.__set__('connection', mockConnection);
+
+        const mockHeartbeat = {
+          clearPingTimeout: sinon.stub(),
+          clearAll: sinon.stub(),
+        };
+        websocketsRewired.__set__('heartbeat', mockHeartbeat);
+
+        websocketsRewired.unload(() => {
+          expect(mockConnection.terminate.calledOnce).to.be.true;
+          websocketsRewired.re_schedule = true;
+          done();
         });
-      };
-
-      websocketsRewired.__set__('config', mockConfig);
-      websocketsRewired.__set__('keys', mockKeys);
-      websocketsRewired.__set__('statusTrigger', mockStatusTrigger);
-      websocketsRewired.__set__('WebSocket', CaptureWebSocket);
-      websocketsRewired.__set__('hooks', mockHooks);
-      websocketsRewired.__set__('storage', mockStorage);
-      websocketsRewired.__set__('isReconnecting', false);
-
-      const webSocketSettings = websocketsRewired.__get__('webSocketSettings');
-      webSocketSettings();
-      wsEventHandlers.open();
-
-      // Ping interval fires at 60000ms, we'll check the setup
-      const pingInterval = websocketsRewired.__get__('pingInterval');
-      expect(pingInterval).to.not.be.null;
-      clearInterval(pingInterval);
-      done();
-    });
-  });
-
-  // ==================== Empty Objects Handling ====================
-  describe('Empty Objects Handling', () => {
-    it('should not log empty message objects', () => {
-      const wsEventHandlers = {};
-      const mockConfig = {
-        getData: sinon.stub().callsFake((key) => {
-          if (key === 'control-panel.protocol') return 'https';
-          if (key === 'control-panel.host') return 'api.test.com';
-          if (key === 'control-panel.send_location_on_connect') return 'false';
-          return null;
-        }),
-      };
-      const mockKeys = {
-        get: sinon.stub().returns({ device: 'test-device', api: 'test-api' }),
-      };
-      const mockStatusTrigger = {
-        get_status: sinon.stub().callsFake((cb) => cb(null, {})),
-      };
-
-      const CaptureWebSocket = function() {
-        this.readyState = 1;
-        this.send = sinon.stub();
-        this.terminate = sinon.stub();
-        this.on = sinon.stub().callsFake((event, handler) => {
-          wsEventHandlers[event] = handler;
-        });
-      };
-
-      websocketsRewired.__set__('config', mockConfig);
-      websocketsRewired.__set__('keys', mockKeys);
-      websocketsRewired.__set__('statusTrigger', mockStatusTrigger);
-      websocketsRewired.__set__('WebSocket', CaptureWebSocket);
-      websocketsRewired.__set__('hooks', mockHooks);
-      websocketsRewired.__set__('storage', mockStorage);
-      websocketsRewired.__set__('logger', mockLogger);
-
-      const webSocketSettings = websocketsRewired.__get__('webSocketSettings');
-      webSocketSettings();
-
-      mockLogger.info.resetHistory();
-      wsEventHandlers.message('{}');
-
-      // Should not log info for empty objects
-      const logCalls = mockLogger.info.getCalls().filter(c =>
-        c.args[0] && c.args[0].includes('message received')
-      );
-      expect(logCalls).to.have.length(0);
+      });
     });
   });
 });
