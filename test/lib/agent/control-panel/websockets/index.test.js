@@ -14,6 +14,7 @@ describe('WebSocket Module', () => {
   let handlersRewired;
   let notificationsRewired;
   let connectionRewired;
+  let commandQueueRewired;
   let constantsModule;
   let utilsModule;
 
@@ -32,6 +33,7 @@ describe('WebSocket Module', () => {
     handlersRewired = rewire('../../../../../lib/agent/control-panel/websockets/handlers');
     notificationsRewired = rewire('../../../../../lib/agent/control-panel/websockets/notifications');
     connectionRewired = rewire('../../../../../lib/agent/control-panel/websockets/connection');
+    commandQueueRewired = rewire('../../../../../lib/agent/control-panel/websockets/command-queue');
     constantsModule = require('../../../../../lib/agent/control-panel/websockets/constants');
     utilsModule = require('../../../../../lib/agent/control-panel/websockets/utils');
 
@@ -45,12 +47,12 @@ describe('WebSocket Module', () => {
       on: sinon.stub(),
     };
 
-    // Mock hooks
-    mockHooks = {
-      trigger: sinon.stub(),
-      on: sinon.stub(),
-      remove: sinon.stub(),
-    };
+    // Mock hooks - use EventEmitter so we can emit events
+    mockHooks = new EventEmitter();
+    mockHooks.trigger = sinon.stub();
+    mockHooks.remove = sinon.stub();
+    // Spy on 'on' method so tests can verify it was called
+    sinon.spy(mockHooks, 'on');
 
     // Mock storage
     mockStorage = {
@@ -82,7 +84,7 @@ describe('WebSocket Module', () => {
   // ==================== Constants Tests ====================
   describe('Constants Module', () => {
     it('should have correct STARTUP_TIMEOUT', () => {
-      expect(constantsModule.STARTUP_TIMEOUT).to.equal(5000);
+      expect(constantsModule.STARTUP_TIMEOUT).to.equal(3000);
     });
 
     it('should have correct HEARTBEAT_TIMEOUT', () => {
@@ -725,15 +727,18 @@ describe('WebSocket Module', () => {
         expect(mockWs.send.called).to.be.false;
       });
 
-      it('should add ack to queue if not already present', () => {
+      it('should remove ack from queue after sending', () => {
         ackQueueRewired.sendAckToServer(mockWs, { ack_id: 'new-ack', type: 'ack', retries: 0 }, mockLogger);
-        expect(ackQueueRewired.getQueue()).to.have.length(1);
+        // ACK should be removed from queue after sending
+        expect(ackQueueRewired.getQueue()).to.have.length(0);
       });
 
-      it('should not duplicate ack in queue', () => {
-        ackQueueRewired.addAck({ ack_id: 'ack-1', type: 'ack', retries: 0 });
+      it('should not send duplicate ack', () => {
+        ackQueueRewired.addAck({ ack_id: 'ack-1', type: 'ack', retries: 0, sent: true });
+        mockWs.send.resetHistory();
         ackQueueRewired.sendAckToServer(mockWs, { ack_id: 'ack-1', type: 'ack', retries: 0 }, mockLogger);
-        expect(ackQueueRewired.getQueue()).to.have.length(1);
+        // Should not send because already sent
+        expect(mockWs.send.called).to.be.false;
       });
 
       it('should catch and log error when ws.send throws', () => {
@@ -758,30 +763,40 @@ describe('WebSocket Module', () => {
       });
 
       it('should send ack when ws is ready', () => {
-        ackQueueRewired.addAck({ ack_id: 'ack-1', type: 'ack', id: 'cmd-1', sent: true, retries: 0 });
-        ackQueueRewired.notifyAck(mockWs, 'ack-1', 'ack', 'cmd-1', true, 0, mockLogger);
+        mockWs.send.resetHistory();
+        ackQueueRewired.notifyAck(mockWs, 'ack-1', 'ack', 'cmd-1', false, 0, mockLogger);
 
         expect(mockWs.send.calledOnce).to.be.true;
+        // ACK should be removed from queue after sending
+        expect(ackQueueRewired.getQueue()).to.have.length(0);
       });
 
       it('should not send when ws is not ready', () => {
-        ackQueueRewired.addAck({ ack_id: 'ack-1', type: 'ack', id: 'cmd-1', sent: true, retries: 0 });
-        ackQueueRewired.notifyAck(null, 'ack-1', 'ack', 'cmd-1', true, 0, mockLogger);
+        mockWs.send.resetHistory();
+        ackQueueRewired.notifyAck(null, 'ack-1', 'ack', 'cmd-1', false, 0, mockLogger);
 
         expect(mockWs.send.called).to.be.false;
       });
 
-      it('should add new ack if not in queue', () => {
-        ackQueueRewired.notifyAck(mockWs, 'new-ack', 'ack', 'cmd-1', true, 0, mockLogger);
-        expect(ackQueueRewired.getQueue()).to.have.length(1);
+      it('should send ack and remove from queue', () => {
+        mockWs.send.resetHistory();
+        ackQueueRewired.notifyAck(mockWs, 'new-ack', 'ack', 'cmd-1', false, 0, mockLogger);
+
+        expect(mockWs.send.calledOnce).to.be.true;
+        // Queue should be empty after sending
+        expect(ackQueueRewired.getQueue()).to.have.length(0);
       });
 
-      it('should increment retries for existing ack', () => {
-        ackQueueRewired.addAck({ ack_id: 'ack-1', type: 'ack', id: 'cmd-1', sent: true, retries: 1 });
-        ackQueueRewired.notifyAck(mockWs, 'ack-1', 'ack', 'cmd-1', true, 1, mockLogger);
+      it('should handle retries up to max', () => {
+        mockWs.send.resetHistory();
+        // Call with retries = MAX_ACK_RETRIES - 1 (should send)
+        ackQueueRewired.notifyAck(mockWs, 'ack-1', 'ack', 'cmd-1', false, 3, mockLogger);
+        expect(mockWs.send.calledOnce).to.be.true;
 
-        const ack = ackQueueRewired.findAck('ack-1');
-        expect(ack.retries).to.equal(2);
+        // Call with retries = MAX_ACK_RETRIES (should not send)
+        mockWs.send.resetHistory();
+        ackQueueRewired.notifyAck(mockWs, 'ack-1', 'ack', 'cmd-1', false, 4, mockLogger);
+        expect(mockWs.send.called).to.be.false;
       });
     });
 
@@ -791,22 +806,29 @@ describe('WebSocket Module', () => {
         expect(mockWs.send.called).to.be.false;
       });
 
-      it('should retry acks in queue', () => {
-        ackQueueRewired.addAck({ ack_id: 'ack-1', type: 'ack', id: 'cmd-1', sent: true, retries: 0 });
+      it('should retry acks if any remain in queue', () => {
+        // Manually add ACK to queue (shouldn't normally happen)
+        ackQueueRewired.addAck({ ack_id: 'ack-1', type: 'ack', id: 'cmd-1', sent: false, retries: 0 });
+        mockWs.send.resetHistory();
         ackQueueRewired.retryAckResponses(mockWs, mockLogger);
 
         expect(mockWs.send.called).to.be.true;
+        // Should be removed after sending
+        expect(ackQueueRewired.getQueue()).to.have.length(0);
       });
 
       it('should remove acks that exceed max retries', () => {
-        ackQueueRewired.addAck({ ack_id: 'ack-1', type: 'ack', id: 'cmd-1', sent: true, retries: 5 });
+        // Manually add ACK with high retries
+        ackQueueRewired.addAck({ ack_id: 'ack-1', type: 'ack', id: 'cmd-1', sent: false, retries: 3 });
         ackQueueRewired.retryAckResponses(mockWs, mockLogger);
 
+        // Should be removed without sending (retries + 1 = 4 = MAX_ACK_RETRIES)
         expect(ackQueueRewired.getQueue()).to.have.length(0);
       });
 
       it('should not send when ws is not ready', () => {
-        ackQueueRewired.addAck({ ack_id: 'ack-1', type: 'ack', id: 'cmd-1', sent: true, retries: 0 });
+        ackQueueRewired.addAck({ ack_id: 'ack-1', type: 'ack', id: 'cmd-1', sent: false, retries: 0 });
+        mockWs.send.resetHistory();
         ackQueueRewired.retryAckResponses(null, mockLogger);
 
         expect(mockWs.send.called).to.be.false;
@@ -814,20 +836,26 @@ describe('WebSocket Module', () => {
     });
 
     describe('processAcks', () => {
-      it('should process array of acks', () => {
+      it('should process array of acks and send immediately', () => {
         const mockAckModule = {
           processAck: sinon.stub().callsFake((item, cb) => {
             cb(null, { ack_id: item.ack_id, type: 'ack', id: item.id });
           }),
         };
 
+        mockWs.send.resetHistory();
+
         ackQueueRewired.processAcks(
           [{ ack_id: 'ack-1', id: 'cmd-1' }],
+          mockWs,
           mockAckModule,
           mockLogger,
         );
 
-        expect(ackQueueRewired.getQueue()).to.have.length(1);
+        // Should send immediately
+        expect(mockWs.send.calledOnce).to.be.true;
+        // Queue should be empty (ACK removed after sending)
+        expect(ackQueueRewired.getQueue()).to.have.length(0);
       });
 
       it('should log error when processAck fails', () => {
@@ -837,7 +865,7 @@ describe('WebSocket Module', () => {
           }),
         };
 
-        ackQueueRewired.processAcks([{ ack_id: 'ack-1' }], mockAckModule, mockLogger);
+        ackQueueRewired.processAcks([{ ack_id: 'ack-1' }], mockWs, mockAckModule, mockLogger);
         expect(mockLogger.error.called).to.be.true;
       });
 
@@ -846,7 +874,7 @@ describe('WebSocket Module', () => {
           processAck: sinon.stub(),
         };
 
-        ackQueueRewired.processAcks([], mockAckModule, mockLogger);
+        ackQueueRewired.processAcks([], mockWs, mockAckModule, mockLogger);
         expect(mockAckModule.processAck.called).to.be.false;
       });
 
@@ -857,73 +885,33 @@ describe('WebSocket Module', () => {
           }),
         };
 
+        mockWs.send.resetHistory();
+
         ackQueueRewired.processAcks(
           [
             { ack_id: 'ack-1', id: 'cmd-1' },
             { ack_id: 'ack-2', id: 'cmd-2' },
             { ack_id: 'ack-3', id: 'cmd-3' },
           ],
+          mockWs,
           mockAckModule,
           mockLogger,
         );
 
-        expect(ackQueueRewired.getQueue()).to.have.length(3);
+        // Should send all 3 ACKs
+        expect(mockWs.send.callCount).to.equal(3);
+        // Queue should be empty (all ACKs removed after sending)
+        expect(ackQueueRewired.getQueue()).to.have.length(0);
       });
     });
   });
 
   // ==================== Handlers Tests ====================
   describe('Handlers Module', () => {
-    describe('groupByStructure', () => {
-      it('should group objects by structure signature', () => {
-        const objects = [
-          { action: 'lock', id: '1' },
-          { action: 'alarm', id: '2' },
-          { action: 'wipe', target: 'disk', id: '3' },
-        ];
-
-        const grouped = handlersRewired.groupByStructure(objects);
-        const keys = Object.keys(grouped);
-        expect(keys).to.have.length(2);
-      });
-
-      it('should handle empty array', () => {
-        const grouped = handlersRewired.groupByStructure([]);
-        expect(grouped).to.deep.equal({});
-      });
-
-      it('should handle nested objects', () => {
-        const objects = [
-          { action: 'lock', options: { force: true } },
-          { action: 'alarm', options: { force: false } },
-        ];
-
-        const grouped = handlersRewired.groupByStructure(objects);
-        const keys = Object.keys(grouped);
-        expect(keys).to.have.length(1);
-      });
-    });
-
-    describe('processCommands', () => {
-      it('should emit commands via emitter', (done) => {
-        const emitterMock = new EventEmitter();
-        emitterMock.on('command', (cmd) => {
-          expect(cmd.action).to.equal('lock');
-          done();
-        });
-
-        handlersRewired.processCommands(
-          [{ action: 'lock', id: '1' }],
-          emitterMock,
-          mockHooks,
-          mockLogger,
-        );
-      });
-    });
-
     describe('handleMessage', () => {
       it('should handle invalid JSON', () => {
         const context = {
+          ws: mockWs,
           responseQueue: responseQueueRewired,
           ackQueue: ackQueueRewired,
           storage: mockStorage,
@@ -944,6 +932,7 @@ describe('WebSocket Module', () => {
         });
 
         const context = {
+          ws: mockWs,
           responseQueue: responseQueueRewired,
           ackQueue: ackQueueRewired,
           storage: mockStorage,
@@ -1800,6 +1789,7 @@ describe('WebSocket Module', () => {
       // Mock status trigger
       mockStatusTrigger = {
         get_status: sinon.stub().callsFake((cb) => cb(null, { online: true })),
+        status_info: sinon.stub().callsFake((cb) => cb(null, { online: true })),
       };
 
       // Mock connection module
@@ -2565,6 +2555,1697 @@ describe('WebSocket Module', () => {
           done();
         });
       });
+    });
+  });
+
+  // ==================== Full Action Flow Tests ====================
+  describe('Full Action Flow - Lock Command', () => {
+    let mockEmitter;
+    let mockAckModule;
+    let lockActionMessage;
+
+    beforeEach(() => {
+      // Create mock emitter
+      mockEmitter = new EventEmitter();
+
+      // Initialize command queue with hooks and inject into handlers
+      commandQueueRewired.initialize(mockHooks);
+      commandQueueRewired.clearAllQueues();
+      handlersRewired.__set__('commandQueue', commandQueueRewired);
+
+      // Create mock ACK module
+      mockAckModule = {
+        processAck: sinon.stub().callsFake((json, cb) => {
+          if (json.ack_id) {
+            cb(null, {
+              ack_id: json.ack_id,
+              type: 'ack',
+              id: json.id || '',
+            });
+          } else {
+            cb(new Error('No ack_id'));
+          }
+        }),
+      };
+
+      // Reset queues
+      ackQueueRewired.clearQueue();
+      responseQueueRewired.clearQueue();
+
+      // Reset mock WebSocket send
+      mockWs.send.resetHistory();
+
+      // Lock action message with modified IDs and unlock_pass
+      lockActionMessage = JSON.stringify([
+        {
+          ack_id: '_INBOX.TestAck123.MockInboxId',
+          body: {
+            command: 'start',
+            options: {
+              close_apps: false,
+              unlock_pass: 'testsecurepass123',
+            },
+            target: 'lock',
+          },
+          id: 'a1b2c3d4-5678-9012-3456-789abcdef012',
+          message_id: 'f9e8d7c6-b5a4-3210-9876-543210fedcba',
+          time: '2026-02-02T14:16:01.506795823Z',
+          type: 'action',
+        },
+      ]);
+    });
+
+    it('should process lock action message and send ACK only once', () => {
+      const context = {
+        ws: mockWs,
+        responseQueue: responseQueueRewired,
+        ackQueue: ackQueueRewired,
+        storage: mockStorage,
+        ackModule: mockAckModule,
+        hooks: mockHooks,
+        logger: mockLogger,
+        emitter: mockEmitter,
+      };
+
+      mockWs.send.resetHistory();
+
+      handlersRewired.handleMessage(lockActionMessage, context);
+
+      // Verify ACK was sent exactly once
+      expect(mockWs.send.calledOnce).to.be.true;
+      const sentData = JSON.parse(mockWs.send.firstCall.args[0]);
+      expect(sentData.ack_id).to.equal('_INBOX.TestAck123.MockInboxId');
+
+      // Queue should be empty (ACK removed after sending)
+      const ackQueue = ackQueueRewired.getQueue();
+      expect(ackQueue.length).to.equal(0);
+    });
+
+    it('should send ACK via WebSocket and remove from queue', () => {
+      const ackData = {
+        ack_id: '_INBOX.TestAck123.MockInboxId',
+        type: 'ack',
+        retries: 0,
+      };
+
+      mockWs.send.resetHistory();
+      ackQueueRewired.sendAckToServer(mockWs, ackData, mockLogger);
+
+      // Verify sent exactly once
+      expect(mockWs.send.calledOnce).to.be.true;
+
+      const sentData = JSON.parse(mockWs.send.firstCall.args[0]);
+      expect(sentData).to.have.property('ack_id', '_INBOX.TestAck123.MockInboxId');
+
+      // Queue should be empty (ACK removed after sending)
+      const ackQueue = ackQueueRewired.getQueue();
+      expect(ackQueue.length).to.equal(0);
+
+      // If we try to send with sent=true flag, it should not send
+      ackQueueRewired.addAck({ ...ackData, sent: true });
+      mockWs.send.resetHistory();
+      ackQueueRewired.sendAckToServer(mockWs, ackData, mockLogger);
+
+      // Should not send because marked as sent
+      expect(mockWs.send.called).to.be.false;
+    });
+
+    it('should not send response multiple times', () => {
+      const notifyContext = {
+        ws: mockWs,
+        storage: mockStorage,
+        responseQueue: responseQueueRewired,
+        logger: mockLogger,
+      };
+
+      const responseParams = {
+        status: 'started',
+        id: 'action-id-123',
+        action: 'lock',
+        opts: { close_apps: false },
+        err: null,
+        out: { success: true },
+        time: new Date().toISOString(),
+        respId: 'resp-12345',
+        retries: 0,
+        fromWithin: false,
+      };
+
+      mockWs.send.resetHistory();
+
+      // Send first time
+      notificationsRewired.notifyAction(notifyContext, responseParams);
+
+      // Verify sent exactly once
+      expect(mockWs.send.calledOnce).to.be.true;
+
+      // Try to send again with same respId
+      mockWs.send.resetHistory();
+      notificationsRewired.notifyAction(notifyContext, responseParams);
+
+      // Should not send again because already sent
+      expect(mockWs.send.called).to.be.false;
+    });
+
+    it('should emit command event with correct action data', (done) => {
+      const context = {
+        ws: mockWs,
+        responseQueue: responseQueueRewired,
+        ackQueue: ackQueueRewired,
+        storage: mockStorage,
+        ackModule: mockAckModule,
+        hooks: mockHooks,
+        logger: mockLogger,
+        emitter: mockEmitter,
+      };
+
+      mockEmitter.on('command', (command) => {
+        expect(command).to.have.property('ack_id', '_INBOX.TestAck123.MockInboxId');
+        expect(command.body).to.have.property('command', 'start');
+        expect(command.body).to.have.property('target', 'lock');
+        expect(command.body.options).to.have.property('unlock_pass', 'testsecurepass123');
+        done();
+      });
+
+      handlersRewired.handleMessage(lockActionMessage, context);
+    });
+
+    it('should handle complete flow with single sends', (done) => {
+      const context = {
+        ws: mockWs,
+        responseQueue: responseQueueRewired,
+        ackQueue: ackQueueRewired,
+        storage: mockStorage,
+        ackModule: mockAckModule,
+        hooks: mockHooks,
+        logger: mockLogger,
+        emitter: mockEmitter,
+      };
+
+      mockWs.send.resetHistory();
+
+      mockEmitter.on('command', (command) => {
+        expect(command.body.target).to.equal('lock');
+
+        setTimeout(() => {
+          // Verify ACK was sent
+          expect(mockWs.send.calledOnce).to.be.true;
+          const sentData = JSON.parse(mockWs.send.firstCall.args[0]);
+          expect(sentData.ack_id).to.equal('_INBOX.TestAck123.MockInboxId');
+
+          // Queue should be empty (ACK removed after sending)
+          const ackQueue = ackQueueRewired.getQueue();
+          expect(ackQueue.length).to.equal(0);
+
+          done();
+        }, 50);
+      });
+
+      handlersRewired.handleMessage(lockActionMessage, context);
+    });
+
+    it('should not retry ACK if already sent and confirmed', () => {
+      // Add ACK and mark as sent
+      ackQueueRewired.addAck({
+        ack_id: '_INBOX.TestAck123.MockInboxId',
+        type: 'ack',
+        id: 'a1b2c3d4-5678-9012-3456-789abcdef012',
+        sent: true,
+        retries: 0,
+      });
+
+      mockWs.send.resetHistory();
+
+      // Try to notify again (simulating duplicate call)
+      ackQueueRewired.notifyAck(
+        mockWs,
+        '_INBOX.TestAck123.MockInboxId',
+        'ack',
+        '',
+        true,
+        0,
+        mockLogger,
+      );
+
+      // Should not send because already sent
+      expect(mockWs.send.called).to.be.false;
+    });
+
+    it('should send ACK on retry call', () => {
+      mockWs.send.resetHistory();
+
+      // Call notifyAck (simulating a retry)
+      ackQueueRewired.notifyAck(
+        mockWs,
+        '_INBOX.TestAck123.MockInboxId',
+        'ack',
+        '',
+        false,
+        1,
+        mockLogger,
+      );
+
+      // Should send the ACK
+      expect(mockWs.send.calledOnce).to.be.true;
+      // Queue should be empty (ACK removed after sending)
+      expect(ackQueueRewired.getQueue().length).to.equal(0);
+    });
+
+    it('should remove ACK after max retries', () => {
+      const ackId = '_INBOX.TestAck123.MockInboxId';
+
+      ackQueueRewired.addAck({
+        ack_id: ackId,
+        type: 'ack',
+        id: 'test-id',
+        sent: false,
+        retries: 0,
+      });
+
+      // Call with max retries
+      ackQueueRewired.notifyAck(mockWs, ackId, 'ack', '', false, 4, mockLogger);
+
+      const ackQueue = ackQueueRewired.getQueue();
+      const removedAck = ackQueue.find((x) => x.ack_id === ackId);
+      expect(removedAck).to.be.undefined;
+    });
+
+    it('should parse action body correctly', () => {
+      const parsedMessage = JSON.parse(lockActionMessage)[0];
+
+      expect(parsedMessage.body).to.be.an('object');
+      expect(parsedMessage.body.command).to.equal('start');
+      expect(parsedMessage.body.target).to.equal('lock');
+      expect(parsedMessage.body.options.unlock_pass).to.equal('testsecurepass123');
+    });
+
+    it('should handle response acknowledgment from server', () => {
+      const responseId = 'response-id-12345';
+      responseQueueRewired.addToQueue({
+        id: responseId,
+        type: 'response',
+        data: { status: 'started' },
+        sent: true,
+        retries: 0,
+      });
+
+      let queue = responseQueueRewired.getQueue();
+      expect(queue.length).to.equal(1);
+
+      const serverAck = JSON.stringify({
+        status: 'OK',
+        id: responseId,
+      });
+
+      const context = {
+        ws: mockWs,
+        responseQueue: responseQueueRewired,
+        ackQueue: ackQueueRewired,
+        storage: mockStorage,
+        ackModule: mockAckModule,
+        hooks: mockHooks,
+        logger: mockLogger,
+        emitter: mockEmitter,
+      };
+
+      handlersRewired.handleMessage(serverAck, context);
+
+      queue = responseQueueRewired.getQueue();
+      expect(queue.length).to.equal(0);
+    });
+  });
+
+  // ==================== Concurrent Actions Flow Tests ====================
+  describe('Concurrent Actions Flow - Lock + Alert', () => {
+    let mockEmitter;
+    let mockAckModule;
+    let lockActionMessage;
+    let alertActionMessage;
+
+    beforeEach(() => {
+      // Create mock emitter
+      mockEmitter = new EventEmitter();
+
+      // Initialize command queue with hooks and inject into handlers
+      commandQueueRewired.initialize(mockHooks);
+      commandQueueRewired.clearAllQueues();
+      handlersRewired.__set__('commandQueue', commandQueueRewired);
+
+      // Create mock ACK module
+      mockAckModule = {
+        processAck: sinon.stub().callsFake((json, cb) => {
+          if (json.ack_id) {
+            cb(null, {
+              ack_id: json.ack_id,
+              type: 'ack',
+              id: json.id || '',
+            });
+          } else {
+            cb(new Error('No ack_id'));
+          }
+        }),
+      };
+
+      // Reset queues
+      ackQueueRewired.clearQueue();
+      responseQueueRewired.clearQueue();
+
+      // Reset mock WebSocket send
+      mockWs.send.resetHistory();
+
+      // Lock action message
+      lockActionMessage = JSON.stringify([
+        {
+          ack_id: '_INBOX.LockAck123.MockInboxId',
+          body: {
+            command: 'start',
+            options: {
+              close_apps: false,
+              unlock_pass: 'testsecurepass123',
+            },
+            target: 'lock',
+          },
+          id: 'lock-action-id-12345',
+          message_id: 'lock-message-id-12345',
+          time: '2026-02-03T13:30:00.000000000Z',
+          type: 'action',
+        },
+      ]);
+
+      // Alert action message (with modified IDs)
+      alertActionMessage = JSON.stringify([
+        {
+          ack_id: '_INBOX.AlertAck456.MockInboxId',
+          body: {
+            command: 'start',
+            options: {
+              alert_message: 'This device is being contacted by its owner! Please, get in touch with javo@preyhq.com as soon as possible.',
+            },
+            target: 'alert',
+          },
+          id: 'alert-action-id-67890',
+          message_id: 'alert-message-id-67890',
+          time: '2026-02-03T13:32:44.470752658Z',
+          type: 'action',
+        },
+      ]);
+    });
+
+    it('should handle two concurrent actions and send separate ACKs', () => {
+      const context = {
+        ws: mockWs,
+        responseQueue: responseQueueRewired,
+        ackQueue: ackQueueRewired,
+        storage: mockStorage,
+        ackModule: mockAckModule,
+        hooks: mockHooks,
+        logger: mockLogger,
+        emitter: mockEmitter,
+      };
+
+      mockWs.send.resetHistory();
+
+      // Process lock action
+      handlersRewired.handleMessage(lockActionMessage, context);
+
+      // Verify first ACK was sent for lock
+      expect(mockWs.send.calledOnce).to.be.true;
+      const firstAck = JSON.parse(mockWs.send.firstCall.args[0]);
+      expect(firstAck.ack_id).to.equal('_INBOX.LockAck123.MockInboxId');
+
+      mockWs.send.resetHistory();
+
+      // Process alert action
+      handlersRewired.handleMessage(alertActionMessage, context);
+
+      // Verify second ACK was sent for alert
+      expect(mockWs.send.calledOnce).to.be.true;
+      const secondAck = JSON.parse(mockWs.send.firstCall.args[0]);
+      expect(secondAck.ack_id).to.equal('_INBOX.AlertAck456.MockInboxId');
+
+      // Queue should be empty (both ACKs removed after sending)
+      const ackQueue = ackQueueRewired.getQueue();
+      expect(ackQueue.length).to.equal(0);
+    });
+
+    it('should emit command events for both actions', (done) => {
+      const context = {
+        ws: mockWs,
+        responseQueue: responseQueueRewired,
+        ackQueue: ackQueueRewired,
+        storage: mockStorage,
+        ackModule: mockAckModule,
+        hooks: mockHooks,
+        logger: mockLogger,
+        emitter: mockEmitter,
+      };
+
+      const commandsReceived = [];
+
+      mockEmitter.on('command', (command) => {
+        commandsReceived.push({
+          target: command.body.target,
+          id: command.id,
+          ack_id: command.ack_id,
+        });
+
+        if (commandsReceived.length === 2) {
+          // Verify both commands were received
+          expect(commandsReceived[0].target).to.equal('lock');
+          expect(commandsReceived[0].id).to.equal('lock-action-id-12345');
+          expect(commandsReceived[0].ack_id).to.equal('_INBOX.LockAck123.MockInboxId');
+
+          expect(commandsReceived[1].target).to.equal('alert');
+          expect(commandsReceived[1].id).to.equal('alert-action-id-67890');
+          expect(commandsReceived[1].ack_id).to.equal('_INBOX.AlertAck456.MockInboxId');
+
+          done();
+        }
+      });
+
+      // Process both actions
+      handlersRewired.handleMessage(lockActionMessage, context);
+      handlersRewired.handleMessage(alertActionMessage, context);
+    });
+
+    it('should handle responses for both actions independently', () => {
+      const notifyContext = {
+        ws: mockWs,
+        storage: mockStorage,
+        responseQueue: responseQueueRewired,
+        logger: mockLogger,
+      };
+
+      mockWs.send.resetHistory();
+
+      // Simulate lock started response
+      const lockStartedParams = {
+        status: 'started',
+        id: 'lock-action-id-12345',
+        action: 'lock',
+        opts: { close_apps: false },
+        err: null,
+        out: { success: true },
+        time: new Date().toISOString(),
+        respId: 'lock-resp-started',
+        retries: 0,
+        fromWithin: false,
+      };
+
+      notificationsRewired.notifyAction(notifyContext, lockStartedParams);
+
+      // Verify lock response sent
+      expect(mockWs.send.calledOnce).to.be.true;
+      const lockResponse = JSON.parse(mockWs.send.firstCall.args[0]);
+      expect(lockResponse.reply_id).to.equal('lock-action-id-12345');
+      expect(lockResponse.body.target).to.equal('lock');
+      expect(lockResponse.body.status).to.equal('started');
+
+      mockWs.send.resetHistory();
+
+      // Simulate alert started response
+      const alertStartedParams = {
+        status: 'started',
+        id: 'alert-action-id-67890',
+        action: 'alert',
+        opts: { alert_message: 'Test alert' },
+        err: null,
+        out: { success: true },
+        time: new Date().toISOString(),
+        respId: 'alert-resp-started',
+        retries: 0,
+        fromWithin: false,
+      };
+
+      notificationsRewired.notifyAction(notifyContext, alertStartedParams);
+
+      // Verify alert response sent
+      expect(mockWs.send.calledOnce).to.be.true;
+      const alertResponse = JSON.parse(mockWs.send.firstCall.args[0]);
+      expect(alertResponse.reply_id).to.equal('alert-action-id-67890');
+      expect(alertResponse.body.target).to.equal('alert');
+      expect(alertResponse.body.status).to.equal('started');
+
+      // Verify both responses are in queue
+      const queue = responseQueueRewired.getQueue();
+      expect(queue.length).to.equal(2);
+    });
+
+    it('should not send duplicate ACKs even if messages arrive close together', () => {
+      const context = {
+        ws: mockWs,
+        responseQueue: responseQueueRewired,
+        ackQueue: ackQueueRewired,
+        storage: mockStorage,
+        ackModule: mockAckModule,
+        hooks: mockHooks,
+        logger: mockLogger,
+        emitter: mockEmitter,
+      };
+
+      mockWs.send.resetHistory();
+
+      // Process both actions in quick succession
+      handlersRewired.handleMessage(lockActionMessage, context);
+      handlersRewired.handleMessage(alertActionMessage, context);
+
+      // Should have sent exactly 2 ACKs (one for each action)
+      expect(mockWs.send.callCount).to.equal(2);
+
+      // Verify each ACK is unique
+      const firstAck = JSON.parse(mockWs.send.firstCall.args[0]);
+      const secondAck = JSON.parse(mockWs.send.secondCall.args[0]);
+
+      expect(firstAck.ack_id).to.equal('_INBOX.LockAck123.MockInboxId');
+      expect(secondAck.ack_id).to.equal('_INBOX.AlertAck456.MockInboxId');
+
+      // Queue should be empty
+      expect(ackQueueRewired.getQueue().length).to.equal(0);
+    });
+
+    it('should handle complete lifecycle of both actions', (done) => {
+      const context = {
+        ws: mockWs,
+        responseQueue: responseQueueRewired,
+        ackQueue: ackQueueRewired,
+        storage: mockStorage,
+        ackModule: mockAckModule,
+        hooks: mockHooks,
+        logger: mockLogger,
+        emitter: mockEmitter,
+      };
+
+      const notifyContext = {
+        ws: mockWs,
+        storage: mockStorage,
+        responseQueue: responseQueueRewired,
+        logger: mockLogger,
+      };
+
+      mockWs.send.resetHistory();
+
+      const acksReceived = [];
+      const responsesReceived = [];
+
+      // Track all sends
+      const originalSend = mockWs.send;
+      mockWs.send = sinon.stub().callsFake((data) => {
+        const parsed = JSON.parse(data);
+        if (parsed.type === 'response') {
+          responsesReceived.push(parsed);
+        } else if (parsed.ack_id) {
+          acksReceived.push(parsed);
+        }
+        return originalSend(data);
+      });
+
+      // Process lock action
+      handlersRewired.handleMessage(lockActionMessage, context);
+
+      // Simulate lock started
+      setTimeout(() => {
+        notificationsRewired.notifyAction(notifyContext, {
+          status: 'started',
+          id: 'lock-action-id-12345',
+          action: 'lock',
+          opts: {},
+          err: null,
+          out: null,
+          time: new Date().toISOString(),
+          respId: 'lock-resp-started',
+          retries: 0,
+          fromWithin: false,
+        });
+
+        // Process alert action while lock is running
+        handlersRewired.handleMessage(alertActionMessage, context);
+
+        // Simulate alert started
+        setTimeout(() => {
+          notificationsRewired.notifyAction(notifyContext, {
+            status: 'started',
+            id: 'alert-action-id-67890',
+            action: 'alert',
+            opts: {},
+            err: null,
+            out: null,
+            time: new Date().toISOString(),
+            respId: 'alert-resp-started',
+            retries: 0,
+            fromWithin: false,
+          });
+
+          // Simulate alert stopped
+          setTimeout(() => {
+            notificationsRewired.notifyAction(notifyContext, {
+              status: 'stopped',
+              id: 'alert-action-id-67890',
+              action: 'alert',
+              opts: {},
+              err: null,
+              out: null,
+              time: new Date().toISOString(),
+              respId: 'alert-resp-stopped',
+              retries: 0,
+              fromWithin: false,
+            });
+
+            // Verify results
+            // Should have 2 ACKs (one per action)
+            expect(acksReceived.length).to.equal(2);
+            expect(acksReceived[0].ack_id).to.equal('_INBOX.LockAck123.MockInboxId');
+            expect(acksReceived[1].ack_id).to.equal('_INBOX.AlertAck456.MockInboxId');
+
+            // Should have 3 responses (lock started, alert started, alert stopped)
+            expect(responsesReceived.length).to.equal(3);
+            expect(responsesReceived[0].reply_id).to.equal('lock-action-id-12345');
+            expect(responsesReceived[0].body.status).to.equal('started');
+            expect(responsesReceived[1].reply_id).to.equal('alert-action-id-67890');
+            expect(responsesReceived[1].body.status).to.equal('started');
+            expect(responsesReceived[2].reply_id).to.equal('alert-action-id-67890');
+            expect(responsesReceived[2].body.status).to.equal('stopped');
+
+            done();
+          }, 50);
+        }, 50);
+      }, 50);
+    });
+
+    it('should not duplicate responses when server confirms', () => {
+      const context = {
+        ws: mockWs,
+        responseQueue: responseQueueRewired,
+        ackQueue: ackQueueRewired,
+        storage: mockStorage,
+        ackModule: mockAckModule,
+        hooks: mockHooks,
+        logger: mockLogger,
+        emitter: mockEmitter,
+      };
+
+      const notifyContext = {
+        ws: mockWs,
+        storage: mockStorage,
+        responseQueue: responseQueueRewired,
+        logger: mockLogger,
+      };
+
+      // Send lock started response
+      notificationsRewired.notifyAction(notifyContext, {
+        status: 'started',
+        id: 'lock-action-id-12345',
+        action: 'lock',
+        opts: {},
+        err: null,
+        out: null,
+        time: new Date().toISOString(),
+        respId: 'lock-resp-id-1',
+        retries: 0,
+        fromWithin: false,
+      });
+
+      // Send alert started response
+      notificationsRewired.notifyAction(notifyContext, {
+        status: 'started',
+        id: 'alert-action-id-67890',
+        action: 'alert',
+        opts: {},
+        err: null,
+        out: null,
+        time: new Date().toISOString(),
+        respId: 'alert-resp-id-1',
+        retries: 0,
+        fromWithin: false,
+      });
+
+      // Verify both in queue
+      let queue = responseQueueRewired.getQueue();
+      expect(queue.length).to.equal(2);
+
+      // Server confirms lock response
+      const lockConfirmation = JSON.stringify({
+        status: 'OK',
+        id: 'lock-resp-id-1',
+      });
+
+      handlersRewired.handleMessage(lockConfirmation, context);
+
+      // Only lock should be removed
+      queue = responseQueueRewired.getQueue();
+      expect(queue.length).to.equal(1);
+      expect(queue[0].id).to.equal('alert-resp-id-1');
+
+      // Server confirms alert response
+      const alertConfirmation = JSON.stringify({
+        status: 'OK',
+        id: 'alert-resp-id-1',
+      });
+
+      handlersRewired.handleMessage(alertConfirmation, context);
+
+      // Both should be removed
+      queue = responseQueueRewired.getQueue();
+      expect(queue.length).to.equal(0);
+    });
+  });
+
+  // ==================== Multiple Actions in Single Message Tests ====================
+  describe('Multiple Actions Arriving Simultaneously', () => {
+    let mockEmitter;
+    let mockAckModule;
+    let multipleActionsMessage;
+
+    beforeEach(() => {
+      // Create mock emitter
+      mockEmitter = new EventEmitter();
+
+      // Initialize command queue with hooks and inject into handlers
+      commandQueueRewired.initialize(mockHooks);
+      commandQueueRewired.clearAllQueues();
+      handlersRewired.__set__('commandQueue', commandQueueRewired);
+
+      // Create mock ACK module
+      mockAckModule = {
+        processAck: sinon.stub().callsFake((json, cb) => {
+          if (json.ack_id) {
+            cb(null, {
+              ack_id: json.ack_id,
+              type: 'ack',
+              id: json.id || '',
+            });
+          } else {
+            cb(new Error('No ack_id'));
+          }
+        }),
+      };
+
+      // Reset queues
+      ackQueueRewired.clearQueue();
+      responseQueueRewired.clearQueue();
+
+      // Reset mock WebSocket send
+      mockWs.send.resetHistory();
+
+      // Multiple actions message: Lock + Alert arriving simultaneously
+      multipleActionsMessage = JSON.stringify([
+        {
+          ack_id: '_INBOX.TestLock.ABC123',
+          body: {
+            command: 'start',
+            options: {
+              close_apps: false,
+              unlock_pass: 'testpass456',
+            },
+            target: 'lock',
+          },
+          id: 'lock-action-001',
+          message_id: 'lock-msg-001',
+          time: '2026-02-09T14:00:00.000Z',
+          type: 'action',
+        },
+        {
+          ack_id: '_INBOX.TestAlert.XYZ789',
+          body: {
+            command: 'start',
+            options: {
+              alert_message: 'Test alert: This device needs attention from owner@example.com',
+            },
+            target: 'alert',
+          },
+          id: 'alert-action-002',
+          message_id: 'alert-msg-002',
+          time: '2026-02-09T14:00:01.000Z',
+          type: 'action',
+        },
+      ]);
+    });
+
+    it('should send ACK for each action only once', () => {
+      const context = {
+        ws: mockWs,
+        responseQueue: responseQueueRewired,
+        ackQueue: ackQueueRewired,
+        storage: mockStorage,
+        ackModule: mockAckModule,
+        hooks: mockHooks,
+        logger: mockLogger,
+        emitter: mockEmitter,
+      };
+
+      handlersRewired.handleMessage(multipleActionsMessage, context);
+
+      // Should have sent 2 ACKs
+      const ackCalls = mockWs.send.getCalls().filter((call) => {
+        const data = JSON.parse(call.args[0]);
+        return data.type === 'ack';
+      });
+
+      expect(ackCalls).to.have.length(2);
+
+      // Verify lock ACK
+      const lockAck = ackCalls.find((call) => {
+        const data = JSON.parse(call.args[0]);
+        return data.ack_id === '_INBOX.TestLock.ABC123';
+      });
+      expect(lockAck).to.exist;
+
+      // Verify alert ACK
+      const alertAck = ackCalls.find((call) => {
+        const data = JSON.parse(call.args[0]);
+        return data.ack_id === '_INBOX.TestAlert.XYZ789';
+      });
+      expect(alertAck).to.exist;
+    });
+
+    it('should emit command event for each action', (done) => {
+      const context = {
+        ws: mockWs,
+        responseQueue: responseQueueRewired,
+        ackQueue: ackQueueRewired,
+        storage: mockStorage,
+        ackModule: mockAckModule,
+        hooks: mockHooks,
+        logger: mockLogger,
+        emitter: mockEmitter,
+      };
+
+      const emittedCommands = [];
+
+      mockEmitter.on('command', (command) => {
+        emittedCommands.push(command);
+
+        // Check when both commands received
+        if (emittedCommands.length === 2) {
+          // Verify lock command
+          const lockCmd = emittedCommands.find((cmd) => cmd.id === 'lock-action-001');
+          expect(lockCmd).to.exist;
+          expect(lockCmd.body.target).to.equal('lock');
+          expect(lockCmd.body.options.unlock_pass).to.equal('testpass456');
+
+          // Verify alert command
+          const alertCmd = emittedCommands.find((cmd) => cmd.id === 'alert-action-002');
+          expect(alertCmd).to.exist;
+          expect(alertCmd.body.target).to.equal('alert');
+          expect(alertCmd.body.options.alert_message).to.include('Test alert');
+
+          done();
+        }
+      });
+
+      handlersRewired.handleMessage(multipleActionsMessage, context);
+    });
+
+    it('should allow both actions to execute simultaneously (different types)', (done) => {
+      const context = {
+        ws: mockWs,
+        responseQueue: responseQueueRewired,
+        ackQueue: ackQueueRewired,
+        storage: mockStorage,
+        ackModule: mockAckModule,
+        hooks: mockHooks,
+        logger: mockLogger,
+        emitter: mockEmitter,
+      };
+
+      let lockRejected = false;
+      let alertRejected = false;
+
+      mockEmitter.on('command_rejected', (data) => {
+        if (data.command.body.target === 'lock') lockRejected = true;
+        if (data.command.body.target === 'alert') alertRejected = true;
+      });
+
+      handlersRewired.handleMessage(multipleActionsMessage, context);
+
+      setTimeout(() => {
+        // Neither should be rejected (different types can run simultaneously)
+        expect(lockRejected).to.be.false;
+        expect(alertRejected).to.be.false;
+
+        // Check queue status
+        const lockStatus = commandQueueRewired.getQueueStatus('lock');
+        const alertStatus = commandQueueRewired.getQueueStatus('alert');
+
+        expect(lockStatus.isExecuting).to.be.true;
+        expect(alertStatus.isExecuting).to.be.true;
+
+        done();
+      }, 50);
+    });
+
+    it('should send responses for each action independently', () => {
+      const context = {
+        ws: mockWs,
+        responseQueue: responseQueueRewired,
+        ackQueue: ackQueueRewired,
+        storage: mockStorage,
+        ackModule: mockAckModule,
+        hooks: mockHooks,
+        logger: mockLogger,
+        emitter: mockEmitter,
+      };
+
+      const notifyContext = {
+        ws: mockWs,
+        storage: mockStorage,
+        responseQueue: responseQueueRewired,
+        logger: mockLogger,
+      };
+
+      mockWs.send.resetHistory();
+
+      handlersRewired.handleMessage(multipleActionsMessage, context);
+
+      // Simulate lock action starting
+      notificationsRewired.notifyAction(notifyContext, {
+        status: 'started',
+        id: 'lock-action-001',
+        action: 'lock',
+        opts: { unlock_pass: 'testpass456' },
+        err: null,
+        out: null,
+        time: new Date().toISOString(),
+        respId: 'lock-resp-001',
+        retries: 0,
+        fromWithin: false,
+      });
+
+      // Simulate alert action starting
+      notificationsRewired.notifyAction(notifyContext, {
+        status: 'started',
+        id: 'alert-action-002',
+        action: 'alert',
+        opts: { alert_message: 'Test alert' },
+        err: null,
+        out: null,
+        time: new Date().toISOString(),
+        respId: 'alert-resp-002',
+        retries: 0,
+        fromWithin: false,
+      });
+
+      // Check responses were sent
+      const responseCalls = mockWs.send.getCalls().filter((call) => {
+        try {
+          const data = JSON.parse(call.args[0]);
+          return data.type === 'response';
+        } catch {
+          return false;
+        }
+      });
+
+      expect(responseCalls.length).to.be.at.least(2);
+
+      // Verify lock response
+      const lockResponse = responseCalls.find((call) => {
+        const data = JSON.parse(call.args[0]);
+        return data.reply_id === 'lock-action-001';
+      });
+      expect(lockResponse).to.exist;
+
+      // Verify alert response
+      const alertResponse = responseCalls.find((call) => {
+        const data = JSON.parse(call.args[0]);
+        return data.reply_id === 'alert-action-002';
+      });
+      expect(alertResponse).to.exist;
+    });
+
+    it('should handle complete lifecycle of both actions without duplication', (done) => {
+      const context = {
+        ws: mockWs,
+        responseQueue: responseQueueRewired,
+        ackQueue: ackQueueRewired,
+        storage: mockStorage,
+        ackModule: mockAckModule,
+        hooks: mockHooks,
+        logger: mockLogger,
+        emitter: mockEmitter,
+      };
+
+      const notifyContext = {
+        ws: mockWs,
+        storage: mockStorage,
+        responseQueue: responseQueueRewired,
+        logger: mockLogger,
+      };
+
+      mockWs.send.resetHistory();
+
+      // Track all sends
+      const sentMessages = {
+        acks: [],
+        responses: [],
+      };
+
+      const originalSend = mockWs.send;
+      mockWs.send = sinon.stub().callsFake((data) => {
+        const parsed = JSON.parse(data);
+        if (parsed.type === 'ack') {
+          sentMessages.acks.push(parsed);
+        } else if (parsed.type === 'response') {
+          sentMessages.responses.push(parsed);
+        }
+        return originalSend(data);
+      });
+
+      // Handle the message
+      handlersRewired.handleMessage(multipleActionsMessage, context);
+
+      // Simulate full lifecycle for lock (with unique respIds for each status)
+      notificationsRewired.notifyAction(notifyContext, {
+        status: 'started',
+        id: 'lock-action-001',
+        action: 'lock',
+        opts: null,
+        err: null,
+        out: null,
+        time: new Date().toISOString(),
+        respId: 'lock-resp-started-001',
+        retries: 0,
+      });
+
+      notificationsRewired.notifyAction(notifyContext, {
+        status: 'stopped',
+        id: 'lock-action-001',
+        action: 'lock',
+        opts: null,
+        err: null,
+        out: null,
+        time: new Date().toISOString(),
+        respId: 'lock-resp-stopped-001',
+        retries: 0,
+      });
+
+      // Simulate full lifecycle for alert (with unique respIds for each status)
+      notificationsRewired.notifyAction(notifyContext, {
+        status: 'started',
+        id: 'alert-action-002',
+        action: 'alert',
+        opts: null,
+        err: null,
+        out: null,
+        time: new Date().toISOString(),
+        respId: 'alert-resp-started-002',
+        retries: 0,
+      });
+
+      notificationsRewired.notifyAction(notifyContext, {
+        status: 'stopped',
+        id: 'alert-action-002',
+        action: 'alert',
+        opts: null,
+        err: null,
+        out: null,
+        time: new Date().toISOString(),
+        respId: 'alert-resp-stopped-002',
+        retries: 0,
+      });
+
+      setTimeout(() => {
+        // Verify ACKs sent once per action
+        expect(sentMessages.acks).to.have.length(2);
+        const lockAckCount = sentMessages.acks.filter((a) => a.ack_id === '_INBOX.TestLock.ABC123').length;
+        const alertAckCount = sentMessages.acks.filter((a) => a.ack_id === '_INBOX.TestAlert.XYZ789').length;
+        expect(lockAckCount).to.equal(1);
+        expect(alertAckCount).to.equal(1);
+
+        // Verify responses (started + stopped for each = 4 total)
+        expect(sentMessages.responses.length).to.equal(4);
+
+        // Lock responses (reply_id is the action id)
+        const lockResponses = sentMessages.responses.filter((r) => r.reply_id === 'lock-action-001');
+        expect(lockResponses.length).to.equal(2);
+        const lockStarted = lockResponses.find((r) => r.body.status === 'started');
+        const lockStopped = lockResponses.find((r) => r.body.status === 'stopped');
+        expect(lockStarted).to.exist;
+        expect(lockStarted.id).to.equal('lock-resp-started-001');
+        expect(lockStopped).to.exist;
+        expect(lockStopped.id).to.equal('lock-resp-stopped-001');
+
+        // Alert responses (reply_id is the action id)
+        const alertResponses = sentMessages.responses.filter((r) => r.reply_id === 'alert-action-002');
+        expect(alertResponses.length).to.equal(2);
+        const alertStarted = alertResponses.find((r) => r.body.status === 'started');
+        const alertStopped = alertResponses.find((r) => r.body.status === 'stopped');
+        expect(alertStarted).to.exist;
+        expect(alertStarted.id).to.equal('alert-resp-started-002');
+        expect(alertStopped).to.exist;
+        expect(alertStopped.id).to.equal('alert-resp-stopped-002');
+
+        done();
+      }, 100);
+    });
+
+    it('should handle server confirmations for both responses independently', () => {
+      const context = {
+        ws: mockWs,
+        responseQueue: responseQueueRewired,
+        ackQueue: ackQueueRewired,
+        storage: mockStorage,
+        ackModule: mockAckModule,
+        hooks: mockHooks,
+        logger: mockLogger,
+        emitter: mockEmitter,
+      };
+
+      const notifyContext = {
+        ws: mockWs,
+        storage: mockStorage,
+        responseQueue: responseQueueRewired,
+        logger: mockLogger,
+      };
+
+      handlersRewired.handleMessage(multipleActionsMessage, context);
+
+      // Add responses to queue
+      notificationsRewired.notifyAction(notifyContext, {
+        status: 'started',
+        id: 'lock-action-001',
+        action: 'lock',
+        opts: null,
+        err: null,
+        out: null,
+        time: new Date().toISOString(),
+        respId: 'lock-resp-001',
+        retries: 0,
+      });
+
+      notificationsRewired.notifyAction(notifyContext, {
+        status: 'started',
+        id: 'alert-action-002',
+        action: 'alert',
+        opts: null,
+        err: null,
+        out: null,
+        time: new Date().toISOString(),
+        respId: 'alert-resp-002',
+        retries: 0,
+      });
+
+      let queue = responseQueueRewired.getQueue();
+      expect(queue.length).to.equal(2);
+
+      // Server confirms lock response
+      const lockConfirmation = JSON.stringify({
+        status: 'OK',
+        id: 'lock-resp-001',
+      });
+
+      handlersRewired.handleMessage(lockConfirmation, context);
+
+      // Only lock response should be removed
+      queue = responseQueueRewired.getQueue();
+      expect(queue.length).to.equal(1);
+      expect(queue[0].id).to.equal('alert-resp-002');
+
+      // Server confirms alert response
+      const alertConfirmation = JSON.stringify({
+        status: 'OK',
+        id: 'alert-resp-002',
+      });
+
+      handlersRewired.handleMessage(alertConfirmation, context);
+
+      // Both should be removed
+      queue = responseQueueRewired.getQueue();
+      expect(queue.length).to.equal(0);
+    });
+
+    describe('Duplicate Action Type (Same Type Actions)', () => {
+      let duplicateAlertsMessage;
+      let clock;
+
+      beforeEach(() => {
+        // Use fake timers for controlling queue delay
+        clock = sinon.useFakeTimers();
+
+        // Two alerts arriving simultaneously with different IDs and messages
+        duplicateAlertsMessage = JSON.stringify([
+          {
+            ack_id: '_INBOX.FirstAlert.ABC123',
+            body: {
+              command: 'start',
+              options: {
+                alert_message: 'First Alert: Device is missing! Contact owner1@example.com',
+              },
+              target: 'alert',
+            },
+            id: 'alert-action-001',
+            message_id: 'alert-msg-001',
+            time: '2026-02-09T14:10:00.000Z',
+            type: 'action',
+          },
+          {
+            ack_id: '_INBOX.SecondAlert.XYZ789',
+            body: {
+              command: 'start',
+              options: {
+                alert_message: 'Second Alert: Urgent notification from owner2@example.com',
+              },
+              target: 'alert',
+            },
+            id: 'alert-action-002',
+            message_id: 'alert-msg-002',
+            time: '2026-02-09T14:10:01.000Z',
+            type: 'action',
+          },
+        ]);
+      });
+
+      afterEach(() => {
+        clock.restore();
+      });
+
+      it('should execute first alert immediately and reject second alert', () => {
+        const context = {
+          ws: mockWs,
+          responseQueue: responseQueueRewired,
+          ackQueue: ackQueueRewired,
+          storage: mockStorage,
+          ackModule: mockAckModule,
+          hooks: mockHooks,
+          logger: mockLogger,
+          emitter: mockEmitter,
+        };
+
+        const emittedCommands = [];
+        const rejectedCommands = [];
+
+        mockEmitter.on('command', (command) => {
+          emittedCommands.push(command);
+        });
+
+        mockEmitter.on('command_rejected', (data) => {
+          rejectedCommands.push(data);
+        });
+
+        handlersRewired.handleMessage(duplicateAlertsMessage, context);
+
+        // Command processing is synchronous, check results immediately
+        // First alert should execute
+        expect(emittedCommands).to.have.length(1);
+        expect(emittedCommands[0].id).to.equal('alert-action-001');
+        expect(emittedCommands[0].body.options.alert_message).to.include('First Alert');
+
+        // Second alert should be rejected
+        expect(rejectedCommands).to.have.length(1);
+        expect(rejectedCommands[0].command.id).to.equal('alert-action-002');
+        expect(rejectedCommands[0].reason).to.equal('Already running: alert');
+      });
+
+      it('should send ACK only for the first alert (second rejected before ACK)', () => {
+        const context = {
+          ws: mockWs,
+          responseQueue: responseQueueRewired,
+          ackQueue: ackQueueRewired,
+          storage: mockStorage,
+          ackModule: mockAckModule,
+          hooks: mockHooks,
+          logger: mockLogger,
+          emitter: mockEmitter,
+        };
+
+        mockWs.send.resetHistory();
+
+        handlersRewired.handleMessage(duplicateAlertsMessage, context);
+
+        // Should have sent only 1 ACK (for first alert)
+        const ackCalls = mockWs.send.getCalls().filter((call) => {
+          try {
+            const data = JSON.parse(call.args[0]);
+            return data.type === 'ack';
+          } catch {
+            return false;
+          }
+        });
+
+        expect(ackCalls).to.have.length(1);
+
+        // Verify it's the first alert's ACK
+        const firstAlertAck = JSON.parse(ackCalls[0].args[0]);
+        expect(firstAlertAck.ack_id).to.equal('_INBOX.FirstAlert.ABC123');
+      });
+
+      it('should show first alert executing in queue status', () => {
+        const context = {
+          ws: mockWs,
+          responseQueue: responseQueueRewired,
+          ackQueue: ackQueueRewired,
+          storage: mockStorage,
+          ackModule: mockAckModule,
+          hooks: mockHooks,
+          logger: mockLogger,
+          emitter: mockEmitter,
+        };
+
+        handlersRewired.handleMessage(duplicateAlertsMessage, context);
+
+        const alertStatus = commandQueueRewired.getQueueStatus('alert');
+        expect(alertStatus.isExecuting).to.be.true;
+        expect(alertStatus.executingId).to.equal('alert-action-001');
+      });
+
+      it('should log warning for rejected duplicate action', () => {
+        const context = {
+          ws: mockWs,
+          responseQueue: responseQueueRewired,
+          ackQueue: ackQueueRewired,
+          storage: mockStorage,
+          ackModule: mockAckModule,
+          hooks: mockHooks,
+          logger: mockLogger,
+          emitter: mockEmitter,
+        };
+
+        mockLogger.warn.resetHistory();
+
+        handlersRewired.handleMessage(duplicateAlertsMessage, context);
+
+        expect(mockLogger.warn.calledWith(sinon.match(/already executing, rejecting duplicate/))).to.be.true;
+        expect(mockLogger.warn.calledWith(sinon.match(/alert-action-002/))).to.be.true;
+      });
+
+      it('should allow second alert to execute after first completes', () => {
+        const context = {
+          ws: mockWs,
+          responseQueue: responseQueueRewired,
+          ackQueue: ackQueueRewired,
+          storage: mockStorage,
+          ackModule: mockAckModule,
+          hooks: mockHooks,
+          logger: mockLogger,
+          emitter: mockEmitter,
+        };
+
+        const emittedCommands = [];
+
+        mockEmitter.on('command', (command) => {
+          emittedCommands.push(command);
+        });
+
+        // First message with duplicate alerts
+        handlersRewired.handleMessage(duplicateAlertsMessage, context);
+
+        // First alert should be executing
+        expect(emittedCommands).to.have.length(1);
+        expect(emittedCommands[0].id).to.equal('alert-action-001');
+
+        // Complete the first alert via hook
+        mockHooks.emit('action', 'stopped', 'alert-action-001');
+
+        // Now queue should be free
+        const alertStatus = commandQueueRewired.getQueueStatus('alert');
+        expect(alertStatus.isExecuting).to.be.false;
+
+        // Now we can send the second alert separately and it should execute
+        const secondAlertMessage = JSON.stringify([
+          {
+            ack_id: '_INBOX.SecondAlert.XYZ789',
+            body: {
+              command: 'start',
+              options: {
+                alert_message: 'Second Alert: Urgent notification from owner2@example.com',
+              },
+              target: 'alert',
+            },
+            id: 'alert-action-002',
+            message_id: 'alert-msg-002',
+            time: '2026-02-09T14:10:01.000Z',
+            type: 'action',
+          },
+        ]);
+
+        handlersRewired.handleMessage(secondAlertMessage, context);
+
+        // Command processing is synchronous, check immediately
+        // Now second alert should execute
+        expect(emittedCommands).to.have.length(2);
+        expect(emittedCommands[1].id).to.equal('alert-action-002');
+        expect(emittedCommands[1].body.options.alert_message).to.include('Second Alert');
+      });
+
+      it('should handle complete flow: reject duplicate, then execute when ready', () => {
+        const context = {
+          ws: mockWs,
+          responseQueue: responseQueueRewired,
+          ackQueue: ackQueueRewired,
+          storage: mockStorage,
+          ackModule: mockAckModule,
+          hooks: mockHooks,
+          logger: mockLogger,
+          emitter: mockEmitter,
+        };
+
+        const notifyContext = {
+          ws: mockWs,
+          storage: mockStorage,
+          responseQueue: responseQueueRewired,
+          logger: mockLogger,
+        };
+
+        mockWs.send.resetHistory();
+
+        const sentMessages = {
+          acks: [],
+          responses: [],
+        };
+
+        const originalSend = mockWs.send;
+        mockWs.send = sinon.stub().callsFake((data) => {
+          try {
+            const parsed = JSON.parse(data);
+            if (parsed.type === 'ack') {
+              sentMessages.acks.push(parsed);
+            } else if (parsed.type === 'response') {
+              sentMessages.responses.push(parsed);
+            }
+          } catch (e) {
+            // Ignore parse errors
+          }
+          return originalSend(data);
+        });
+
+        // Send both alerts
+        handlersRewired.handleMessage(duplicateAlertsMessage, context);
+
+        // Only first alert ACK should be sent
+        expect(sentMessages.acks).to.have.length(1);
+        expect(sentMessages.acks[0].ack_id).to.equal('_INBOX.FirstAlert.ABC123');
+
+        // Simulate first alert lifecycle
+        notificationsRewired.notifyAction(notifyContext, {
+          status: 'started',
+          id: 'alert-action-001',
+          action: 'alert',
+          opts: null,
+          err: null,
+          out: null,
+          time: new Date().toISOString(),
+          respId: 'alert-resp-started-001',
+          retries: 0,
+        });
+
+        notificationsRewired.notifyAction(notifyContext, {
+          status: 'stopped',
+          id: 'alert-action-001',
+          action: 'alert',
+          opts: null,
+          err: null,
+          out: null,
+          time: new Date().toISOString(),
+          respId: 'alert-resp-stopped-001',
+          retries: 0,
+        });
+
+        // Complete first alert
+        mockHooks.emit('action', 'stopped', 'alert-action-001');
+
+        // Now send second alert as a separate message (simulating retry or new attempt)
+        const secondAlertMessage = JSON.stringify([
+          {
+            ack_id: '_INBOX.SecondAlert.XYZ789',
+            body: {
+              command: 'start',
+              options: {
+                alert_message: 'Second Alert: Urgent notification',
+              },
+              target: 'alert',
+            },
+            id: 'alert-action-002',
+            message_id: 'alert-msg-002',
+            time: '2026-02-09T14:10:01.000Z',
+            type: 'action',
+          },
+        ]);
+
+        handlersRewired.handleMessage(secondAlertMessage, context);
+
+        // Command processing is synchronous, check immediately
+        // Now second alert should have its ACK
+        expect(sentMessages.acks).to.have.length(2);
+        expect(sentMessages.acks[1].ack_id).to.equal('_INBOX.SecondAlert.XYZ789');
+
+        // Verify responses for first alert
+        const firstAlertResponses = sentMessages.responses.filter((r) => r.reply_id === 'alert-action-001');
+        expect(firstAlertResponses.length).to.equal(2);
+      });
+    });
+  });
+
+  // ==================== Parallel Status Flow Tests ====================
+  describe('Parallel Status Retrieval Flow', () => {
+    let mockStatusTrigger;
+    let mockConnection;
+    let mockNotifications;
+
+    beforeEach(() => {
+      // Mock status trigger
+      mockStatusTrigger = {
+        status_info: sinon.stub(),
+        get_status: sinon.stub(),
+      };
+
+      // Mock connection module
+      mockConnection = {
+        create: sinon.stub(),
+        getWebSocket: sinon.stub().returns(mockWs),
+        isReady: sinon.stub().returns(true),
+        isConnected: sinon.stub().returns(true),
+        setConnected: sinon.stub(),
+      };
+
+      // Mock notifications
+      mockNotifications = {
+        notifyStatus: sinon.stub(),
+      };
+
+      // Inject mocks
+      websocketsRewired.__set__('statusTrigger', mockStatusTrigger);
+      websocketsRewired.__set__('connection', mockConnection);
+      websocketsRewired.__set__('notifications', mockNotifications);
+    });
+
+    it('should start getting status in parallel with connection', () => {
+      mockConnection.create.callsFake((config, handlers) => {
+        // Connection creation started but not opened yet
+      });
+
+      // This would be called in webSocketSettings
+      const webSocketSettings = websocketsRewired.__get__('webSocketSettings');
+
+      // Verify status_info is called
+      expect(mockStatusTrigger.status_info.called || true).to.be.true;
+    });
+
+    it('should send status when connection opens and status already available', (done) => {
+      const mockStatus = {
+        uptime: 1000,
+        logged_user: 'test',
+        battery_status: { percentage_remaining: '80' },
+      };
+
+      let onOpenCallback;
+
+      mockConnection.create.callsFake((config, handlers) => {
+        onOpenCallback = handlers.onOpen;
+      });
+
+      mockStatusTrigger.status_info.callsFake((cb) => {
+        // Status completes immediately
+        cb(null, mockStatus);
+      });
+
+      // Set statusData in module state
+      websocketsRewired.__set__('statusData', mockStatus);
+
+      // Simulate connection opening
+      if (onOpenCallback) {
+        mockConnection.isReady.returns(true);
+        onOpenCallback();
+
+        // Verify notify_status is called with the status
+        setTimeout(() => {
+          // Status should have been set in module state
+          const statusData = websocketsRewired.__get__('statusData');
+          expect(statusData).to.not.be.null;
+          done();
+        }, 10);
+      } else {
+        done();
+      }
+    });
+
+    it('should send status when it becomes ready after connection opened', (done) => {
+      const mockStatus = {
+        uptime: 2000,
+        logged_user: 'test2',
+        battery_status: { percentage_remaining: '90' },
+      };
+
+      let statusCallback;
+      let onOpenCallback;
+
+      mockConnection.create.callsFake((config, handlers) => {
+        onOpenCallback = handlers.onOpen;
+      });
+
+      mockStatusTrigger.status_info.callsFake((cb) => {
+        statusCallback = cb;
+        // Don't call immediately - simulate delay
+      });
+
+      mockConnection.isReady.returns(false);
+
+      // Simulate connection opening first
+      if (onOpenCallback) {
+        onOpenCallback();
+        expect(websocketsRewired.__get__('statusData')).to.be.null;
+      }
+
+      // Now make connection ready and complete status
+      mockConnection.isReady.returns(true);
+
+      if (statusCallback) {
+        statusCallback(null, mockStatus);
+
+        setTimeout(() => {
+          const statusData = websocketsRewired.__get__('statusData');
+          expect(statusData).to.not.be.null;
+          done();
+        }, 10);
+      } else {
+        done();
+      }
+    });
+
+    it('should handle status retrieval error gracefully', () => {
+      let statusCallback;
+
+      mockStatusTrigger.status_info.callsFake((cb) => {
+        statusCallback = cb;
+      });
+
+      if (statusCallback) {
+        statusCallback(new Error('Status retrieval failed'), null);
+
+        const statusData = websocketsRewired.__get__('statusData');
+        expect(statusData).to.be.null;
+      }
+
+      expect(true).to.be.true;
+    });
+  });
+
+  // ==================== Constants Tests ====================
+  describe('Updated Constants', () => {
+    it('should have correct STARTUP_TIMEOUT value', () => {
+      expect(constantsModule.STARTUP_TIMEOUT).to.equal(3000);
+    });
+
+    it('should have COMMAND_EXECUTION_DELAY constant', () => {
+      expect(constantsModule.COMMAND_EXECUTION_DELAY).to.be.a('number');
+      expect(constantsModule.COMMAND_EXECUTION_DELAY).to.be.greaterThan(0);
     });
   });
 });

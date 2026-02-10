@@ -1,7 +1,11 @@
 const { expect } = require('chai');
+const sinon = require('sinon');
 const websockets = require('../../../../../lib/agent/control-panel/websockets');
 
 describe('WebSocket Reconnection', () => {
+  afterEach(() => {
+    sinon.restore();
+  });
   describe('re_schedule initialization', () => {
     it('should have re_schedule set to true by default', () => {
       expect(websockets.re_schedule).to.equal(true);
@@ -36,12 +40,18 @@ describe('WebSocket Reconnection', () => {
     });
 
     it('should increase delay exponentially', () => {
+      // Stub Math.random to return 0.5, which makes jitter = 0
+      // This ensures deterministic behavior for the test
+      sinon.stub(Math, 'random').returns(0.5);
+
       websockets.resetReconnectDelay();
       const delay1 = websockets.getReconnectDelay();
       const delay2 = websockets.getReconnectDelay();
       const delay3 = websockets.getReconnectDelay();
 
-      // delay2 should be roughly 2x delay1 (accounting for jitter)
+      // With no jitter (Math.random = 0.5):
+      // delay1 = 5000, delay2 = 10000, delay3 = 20000
+      // delay2 should be roughly 2x delay1
       expect(delay2).to.be.greaterThan(delay1 * 1.5);
       expect(delay3).to.be.greaterThan(delay2 * 1.5);
     });
