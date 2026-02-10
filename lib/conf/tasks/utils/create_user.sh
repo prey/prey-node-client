@@ -24,9 +24,10 @@ USERS_PATH_MAC="/Users"
 
 if [ "$(uname)" == "Linux" ]; then
   USERS_PATH="/home"
-  SUDOERS_FILE="$SUDOERS_FILE_50"
+  SUDOERS_FILE="$SUDOERS_FILE_51"
   [ -n "$(which dmidecode)" ] && SUDOERS_ARGS="$(which dmidecode), ${SUDOERS_ARGS}"
   [ -n "$(which iwlist)" ] && SUDOERS_ARGS="$(which iwlist), ${SUDOERS_ARGS}"
+  [ -n "$(which nmcli)" ] && SUDOERS_ARGS="$(which nmcli), ${SUDOERS_ARGS}"
   # for security reasons, Prey user shouldn't have a login shell defined
   # also, since nologin path changes between linux distros, lets use /bin/false instead
   SHELL="/bin/false"
@@ -106,12 +107,18 @@ create_user() {
 }
 
 remove_old_files() {
-  # Delete old sudoers file on macOS
+  # Delete old sudoers files
   if [ "$(uname)" == "Darwin" ]; then
+    # macOS cleanup
     if [ -f "${SUDOERS_FILE_50}" ]; then
       echo "removing file on: ${SUDOERS_FILE_50}, output (empty is ok): $(rm -rf "${SUDOERS_FILE_50}")"
     elif [[ -f "${SUDOERS_FILE_51}" && -f "${SUDOERS_FILE}" ]]; then
-      echo "removing file on: ${SUDOERS_FILE_51}, output (empty is ok): $(rm -rf "${SUDOERS_FILE_51}")" 
+      echo "removing file on: ${SUDOERS_FILE_51}, output (empty is ok): $(rm -rf "${SUDOERS_FILE_51}")"
+    fi
+  else
+    # Linux cleanup - remove version 50 if it exists (now using version 51)
+    if [ -f "${SUDOERS_FILE_50}" ]; then
+      echo "removing old sudoers file on: ${SUDOERS_FILE_50}, output (empty is ok): $(rm -rf "${SUDOERS_FILE_50}")"
     fi
   fi
 }
