@@ -4237,6 +4237,229 @@ describe('WebSocket Module', () => {
     });
   });
 
+  // ==================== Provider Commands Tests ====================
+  describe('Provider Commands (get, report, cancel) and Stop Commands', () => {
+    let mockEmitter;
+    let context;
+
+    beforeEach(() => {
+      mockEmitter = new EventEmitter();
+      commandQueueRewired.clearAllQueues();
+      commandQueueRewired.initialize(mockHooks);
+
+      context = {
+        ws: mockWs,
+        responseQueue: responseQueueRewired,
+        ackQueue: ackQueueRewired,
+        storage: mockStorage,
+        ackModule: {
+          processAck: (data, cb) => cb(null, data),
+        },
+        hooks: mockHooks,
+        logger: mockLogger,
+        emitter: mockEmitter,
+      };
+
+      mockWs.send.resetHistory();
+    });
+
+    it('should handle "get location" command without tracking', (done) => {
+      const getLocationMessage = JSON.stringify([
+        {
+          ack_id: '_INBOX.6AVrTU8Q1cfR2MCmCLBAXW.y7AvTCPt',
+          command: 'get',
+          target: 'location',
+        },
+      ]);
+
+      let commandReceived = false;
+      mockEmitter.on('command', (command) => {
+        // Simple commands don't have body, check directly
+        expect(command.command).to.equal('get');
+        expect(command.target).to.equal('location');
+        commandReceived = true;
+      });
+
+      handlersRewired.handleMessage(getLocationMessage, context);
+
+      setTimeout(() => {
+        expect(commandReceived).to.be.true;
+        // Should not be tracked
+        const status = commandQueueRewired.getQueueStatus('location');
+        expect(status.isExecuting).to.be.false;
+        done();
+      }, 10);
+    });
+
+    it('should handle "get users_list" command without tracking', (done) => {
+      const getUsersMessage = JSON.stringify([
+        {
+          ack_id: '_INBOX.0maAqfgIZJqOzDdYLkmunh.aB7Kqgu3',
+          command: 'get',
+          target: 'users_list',
+        },
+      ]);
+
+      let commandReceived = false;
+      mockEmitter.on('command', (command) => {
+        // Simple commands don't have body, check directly
+        expect(command.command).to.equal('get');
+        expect(command.target).to.equal('users_list');
+        commandReceived = true;
+      });
+
+      handlersRewired.handleMessage(getUsersMessage, context);
+
+      setTimeout(() => {
+        expect(commandReceived).to.be.true;
+        // Should not be tracked
+        const status = commandQueueRewired.getQueueStatus('users_list');
+        expect(status.isExecuting).to.be.false;
+        done();
+      }, 10);
+    });
+
+    it('should handle "stop lock" command without tracking', (done) => {
+      const stopLockMessage = JSON.stringify([
+        {
+          ack_id: '_INBOX.nfTQPeYD9VIieTIewKNtTZ.1WIRQhCG',
+          body: {
+            command: 'stop',
+            target: 'lock',
+          },
+          id: '020e7717-9f07-4d86-aab5-4aa0baaf45fb',
+          message_id: '4e3ddd49-58ce-43f7-bbe0-289a1aff4183',
+          time: '2026-02-11T14:15:52.161448709Z',
+          type: 'action',
+        },
+      ]);
+
+      let commandReceived = false;
+      mockEmitter.on('command', (command) => {
+        expect(command.body.command).to.equal('stop');
+        expect(command.body.target).to.equal('lock');
+        commandReceived = true;
+      });
+
+      handlersRewired.handleMessage(stopLockMessage, context);
+
+      setTimeout(() => {
+        expect(commandReceived).to.be.true;
+        // Should not be tracked
+        const status = commandQueueRewired.getQueueStatus('lock');
+        expect(status.isExecuting).to.be.false;
+        done();
+      }, 10);
+    });
+
+    it('should handle "stop report" command without tracking', (done) => {
+      const stopReportMessage = JSON.stringify([
+        {
+          ack_id: '_INBOX.DMJUSzOEJVp6eISFvtJAxf.M0RZGuHp',
+          command: 'stop',
+          options: {},
+          target: 'report',
+        },
+      ]);
+
+      let commandReceived = false;
+      mockEmitter.on('command', (command) => {
+        // Simple commands don't have body, check directly
+        expect(command.command).to.equal('stop');
+        expect(command.target).to.equal('report');
+        commandReceived = true;
+      });
+
+      handlersRewired.handleMessage(stopReportMessage, context);
+
+      setTimeout(() => {
+        expect(commandReceived).to.be.true;
+        // Should not be tracked
+        const status = commandQueueRewired.getQueueStatus('report');
+        expect(status.isExecuting).to.be.false;
+        done();
+      }, 10);
+    });
+
+    it('should allow multiple "get" commands of same target without rejection', (done) => {
+      const getLocationMessages = JSON.stringify([
+        {
+          ack_id: '_INBOX.FirstGet.1',
+          command: 'get',
+          target: 'location',
+        },
+        {
+          ack_id: '_INBOX.SecondGet.2',
+          command: 'get',
+          target: 'location',
+        },
+      ]);
+
+      let commandsReceived = [];
+      mockEmitter.on('command', (command) => {
+        commandsReceived.push(command);
+      });
+
+      let rejectedCount = 0;
+      mockEmitter.on('command_rejected', () => {
+        rejectedCount++;
+      });
+
+      handlersRewired.handleMessage(getLocationMessages, context);
+
+      setTimeout(() => {
+        expect(commandsReceived).to.have.length(2);
+        expect(rejectedCount).to.equal(0);
+        // Simple commands don't have body
+        expect(commandsReceived[0].target).to.equal('location');
+        expect(commandsReceived[1].target).to.equal('location');
+        done();
+      }, 10);
+    });
+
+    it('should allow multiple "stop" commands without rejection', (done) => {
+      const stopMessages = JSON.stringify([
+        {
+          ack_id: '_INBOX.FirstStop.1',
+          body: {
+            command: 'stop',
+            target: 'alert',
+          },
+          id: 'stop-alert-1',
+          type: 'action',
+        },
+        {
+          ack_id: '_INBOX.SecondStop.2',
+          body: {
+            command: 'stop',
+            target: 'alert',
+          },
+          id: 'stop-alert-2',
+          type: 'action',
+        },
+      ]);
+
+      let commandsReceived = [];
+      mockEmitter.on('command', (command) => {
+        commandsReceived.push(command);
+      });
+
+      let rejectedCount = 0;
+      mockEmitter.on('command_rejected', () => {
+        rejectedCount++;
+      });
+
+      handlersRewired.handleMessage(stopMessages, context);
+
+      setTimeout(() => {
+        expect(commandsReceived).to.have.length(2);
+        expect(rejectedCount).to.equal(0);
+        done();
+      }, 10);
+    });
+
+  });
+
   // ==================== Constants Tests ====================
   describe('Updated Constants', () => {
     it('should have correct STARTUP_TIMEOUT value', () => {
