@@ -5,24 +5,24 @@ const ack = require('../../../lib/agent/ack');
 
 describe('ack testing', () => {
   describe('existKeyAckInJson', () => {
-    it('debería regresar true si el objeto tiene una propiedad ack_id', () => {
+    it('should return true if object has ack_id property', () => {
       const json = { ack_id: '123' };
       expect(ack.existKeyAckInJson(json)).to.be.true;
     });
 
-    it('debería regresar false si el objeto no tiene una propiedad ack_id', () => {
+    it('should return false if object does not have ack_id property', () => {
       const json = { foo: 'bar' };
       expect(ack.existKeyAckInJson(json)).to.be.false;
     });
   });
 
   describe('existKeyIdInJson', () => {
-    it('debería regresar true si el objeto tiene una propiedad id', () => {
+    it('should return true if object has id property', () => {
       const json = { id: '123' };
       expect(ack.existKeyIdInJson(json)).to.be.true;
     });
 
-    it('debería regresar false si el objeto no tiene una propiedad id', () => {
+    it('should return false if object does not have id property', () => {
       const json = { foo: 'bar' };
       expect(ack.existKeyIdInJson(json)).to.be.false;
     });

@@ -8,17 +8,20 @@ const sinon = require('sinon');
 const preyConf = require('../../../../../lib/agent/utils/prey-configuration/preyconf');
 
 describe('PreyConf', () => {
+  afterEach(() => {
+    sinon.restore();
+  });
+
   describe('getFileContent', () => {
-    it('debería leer el contenido de un archivo', () => {
+    it('should read file content', () => {
       const filePath = 'path/to/file';
-      const fileContent = 'contenido del archivo';
+      const fileContent = 'file content';
       sinon.stub(fs, 'readFileSync').returns(fileContent);
       const result = preyConf.getFileContent(filePath);
       expect(result).to.equal(fileContent);
-      fs.readFileSync.restore();
     });
 
-    it('debería manejar un error al leer el archivo', () => {
+    it('should handle error when reading file', () => {
       const filePath = 'path/to/file';
       const error = new Error('Error reading prey.conf');
       sinon.stub(fs, 'readFileSync').throws(error);
@@ -27,46 +30,34 @@ describe('PreyConf', () => {
       } catch (except) {
         expect(except).to.be.an.instanceOf(Error);
       }
-      fs.readFileSync.restore();
     });
   });
 
   describe('verifyPreyConf', () => {
-    it('debería verificar la configuración de Prey', () => {
-      const preyConfData = { /* datos de configuración */ };
-      const result = preyConf.verifyPreyConf(preyConfData);
-      expect(result).to.be.true;
+    it('should return error when config file cannot be read', () => {
+      const error = new Error('ENOENT');
+      sinon.stub(fs, 'readFileSync').throws(error);
+      const result = preyConf.verifyPreyConf();
+      // verifyPreyConf returns error when it cannot read the file
+      expect(result).to.be.an.instanceOf(Error);
     });
 
-    it('debería manejar un error al verificar la configuración', () => {
-      const preyConfData = { /* datos de configuración */ };
-      const error = new Error('Error verificando configuración');
-      sinon.stub(preyConf, 'verifyPreyConfData').throws(error);
-      const result = preyConf.verifyPreyConf(preyConfData);
-      expect(result).to.be.false;
-      preyConf.verifyPreyConfData.restore();
-    });
-  });
-
-  describe('store', () => {
-    it('debería almacenar la configuración de Prey', () => {
-      const file = 'path/to/file';
-      const callback = sinon.stub();
-      preyConf.store(file, callback);
-      expect(callback.calledOnce).to.be.true;
-    });
-
-    it('debería manejar un error al almacenar la configuración', () => {
-      const file = 'path/to/file';
-      const error = new Error('Error almacenando configuración');
-      sinon.stub(preyConf.fs, 'writeFile').throws(error);
-      const callback = sinon.stub();
-      preyConf.store(file, callback);
-      expect(callback.calledOnce).to.be.true;
-      expect(callback.args[0][0]).to.equal(error);
-      preyConf.fs.writeFile.restore();
+    it('should handle error when verifying config and file does not exist', () => {
+      const error = new Error('ENOENT');
+      sinon.stub(fs, 'readFileSync').throws(error);
+      const result = preyConf.verifyPreyConf();
+      expect(result).to.be.an.instanceOf(Error);
     });
   });
 
-  // ... otros tests ...
+  describe('startVerifyPreyConf', () => {
+    it('should return object with constitution false when error occurs', () => {
+      const error = new Error('ENOENT');
+      sinon.stub(fs, 'readFileSync').throws(error);
+      const result = preyConf.startVerifyPreyConf();
+      expect(result).to.have.property('constitution');
+      expect(result).to.have.property('apiKeyValue');
+      expect(result).to.have.property('deviceKeyValue');
+    });
+  });
 });

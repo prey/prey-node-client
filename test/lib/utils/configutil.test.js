@@ -10,25 +10,25 @@ const storage = require('../../../lib/agent/utils/storage');
 
 describe('configutil test', () => {
   describe('getDataDbKey', () => {
-    it('debería obtener datos de la base de datos', (done) => {
-      const whatToGet = 'clave-de-prueba';
+    it('should get data from database', (done) => {
+      const whatToGet = 'test-key';
       const callback = sinon.stub();
       const storageStub = sinon.stub(storage, 'do');
       storageStub.callsFake((method, params, cb) => {
-        cb(null, [{ id: 1, value: 'valor-de-prueba' }]);
+        cb(null, [{ id: 1, value: 'test-value' }]);
       });
       configutil.getDataDbKey(whatToGet, callback);
-      expect(callback.calledWith(null, [{ id: 1, value: 'valor-de-prueba' }])).to.be.true;
+      expect(callback.calledWith(null, [{ id: 1, value: 'test-value' }])).to.be.true;
       storageStub.restore();
       done();
     });
 
-    it('debería manejar un error al obtener datos de la base de datos', (done) => {
-      const whatToGet = 'clave-de-prueba';
+    it('should handle error when getting data from database', (done) => {
+      const whatToGet = 'test-key';
       const callback = sinon.stub();
       const storageStub = sinon.stub(storage, 'do');
       storageStub.callsFake((method, params, cb) => {
-        cb(new Error('Error al obtener datos'));
+        cb(new Error('Error getting data'));
       });
       configutil.getDataDbKey(whatToGet, callback);
       expect(callback.calledWith(sinon.match.instanceOf(Error))).to.be.true;
@@ -38,9 +38,9 @@ describe('configutil test', () => {
   });
 
   describe('setKey', () => {
-    it('debería establecer un valor en la base de datos', (done) => {
-      const whatToGet = 'clave-de-prueba';
-      const valuetoSet = 'valor-de-prueba';
+    it('should set a value in the database', (done) => {
+      const whatToGet = 'test-key';
+      const valuetoSet = 'test-value';
       const callback = sinon.stub();
       const storageStub = sinon.stub(storage, 'do');
       storageStub.callsFake((method, params, cb) => {
@@ -54,9 +54,9 @@ describe('configutil test', () => {
   });
 
   describe('updateKey', () => {
-    it('debería actualizar un valor en la base de datos', (done) => {
-      const whatToGet = 'clave-de-prueba';
-      const valuetoSet = 'nuevo-valor-de-prueba';
+    it('should update a value in the database', (done) => {
+      const whatToGet = 'test-key';
+      const valuetoSet = 'new-test-value';
       const callback = sinon.stub();
       const storageStub = sinon.stub(storage, 'do');
       storageStub.callsFake((method, params, cb) => {
@@ -70,9 +70,9 @@ describe('configutil test', () => {
   });
 
   describe('saveToDbKey', () => {
-    it('debería guardar un valor en la base de datos', (done) => {
-      const whatToGet = 'clave-de-prueba';
-      const valuetoSet = 'valor-de-prueba';
+    it('should save a value to the database', (done) => {
+      const whatToGet = 'test-key';
+      const valuetoSet = 'test-value';
       const callback = sinon.stub();
       const storageStub = sinon.stub(storage, 'do');
       storageStub.callsFake((method, params, cb) => {
