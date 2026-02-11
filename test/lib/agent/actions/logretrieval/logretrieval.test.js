@@ -706,7 +706,11 @@ describe('logretrieval', () => {
       let completed = 0;
       const checkDone = () => {
         completed++;
-        if (completed === 2) done();
+        if (completed === 2) {
+          // Wait for all async operations to complete before calling done
+          // collectFiles has 20ms delay, so wait 50ms to be safe
+          setTimeout(() => done(), 50);
+        }
       };
 
       logretrievalRewired.start('concurrent-1', {}, checkDone);
