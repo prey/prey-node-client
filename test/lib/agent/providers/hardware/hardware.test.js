@@ -76,16 +76,16 @@ describe('Hardware_Provider', () => {
   describe('track_hardware_changes', () => {
     it('should track hardware changes correctly', (done) => {
       storedComparisonDataHardwareChangedStub = sinon.stub(exp, 'storedComparisonDataHardwareChanged');
-      // Crear una versión de hardware con diferencias detectables (no excluidas)
+      // Create a hardware version with detectable differences (not excluded)
       const storedHardware = JSON.parse(JSON.stringify(hardware1));
-      storedHardware.vendor_name = 'DIFFERENT_VENDOR'; // Esta propiedad no está en exclusionList
+      storedHardware.vendor_name = 'DIFFERENT_VENDOR'; // This property is not in exclusionList
 
       getDataDbKeyStub.callsFake((method, cb) => {
         if (method === 'hardware_changed') {
-          // Retornar error para que no haga return temprano
+          // Return error so it doesn't return early
           cb(new Error('not found'), null);
         } else if (method === 'hardware') {
-          // Retornar datos existentes diferentes para comparar
+          // Return different existing data to compare
           cb(null, [{ value: JSON.stringify(storedHardware) }]);
         }
       });
@@ -104,8 +104,8 @@ describe('Hardware_Provider', () => {
       exp.track_hardware_changes(hardware1);
 
       setTimeout(() => {
-        // getDataDbKey se llama al menos 2 veces (hardware_changed y hardware)
-        // y puede llamarse más veces desde updateDataHardwareChanged
+        // getDataDbKey is called at least 2 times (hardware_changed and hardware)
+        // and may be called more times from updateDataHardwareChanged
         expect(getDataDbKeyStub.called).to.be.true;
         expect(exp.diffCount).to.be.greaterThan(0);
         expect(deleteDbKeyStub.called).to.be.true;
