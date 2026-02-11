@@ -28,7 +28,8 @@
     "url": "https://github.com/prey/prey-node-client.git"
   },
   "overrides": {
-    "tar": "^7.5.6"
+    "tar": "^7.5.7",
+    "axios": "^1.13.5"
   },
   "dependencies": {
     "arch": "^2.1.2",
