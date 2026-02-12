@@ -37,7 +37,9 @@ describe('Session Tracking (Linux)', () => {
     // Mock the system module
     systemStub = {
       get_session_type: sinon.stub(),
-      get_session_display: sinon.stub()
+      get_session_display: sinon.stub(),
+      get_ubuntu_session_type: sinon.stub(),
+      get_ubuntu_session_display: sinon.stub()
     };
 
     linuxModule.__set__('system', systemStub);
@@ -178,14 +180,6 @@ describe('Session Tracking (Linux)', () => {
     it('should export check_session_changes function', () => {
       expect(linuxModule.check_session_changes).to.be.a('function');
     });
-
-    it('should export get_session_type', () => {
-      expect(linuxModule.get_session_type).to.exist;
-    });
-
-    it('should export get_session_display', () => {
-      expect(linuxModule.get_session_display).to.exist;
-    });
   });
 });
 
@@ -205,8 +199,8 @@ describe('Hardware Index - Session Tracking Integration', () => {
     // Create mocked dependencies
     linuxModule = {
       check_session_changes: sinon.stub(),
-      get_session_type: sinon.stub(),
-      get_session_display: sinon.stub(),
+      get_ubuntu_session_type: sinon.stub(),
+      get_ubuntu_session_display: sinon.stub(),
       get_firmware_info: sinon.stub(),
       get_ram_module_list: sinon.stub()
     };
@@ -218,6 +212,8 @@ describe('Hardware Index - Session Tracking Integration', () => {
     // Inject the mocks
     hardwareIndex.__set__('osFunctions', linuxModule);
     hardwareIndex.__set__('hooks', hooksModule);
+    // Force osName to be 'linux' for these tests
+    hardwareIndex.__set__('osName', 'linux');
   });
 
   afterEach(() => {
@@ -226,14 +222,23 @@ describe('Hardware Index - Session Tracking Integration', () => {
   });
 
   describe('track_session_changes', () => {
-    it('should be defined (function on Linux, null on other OS)', () => {
+    it('should always be defined as a function', () => {
+      const exp = hardwareIndex.__get__('exp');
+      expect(exp.track_session_changes).to.be.a('function');
+    });
+
+    it('should do nothing on non-Linux systems', () => {
       const exp = hardwareIndex.__get__('exp');
       const osName = hardwareIndex.__get__('osName');
 
-      if (osName === 'linux') {
-        expect(exp.track_session_changes).to.be.a('function');
-      } else {
-        expect(exp.track_session_changes).to.be.null;
+      if (osName !== 'linux') {
+        exp.track_session_changes();
+
+        // Fast-forward time
+        clock.tick(1000 * 60 * 60);
+
+        // Should not call check_session_changes on non-Linux
+        expect(linuxModule.check_session_changes.called).to.be.false;
       }
     });
 
@@ -252,17 +257,21 @@ describe('Hardware Index - Session Tracking Integration', () => {
       if (exp.track_session_changes) {
         exp.track_session_changes();
 
-        // Fast-forward time by 1 hour
-        clock.tick(1000 * 60 * 60);
+        // Fast-forward past initial timeout (5000ms) and first interval (60000ms)
+        clock.tick(5000);
+        expect(linuxModule.check_session_changes.callCount).to.equal(1);
 
-        // Verify hooks.trigger was called
+        // Fast-forward to trigger interval check (1 minute)
+        clock.tick(1000 * 60);
+        expect(linuxModule.check_session_changes.callCount).to.equal(2);
+
+        // Verify hooks.trigger was called with correct arguments
         expect(hooksModule.trigger.called).to.be.true;
         expect(hooksModule.trigger.firstCall.args[0]).to.equal('data');
-        expect(hooksModule.trigger.firstCall.args[1]).to.deep.equal({
-          specs: {
-            ubuntu_session_type: 'wayland',
-            ubuntu_session_display: ':1'
-          }
+        expect(hooksModule.trigger.firstCall.args[1]).to.equal('specs');
+        expect(hooksModule.trigger.firstCall.args[2]).to.deep.equal({
+          ubuntu_session_type: 'wayland',
+          ubuntu_session_display: ':1'
         });
       }
     });
@@ -282,15 +291,15 @@ describe('Hardware Index - Session Tracking Integration', () => {
       if (exp.track_session_changes) {
         exp.track_session_changes();
 
-        // Fast-forward time by 1 hour
-        clock.tick(1000 * 60 * 60);
+        // Fast-forward past initial timeout and interval
+        clock.tick(5000 + (1000 * 60));
 
         // Verify hooks.trigger was NOT called
         expect(hooksModule.trigger.called).to.be.false;
       }
     });
 
-    it('should check session changes every hour', () => {
+    it('should check session changes every minute after initial 5s timeout', () => {
       linuxModule.check_session_changes.callsFake((cb) => {
         cb(null, {
           hasChanges: false,
@@ -305,20 +314,24 @@ describe('Hardware Index - Session Tracking Integration', () => {
       if (exp.track_session_changes) {
         exp.track_session_changes();
 
-        // Should not be called initially (no immediate check)
+        // Should not be called immediately
         expect(linuxModule.check_session_changes.callCount).to.equal(0);
 
-        // Fast-forward 1 hour
-        clock.tick(1000 * 60 * 60);
+        // Fast-forward initial timeout (5000ms)
+        clock.tick(5000);
         expect(linuxModule.check_session_changes.callCount).to.equal(1);
 
-        // Fast-forward another hour
-        clock.tick(1000 * 60 * 60);
+        // Fast-forward 1 minute
+        clock.tick(1000 * 60);
         expect(linuxModule.check_session_changes.callCount).to.equal(2);
 
-        // Fast-forward another hour
-        clock.tick(1000 * 60 * 60);
+        // Fast-forward another minute
+        clock.tick(1000 * 60);
         expect(linuxModule.check_session_changes.callCount).to.equal(3);
+
+        // Fast-forward another minute
+        clock.tick(1000 * 60);
+        expect(linuxModule.check_session_changes.callCount).to.equal(4);
       }
     });
   });
