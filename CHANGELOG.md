@@ -1,5 +1,26 @@
 # Change Log
 
+## [v1.13.26](https://github.com/prey/prey-node-client/tree/v1.13.21) (2026-02-13)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.25..v1.13.26)
+
+- Chore: Websockets major logic modularization and improvements ([pato](https://github.com/patriciojofre))([javo](https://github.com/javo))
+
+- Fix: Node Client version for Fenix events ([javo](https://github.com/javo))
+
+- Fix: Winsvc updater logic improved ([javo](https://github.com/javo))
+
+- Feat: Optional setting to force wifi enabling on ubuntu ([javo](https://github.com/javo))
+
+- Feat: Get and send Session type and Displya data to control panel for ubuntu ([javo](https://github.com/javo))
+
+- Chore: Get and send Session type and Displya data to control panel for ubuntu ([javo](https://github.com/javo))
+
+- Fix: Winsvc updater logic improved ([javo](https://github.com/javo))
+
+- Fix: Multiple security vulnerabilities for Node Client ([javo](https://github.com/javo))
+
+- Fix: Coverage for possible providers errors ([pato](https://github.com/patriciojofre))
+
 ## [v1.13.25](https://github.com/prey/prey-node-client/tree/v1.13.25) (2026-01-15)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.24..v1.13.25)
 
