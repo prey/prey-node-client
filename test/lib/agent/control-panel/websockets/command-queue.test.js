@@ -590,6 +590,61 @@ describe('Command Queue Module', () => {
       expect(emittedCommands).to.have.length(2);
     });
 
+    it('should not track "triggers" target commands', () => {
+      const triggersCommand = {
+        ack_id: '_INBOX.test',
+        command: 'start',
+        target: 'triggers',
+        options: {},
+      };
+
+      let emittedCommand = null;
+      mockEmitter.on('command', (cmd) => {
+        emittedCommand = cmd;
+      });
+
+      commandQueueRewired.enqueueCommand(triggersCommand, mockEmitter, mockLogger);
+
+      expect(emittedCommand).to.not.be.null;
+
+      // Should not be tracked
+      const status = commandQueueRewired.getQueueStatus('triggers');
+      expect(status.isExecuting).to.be.false;
+
+      // Should not trigger timeout warning
+      clock.tick(30001);
+      const timeoutWarnings = mockLogger.warn.getCalls().filter((call) =>
+        call.args[0].includes("didn't send completion event")
+      );
+      expect(timeoutWarnings).to.have.length(0);
+    });
+
+    it('should allow multiple "triggers" commands without rejection', () => {
+      const triggersCommand1 = {
+        command: 'start',
+        target: 'triggers',
+        options: {},
+      };
+
+      const triggersCommand2 = {
+        command: 'start',
+        target: 'triggers',
+        options: {},
+      };
+
+      let emittedCommands = [];
+      mockEmitter.on('command', (cmd) => {
+        emittedCommands.push(cmd);
+      });
+
+      const result1 = commandQueueRewired.enqueueCommand(triggersCommand1, mockEmitter, mockLogger);
+      const result2 = commandQueueRewired.enqueueCommand(triggersCommand2, mockEmitter, mockLogger);
+
+      expect(result1).to.be.true;
+      expect(result2).to.be.true;
+      expect(emittedCommands).to.have.length(2);
+    });
+
     it('should handle "get users_list" command without tracking', () => {
       const getUsersCommand = {
         id: undefined, // Real scenario: get commands may not have id
@@ -717,6 +772,25 @@ describe('Command Queue Module', () => {
       // Should not track get commands
       const status = commandQueueRewired.getQueueStatus('location');
       expect(status.isExecuting).to.be.false;
+    });
+
+    it('should extract target from command.target when body is missing', () => {
+      const commandWithTopLevelTarget = {
+        id: 'top-level-target-1',
+        command: 'start',
+        target: 'triggers',
+      };
+
+      let emittedCommand = null;
+      mockEmitter.on('command', (cmd) => {
+        emittedCommand = cmd;
+      });
+
+      const result = commandQueueRewired.enqueueCommand(commandWithTopLevelTarget, mockEmitter, mockLogger);
+
+      expect(result).to.be.true;
+      expect(emittedCommand).to.not.be.null;
+      expect(mockLogger.info.calledWith(sinon.match(/Executing command of type 'triggers'/))).to.be.true;
     });
 
     it('should handle command with missing target in body', () => {
