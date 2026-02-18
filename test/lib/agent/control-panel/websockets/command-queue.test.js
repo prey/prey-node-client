@@ -103,7 +103,7 @@ describe('Command Queue Module', () => {
 
       mockEmitter.on('command', (cmd) => {
         expect(cmd.id).to.equal('cmd-1');
-        expect(mockLogger.info.calledWith(sinon.match(/Executing command of type 'lock' immediately/))).to.be.true;
+        expect(mockLogger.info.calledWith(sinon.match(/Executing command of type 'lock'/))).to.be.true;
         done();
       });
 
@@ -131,13 +131,13 @@ describe('Command Queue Module', () => {
       const result1 = commandQueueRewired.enqueueCommand(command1, mockEmitter, mockLogger);
       expect(result1).to.be.true;
 
-      // Second command should be rejected
+      // Second command should be ignored but ACK still sent
       const result2 = commandQueueRewired.enqueueCommand(command2, mockEmitter, mockLogger);
-      expect(result2).to.be.false;
+      expect(result2).to.be.true; // ACK is always sent
       expect(rejectedCommand).to.not.be.null;
       expect(rejectedCommand.command.id).to.equal('cmd-2');
       expect(rejectedCommand.reason).to.equal('Already running: alert');
-      expect(mockLogger.warn.calledWith(sinon.match(/already executing, rejecting duplicate/))).to.be.true;
+      expect(mockLogger.warn.calledWith(sinon.match(/already executing, ignoring duplicate/))).to.be.true;
     });
 
     it('should allow different command types to execute simultaneously', () => {
@@ -165,7 +165,30 @@ describe('Command Queue Module', () => {
       expect(emittedCommands).to.include('alert-1');
     });
 
-    it('should set safety timeout for command execution', () => {
+    it('should track command execution without timeout', () => {
+      const command = {
+        id: 'cmd-1',
+        body: { target: 'lock', command: 'start' },
+      };
+
+      commandQueueRewired.enqueueCommand(command, mockEmitter, mockLogger);
+
+      // Verify command is executing
+      let status = commandQueueRewired.getQueueStatus('lock');
+      expect(status.isExecuting).to.be.true;
+      expect(status.executingId).to.equal('cmd-1');
+
+      // Commands execute indefinitely until completion event is received
+      // Fast-forward time - command should still be tracked
+      clock.tick(60000); // 60 seconds
+
+      // Verify command is still executing (no timeout cleanup)
+      status = commandQueueRewired.getQueueStatus('lock');
+      expect(status.isExecuting).to.be.true;
+      expect(status.executingId).to.equal('cmd-1');
+    });
+
+    it('should clear executing state when action completes via hook', () => {
       const command = {
         id: 'cmd-1',
         body: { target: 'lock', command: 'start' },
@@ -177,34 +200,13 @@ describe('Command Queue Module', () => {
       let status = commandQueueRewired.getQueueStatus('lock');
       expect(status.isExecuting).to.be.true;
 
-      // Fast-forward past the timeout (default 30 seconds)
-      clock.tick(30001);
-
-      // Verify command was cleaned up
-      status = commandQueueRewired.getQueueStatus('lock');
-      expect(status.isExecuting).to.be.false;
-      expect(mockLogger.warn.calledWith(sinon.match(/didn't send completion event/))).to.be.true;
-    });
-
-    it('should clear timeout when action completes via hook', () => {
-      const command = {
-        id: 'cmd-1',
-        body: { target: 'lock', command: 'start' },
-      };
-
-      commandQueueRewired.enqueueCommand(command, mockEmitter, mockLogger);
-
       // Complete the action via hook
       mockHooks.emit('action', 'stopped', 'cmd-1');
 
-      // Fast-forward past the timeout
-      clock.tick(30001);
-
-      // Timeout warning should not be logged since action completed normally
-      const timeoutWarnings = mockLogger.warn.getCalls().filter((call) =>
-        call.args[0].includes("didn't send completion event")
-      );
-      expect(timeoutWarnings).to.have.length(0);
+      // Verify command was removed from executing state
+      status = commandQueueRewired.getQueueStatus('lock');
+      expect(status.isExecuting).to.be.false;
+      expect(status.executingId).to.be.null;
     });
   });
 
@@ -300,23 +302,23 @@ describe('Command Queue Module', () => {
       expect(status.isExecuting).to.be.false;
     });
 
-    it('should clear timeout when clearing queue', () => {
+    it('should clear executing state when clearing queue', () => {
       const command = {
         id: 'cmd-1',
         body: { target: 'lock', command: 'start' },
       };
 
       commandQueueRewired.enqueueCommand(command, mockEmitter, mockLogger);
+
+      // Verify command is executing
+      let status = commandQueueRewired.getQueueStatus('lock');
+      expect(status.isExecuting).to.be.true;
+
       commandQueueRewired.clearQueue('lock');
 
-      // Fast-forward past timeout
-      clock.tick(30001);
-
-      // No timeout warning should be logged
-      const timeoutWarnings = mockLogger.warn.getCalls().filter((call) =>
-        call.args[0].includes("didn't send completion event")
-      );
-      expect(timeoutWarnings).to.have.length(0);
+      // Verify command was removed
+      status = commandQueueRewired.getQueueStatus('lock');
+      expect(status.isExecuting).to.be.false;
     });
   });
 
