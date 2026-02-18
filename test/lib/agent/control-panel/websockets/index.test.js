@@ -3854,7 +3854,7 @@ describe('WebSocket Module', () => {
         expect(rejectedCommands[0].reason).to.equal('Already running: alert');
       });
 
-      it('should send ACK only for the first alert (second rejected before ACK)', () => {
+      it('should send ACK for both alerts (ACK confirms reception, not execution)', () => {
         const context = {
           ws: mockWs,
           responseQueue: responseQueueRewired,
@@ -3870,7 +3870,7 @@ describe('WebSocket Module', () => {
 
         handlersRewired.handleMessage(duplicateAlertsMessage, context);
 
-        // Should have sent only 1 ACK (for first alert)
+        // Should have sent 2 ACKs (ACK confirms reception, not execution)
         const ackCalls = mockWs.send.getCalls().filter((call) => {
           try {
             const data = JSON.parse(call.args[0]);
@@ -3880,11 +3880,12 @@ describe('WebSocket Module', () => {
           }
         });
 
-        expect(ackCalls).to.have.length(1);
+        expect(ackCalls).to.have.length(2);
 
-        // Verify it's the first alert's ACK
-        const firstAlertAck = JSON.parse(ackCalls[0].args[0]);
-        expect(firstAlertAck.ack_id).to.equal('_INBOX.FirstAlert.ABC123');
+        // Verify both ACKs were sent
+        const ackIds = ackCalls.map((call) => JSON.parse(call.args[0]).ack_id);
+        expect(ackIds).to.include('_INBOX.FirstAlert.ABC123');
+        expect(ackIds).to.include('_INBOX.SecondAlert.XYZ789');
       });
 
       it('should show first alert executing in queue status', () => {
@@ -3906,7 +3907,7 @@ describe('WebSocket Module', () => {
         expect(alertStatus.executingId).to.equal('alert-action-001');
       });
 
-      it('should log warning for rejected duplicate action', () => {
+      it('should log warning for ignored duplicate action', () => {
         const context = {
           ws: mockWs,
           responseQueue: responseQueueRewired,
@@ -3922,7 +3923,7 @@ describe('WebSocket Module', () => {
 
         handlersRewired.handleMessage(duplicateAlertsMessage, context);
 
-        expect(mockLogger.warn.calledWith(sinon.match(/already executing, rejecting duplicate/))).to.be.true;
+        expect(mockLogger.warn.calledWith(sinon.match(/already executing, ignoring duplicate/))).to.be.true;
         expect(mockLogger.warn.calledWith(sinon.match(/alert-action-002/))).to.be.true;
       });
 
@@ -4029,9 +4030,11 @@ describe('WebSocket Module', () => {
         // Send both alerts
         handlersRewired.handleMessage(duplicateAlertsMessage, context);
 
-        // Only first alert ACK should be sent
-        expect(sentMessages.acks).to.have.length(1);
-        expect(sentMessages.acks[0].ack_id).to.equal('_INBOX.FirstAlert.ABC123');
+        // Both ACKs should be sent (ACK confirms reception, not execution)
+        expect(sentMessages.acks).to.have.length(2);
+        const ackIds = sentMessages.acks.map((ack) => ack.ack_id);
+        expect(ackIds).to.include('_INBOX.FirstAlert.ABC123');
+        expect(ackIds).to.include('_INBOX.SecondAlert.XYZ789');
 
         // Simulate first alert lifecycle
         notificationsRewired.notifyAction(notifyContext, {
@@ -4464,11 +4467,6 @@ describe('WebSocket Module', () => {
   describe('Updated Constants', () => {
     it('should have correct STARTUP_TIMEOUT value', () => {
       expect(constantsModule.STARTUP_TIMEOUT).to.equal(3000);
-    });
-
-    it('should have COMMAND_EXECUTION_DELAY constant', () => {
-      expect(constantsModule.COMMAND_EXECUTION_DELAY).to.be.a('number');
-      expect(constantsModule.COMMAND_EXECUTION_DELAY).to.be.greaterThan(0);
     });
   });
 });
