@@ -1,37 +1,28 @@
-[![Code Climate](https://codeclimate.com/github/prey/prey-node-client/badges/gpa.svg)](https://codeclimate.com/github/prey/prey-node-client)
+<p align="center">
+  <img src="https://repository-images.githubusercontent.com/1000650/9f546780-e0b6-11ea-9e53-a82f8e775fbb" alt="Prey: iOS client" height="200" width="400"/>
+</p>
 
-[![Build Status](https://travis-ci.org/prey/prey-node-client.svg?branch=travis-ci)](https://travis-ci.org/prey/prey-node-client)
+Here you will find all the source code for the current and in-development releases of the [Prey](https://preyproject.com/) client for Windows, macOS and Ubuntu.
 
-# Prey Node.js client
-
-Here you will find all the source code for the current and in development releases of the Prey client for Mac, Linux, and Windows.
-
-Prey is the most complete anti-theft application! It lets you track and locate your lost or stolen laptop. Locate and recover your device with geolocation and many more features.
-
-> Prey is a freemium web service for tracking and monitoring laptops, smartphones and other electronic devices, based on an open-source software agent that connects to a host computer, also referred to as the control panel. The host can signal the agent, prompting it to reply with information about its current location, and can trigger various other actions.
+Prey is a SaaS platform for device tracking, monitoring, data protection, and device management. Its open-source agent runs on endpoints and connects to a centralized control panel, enabling organizations to locate devices, enforce security policies, protect sensitive data, and manage their entire fleet remotely.
 
 ## Installation
 
-Download the [appropiate installer](https://github.com/prey/prey-node-client/releases) from the releases section.
+Download the [appropriate installer](https://github.com/prey/prey-node-client/releases) from the releases section.
 
-## Authors
+### Author
 
-By Tomás Pollak, with the help of the following contributors:
+- Tomás Pollak
 
- - Carlos Yaconi
- - Javier Acuña
- - Mauricio Schneider
- - Rodrigo Aliste
+### Collaborators
 
-## Credits
-
- - To Robert Harder for the ImageSnap utility for OS X.
- - To Michael Hipp for mpg123.
- - And to all the Node.js developers for their awesome modules (async, connect, rimraf, etc).
+- [Carlos Yaconi](https://github.com/cyaconi)
+- [Javier Acuña](https://github.com/javo)
+- [Claudio Torres](https://github.com/SoraKenji)
+- [Patricio Jofre](https://github.com/patriciojofre)
 
 ## Legal
 
-Copyright © 2011-2014 Fork, Ltd.
-Copyright © 2014-2019 Prey, Inc.
+Copyright © 2025 Prey, Inc. All rights reserved.
 Released under the GPLv3 license.
-For full details see the `license.txt` file included in this distribution.
+For full details see the LICENSE file included in this distribution.
