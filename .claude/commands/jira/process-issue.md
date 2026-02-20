@@ -53,6 +53,10 @@ Process issue ID: $ARGUMENTS from the imported issues list.
   - Related issues: `Refs: <jira_key>`
   - Checklist items checked as appropriate
 
-### 8. Summary
+### 8. Mark Issue as Done
+- In `jira_issues.json`, find the issue with ID `$ARGUMENTS` and change its `done` attribute from `false` to `true`
+- Do NOT commit this change (it is a local tracking update)
+
+### 9. Summary
 - Report what was done: branch name, changes made, MR URL
 - Suggest next steps if applicable
