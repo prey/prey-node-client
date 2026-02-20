@@ -64,6 +64,40 @@ describe('request Module', () => {
       expect(err.message).to.include('Network seems to be down');
     });
 
+    it('should use error code when message is empty on temporary error', (done) => {
+      const err = new Error('');
+      err.code = 'ETIMEDOUT';
+
+      let attempt = 0;
+      needleRequestStub.callsFake((method, url, data, opts, cb) => {
+        attempt++;
+        cb(err, null, null);
+      });
+
+      request.defaults.retry_timeout = 1;
+      request.send(1, 'GET', '/mock-path', null, {}, (error) => {
+        expect(error.message).to.equal('ETIMEDOUT - Please try again in a minute.');
+        request.defaults.retry_timeout = 3000;
+        done();
+      });
+    });
+
+    it('should append retry message to non-empty error message on temporary error', (done) => {
+      const err = new Error('Connection timed out');
+      err.code = 'ETIMEDOUT';
+
+      needleRequestStub.callsFake((method, url, data, opts, cb) => {
+        cb(err, null, null);
+      });
+
+      request.defaults.retry_timeout = 1;
+      request.send(1, 'GET', '/mock-path', null, {}, (error) => {
+        expect(error.message).to.equal('Connection timed out - Please try again in a minute.');
+        request.defaults.retry_timeout = 3000;
+        done();
+      });
+    });
+
     it('should retry the request without proxy when network is down', () => {
         const cb = sinon.spy();
         const options = { proxy: 'http://mock-proxy.com', timeout: 5000 };
