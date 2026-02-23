@@ -173,11 +173,11 @@ describe('Switcher Module', () => {
         cb(null);
       });
 
-      execStub.withArgs(sinon.match(/echo/)).callsFake((cmd, cb) => {
-        cb(null);
+      execStub.withArgs(sinon.match(/grep -q/)).callsFake((cmd, cb) => {
+        cb(null); // grep succeeds (includedir already exists)
       });
 
-      execStub.withArgs(sinon.match(/chmod 0440/)).callsFake((cmd, cb) => {
+      execStub.withArgs(sinon.match(/umask.*echo/)).callsFake((cmd, cb) => {
         cb(null);
       });
 
@@ -185,9 +185,9 @@ describe('Switcher Module', () => {
       createNewFile(['/usr/sbin/iwlist', '/usr/bin/nmcli'], (err, created) => {
         expect(err).to.be.null;
         expect(created).to.be.true;
-        expect(sharedLogStub.calledWith(sinon.match(/Creating new sudoers file/))).to.be.true;
+        expect(sharedLogStub.calledWith(sinon.match(/Created new sudoers file/))).to.be.true;
         expect(execStub.calledWith(sinon.match(/51_prey_switcher/))).to.be.true;
-        expect(execStub.calledWith(sinon.match(/chmod 0440/))).to.be.true;
+        expect(execStub.calledWith(sinon.match(/umask 226/))).to.be.true;
         done();
       });
     });
@@ -216,12 +216,12 @@ describe('Switcher Module', () => {
         cb(null);
       });
 
-      execStub.withArgs(sinon.match(/echo/)).callsFake((cmd, cb) => {
-        sudoersContent = cmd;
+      execStub.withArgs(sinon.match(/grep -q/)).callsFake((cmd, cb) => {
         cb(null);
       });
 
-      execStub.withArgs(sinon.match(/chmod/)).callsFake((cmd, cb) => {
+      execStub.withArgs(sinon.match(/umask.*echo/)).callsFake((cmd, cb) => {
+        sudoersContent = cmd;
         cb(null);
       });
 
@@ -264,19 +264,23 @@ describe('Switcher Module', () => {
         cb(null);
       });
 
-      execStub.withArgs(sinon.match(/echo/)).callsFake((cmd, cb) => {
+      execStub.withArgs(sinon.match(/grep -q/)).callsFake((cmd, cb) => {
+        cb(null);
+      });
+
+      execStub.withArgs(sinon.match(/umask.*echo/)).callsFake((cmd, cb) => {
         cb(new Error('Write failed'));
       });
 
       const createNewFile = switcherRewired.__get__('createNewFile');
       createNewFile([], (err) => {
         expect(err).to.be.instanceOf(Error);
-        expect(err.message).to.include('Failed to write sudoers file');
+        expect(err.message).to.include('Failed to create sudoers file');
         done();
       });
     });
 
-    it('should handle chmod error', (done) => {
+    it('should handle grep error gracefully', (done) => {
       fsAccessStub.callsFake((path, mode, cb) => {
         cb(new Error('ENOENT'));
       });
@@ -285,24 +289,41 @@ describe('Switcher Module', () => {
         cb(null);
       });
 
-      execStub.withArgs(sinon.match(/echo/)).callsFake((cmd, cb) => {
+      execStub.withArgs(sinon.match(/grep -q/)).callsFake((cmd, cb) => {
+        cb(new Error('grep failed')); // grep fails but shouldn't stop execution
+      });
+
+      execStub.withArgs(sinon.match(/umask.*echo/)).callsFake((cmd, cb) => {
         cb(null);
       });
 
-      execStub.withArgs(sinon.match(/chmod/)).callsFake((cmd, cb) => {
-        cb(new Error('chmod failed'));
-      });
-
       const createNewFile = switcherRewired.__get__('createNewFile');
-      createNewFile([], (err) => {
-        expect(err).to.be.instanceOf(Error);
-        expect(err.message).to.include('Failed to set sudoers file permissions');
+      createNewFile([], (err, created) => {
+        expect(err).to.be.null;
+        expect(created).to.be.true;
+        expect(sharedLogStub.calledWith(sinon.match(/Warning/))).to.be.true;
         done();
       });
     });
   });
 
   describe('update (main function)', () => {
+    beforeEach(() => {
+      // Mock process.getuid to simulate running as root
+      const getuidStub = sinon.stub().returns(0);
+      if (process.getuid) {
+        sinon.stub(process, 'getuid').returns(0);
+      } else {
+        process.getuid = getuidStub;
+      }
+
+      // Mock process.platform to be linux
+      Object.defineProperty(process, 'platform', {
+        value: 'linux',
+        writable: true,
+      });
+    });
+
     it('should complete full update flow successfully', (done) => {
       // Mock getAdditionalCommands
       const getAdditionalCommandsStub = sinon.stub().callsFake((cb) => {
@@ -322,12 +343,19 @@ describe('Switcher Module', () => {
       });
       switcherRewired.__set__('createNewFile', createNewFileStub);
 
-      switcherRewired.update((err) => {
+      // Mock testImpersonation
+      const testImpersonationStub = sinon.stub().callsFake((cb) => {
+        cb(null);
+      });
+      switcherRewired.__set__('testImpersonation', testImpersonationStub);
+
+      switcherRewired.update((err, message) => {
         expect(err).to.be.null;
+        expect(message).to.include('updated successfully');
         expect(getAdditionalCommandsStub.called).to.be.true;
         expect(removeOldFileStub.called).to.be.true;
         expect(createNewFileStub.called).to.be.true;
-        expect(sharedLogStub.calledWith(sinon.match(/Update completed successfully/))).to.be.true;
+        expect(testImpersonationStub.called).to.be.true;
         done();
       });
     });
@@ -348,8 +376,9 @@ describe('Switcher Module', () => {
       });
       switcherRewired.__set__('createNewFile', createNewFileStub);
 
-      switcherRewired.update((err) => {
+      switcherRewired.update((err, message) => {
         expect(err).to.be.null;
+        expect(message).to.include('already configured');
         expect(sharedLogStub.calledWith(sinon.match(/already up to date/))).to.be.true;
         done();
       });
