@@ -45,7 +45,7 @@ build() {
 
 	echo "Temp build directory set to ${ROOT}."
 	mkdir -p "$ROOT/$FOLDER"
-	cp -R package-lock.json README.md license.txt prey.conf.default package.json bin lib "$ROOT/$FOLDER"
+	cp -R package-lock.json README.md LICENSE prey.conf.default package.json bin lib "$ROOT/$FOLDER"
 	cd "$ROOT/$FOLDER"
 
 	# https://github.com/TryGhost/node-sqlite3/issues/1552#issuecomment-1073309408

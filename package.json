@@ -134,7 +134,7 @@
   "licenses": [
     {
       "type": "GPLv3",
-      "url": "https://github.com/prey/prey-node-client/raw/master/license.txt"
+      "url": "https://github.com/prey/prey-node-client/raw/master/LICENSE"
     }
   ]
 }
