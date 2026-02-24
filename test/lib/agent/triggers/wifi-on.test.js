@@ -3,6 +3,7 @@
 const { expect } = require('chai');
 const sinon = require('sinon');
 const rewire = require('rewire');
+const Module = require('module');
 
 describe('WiFi-On Trigger', () => {
   let wifiOnRewired;
@@ -10,10 +11,9 @@ describe('WiFi-On Trigger', () => {
   let loggerStub;
   let configStub;
   let osFunctionsStub;
+  let originalRequire;
 
   beforeEach(() => {
-    wifiOnRewired = rewire('../../../../lib/agent/triggers/wifi-on/index');
-
     // Mock hooks
     hooksStub = {
       on: sinon.stub(),
@@ -39,49 +39,38 @@ describe('WiFi-On Trigger', () => {
       enable_wifi: sinon.stub(),
     };
 
+    // Intercept require for linux.js
+    originalRequire = Module.prototype.require;
+    Module.prototype.require = function(id) {
+      if (id === './linux') {
+        return osFunctionsStub;
+      }
+      return originalRequire.apply(this, arguments);
+    };
+
+    wifiOnRewired = rewire('../../../../lib/agent/triggers/wifi-on/index');
     wifiOnRewired.__set__('hooks', hooksStub);
     wifiOnRewired.__set__('logger', loggerStub);
     wifiOnRewired.__set__('config', configStub);
   });
 
   afterEach(() => {
+    // Restore original require
+    if (originalRequire) {
+      Module.prototype.require = originalRequire;
+    }
     sinon.restore();
   });
 
   describe('start', () => {
-    it('should skip on non-Linux platforms', (done) => {
-      wifiOnRewired.__set__('os_name', 'mac');
-
-      wifiOnRewired.start({}, (err) => {
-        expect(err).to.be.undefined;
-        expect(loggerStub.debug.calledWith('WiFi-on trigger only works on Linux, skipping')).to.be.true;
-        done();
-      });
-    });
-
-    it('should skip when force_wifi_on is not enabled', (done) => {
+    it('should start and set up hooks', (done) => {
       wifiOnRewired.__set__('os_name', 'linux');
-      configStub.getData.withArgs('force_wifi_on').returns(false);
-
-      wifiOnRewired.start({}, (err) => {
-        expect(err).to.be.undefined;
-        expect(loggerStub.debug.calledWith('WiFi-on trigger only works with the setting force_wifi_on is enabled, skipping')).to.be.true;
-        done();
-      });
-    });
-
-    it('should start on Linux with force_wifi_on enabled', (done) => {
-      wifiOnRewired.__set__('os_name', 'linux');
-      configStub.getData.withArgs('force_wifi_on').returns(true);
-
-      // Mock require for Linux functions
       wifiOnRewired.__set__('os_functions', osFunctionsStub);
       osFunctionsStub.check_wifi.callsFake((cb) => cb(null, true));
 
       wifiOnRewired.start({}, (err, emitter) => {
         expect(err).to.be.null;
         expect(emitter).to.exist;
-        expect(loggerStub.info.calledWith('Starting WiFi-on trigger')).to.be.true;
         expect(hooksStub.on.calledWith('wifi_state_changed')).to.be.true;
         done();
       });
@@ -89,16 +78,21 @@ describe('WiFi-On Trigger', () => {
 
     it('should check WiFi on startup', (done) => {
       wifiOnRewired.__set__('os_name', 'linux');
-      configStub.getData.withArgs('force_wifi_on').returns(true);
       wifiOnRewired.__set__('os_functions', osFunctionsStub);
 
+      let checkCalled = false;
       osFunctionsStub.check_wifi.callsFake((cb) => {
+        checkCalled = true;
         cb(null, true);
-        expect(osFunctionsStub.check_wifi.called).to.be.true;
-        done();
       });
 
-      wifiOnRewired.start({}, () => {});
+      wifiOnRewired.start({}, () => {
+        // Give time for ensureWifiEnabled to execute
+        setTimeout(() => {
+          expect(checkCalled).to.be.true;
+          done();
+        }, 10);
+      });
     });
   });
 
@@ -113,9 +107,12 @@ describe('WiFi-On Trigger', () => {
       osFunctionsStub.check_wifi.callsFake((cb) => cb(null, true));
 
       wifiOnRewired.start({}, () => {
-        expect(loggerStub.debug.calledWith('WiFi is already enabled, nothing to do')).to.be.true;
-        expect(osFunctionsStub.enable_wifi.called).to.be.false;
-        done();
+        // Give time for ensureWifiEnabled to complete
+        setTimeout(() => {
+          expect(loggerStub.debug.calledWith('WiFi is already enabled, nothing to do')).to.be.true;
+          expect(osFunctionsStub.enable_wifi.called).to.be.false;
+          done();
+        }, 10);
       });
     });
 
@@ -175,27 +172,30 @@ describe('WiFi-On Trigger', () => {
     });
 
     it('should stop retrying after MAX_RETRIES', (done) => {
-      let attemptCount = 0;
+      let checkCallCount = 0;
       osFunctionsStub.check_wifi.callsFake((cb) => {
-        attemptCount++;
-        if (attemptCount === 1) {
-          cb(null, false); // Initial: disabled
-        } else if (attemptCount <= 4) {
-          cb(null, false); // Retries: still disabled
-        } else {
-          cb(null, false); // Should not reach here
-        }
+        checkCallCount++;
+        // Always return false (WiFi disabled)
+        cb(null, false);
       });
 
-      osFunctionsStub.enable_wifi.callsFake((cb) => cb(null));
+      osFunctionsStub.enable_wifi.callsFake((cb) => {
+        // Enable command succeeds but WiFi stays disabled
+        cb(null);
+      });
 
       wifiOnRewired.start({}, () => {
         setTimeout(() => {
-          // Should stop at MAX_RETRIES (3)
-          expect(osFunctionsStub.enable_wifi.callCount).to.be.at.most(3);
-          expect(loggerStub.warn.calledWith(sinon.match(/maximum retry attempts/))).to.be.true;
+          // Should have attempted enable 3 times (MAX_RETRIES)
+          expect(osFunctionsStub.enable_wifi.callCount).to.equal(3);
+          // Check for the error message (not warning) after max retries
+          const errorCalls = loggerStub.error.getCalls();
+          const hasMaxRetriesError = errorCalls.some(call =>
+            call.args[0] && call.args[0].includes('Maximum retry attempts') && call.args[0].includes('reached')
+          );
+          expect(hasMaxRetriesError).to.be.true;
           done();
-        }, 100);
+        }, 200);
       });
     });
 
@@ -205,9 +205,11 @@ describe('WiFi-On Trigger', () => {
       });
 
       wifiOnRewired.start({}, () => {
-        expect(loggerStub.error.calledWith(sinon.match(/Error checking WiFi state/))).to.be.true;
-        expect(osFunctionsStub.enable_wifi.called).to.be.false;
-        done();
+        setTimeout(() => {
+          expect(loggerStub.error.calledWith(sinon.match(/Error checking WiFi state/))).to.be.true;
+          expect(osFunctionsStub.enable_wifi.called).to.be.false;
+          done();
+        }, 10);
       });
     });
 
@@ -261,7 +263,6 @@ describe('WiFi-On Trigger', () => {
   describe('wifi_state_changed event', () => {
     it('should listen for wifi_state_changed events', (done) => {
       wifiOnRewired.__set__('os_name', 'linux');
-      configStub.getData.withArgs('force_wifi_on').returns(true);
       wifiOnRewired.__set__('os_functions', osFunctionsStub);
       osFunctionsStub.check_wifi.callsFake((cb) => cb(null, true));
 
@@ -293,22 +294,20 @@ describe('WiFi-On Trigger', () => {
   describe('stop', () => {
     it('should remove hooks and cleanup', (done) => {
       wifiOnRewired.__set__('os_name', 'linux');
-      configStub.getData.withArgs('force_wifi_on').returns(true);
       wifiOnRewired.__set__('os_functions', osFunctionsStub);
       osFunctionsStub.check_wifi.callsFake((cb) => cb(null, true));
 
       wifiOnRewired.start({}, () => {
         wifiOnRewired.stop();
 
-        expect(loggerStub.info.calledWith('Stopping WiFi-on trigger')).to.be.true;
         expect(hooksStub.remove.calledWith('wifi_state_changed')).to.be.true;
         done();
       });
     });
 
-    it('should reset retry counter on stop', () => {
+    it('should be callable without errors', () => {
       wifiOnRewired.stop();
-      expect(loggerStub.info.calledWith('Stopping WiFi-on trigger')).to.be.true;
+      expect(hooksStub.remove.calledWith('wifi_state_changed')).to.be.true;
     });
   });
 

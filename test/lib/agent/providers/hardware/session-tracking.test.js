@@ -234,7 +234,7 @@ describe('Hardware Index - Session Tracking Integration', () => {
       if (osName !== 'linux') {
         exp.track_session_changes();
 
-        // Fast-forward time
+        // Fast-forward time (1 hour)
         clock.tick(1000 * 60 * 60);
 
         // Should not call check_session_changes on non-Linux
@@ -257,12 +257,12 @@ describe('Hardware Index - Session Tracking Integration', () => {
       if (exp.track_session_changes) {
         exp.track_session_changes();
 
-        // Fast-forward past initial timeout (5000ms) and first interval (60000ms)
+        // Fast-forward past initial timeout (5000ms)
         clock.tick(5000);
         expect(linuxModule.check_session_changes.callCount).to.equal(1);
 
-        // Fast-forward to trigger interval check (1 minute)
-        clock.tick(1000 * 60);
+        // Fast-forward to trigger interval check (1 hour)
+        clock.tick(1000 * 60 * 60);
         expect(linuxModule.check_session_changes.callCount).to.equal(2);
 
         // Verify hooks.trigger was called with correct arguments
@@ -291,15 +291,15 @@ describe('Hardware Index - Session Tracking Integration', () => {
       if (exp.track_session_changes) {
         exp.track_session_changes();
 
-        // Fast-forward past initial timeout and interval
-        clock.tick(5000 + (1000 * 60));
+        // Fast-forward past initial timeout and interval (1 hour)
+        clock.tick(5000 + (1000 * 60 * 60));
 
         // Verify hooks.trigger was NOT called
         expect(hooksModule.trigger.called).to.be.false;
       }
     });
 
-    it('should check session changes every minute after initial 5s timeout', () => {
+    it('should check session changes every hour after initial 5s timeout', () => {
       linuxModule.check_session_changes.callsFake((cb) => {
         cb(null, {
           hasChanges: false,
@@ -321,16 +321,16 @@ describe('Hardware Index - Session Tracking Integration', () => {
         clock.tick(5000);
         expect(linuxModule.check_session_changes.callCount).to.equal(1);
 
-        // Fast-forward 1 minute
-        clock.tick(1000 * 60);
+        // Fast-forward 1 hour
+        clock.tick(1000 * 60 * 60);
         expect(linuxModule.check_session_changes.callCount).to.equal(2);
 
-        // Fast-forward another minute
-        clock.tick(1000 * 60);
+        // Fast-forward another hour
+        clock.tick(1000 * 60 * 60);
         expect(linuxModule.check_session_changes.callCount).to.equal(3);
 
-        // Fast-forward another minute
-        clock.tick(1000 * 60);
+        // Fast-forward another hour
+        clock.tick(1000 * 60 * 60);
         expect(linuxModule.check_session_changes.callCount).to.equal(4);
       }
     });

@@ -1,6 +1,17 @@
 # Change Log
 
-## [v1.13.26](https://github.com/prey/prey-node-client/tree/v1.13.21) (2026-02-13)
+## [v1.13.27](https://github.com/prey/prey-node-client/tree/v1.13.27) (2026-02-23)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.26..v1.13.27)
+
+- Fix: Crashing errors on macOS install ([pato](https://github.com/patriciojofre))([javo](https://github.com/javo))
+
+- Fix: Retry local service notification on EADDRINUSE ([pato](https://github.com/patriciojofre))
+
+- Fix: Storage error on recovering commands from old commands.db file ([javo](https://github.com/javo))
+
+- Fix: Cover exception on utils storage logic for json parsing ([javo](https://github.com/javo))
+
+## [v1.13.26](https://github.com/prey/prey-node-client/tree/v1.13.26) (2026-02-13)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.25..v1.13.26)
 
 - Chore: Websockets major logic modularization and improvements ([pato](https://github.com/patriciojofre))([javo](https://github.com/javo))
@@ -11,9 +22,7 @@
 
 - Feat: Optional setting to force wifi enabling on ubuntu ([javo](https://github.com/javo))
 
-- Feat: Get and send Session type and Displya data to control panel for ubuntu ([javo](https://github.com/javo))
-
-- Chore: Get and send Session type and Displya data to control panel for ubuntu ([javo](https://github.com/javo))
+- Feat: Get and send Session type and Display data to control panel for ubuntu ([javo](https://github.com/javo))
 
 - Fix: Winsvc updater logic improved ([javo](https://github.com/javo))
 
