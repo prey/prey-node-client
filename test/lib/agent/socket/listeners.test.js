@@ -5,9 +5,25 @@ const sinon = require('sinon');
 const chai = require('chai');
 
 const { expect } = chai;
+const config = require('../../../../lib/utils/configfile');
 const listeners = require('../../../../lib/agent/socket/listeners');
 
 describe('listeners', () => {
+  let savedWifiLocation;
+  let savedNativeLocation;
+
+  beforeEach(() => {
+    savedWifiLocation = config.preyConfiguration['control-panel.permissions.wifi_location'];
+    savedNativeLocation = config.preyConfiguration['control-panel.permissions.native_location'];
+    config.preyConfiguration['control-panel.permissions.wifi_location'] = 'false';
+    config.preyConfiguration['control-panel.permissions.native_location'] = 'false';
+  });
+
+  afterEach(() => {
+    config.preyConfiguration['control-panel.permissions.wifi_location'] = savedWifiLocation;
+    config.preyConfiguration['control-panel.permissions.native_location'] = savedNativeLocation;
+  });
+
   it('should update native and wifi location info on MacOs', () => {
     const data = [
       'check_location_perms',
