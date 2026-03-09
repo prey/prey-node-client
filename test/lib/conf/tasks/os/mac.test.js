@@ -39,7 +39,7 @@ describe('mac os hooks', () => {
       cb(null, content);
     });
 
-    findAndKill('1.13.25', 99999, () => {
+    findAndKill(99999, () => {
       expect(execStub.called).to.equal(false);
       expect(processKillStub.called).to.equal(false);
       done();
@@ -70,7 +70,7 @@ describe('mac os hooks', () => {
       }
     });
 
-    findAndKill('1.13.25', 300, () => {
+    findAndKill(300, () => {
       expect(execStub.calledOnce).to.equal(true);
       expect(processKillStub.calledWith(111, 'SIGKILL')).to.equal(true);
       expect(processKillStub.calledWith(112, 'SIGKILL')).to.equal(true);
@@ -97,7 +97,7 @@ describe('mac os hooks', () => {
       }
     });
 
-    findAndKill('1.13.25', 300, () => {
+    findAndKill(300, () => {
       expect(execStub.calledOnce).to.equal(true);
       expect(processKillStub.calledWith(211, 'SIGKILL')).to.equal(true);
       done();
