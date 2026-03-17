@@ -7,6 +7,7 @@ const chai = require('chai');
 const { expect } = chai;
 const config = require('../../../../lib/utils/configfile');
 const listeners = require('../../../../lib/agent/socket/listeners');
+const { nameArray } = require('../../../../lib/agent/socket/messages');
 
 describe('listeners', () => {
   let savedWifiLocation;
@@ -26,7 +27,7 @@ describe('listeners', () => {
 
   it('should update native and wifi location info on MacOs', () => {
     const data = [
-      'check_location_perms',
+      nameArray[1],
       { result: true },
       sinon.stub(),
     ];
@@ -53,7 +54,7 @@ describe('listeners', () => {
 
   it('should update native and wifi location info on Windows', () => {
     const data = [
-      'check_location_perms',
+      nameArray[1],
       'Allow',
       sinon.stub(),
     ];
