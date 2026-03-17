@@ -308,20 +308,29 @@ describe('Switcher Module', () => {
   });
 
   describe('update (main function)', () => {
+    const hadGetuid = typeof process.getuid === 'function';
+
     beforeEach(() => {
       // Mock process.getuid to simulate running as root
-      const getuidStub = sinon.stub().returns(0);
-      if (process.getuid) {
-        sinon.stub(process, 'getuid').returns(0);
-      } else {
-        process.getuid = getuidStub;
+      if (!process.getuid) {
+        process.getuid = () => {};
       }
+      sinon.stub(process, 'getuid').returns(0);
 
       // Mock process.platform to be linux
       Object.defineProperty(process, 'platform', {
         value: 'linux',
         writable: true,
       });
+    });
+
+    afterEach(() => {
+      if (!hadGetuid && process.getuid) {
+        if (typeof process.getuid.restore === 'function') {
+          process.getuid.restore();
+        }
+        delete process.getuid;
+      }
     });
 
     it('should complete full update flow successfully', (done) => {

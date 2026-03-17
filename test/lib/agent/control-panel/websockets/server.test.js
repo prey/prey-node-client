@@ -30,7 +30,7 @@ describe('server.js test function', () => {
 
     it('should return false on windows if service version is not 1.2.0 or greater', () => {
       serverRewired.osName = 'windows';
-      // eslint-disable-next-line global-require
+      serverRewired.requireSysWin = sinon.stub();
       serverRewired.sysWin = {
         get_winsvc_version: sinon.stub().callsFake((cb) => cb(null, '1.1.0')),
       };
