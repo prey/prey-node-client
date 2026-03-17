@@ -113,4 +113,108 @@ describe('Geo Index - Strategy Orchestration', () => {
       });
     });
   });
+
+  describe('fetch_location on macOS', () => {
+    beforeEach(() => {
+      geoIndex.__set__('osName', 'mac');
+      socketStub.writeMessage.callsFake((_msg, cb) => cb());
+    });
+
+    it('should use native strategy when nativeLocation permission is true', (done) => {
+      const locationData = { lat: 12.34, lng: 56.78, method: 'native' };
+      permissionFileStub.getData.callsFake((key) => {
+        if (key === 'nativeLocation') return 'true';
+        if (key === 'wifiLocation') return 'false';
+        return 'false';
+      });
+      strategiesStub.native.callsFake((cb) => cb(null, locationData));
+
+      geoIndex.fetch_location((err, res) => {
+        expect(err).to.be.null;
+        expect(res).to.deep.equal(locationData);
+        expect(socketStub.writeMessage.calledOnce).to.be.true;
+        expect(strategiesStub.native.calledOnce).to.be.true;
+        expect(strategiesStub.wifi.called).to.be.false;
+        expect(strategiesStub.geoip.called).to.be.false;
+        done();
+      });
+    });
+
+    it('should use wifi strategy when nativeLocation is false and wifiLocation is true', (done) => {
+      const locationData = {
+        lat: 10.1, lng: -70.2, accuracy: 30, method: 'wifi',
+      };
+      permissionFileStub.getData.callsFake((key) => {
+        if (key === 'nativeLocation') return 'false';
+        if (key === 'wifiLocation') return 'true';
+        return 'false';
+      });
+      strategiesStub.wifi.callsFake((cb) => cb(null, locationData));
+
+      geoIndex.fetch_location((err, res) => {
+        expect(err).to.be.null;
+        expect(res).to.deep.equal(locationData);
+        expect(socketStub.writeMessage.calledOnce).to.be.true;
+        expect(strategiesStub.wifi.calledOnce).to.be.true;
+        expect(strategiesStub.native.called).to.be.false;
+        done();
+      });
+    });
+
+    it('should fallback to geoip strategy when both permissions are false', (done) => {
+      const locationData = { lat: -33.45, lng: -70.66, method: 'geoip' };
+      permissionFileStub.getData.callsFake((key) => {
+        if (key === 'nativeLocation') return 'false';
+        if (key === 'wifiLocation') return 'false';
+        return 'false';
+      });
+      strategiesStub.geoip.callsFake((cb) => cb(null, locationData));
+
+      geoIndex.fetch_location((err, res) => {
+        expect(err).to.be.null;
+        expect(res).to.deep.equal(locationData);
+        expect(socketStub.writeMessage.calledOnce).to.be.true;
+        expect(strategiesStub.geoip.calledOnce).to.be.true;
+        expect(strategiesStub.native.called).to.be.false;
+        expect(strategiesStub.wifi.called).to.be.false;
+        done();
+      });
+    });
+  });
+
+  describe('fetch_location on Linux/Ubuntu', () => {
+    beforeEach(() => {
+      geoIndex.__set__('osName', 'linux');
+      geoIndex.__set__('defaultStrategy', 'wifi');
+    });
+
+    it('should start with wifi strategy by default on linux', (done) => {
+      const locationData = { lat: 51.5, lng: -0.12, method: 'wifi' };
+      strategiesStub.wifi.callsFake((cb) => cb(null, locationData));
+
+      geoIndex.fetch_location((err, res) => {
+        expect(err).to.be.null;
+        expect(res).to.deep.equal(locationData);
+        expect(strategiesStub.wifi.calledOnce).to.be.true;
+        expect(strategiesStub.native.called).to.be.false;
+        expect(getLocationPermissionStub.called).to.be.false;
+        done();
+      });
+    });
+
+    it('should fallback from wifi to geoip when wifi fails', (done) => {
+      const locationData = { lat: 40.71, lng: -74, method: 'geoip' };
+      strategiesStub.wifi.callsFake((cb) => cb(new Error('wifi failed')));
+      strategiesStub.geoip.callsFake((cb) => cb(null, locationData));
+
+      geoIndex.fetch_location((err, res) => {
+        expect(err).to.be.null;
+        expect(res).to.deep.equal(locationData);
+        expect(strategiesStub.wifi.calledOnce).to.be.true;
+        expect(strategiesStub.geoip.calledOnce).to.be.true;
+        expect(getLocationPermissionStub.called).to.be.false;
+        done();
+      });
+    });
+  });
 });
