@@ -72,6 +72,23 @@ describe('Geo Index - Strategy Orchestration', () => {
       });
     });
 
+    it('should fallback to wifi when native returns malformed payload error', (done) => {
+      const locationData = {
+        lat: 37.77, lng: -122.41, accuracy: 20, method: 'wifi',
+      };
+      strategiesStub.native.callsFake((cb) => cb(new Error('Unable to get location from admin service')));
+      strategiesStub.wifi.callsFake((cb) => cb(null, locationData));
+
+      geoIndex.fetch_location((err, res) => {
+        expect(err).to.be.null;
+        expect(res).to.deep.equal(locationData);
+        expect(strategiesStub.native.calledOnce).to.be.true;
+        expect(strategiesStub.wifi.calledOnce).to.be.true;
+        expect(strategiesStub.geoip.called).to.be.false;
+        done();
+      });
+    });
+
     it('should fallback to geoip when native and wifi fail', (done) => {
       const locationData = { lat: 37.77, lng: -122.41, method: 'geoip' };
       strategiesStub.native.callsFake((cb) => cb(new Error('native failed')));

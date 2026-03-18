@@ -42,6 +42,25 @@ describe('Geo Win32 Native Geolocation', () => {
       });
     });
 
+    it('should return location data when position_source is missing', (done) => {
+      const locationData = {
+        lat: 37.7749,
+        lng: -122.4194,
+        accuracy: 10.5,
+        method: 'native',
+      };
+
+      systemStub.get_as_admin_user.callsFake((provider, cb) => {
+        cb(null, locationData);
+      });
+
+      win32Geo.get_location((err, result) => {
+        expect(err).to.be.null;
+        expect(result).to.deep.equal(locationData);
+        done();
+      });
+    });
+
     it('should return error when admin service returns error', (done) => {
       const serviceError = new Error('Admin service not available');
 
@@ -83,6 +102,70 @@ describe('Geo Win32 Native Geolocation', () => {
     it('should return error when output is missing lng', (done) => {
       systemStub.get_as_admin_user.callsFake((provider, cb) => {
         cb(null, { lat: 37.7749, accuracy: 10.5 });
+      });
+
+      win32Geo.get_location((err) => {
+        expect(err).to.be.an.instanceOf(Error);
+        expect(err.message).to.equal('Unable to get location from admin service');
+        done();
+      });
+    });
+
+    it('should return error when output is not an object', (done) => {
+      systemStub.get_as_admin_user.callsFake((provider, cb) => {
+        cb(null, 'invalid');
+      });
+
+      win32Geo.get_location((err) => {
+        expect(err).to.be.an.instanceOf(Error);
+        expect(err.message).to.equal('Unable to get location from admin service');
+        done();
+      });
+    });
+
+    it('should return error when output position_source is ipaddress', (done) => {
+      systemStub.get_as_admin_user.callsFake((provider, cb) => {
+        cb(null, {
+          lat: 37.7749,
+          lng: -122.4194,
+          position_source: ' ipaddress ',
+        });
+      });
+
+      win32Geo.get_location((err) => {
+        expect(err).to.be.an.instanceOf(Error);
+        expect(err.message).to.equal('Got ipaddress native');
+        done();
+      });
+    });
+
+    it('should return error when lat is NaN', (done) => {
+      systemStub.get_as_admin_user.callsFake((provider, cb) => {
+        cb(null, { lat: Number.NaN, lng: -122.4194, accuracy: 10.5 });
+      });
+
+      win32Geo.get_location((err) => {
+        expect(err).to.be.an.instanceOf(Error);
+        expect(err.message).to.equal('Unable to get location from admin service');
+        done();
+      });
+    });
+
+    it('should return error when lng is not finite', (done) => {
+      systemStub.get_as_admin_user.callsFake((provider, cb) => {
+        cb(null, { lat: 37.7749, lng: Infinity, accuracy: 10.5 });
+      });
+
+      win32Geo.get_location((err) => {
+        expect(err).to.be.an.instanceOf(Error);
+        expect(err.message).to.equal('Unable to get location from admin service');
+        done();
+      });
+    });
+
+    it('should return error when lat and lng are strings', (done) => {
+      systemStub.get_as_admin_user.callsFake((provider, cb) => {
+        cb(null, { lat: '37.7749', lng: '-122.4194', accuracy: 10.5 });
       });
 
       win32Geo.get_location((err) => {
