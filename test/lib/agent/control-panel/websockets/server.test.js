@@ -62,6 +62,7 @@ describe('server.js test function', () => {
     });
 
     it('should return an error if exec returns an error', () => {
+      serverRewired.osName = 'windows';
       serverRewired.execCmd = sinon.stub().callsFake((cmd, cb) => cb(null, null));
       serverRewired.check_server_down((err) => {
         expect(err).to.be.an.instanceOf(Error);
@@ -69,6 +70,7 @@ describe('server.js test function', () => {
     });
 
     it('should not return an error', () => {
+      serverRewired.osName = 'windows';
       serverRewired.execCmd = sinon.stub().callsFake((cmd, cb) => cb(null, '111'));
       serverRewired.check_server_down((err) => {
         expect(err).to.not.be.an.instanceOf(Error);

@@ -9,6 +9,7 @@ const { expect } = chai;
 
 describe('alarm action', () => {
   let alarmRewired;
+  let osName;
   let systemMock;
   let execStub;
   let fsExistsSyncStub;
@@ -26,7 +27,9 @@ describe('alarm action', () => {
     // Create system mock
     systemMock = {
       spawn_as_logged_user: sinon.stub(),
-      run_as_logged_user: sinon.stub(),
+      run_as_logged_user: sinon.stub().callsFake((cmd, args, cb) => {
+        if (typeof cb === 'function') cb(null);
+      }),
       get_logged_user: sinon.stub(),
     };
 
@@ -36,6 +39,7 @@ describe('alarm action', () => {
     alarmRewired = rewire('../../../../../lib/agent/actions/alarm');
     alarmRewired.__set__('system', systemMock);
     alarmRewired.__set__('exec', execStub);
+    osName = alarmRewired.__get__('os_name');
 
     fsExistsSyncStub = sinon.stub();
     alarmRewired.__set__('fs', { existsSync: fsExistsSyncStub });
@@ -233,10 +237,12 @@ describe('alarm action', () => {
 
       // Advance clock to trigger interval
       clock.tick(1000);
-      expect(execStub.calledOnce).to.be.true;
+      if (osName === 'linux') expect(systemMock.run_as_logged_user.callCount).to.equal(2);
+      else expect(execStub.calledOnce).to.be.true;
 
       clock.tick(1000);
-      expect(execStub.calledTwice).to.be.true;
+      if (osName === 'linux') expect(systemMock.run_as_logged_user.callCount).to.equal(4);
+      else expect(execStub.calledTwice).to.be.true;
 
       done();
     });
@@ -251,9 +257,12 @@ describe('alarm action', () => {
       alarmRewired.start('test-id', {}, (err, emitter) => {
         emitter.on('end', () => {
           // After done, advancing clock should not trigger more exec calls
-          const { callCount } = execStub;
+          const callCount = (osName === 'linux')
+            ? systemMock.run_as_logged_user.callCount
+            : execStub.callCount;
           clock.tick(3000);
-          expect(execStub.callCount).to.equal(callCount);
+          if (osName === 'linux') expect(systemMock.run_as_logged_user.callCount).to.equal(callCount);
+          else expect(execStub.callCount).to.equal(callCount);
           done();
         });
       });
@@ -329,7 +338,8 @@ describe('alarm action', () => {
       alarmRewired.start('test-id', {}, () => {});
 
       clock.tick(1000);
-      expect(execStub.calledOnce).to.be.true;
+      if (osName === 'linux') expect(systemMock.run_as_logged_user.callCount).to.equal(2);
+      else expect(execStub.calledOnce).to.be.true;
       done();
     });
 
