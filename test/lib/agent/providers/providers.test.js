@@ -2,21 +2,26 @@
 /* eslint-disable no-undef */
 const sinon = require('sinon');
 const { expect } = require('chai');
-const hooks = require('../../../../lib/agent/hooks');
-const common = require('../../../../lib/agent/common');
 
 describe('Providers', () => {
   let providers;
+  let hooks;
+  let common;
   let hooksTriggerStub;
   let exceptionsSendStub;
 
   beforeEach(() => {
-    // Stub hooks and exceptions before loading providers
-    hooksTriggerStub = sinon.stub(hooks, 'trigger');
-    exceptionsSendStub = sinon.stub(common.exceptions, 'send');
+    // Reload shared modules so stubs target the same instances used by providers.
+    delete require.cache[require.resolve('../../../../lib/agent/hooks')];
+    delete require.cache[require.resolve('../../../../lib/agent/common')];
 
     // Clear providers cache to get fresh instance each test
     delete require.cache[require.resolve('../../../../lib/agent/providers')];
+
+    hooks = require('../../../../lib/agent/hooks');
+    common = require('../../../../lib/agent/common');
+    hooksTriggerStub = sinon.stub(hooks, 'trigger');
+    exceptionsSendStub = sinon.stub(common.exceptions, 'send');
     providers = require('../../../../lib/agent/providers');
   });
 
