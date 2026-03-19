@@ -233,23 +233,52 @@ describe('Geo Win32 Native Geolocation', () => {
       });
     });
 
-    it('should return location data even when sending raw location fails', (done) => {
-      const locationData = {
-        lat: 37.7749,
-        lng: -122.4194,
-        accuracy: 10.5,
-        method: 'native',
-      };
+    it('should preserve error code when admin service returns error with code', (done) => {
+      const serviceError = new Error('Service unavailable');
+      serviceError.code = 'ECONNREFUSED';
 
       systemStub.get_as_admin_user.callsFake((provider, cb) => {
-        cb(null, locationData);
+        cb(serviceError);
       });
-      needleStub.put.callsFake((url, data, opts, cb) => cb(new Error('geo endpoint unavailable')));
 
-      win32Geo.get_location((err, result) => {
-        expect(err).to.be.null;
-        expect(result).to.deep.equal(locationData);
-        expect(loggerStub.info.calledWithMatch('Failed sending raw location to')).to.be.true;
+      win32Geo.get_location((err) => {
+        expect(err).to.be.an.instanceOf(Error);
+        expect(err.message).to.equal('Service unavailable');
+        expect(err.code).to.equal('ECONNREFUSED');
+        done();
+      });
+    });
+
+    it('should preserve error stack when admin service returns error', (done) => {
+      const serviceError = new Error('Network timeout');
+      const originalStack = serviceError.stack;
+
+      systemStub.get_as_admin_user.callsFake((provider, cb) => {
+        cb(serviceError);
+      });
+
+      win32Geo.get_location((err) => {
+        expect(err).to.be.an.instanceOf(Error);
+        expect(err.message).to.equal('Network timeout');
+        expect(err.stack).to.equal(originalStack);
+        done();
+      });
+    });
+
+    it('should handle error with custom properties from admin service', (done) => {
+      const serviceError = new Error('Custom error');
+      serviceError.statusCode = 503;
+      serviceError.details = { retry: true };
+
+      systemStub.get_as_admin_user.callsFake((provider, cb) => {
+        cb(serviceError);
+      });
+
+      win32Geo.get_location((err) => {
+        expect(err).to.be.an.instanceOf(Error);
+        expect(err.message).to.equal('Custom error');
+        expect(err.statusCode).to.equal(503);
+        expect(err.details).to.deep.equal({ retry: true });
         done();
       });
     });
