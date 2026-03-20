@@ -7,13 +7,24 @@ const rewire = require('rewire');
 describe('Geo Win32 Native Geolocation', () => {
   let win32Geo;
   let systemStub;
+  let needleStub;
+  let loggerStub;
 
   beforeEach(() => {
     win32Geo = rewire('../../../../../lib/agent/providers/geo/win32/index');
     systemStub = {
       get_as_admin_user: sinon.stub(),
     };
+    needleStub = {
+      put: sinon.stub().callsFake((url, data, opts, cb) => cb(null)),
+    };
+    loggerStub = {
+      info: sinon.stub(),
+      debug: sinon.stub(),
+    };
     win32Geo.__set__('system', systemStub);
+    win32Geo.__set__('needle', needleStub);
+    win32Geo.__set__('logger', loggerStub);
   });
 
   afterEach(() => {
@@ -82,7 +93,7 @@ describe('Geo Win32 Native Geolocation', () => {
 
       win32Geo.get_location((err) => {
         expect(err).to.be.an.instanceOf(Error);
-        expect(err.message).to.equal('Unable to get location from admin service');
+        expect(err.message).to.equal('Invalid coordinates from admin service');
         done();
       });
     });
@@ -94,7 +105,7 @@ describe('Geo Win32 Native Geolocation', () => {
 
       win32Geo.get_location((err) => {
         expect(err).to.be.an.instanceOf(Error);
-        expect(err.message).to.equal('Unable to get location from admin service');
+        expect(err.message).to.equal('Invalid coordinates from admin service');
         done();
       });
     });
@@ -106,7 +117,7 @@ describe('Geo Win32 Native Geolocation', () => {
 
       win32Geo.get_location((err) => {
         expect(err).to.be.an.instanceOf(Error);
-        expect(err.message).to.equal('Unable to get location from admin service');
+        expect(err.message).to.equal('Invalid coordinates from admin service');
         done();
       });
     });
@@ -118,7 +129,7 @@ describe('Geo Win32 Native Geolocation', () => {
 
       win32Geo.get_location((err) => {
         expect(err).to.be.an.instanceOf(Error);
-        expect(err.message).to.equal('Unable to get location from admin service');
+        expect(err.message).to.equal('Invalid coordinates from admin service');
         done();
       });
     });
@@ -146,7 +157,7 @@ describe('Geo Win32 Native Geolocation', () => {
 
       win32Geo.get_location((err) => {
         expect(err).to.be.an.instanceOf(Error);
-        expect(err.message).to.equal('Unable to get location from admin service');
+        expect(err.message).to.equal('Invalid coordinates from admin service');
         done();
       });
     });
@@ -158,7 +169,7 @@ describe('Geo Win32 Native Geolocation', () => {
 
       win32Geo.get_location((err) => {
         expect(err).to.be.an.instanceOf(Error);
-        expect(err.message).to.equal('Unable to get location from admin service');
+        expect(err.message).to.equal('Invalid coordinates from admin service');
         done();
       });
     });
@@ -170,7 +181,43 @@ describe('Geo Win32 Native Geolocation', () => {
 
       win32Geo.get_location((err) => {
         expect(err).to.be.an.instanceOf(Error);
-        expect(err.message).to.equal('Unable to get location from admin service');
+        expect(err.message).to.equal('Invalid coordinates from admin service');
+        done();
+      });
+    });
+
+    it('should return error when accuracy is greater than 100', (done) => {
+      systemStub.get_as_admin_user.callsFake((provider, cb) => {
+        cb(null, {
+          lat: 37.7749,
+          lng: -122.4194,
+          accuracy: 101,
+          method: 'native',
+        });
+      });
+
+      win32Geo.get_location((err) => {
+        expect(err).to.be.an.instanceOf(Error);
+        expect(err.message).to.equal('Accuracy from admin service exceeds maximum allowed value (100)');
+        done();
+      });
+    });
+
+    it('should accept location when accuracy is exactly 100', (done) => {
+      const locationData = {
+        lat: 37.7749,
+        lng: -122.4194,
+        accuracy: 100,
+        method: 'native',
+      };
+
+      systemStub.get_as_admin_user.callsFake((provider, cb) => {
+        cb(null, locationData);
+      });
+
+      win32Geo.get_location((err, result) => {
+        expect(err).to.be.null;
+        expect(result).to.deep.equal(locationData);
         done();
       });
     });
@@ -182,6 +229,56 @@ describe('Geo Win32 Native Geolocation', () => {
 
       win32Geo.get_location(() => {
         expect(systemStub.get_as_admin_user.firstCall.args[0]).to.equal('geoloc');
+        done();
+      });
+    });
+
+    it('should preserve error code when admin service returns error with code', (done) => {
+      const serviceError = new Error('Service unavailable');
+      serviceError.code = 'ECONNREFUSED';
+
+      systemStub.get_as_admin_user.callsFake((provider, cb) => {
+        cb(serviceError);
+      });
+
+      win32Geo.get_location((err) => {
+        expect(err).to.be.an.instanceOf(Error);
+        expect(err.message).to.equal('Service unavailable');
+        expect(err.code).to.equal('ECONNREFUSED');
+        done();
+      });
+    });
+
+    it('should preserve error stack when admin service returns error', (done) => {
+      const serviceError = new Error('Network timeout');
+      const originalStack = serviceError.stack;
+
+      systemStub.get_as_admin_user.callsFake((provider, cb) => {
+        cb(serviceError);
+      });
+
+      win32Geo.get_location((err) => {
+        expect(err).to.be.an.instanceOf(Error);
+        expect(err.message).to.equal('Network timeout');
+        expect(err.stack).to.equal(originalStack);
+        done();
+      });
+    });
+
+    it('should handle error with custom properties from admin service', (done) => {
+      const serviceError = new Error('Custom error');
+      serviceError.statusCode = 503;
+      serviceError.details = { retry: true };
+
+      systemStub.get_as_admin_user.callsFake((provider, cb) => {
+        cb(serviceError);
+      });
+
+      win32Geo.get_location((err) => {
+        expect(err).to.be.an.instanceOf(Error);
+        expect(err.message).to.equal('Custom error');
+        expect(err.statusCode).to.equal(503);
+        expect(err.details).to.deep.equal({ retry: true });
         done();
       });
     });
