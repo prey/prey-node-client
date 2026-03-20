@@ -93,7 +93,7 @@ describe('Geo Win32 Native Geolocation', () => {
 
       win32Geo.get_location((err) => {
         expect(err).to.be.an.instanceOf(Error);
-        expect(err.message).to.equal('Unable to get location from admin service');
+        expect(err.message).to.equal('Invalid coordinates from admin service');
         done();
       });
     });
@@ -105,7 +105,7 @@ describe('Geo Win32 Native Geolocation', () => {
 
       win32Geo.get_location((err) => {
         expect(err).to.be.an.instanceOf(Error);
-        expect(err.message).to.equal('Unable to get location from admin service');
+        expect(err.message).to.equal('Invalid coordinates from admin service');
         done();
       });
     });
@@ -117,7 +117,7 @@ describe('Geo Win32 Native Geolocation', () => {
 
       win32Geo.get_location((err) => {
         expect(err).to.be.an.instanceOf(Error);
-        expect(err.message).to.equal('Unable to get location from admin service');
+        expect(err.message).to.equal('Invalid coordinates from admin service');
         done();
       });
     });
@@ -129,7 +129,7 @@ describe('Geo Win32 Native Geolocation', () => {
 
       win32Geo.get_location((err) => {
         expect(err).to.be.an.instanceOf(Error);
-        expect(err.message).to.equal('Unable to get location from admin service');
+        expect(err.message).to.equal('Invalid coordinates from admin service');
         done();
       });
     });
@@ -157,7 +157,7 @@ describe('Geo Win32 Native Geolocation', () => {
 
       win32Geo.get_location((err) => {
         expect(err).to.be.an.instanceOf(Error);
-        expect(err.message).to.equal('Unable to get location from admin service');
+        expect(err.message).to.equal('Invalid coordinates from admin service');
         done();
       });
     });
@@ -169,7 +169,7 @@ describe('Geo Win32 Native Geolocation', () => {
 
       win32Geo.get_location((err) => {
         expect(err).to.be.an.instanceOf(Error);
-        expect(err.message).to.equal('Unable to get location from admin service');
+        expect(err.message).to.equal('Invalid coordinates from admin service');
         done();
       });
     });
@@ -181,7 +181,7 @@ describe('Geo Win32 Native Geolocation', () => {
 
       win32Geo.get_location((err) => {
         expect(err).to.be.an.instanceOf(Error);
-        expect(err.message).to.equal('Unable to get location from admin service');
+        expect(err.message).to.equal('Invalid coordinates from admin service');
         done();
       });
     });
