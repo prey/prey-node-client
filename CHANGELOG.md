@@ -1,6 +1,6 @@
 # Change Log
 
-## [v1.13.27](https://github.com/prey/prey-node-client/tree/v1.13.27) (2026-02-23)
+## [v1.13.27](https://github.com/prey/prey-node-client/tree/v1.13.27) (2026-03-23)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.26..v1.13.27)
 
 - Fix: There was an error when sending null status information. ([SoraKenji](https://github.com/SoraKenji))
