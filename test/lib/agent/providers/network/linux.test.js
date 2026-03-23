@@ -4,8 +4,8 @@ const sinon = require('sinon');
 const { expect } = require('chai');
 const rewire = require('rewire');
 
-const WIFI_LIST_CMD = 'nmcli -t -f BSSID,SSID,CHAN,SIGNAL,SECURITY device wifi list';
-const WIFI_RESCAN_CMD = 'nmcli device wifi rescan';
+const WIFI_LIST_CMD = 'sudo nmcli -t -f BSSID,SSID,CHAN,SIGNAL,SECURITY device wifi list';
+const WIFI_RESCAN_CMD = 'sudo nmcli device wifi rescan';
 
 const listLine = (mac, ssid, channel = 1, signal = 70, security = 'WPA2') => `${mac}:${ssid}:${channel}:${signal}:${security}`;
 
