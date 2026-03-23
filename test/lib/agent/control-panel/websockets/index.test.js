@@ -1963,6 +1963,20 @@ describe('WebSocket Module', () => {
 
         expect(notifyStatusSpy.calledWith({ cpu: 50 })).to.be.true;
       });
+
+      it('should NOT call notify_status when get_status returns null', () => {
+        websocketsRewired.__set__('gettingStatus', false);
+        mockStatusTrigger.get_status = sinon.stub().callsFake((cb) => cb(null, null));
+        websocketsRewired.__set__('statusTrigger', mockStatusTrigger);
+
+        const notifyStatusSpy = sinon.spy();
+        websocketsRewired.notify_status = notifyStatusSpy;
+
+        const getStatusByInterval = websocketsRewired.__get__('getStatusByInterval');
+        getStatusByInterval();
+
+        expect(notifyStatusSpy.called).to.be.false;
+      });
     });
 
     describe('clearAndResetIntervals', () => {
