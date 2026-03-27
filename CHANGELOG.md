@@ -1,6 +1,6 @@
 # Change Log
 
-## [v1.13.27](https://github.com/prey/prey-node-client/tree/v1.13.28) (2026-03-27)
+## [v1.13.28](https://github.com/prey/prey-node-client/tree/v1.13.28) (2026-03-27)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.27..v1.13.28)
 
 - Fix: Updated systeminformation library to 5.31.5 because of an error of undeclared variable. ([SoraKenji](https://github.com/SoraKenji))
