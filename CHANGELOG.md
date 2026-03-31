@@ -1,9 +1,30 @@
 # Change Log
 
-## [v1.13.27](https://github.com/prey/prey-node-client/tree/v1.13.27) (2026-02-23)
+## [v1.13.28](https://github.com/prey/prey-node-client/tree/v1.13.28) (2026-03-27)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.27..v1.13.28)
+
+- Fix: Updated systeminformation library to 5.31.5 because of an error of undeclared variable. ([SoraKenji](https://github.com/SoraKenji))
+
+## [v1.13.27](https://github.com/prey/prey-node-client/tree/v1.13.27) (2026-03-23)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.26..v1.13.27)
 
-- Fix: Crashing errors on macOS install ([pato](https://github.com/patriciojofre))([javo](https://github.com/javo))
+- Fix: There was an error when sending null status information. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Ubuntu bug for wifi network information. ([SoraKenji](https://github.com/SoraKenji))
+
+- Feat: Adds accuracy thresh hold for Native Location Windows.  ([SoraKenji](https://github.com/SoraKenji))
+
+- Feat: New MacSVC version 1.0.8 with autohealing for socket file (file used for messages between running client and MacSVC) and a different way to treat Prey.app (application used for native location in MacOS) messages. ([SoraKenji](https://github.com/SoraKenji))
+
+- Feat: New WinSVC 2.0.32 with Native Location Windows.([SoraKenji](https://github.com/SoraKenji))
+
+- Feat: New Prey.app MacOS version. ([SoraKenji](https://github.com/SoraKenji))
+
+- Feat: Adds deep clean on prey_uninstall event.  ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Change the way to check logger user for Prey Alarm action in order to make it work when user is locked (different from not logged user). ([SoraKenji](https://github.com/SoraKenji))
+
+- Feat: New trigger form in order to stop locks running in devices.  ([SoraKenji](https://github.com/SoraKenji))
 
 - Fix: Retry local service notification on EADDRINUSE ([pato](https://github.com/patriciojofre))
 
