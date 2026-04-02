@@ -68,7 +68,7 @@
     "sudoer": "https://github.com/prey/node-sudoer.git",
     "systeminformation": "^5.31.5",
     "uid-number": "0.0.5",
-    "underscore": "^1.9.1",
+    "underscore": "^1.13.8",
     "uuid": "^8.3.2",
     "whenever": "0.0.3",
     "wink": "0.0.1",
