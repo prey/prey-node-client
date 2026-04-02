@@ -1,5 +1,10 @@
 # Change Log
 
+## [v1.13.29](https://github.com/prey/prey-node-client/tree/v1.13.29) (2026-04-02)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.28..v1.13.29)
+
+- Fix: Remove undeclared variable from files in order to avoid errors in the future. ([SoraKenji](https://github.com/SoraKenji))
+
 ## [v1.13.28](https://github.com/prey/prey-node-client/tree/v1.13.28) (2026-03-27)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.27..v1.13.28)
 
