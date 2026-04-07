@@ -1,5 +1,10 @@
 # Change Log
 
+## [v1.13.30](https://github.com/prey/prey-node-client/tree/v1.13.30) (2026-04-07)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.29..v1.13.30)
+
+- Fix: This prevents multiple simultaneous WebSocket connections. ([SoraKenji](https://github.com/SoraKenji))
+
 ## [v1.13.29](https://github.com/prey/prey-node-client/tree/v1.13.29) (2026-04-02)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.28..v1.13.29)
 
