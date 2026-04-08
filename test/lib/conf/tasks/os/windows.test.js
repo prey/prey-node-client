@@ -4,6 +4,7 @@
 const { expect } = require('chai');
 const sinon = require('sinon');
 const rewire = require('rewire');
+const Module = require('module');
 
 describe('Windows uninstall hooks', () => {
   let windowsHooks;
@@ -14,8 +15,15 @@ describe('Windows uninstall hooks', () => {
   let deleteNodeServiceStub;
   let firewallRemoveStub;
   let logStub;
+  let originalModuleLoad;
 
   beforeEach(() => {
+    originalModuleLoad = Module._load;
+    Module._load = function (request, ...args) {
+      if (request === 'firewall') return { remove_rule: () => {} };
+      return originalModuleLoad.apply(this, arguments);
+    };
+
     windowsHooks = rewire('../../../../../lib/conf/tasks/os/windows');
 
     execStub = sinon.stub();
@@ -52,6 +60,7 @@ describe('Windows uninstall hooks', () => {
   });
 
   afterEach(() => {
+    Module._load = originalModuleLoad;
     sinon.restore();
   });
 
