@@ -44,6 +44,7 @@ describe('WebSocket Module', () => {
       ping: sinon.stub().callsFake((data, cb) => cb && cb()),
       pong: sinon.stub(),
       terminate: sinon.stub(),
+      removeAllListeners: sinon.stub(),
       on: sinon.stub(),
     };
 
@@ -1263,6 +1264,7 @@ describe('WebSocket Module', () => {
         this.readyState = 1;
         this.send = sinon.stub();
         this.terminate = sinon.stub();
+        this.removeAllListeners = sinon.stub();
         this.ping = sinon.stub();
         this.pong = sinon.stub();
         this.on = sinon.stub().callsFake((event, handler) => {

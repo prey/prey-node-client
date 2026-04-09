@@ -1,5 +1,15 @@
 # Change Log
 
+## [v1.13.31](https://github.com/prey/prey-node-client/tree/v1.13.31) (2026-04-08)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.30..v1.13.31)
+
+- Fix: Fixes a race condition on macOS arm64 where the agent fails to start after a successful auto-update, entering an infinite update loop. ([SoraKenji](https://github.com/SoraKenji))
+
+## [v1.13.30](https://github.com/prey/prey-node-client/tree/v1.13.30) (2026-04-07)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.29..v1.13.30)
+
+- Fix: This prevents multiple simultaneous WebSocket connections. ([SoraKenji](https://github.com/SoraKenji))
+
 ## [v1.13.29](https://github.com/prey/prey-node-client/tree/v1.13.29) (2026-04-02)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.28..v1.13.29)
 
