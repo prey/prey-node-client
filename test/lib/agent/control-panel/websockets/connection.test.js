@@ -28,7 +28,9 @@ describe('Connection Module', () => {
       pong: sinon.stub(),
       terminate: sinon.stub(),
       removeAllListeners: sinon.stub(),
+      removeListener: sinon.stub(),
       on: sinon.stub(),
+      once: sinon.stub(),
     };
 
     MockWebSocket = sinon.stub().returns(mockWs);
@@ -112,6 +114,41 @@ describe('Connection Module', () => {
     it('should not throw when terminate() called with no socket', () => {
       expect(() => connectionRewired.terminate()).to.not.throw();
       expect(connectionRewired.isConnected()).to.be.false;
+    });
+
+    it('terminateAndWait() should callback immediately when no socket exists', (done) => {
+      connectionRewired.terminateAndWait(50, (closedByEvent) => {
+        expect(closedByEvent).to.be.false;
+        done();
+      });
+    });
+
+    it('terminateAndWait() should wait for close event and callback true', (done) => {
+      const closeCapableWs = {
+        readyState: 1,
+        send: sinon.stub(),
+        ping: sinon.stub(),
+        pong: sinon.stub(),
+        terminate: sinon.stub(),
+        removeAllListeners: sinon.stub(),
+        on: sinon.stub(),
+        once: sinon.stub().callsFake((event, cb) => {
+          if (event === 'close') {
+            setTimeout(cb, 0);
+          }
+        }),
+        removeListener: sinon.stub(),
+      };
+
+      MockWebSocket.onCall(0).returns(closeCapableWs);
+
+      connectionRewired.create(makeConfig(), {}, mockLogger);
+      connectionRewired.terminateAndWait(100, (closedByEvent) => {
+        expect(closedByEvent).to.be.true;
+        expect(closeCapableWs.removeAllListeners.calledOnce).to.be.true;
+        expect(closeCapableWs.terminate.calledOnce).to.be.true;
+        done();
+      });
     });
   });
 
