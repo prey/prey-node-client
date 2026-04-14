@@ -45,7 +45,9 @@ describe('WebSocket Module', () => {
       pong: sinon.stub(),
       terminate: sinon.stub(),
       removeAllListeners: sinon.stub(),
+      removeListener: sinon.stub(),
       on: sinon.stub(),
+      once: sinon.stub(),
     };
 
     // Mock hooks - use EventEmitter so we can emit events
@@ -553,7 +555,9 @@ describe('WebSocket Module', () => {
     describe('loadFromStorage', () => {
       it('should load responses from storage', () => {
         const storedResponses = [
-          { id: 'stored-1', status: 'pending', action: 'lock', action_id: '123', time: '2023-01-01', retries: 0, opts: 'target1' },
+          {
+            id: 'stored-1', status: 'pending', action: 'lock', action_id: '123', time: '2023-01-01', retries: 0, opts: 'target1',
+          },
         ];
         const mockStorageLoad = {
           do: sinon.stub().callsFake((action, opts, cb) => {
@@ -735,7 +739,9 @@ describe('WebSocket Module', () => {
       });
 
       it('should not send duplicate ack', () => {
-        ackQueueRewired.addAck({ ack_id: 'ack-1', type: 'ack', retries: 0, sent: true });
+        ackQueueRewired.addAck({
+          ack_id: 'ack-1', type: 'ack', retries: 0, sent: true,
+        });
         mockWs.send.resetHistory();
         ackQueueRewired.sendAckToServer(mockWs, { ack_id: 'ack-1', type: 'ack', retries: 0 }, mockLogger);
         // Should not send because already sent
@@ -809,7 +815,9 @@ describe('WebSocket Module', () => {
 
       it('should retry acks if any remain in queue', () => {
         // Manually add ACK to queue (shouldn't normally happen)
-        ackQueueRewired.addAck({ ack_id: 'ack-1', type: 'ack', id: 'cmd-1', sent: false, retries: 0 });
+        ackQueueRewired.addAck({
+          ack_id: 'ack-1', type: 'ack', id: 'cmd-1', sent: false, retries: 0,
+        });
         mockWs.send.resetHistory();
         ackQueueRewired.retryAckResponses(mockWs, mockLogger);
 
@@ -820,7 +828,9 @@ describe('WebSocket Module', () => {
 
       it('should remove acks that exceed max retries', () => {
         // Manually add ACK with high retries
-        ackQueueRewired.addAck({ ack_id: 'ack-1', type: 'ack', id: 'cmd-1', sent: false, retries: 3 });
+        ackQueueRewired.addAck({
+          ack_id: 'ack-1', type: 'ack', id: 'cmd-1', sent: false, retries: 3,
+        });
         ackQueueRewired.retryAckResponses(mockWs, mockLogger);
 
         // Should be removed without sending (retries + 1 = 4 = MAX_ACK_RETRIES)
@@ -828,7 +838,9 @@ describe('WebSocket Module', () => {
       });
 
       it('should not send when ws is not ready', () => {
-        ackQueueRewired.addAck({ ack_id: 'ack-1', type: 'ack', id: 'cmd-1', sent: false, retries: 0 });
+        ackQueueRewired.addAck({
+          ack_id: 'ack-1', type: 'ack', id: 'cmd-1', sent: false, retries: 0,
+        });
         mockWs.send.resetHistory();
         ackQueueRewired.retryAckResponses(null, mockLogger);
 
@@ -996,31 +1008,41 @@ describe('WebSocket Module', () => {
       });
 
       it('should not send when id is missing', () => {
-        const context = { ws: mockWs, storage: mockStorage, responseQueue: responseQueueRewired, logger: mockLogger };
+        const context = {
+          ws: mockWs, storage: mockStorage, responseQueue: responseQueueRewired, logger: mockLogger,
+        };
         notificationsRewired.notifyAction(context, { status: 'started', id: null, action: 'lock' });
         expect(mockWs.send.called).to.be.false;
       });
 
       it('should not send when id is "report"', () => {
-        const context = { ws: mockWs, storage: mockStorage, responseQueue: responseQueueRewired, logger: mockLogger };
+        const context = {
+          ws: mockWs, storage: mockStorage, responseQueue: responseQueueRewired, logger: mockLogger,
+        };
         notificationsRewired.notifyAction(context, { status: 'started', id: 'report', action: 'lock' });
         expect(mockWs.send.called).to.be.false;
       });
 
       it('should not send when action is "triggers"', () => {
-        const context = { ws: mockWs, storage: mockStorage, responseQueue: responseQueueRewired, logger: mockLogger };
+        const context = {
+          ws: mockWs, storage: mockStorage, responseQueue: responseQueueRewired, logger: mockLogger,
+        };
         notificationsRewired.notifyAction(context, { status: 'started', id: '123', action: 'triggers' });
         expect(mockWs.send.called).to.be.false;
       });
 
       it('should not send when factoryreset action has stopped status', () => {
-        const context = { ws: mockWs, storage: mockStorage, responseQueue: responseQueueRewired, logger: mockLogger };
+        const context = {
+          ws: mockWs, storage: mockStorage, responseQueue: responseQueueRewired, logger: mockLogger,
+        };
         notificationsRewired.notifyAction(context, { status: 'stopped', id: '123', action: 'factoryreset' });
         expect(mockWs.send.called).to.be.false;
       });
 
       it('should send action when valid params', () => {
-        const context = { ws: mockWs, storage: mockStorage, responseQueue: responseQueueRewired, logger: mockLogger };
+        const context = {
+          ws: mockWs, storage: mockStorage, responseQueue: responseQueueRewired, logger: mockLogger,
+        };
         notificationsRewired.notifyAction(context, { status: 'started', id: '123', action: 'lock' });
 
         expect(mockWs.send.calledOnce).to.be.true;
@@ -1030,24 +1052,34 @@ describe('WebSocket Module', () => {
       });
 
       it('should include error reason when error is provided', () => {
-        const context = { ws: mockWs, storage: mockStorage, responseQueue: responseQueueRewired, logger: mockLogger };
+        const context = {
+          ws: mockWs, storage: mockStorage, responseQueue: responseQueueRewired, logger: mockLogger,
+        };
         const error = new Error('Test error');
-        notificationsRewired.notifyAction(context, { status: 'stopped', id: '123', action: 'lock', err: error });
+        notificationsRewired.notifyAction(context, {
+          status: 'stopped', id: '123', action: 'lock', err: error,
+        });
 
         const sentData = JSON.parse(mockWs.send.firstCall.args[0]);
         expect(sentData.body.reason).to.equal('Test error');
       });
 
       it('should handle diskencryption action with out', () => {
-        const context = { ws: mockWs, storage: mockStorage, responseQueue: responseQueueRewired, logger: mockLogger };
-        notificationsRewired.notifyAction(context, { status: 'started', id: '123', action: 'diskencryption', out: 'encrypted' });
+        const context = {
+          ws: mockWs, storage: mockStorage, responseQueue: responseQueueRewired, logger: mockLogger,
+        };
+        notificationsRewired.notifyAction(context, {
+          status: 'started', id: '123', action: 'diskencryption', out: 'encrypted',
+        });
 
         const sentData = JSON.parse(mockWs.send.firstCall.args[0]);
         expect(sentData.body.reason.encryption).to.equal('encrypted');
       });
 
       it('should handle diskencryption action with error', () => {
-        const context = { ws: mockWs, storage: mockStorage, responseQueue: responseQueueRewired, logger: mockLogger };
+        const context = {
+          ws: mockWs, storage: mockStorage, responseQueue: responseQueueRewired, logger: mockLogger,
+        };
         notificationsRewired.notifyAction(context, {
           status: 'stopped',
           id: '123',
@@ -1060,7 +1092,9 @@ describe('WebSocket Module', () => {
       });
 
       it('should handle fullwipe with out data', () => {
-        const context = { ws: mockWs, storage: mockStorage, responseQueue: responseQueueRewired, logger: mockLogger };
+        const context = {
+          ws: mockWs, storage: mockStorage, responseQueue: responseQueueRewired, logger: mockLogger,
+        };
         notificationsRewired.notifyAction(context, {
           status: 'started',
           id: '123',
@@ -1073,7 +1107,9 @@ describe('WebSocket Module', () => {
       });
 
       it('should handle factoryreset with out data', () => {
-        const context = { ws: mockWs, storage: mockStorage, responseQueue: responseQueueRewired, logger: mockLogger };
+        const context = {
+          ws: mockWs, storage: mockStorage, responseQueue: responseQueueRewired, logger: mockLogger,
+        };
         notificationsRewired.notifyAction(context, {
           status: 'started',
           id: '123',
@@ -1087,7 +1123,9 @@ describe('WebSocket Module', () => {
       });
 
       it('should handle factoryreset with error', () => {
-        const context = { ws: mockWs, storage: mockStorage, responseQueue: responseQueueRewired, logger: mockLogger };
+        const context = {
+          ws: mockWs, storage: mockStorage, responseQueue: responseQueueRewired, logger: mockLogger,
+        };
         const error = new Error('Reset failed');
         error.code = 2;
         notificationsRewired.notifyAction(context, {
@@ -1104,7 +1142,9 @@ describe('WebSocket Module', () => {
       });
 
       it('should handle fullwipe with error', () => {
-        const context = { ws: mockWs, storage: mockStorage, responseQueue: responseQueueRewired, logger: mockLogger };
+        const context = {
+          ws: mockWs, storage: mockStorage, responseQueue: responseQueueRewired, logger: mockLogger,
+        };
         const error = new Error('Wipe failed');
         error.code = 3;
         notificationsRewired.notifyAction(context, {
@@ -1120,7 +1160,9 @@ describe('WebSocket Module', () => {
       });
 
       it('should handle fullwipewindows action with opts', () => {
-        const context = { ws: mockWs, storage: mockStorage, responseQueue: responseQueueRewired, logger: mockLogger };
+        const context = {
+          ws: mockWs, storage: mockStorage, responseQueue: responseQueueRewired, logger: mockLogger,
+        };
         notificationsRewired.notifyAction(context, {
           status: 'started',
           id: '123',
@@ -1133,7 +1175,9 @@ describe('WebSocket Module', () => {
       });
 
       it('should delete response from storage when max retries exceeded', () => {
-        const context = { ws: mockWs, storage: mockStorage, responseQueue: responseQueueRewired, logger: mockLogger };
+        const context = {
+          ws: mockWs, storage: mockStorage, responseQueue: responseQueueRewired, logger: mockLogger,
+        };
         notificationsRewired.notifyAction(context, {
           status: 'started',
           id: '123',
@@ -1146,7 +1190,9 @@ describe('WebSocket Module', () => {
       });
 
       it('should use existing time if provided', () => {
-        const context = { ws: mockWs, storage: mockStorage, responseQueue: responseQueueRewired, logger: mockLogger };
+        const context = {
+          ws: mockWs, storage: mockStorage, responseQueue: responseQueueRewired, logger: mockLogger,
+        };
         const customTime = '2023-01-01T00:00:00.000Z';
         notificationsRewired.notifyAction(context, {
           status: 'started',
@@ -1160,7 +1206,9 @@ describe('WebSocket Module', () => {
       });
 
       it('should replace NULL time with current time', () => {
-        const context = { ws: mockWs, storage: mockStorage, responseQueue: responseQueueRewired, logger: mockLogger };
+        const context = {
+          ws: mockWs, storage: mockStorage, responseQueue: responseQueueRewired, logger: mockLogger,
+        };
         notificationsRewired.notifyAction(context, {
           status: 'started',
           id: '123',
@@ -1173,7 +1221,9 @@ describe('WebSocket Module', () => {
       });
 
       it('should use respId when provided', () => {
-        const context = { ws: mockWs, storage: mockStorage, responseQueue: responseQueueRewired, logger: mockLogger };
+        const context = {
+          ws: mockWs, storage: mockStorage, responseQueue: responseQueueRewired, logger: mockLogger,
+        };
         notificationsRewired.notifyAction(context, {
           status: 'started',
           id: '123',
@@ -1186,7 +1236,9 @@ describe('WebSocket Module', () => {
       });
 
       it('should add to markedToBePushed when fromWithin is true', () => {
-        const context = { ws: mockWs, storage: mockStorage, responseQueue: responseQueueRewired, logger: mockLogger };
+        const context = {
+          ws: mockWs, storage: mockStorage, responseQueue: responseQueueRewired, logger: mockLogger,
+        };
         notificationsRewired.notifyAction(context, {
           status: 'started',
           id: '123',
@@ -1199,7 +1251,9 @@ describe('WebSocket Module', () => {
       });
 
       it('should update existing response in queue', () => {
-        const context = { ws: mockWs, storage: mockStorage, responseQueue: responseQueueRewired, logger: mockLogger };
+        const context = {
+          ws: mockWs, storage: mockStorage, responseQueue: responseQueueRewired, logger: mockLogger,
+        };
 
         // First call adds to queue
         notificationsRewired.notifyAction(context, {
@@ -1222,7 +1276,9 @@ describe('WebSocket Module', () => {
       });
 
       it('should not send when ws is not ready', () => {
-        const context = { ws: null, storage: mockStorage, responseQueue: responseQueueRewired, logger: mockLogger };
+        const context = {
+          ws: null, storage: mockStorage, responseQueue: responseQueueRewired, logger: mockLogger,
+        };
         notificationsRewired.notifyAction(context, {
           status: 'started',
           id: '123',
@@ -1237,7 +1293,9 @@ describe('WebSocket Module', () => {
           readyState: 1,
           send: sinon.stub().throws(new Error('Send failed')),
         };
-        const context = { ws: throwingWs, storage: mockStorage, responseQueue: responseQueueRewired, logger: mockLogger };
+        const context = {
+          ws: throwingWs, storage: mockStorage, responseQueue: responseQueueRewired, logger: mockLogger,
+        };
 
         expect(() => {
           notificationsRewired.notifyAction(context, {
@@ -1265,10 +1323,14 @@ describe('WebSocket Module', () => {
         this.send = sinon.stub();
         this.terminate = sinon.stub();
         this.removeAllListeners = sinon.stub();
+        this.removeListener = sinon.stub();
         this.ping = sinon.stub();
         this.pong = sinon.stub();
         this.on = sinon.stub().callsFake((event, handler) => {
           this[`_${event}Handler`] = handler;
+        });
+        this.once = sinon.stub().callsFake((event, handler) => {
+          this[`_${event}OnceHandler`] = handler;
         });
         // Store for triggering events
         this.triggerOpen = () => this._openHandler && this._openHandler();
@@ -1774,7 +1836,7 @@ describe('WebSocket Module', () => {
       mockConfig = {
         getData: sinon.stub().callsFake((key) => {
           const data = {
-            'try_proxy': null,
+            try_proxy: null,
             'control-panel.protocol': 'https',
             'control-panel.host': 'panel.preyproject.com',
             'control-panel.send_location_on_connect': 'false',
@@ -4414,7 +4476,7 @@ describe('WebSocket Module', () => {
         },
       ]);
 
-      let commandsReceived = [];
+      const commandsReceived = [];
       mockEmitter.on('command', (command) => {
         commandsReceived.push(command);
       });
@@ -4458,7 +4520,7 @@ describe('WebSocket Module', () => {
         },
       ]);
 
-      let commandsReceived = [];
+      const commandsReceived = [];
       mockEmitter.on('command', (command) => {
         commandsReceived.push(command);
       });
@@ -4476,7 +4538,6 @@ describe('WebSocket Module', () => {
         done();
       }, 10);
     });
-
   });
 
   // ==================== Constants Tests ====================
