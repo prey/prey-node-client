@@ -420,15 +420,15 @@ describe('Geo Strategies - win32LocationFetch', () => {
     pendingWifi(null, santiago);
   });
 
-  it('saveToLocationHistory: drops oldest entry when history exceeds 20', (done) => {
-    const entries = Array.from({ length: 20 }, (_, i) => ({ lat: i, lng: i, accuracy: 10 }));
+  it('saveToLocationHistory: drops oldest entry when history exceeds 15', (done) => {
+    const entries = Array.from({ length: 15 }, (_, i) => ({ lat: i, lng: i, accuracy: 10 }));
     historyRows = [{ value: JSON.stringify(entries) }];
     const saveToLocationHistory = strategies.__get__('saveToLocationHistory');
     const newEntry = { lat: 99, lng: 99, accuracy: 5 };
 
     saveToLocationHistory(newEntry, (err) => {
       expect(err).to.be.null;
-      expect(capturedHistorySave).to.have.lengthOf(20);
+      expect(capturedHistorySave).to.have.lengthOf(15);
       expect(capturedHistorySave[capturedHistorySave.length - 1]).to.deep.equal(newEntry);
       expect(capturedHistorySave[0].lat).to.equal(1); // entry[0] was dropped
       done();
