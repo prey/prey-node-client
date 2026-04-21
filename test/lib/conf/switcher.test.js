@@ -36,13 +36,13 @@ describe('Switcher Module', () => {
 
   describe('getAdditionalCommands', () => {
     it('should return paths for available commands in order', (done) => {
-      execStub.withArgs('which iwlist').callsFake((cmd, cb) => {
+      execStub.withArgs('which iwlist').callsFake((cmd, opts, cb) => {
         cb(null, '/usr/sbin/iwlist\n');
       });
-      execStub.withArgs('which dmidecode').callsFake((cmd, cb) => {
+      execStub.withArgs('which dmidecode').callsFake((cmd, opts, cb) => {
         cb(null, '/usr/sbin/dmidecode\n');
       });
-      execStub.withArgs('which nmcli').callsFake((cmd, cb) => {
+      execStub.withArgs('which nmcli').callsFake((cmd, opts, cb) => {
         cb(null, '/usr/bin/nmcli\n');
       });
 
@@ -58,13 +58,13 @@ describe('Switcher Module', () => {
     });
 
     it('should return only available commands', (done) => {
-      execStub.withArgs('which iwlist').callsFake((cmd, cb) => {
+      execStub.withArgs('which iwlist').callsFake((cmd, opts, cb) => {
         cb(new Error('not found'));
       });
-      execStub.withArgs('which dmidecode').callsFake((cmd, cb) => {
+      execStub.withArgs('which dmidecode').callsFake((cmd, opts, cb) => {
         cb(null, '/usr/sbin/dmidecode\n');
       });
-      execStub.withArgs('which nmcli').callsFake((cmd, cb) => {
+      execStub.withArgs('which nmcli').callsFake((cmd, opts, cb) => {
         cb(null, '/usr/bin/nmcli\n');
       });
 
@@ -78,7 +78,7 @@ describe('Switcher Module', () => {
     });
 
     it('should return empty array if no commands available', (done) => {
-      execStub.callsFake((cmd, cb) => {
+      execStub.callsFake((cmd, opts, cb) => {
         cb(new Error('not found'));
       });
 
@@ -92,13 +92,13 @@ describe('Switcher Module', () => {
 
     it('should maintain correct order regardless of which callbacks return first', (done) => {
       // Simulate dmidecode returning first, then nmcli, then iwlist
-      execStub.withArgs('which iwlist').callsFake((cmd, cb) => {
+      execStub.withArgs('which iwlist').callsFake((cmd, opts, cb) => {
         setTimeout(() => cb(null, '/usr/sbin/iwlist\n'), 30);
       });
-      execStub.withArgs('which dmidecode').callsFake((cmd, cb) => {
+      execStub.withArgs('which dmidecode').callsFake((cmd, opts, cb) => {
         setTimeout(() => cb(null, '/usr/sbin/dmidecode\n'), 10);
       });
-      execStub.withArgs('which nmcli').callsFake((cmd, cb) => {
+      execStub.withArgs('which nmcli').callsFake((cmd, opts, cb) => {
         setTimeout(() => cb(null, '/usr/bin/nmcli\n'), 20);
       });
 
@@ -118,7 +118,7 @@ describe('Switcher Module', () => {
         cb(null); // File exists
       });
 
-      execStub.withArgs(sinon.match(/rm -rf/)).callsFake((cmd, cb) => {
+      execStub.withArgs(sinon.match(/rm -rf/)).callsFake((cmd, opts, cb) => {
         cb(null);
       });
 
@@ -150,7 +150,7 @@ describe('Switcher Module', () => {
         cb(null); // File exists
       });
 
-      execStub.withArgs(sinon.match(/rm -rf/)).callsFake((cmd, cb) => {
+      execStub.withArgs(sinon.match(/rm -rf/)).callsFake((cmd, opts, cb) => {
         cb(new Error('Permission denied'));
       });
 
@@ -169,15 +169,15 @@ describe('Switcher Module', () => {
         cb(new Error('ENOENT')); // File doesn't exist
       });
 
-      execStub.withArgs('mkdir -p /etc/sudoers.d').callsFake((cmd, cb) => {
+      execStub.withArgs('mkdir -p /etc/sudoers.d').callsFake((cmd, opts, cb) => {
         cb(null);
       });
 
-      execStub.withArgs(sinon.match(/grep -q/)).callsFake((cmd, cb) => {
+      execStub.withArgs(sinon.match(/grep -q/)).callsFake((cmd, opts, cb) => {
         cb(null); // grep succeeds (includedir already exists)
       });
 
-      execStub.withArgs(sinon.match(/umask.*echo/)).callsFake((cmd, cb) => {
+      execStub.withArgs(sinon.match(/umask.*echo/)).callsFake((cmd, opts, cb) => {
         cb(null);
       });
 
@@ -212,15 +212,15 @@ describe('Switcher Module', () => {
       });
 
       let sudoersContent = '';
-      execStub.withArgs('mkdir -p /etc/sudoers.d').callsFake((cmd, cb) => {
+      execStub.withArgs('mkdir -p /etc/sudoers.d').callsFake((cmd, opts, cb) => {
         cb(null);
       });
 
-      execStub.withArgs(sinon.match(/grep -q/)).callsFake((cmd, cb) => {
+      execStub.withArgs(sinon.match(/grep -q/)).callsFake((cmd, opts, cb) => {
         cb(null);
       });
 
-      execStub.withArgs(sinon.match(/umask.*echo/)).callsFake((cmd, cb) => {
+      execStub.withArgs(sinon.match(/umask.*echo/)).callsFake((cmd, opts, cb) => {
         sudoersContent = cmd;
         cb(null);
       });
@@ -243,7 +243,7 @@ describe('Switcher Module', () => {
         cb(new Error('ENOENT'));
       });
 
-      execStub.withArgs('mkdir -p /etc/sudoers.d').callsFake((cmd, cb) => {
+      execStub.withArgs('mkdir -p /etc/sudoers.d').callsFake((cmd, opts, cb) => {
         cb(new Error('Permission denied'));
       });
 
@@ -260,15 +260,15 @@ describe('Switcher Module', () => {
         cb(new Error('ENOENT'));
       });
 
-      execStub.withArgs('mkdir -p /etc/sudoers.d').callsFake((cmd, cb) => {
+      execStub.withArgs('mkdir -p /etc/sudoers.d').callsFake((cmd, opts, cb) => {
         cb(null);
       });
 
-      execStub.withArgs(sinon.match(/grep -q/)).callsFake((cmd, cb) => {
+      execStub.withArgs(sinon.match(/grep -q/)).callsFake((cmd, opts, cb) => {
         cb(null);
       });
 
-      execStub.withArgs(sinon.match(/umask.*echo/)).callsFake((cmd, cb) => {
+      execStub.withArgs(sinon.match(/umask.*echo/)).callsFake((cmd, opts, cb) => {
         cb(new Error('Write failed'));
       });
 
@@ -285,15 +285,15 @@ describe('Switcher Module', () => {
         cb(new Error('ENOENT'));
       });
 
-      execStub.withArgs('mkdir -p /etc/sudoers.d').callsFake((cmd, cb) => {
+      execStub.withArgs('mkdir -p /etc/sudoers.d').callsFake((cmd, opts, cb) => {
         cb(null);
       });
 
-      execStub.withArgs(sinon.match(/grep -q/)).callsFake((cmd, cb) => {
+      execStub.withArgs(sinon.match(/grep -q/)).callsFake((cmd, opts, cb) => {
         cb(new Error('grep failed')); // grep fails but shouldn't stop execution
       });
 
-      execStub.withArgs(sinon.match(/umask.*echo/)).callsFake((cmd, cb) => {
+      execStub.withArgs(sinon.match(/umask.*echo/)).callsFake((cmd, opts, cb) => {
         cb(null);
       });
 
