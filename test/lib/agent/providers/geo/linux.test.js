@@ -50,7 +50,7 @@ describe('Geo Linux Native Provider', () => {
 
   describe('geoclue_one', () => {
     it('should execute provider-specific command and parse response', (done) => {
-      const execStub = sinon.stub().callsFake((cmd, cb) => {
+      const execStub = sinon.stub().callsFake((cmd, opts, cb) => {
         expect(cmd).to.include('org.freedesktop.Geoclue.Providers.Skyhook');
         cb(null, 'double 1.0\ndouble 2.0\ndouble 3.0');
       });
@@ -69,7 +69,7 @@ describe('Geo Linux Native Provider', () => {
 
   describe('geoclue_two', () => {
     it('should execute command from get_command_two()', (done) => {
-      const execStub = sinon.stub().callsFake((cmd, cb) => {
+      const execStub = sinon.stub().callsFake((cmd, opts, cb) => {
         expect(cmd).to.be.a('string');
         expect(cmd).to.include('org.freedesktop.GeoClue2');
         cb(null, 'double 10.5\ndouble -20.5\ndouble 100.0');
