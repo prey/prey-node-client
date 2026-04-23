@@ -186,19 +186,23 @@ describe('Geo Win32 Native Geolocation', () => {
       });
     });
 
-    it('should return error when accuracy is greater than 100', (done) => {
+    it('should return result (no error) when accuracy is greater than 100', (done) => {
+      const locationData = {
+        lat: 37.7749,
+        lng: -122.4194,
+        accuracy: 200,
+        method: 'native',
+      };
+
       systemStub.get_as_admin_user.callsFake((provider, cb) => {
-        cb(null, {
-          lat: 37.7749,
-          lng: -122.4194,
-          accuracy: 101,
-          method: 'native',
-        });
+        cb(null, locationData);
       });
 
-      win32Geo.get_location((err) => {
-        expect(err).to.be.an.instanceOf(Error);
-        expect(err.message).to.equal('Accuracy from admin service exceeds maximum allowed value (100)');
+      win32Geo.get_location((err, result) => {
+        expect(err).to.be.null;
+        expect(result.accuracy).to.equal(200);
+        expect(result.lat).to.equal(37.7749);
+        expect(result.lng).to.equal(-122.4194);
         done();
       });
     });

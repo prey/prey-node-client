@@ -19,6 +19,7 @@ describe('Geo Index - Strategy Orchestration', () => {
       native: sinon.stub(),
       wifi: sinon.stub(),
       geoip: sinon.stub(),
+      win32LocationFetch: sinon.stub(),
     };
     hooksStub = { trigger: sinon.stub() };
     permissionFileStub = { getData: sinon.stub().returns('false') };
@@ -41,90 +42,36 @@ describe('Geo Index - Strategy Orchestration', () => {
       geoIndex.__set__('osName', 'windows');
     });
 
-    it('should use native as default strategy', (done) => {
-      const locationData = { lat: 37.77, lng: -122.41, accuracy: 10 };
-      strategiesStub.native.callsFake((cb) => cb(null, locationData));
+    it('should delegate to win32LocationFetch and return result', (done) => {
+      const locationData = { lat: 37.77, lng: -122.41, accuracy: 10, method: 'native' };
+      strategiesStub.win32LocationFetch.callsFake((cb) => cb(null, locationData));
 
       geoIndex.fetch_location((err, res) => {
         expect(err).to.be.null;
         expect(res).to.deep.equal(locationData);
-        expect(strategiesStub.native.calledOnce).to.be.true;
+        expect(strategiesStub.win32LocationFetch.calledOnce).to.be.true;
+        expect(strategiesStub.native.called).to.be.false;
         expect(strategiesStub.wifi.called).to.be.false;
         expect(strategiesStub.geoip.called).to.be.false;
         done();
       });
     });
 
-    it('should fallback to wifi when native fails', (done) => {
-      const locationData = {
-        lat: 37.77, lng: -122.41, accuracy: 20, method: 'wifi',
-      };
-      strategiesStub.native.callsFake((cb) => cb(new Error('native failed')));
-      strategiesStub.wifi.callsFake((cb) => cb(null, locationData));
-
-      geoIndex.fetch_location((err, res) => {
-        expect(err).to.be.null;
-        expect(res).to.deep.equal(locationData);
-        expect(strategiesStub.native.calledOnce).to.be.true;
-        expect(strategiesStub.wifi.calledOnce).to.be.true;
-        expect(strategiesStub.geoip.called).to.be.false;
-        done();
-      });
-    });
-
-    it('should fallback to wifi when native returns malformed payload error', (done) => {
-      const locationData = {
-        lat: 37.77, lng: -122.41, accuracy: 20, method: 'wifi',
-      };
-      strategiesStub.native.callsFake((cb) => cb(new Error('Unable to get location from admin service')));
-      strategiesStub.wifi.callsFake((cb) => cb(null, locationData));
-
-      geoIndex.fetch_location((err, res) => {
-        expect(err).to.be.null;
-        expect(res).to.deep.equal(locationData);
-        expect(strategiesStub.native.calledOnce).to.be.true;
-        expect(strategiesStub.wifi.calledOnce).to.be.true;
-        expect(strategiesStub.geoip.called).to.be.false;
-        done();
-      });
-    });
-
-    it('should fallback to geoip when native and wifi fail', (done) => {
-      const locationData = { lat: 37.77, lng: -122.41, method: 'geoip' };
-      strategiesStub.native.callsFake((cb) => cb(new Error('native failed')));
-      strategiesStub.wifi.callsFake((cb) => cb(new Error('wifi failed')));
-      strategiesStub.geoip.callsFake((cb) => cb(null, locationData));
-
-      geoIndex.fetch_location((err, res) => {
-        expect(err).to.be.null;
-        expect(res).to.deep.equal(locationData);
-        expect(strategiesStub.native.calledOnce).to.be.true;
-        expect(strategiesStub.wifi.calledOnce).to.be.true;
-        expect(strategiesStub.geoip.calledOnce).to.be.true;
-        done();
-      });
-    });
-
-    it('should return error when all strategies fail', (done) => {
-      strategiesStub.native.callsFake((cb) => cb(new Error('native failed')));
-      strategiesStub.wifi.callsFake((cb) => cb(new Error('wifi failed')));
-      strategiesStub.geoip.callsFake((cb) => cb(new Error('geoip failed')));
+    it('should propagate error from win32LocationFetch', (done) => {
+      strategiesStub.win32LocationFetch.callsFake((cb) => cb(new Error('location unavailable')));
 
       geoIndex.fetch_location((err) => {
         expect(err).to.be.an.instanceOf(Error);
-        expect(err.message).to.equal('geoip failed');
-        expect(strategiesStub.native.calledOnce).to.be.true;
-        expect(strategiesStub.wifi.calledOnce).to.be.true;
-        expect(strategiesStub.geoip.calledOnce).to.be.true;
+        expect(err.message).to.equal('location unavailable');
+        expect(strategiesStub.win32LocationFetch.calledOnce).to.be.true;
         done();
       });
     });
 
     it('should schedule location permission request', (done) => {
-      strategiesStub.native.callsFake((cb) => cb(null, { lat: 1, lng: 2 }));
+      strategiesStub.win32LocationFetch.callsFake((cb) => cb(null, { lat: 1, lng: 2 }));
 
       geoIndex.fetch_location(() => {
-        // getLocationPermission is called via setTimeout(8000), verify it's scheduled
         expect(getLocationPermissionStub.called).to.be.false; // not called immediately
         done();
       });
