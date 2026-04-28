@@ -215,6 +215,7 @@ describe('Geo Strategies - win32LocationFetch', () => {
   let configStub;
   let historyRows;
   let wifiRows;
+  let trustedRows;
   let capturedHistorySave;
 
   const makeStorageStub = () => {
@@ -222,6 +223,7 @@ describe('Geo Strategies - win32LocationFetch', () => {
       const key = payload.data || payload.id;
       if (operation === 'query' && key === 'location_history_win32') return cb(null, historyRows);
       if (operation === 'query' && key === 'last_wifi_location') return cb(null, wifiRows);
+      if (operation === 'query' && key === 'last_trusted_location') return cb(null, trustedRows);
       if (operation === 'set' && payload.id === 'location_history_win32') {
         capturedHistorySave = JSON.parse(payload.data.value);
         return cb(null);
@@ -259,6 +261,7 @@ describe('Geo Strategies - win32LocationFetch', () => {
 
     historyRows = [];
     wifiRows = [];
+    trustedRows = [];
     capturedHistorySave = null;
     makeStorageStub();
   });
@@ -280,13 +283,15 @@ describe('Geo Strategies - win32LocationFetch', () => {
     });
   });
 
-  it('bootstrap: seeds history from existing last_wifi_location', (done) => {
+  it('bootstrap: seeds history from existing last_wifi_location when trusted baseline exists', (done) => {
+    trustedRows = [{ value: JSON.stringify(santiago) }];
     wifiRows = [{ value: JSON.stringify(santiago) }];
 
     strategies.win32LocationFetch((err, result) => {
       expect(err).to.be.null;
       expect(result).to.deep.equal(santiago);
       expect(platformStub.get_location.called).to.be.false;
+      expect(wifiStub.called).to.be.false;
       expect(capturedHistorySave).to.be.an('array').with.lengthOf(1);
       expect(capturedHistorySave[0]).to.deep.equal(santiago);
       done();
@@ -520,14 +525,29 @@ describe('Geo Strategies - Recovery Mechanism (Option 6)', () => {
     sinon.restore();
   });
 
-  it('bootstrap: initializes trusted location from existing last_wifi_location', (done) => {
+  it('bootstrap: uses last_wifi_location when trusted baseline already exists (no WiFi call)', (done) => {
+    trustedRows = [{ value: JSON.stringify(santiago) }];
     wifiRows = [{ value: JSON.stringify(santiago) }];
 
     strategies.win32LocationFetch((err, result) => {
       expect(err).to.be.null;
       expect(result).to.deep.equal(santiago);
-      // Verify trusted was set (indirectly, by checking it persists to storage)
-      expect(capturedTrustedSave).to.deep.equal(santiago);
+      expect(wifiStub.called).to.be.false;
+      expect(capturedHistorySave).to.be.an('array').with.lengthOf(1);
+      expect(capturedHistorySave[0]).to.deep.equal(santiago);
+      done();
+    });
+  });
+
+  it('bootstrap: calls fresh WiFi when no trusted baseline, even if last_wifi_location exists', (done) => {
+    wifiRows = [{ value: JSON.stringify(santiago) }];
+    wifiStub.callsFake((cb) => cb(null, buenosAires));
+
+    strategies.win32LocationFetch((err, result) => {
+      expect(err).to.be.null;
+      expect(result).to.deep.equal(buenosAires);
+      expect(wifiStub.calledOnce).to.be.true;
+      expect(capturedTrustedSave).to.deep.equal(buenosAires);
       done();
     });
   });
