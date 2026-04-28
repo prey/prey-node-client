@@ -99,7 +99,7 @@ describe('WebSocket Module', () => {
     });
 
     it('should have correct MAX_RECONNECT_DELAY', () => {
-      expect(constantsModule.MAX_RECONNECT_DELAY).to.equal(300000);
+      expect(constantsModule.MAX_RECONNECT_DELAY).to.equal(120000);
     });
 
     it('should have correct MAX_RETRIES', () => {
