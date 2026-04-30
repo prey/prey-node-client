@@ -300,4 +300,35 @@ describe('Geo Win32 Native Geolocation', () => {
       expect(() => win32Geo.askLocationNativePermission()).to.not.throw();
     });
   });
+
+  describe('getLastPositionSource', () => {
+    it('should return the position_source from the last successful get_location call', (done) => {
+      systemStub.get_as_admin_user.callsFake((provider, cb) => {
+        cb(null, {
+          lat: 37.7749,
+          lng: -122.4194,
+          accuracy: 10,
+          position_source: 'satellite',
+        });
+      });
+
+      win32Geo.get_location((err) => {
+        expect(err).to.be.null;
+        expect(win32Geo.getLastPositionSource()).to.equal('satellite');
+        done();
+      });
+    });
+
+    it('should return "unknown" when position_source is absent', (done) => {
+      systemStub.get_as_admin_user.callsFake((provider, cb) => {
+        cb(null, { lat: 37.7749, lng: -122.4194, accuracy: 10 });
+      });
+
+      win32Geo.get_location((err) => {
+        expect(err).to.be.null;
+        expect(win32Geo.getLastPositionSource()).to.equal('unknown');
+        done();
+      });
+    });
+  });
 });

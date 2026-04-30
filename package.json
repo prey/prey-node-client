@@ -109,16 +109,13 @@
     "test": "./test"
   },
   "mocha": {
-    "recursive": "true",
-    "spec": [
-      "./test/**/*.test.js"
-    ]
+    "exit": true
   },
   "scripts": {
     "start": "./bin/prey",
-    "test": "nyc --reporter=text --reporter=html mocha --exit",
-    "test-sf": "mocha --exit",
-    "coverage": "nyc --reporter=text-summary --reporter=lcov mocha",
+    "test": "nyc --reporter=text --reporter=html mocha --exit './test/**/*.test.js'",
+    "test-sf": "mocha --exit './test/**/*.test.js'",
+    "coverage": "nyc --reporter=text-summary --reporter=lcov mocha './test/**/*.test.js'",
     "sonar": "npx sonarqube-scanner",
     "post_install": "./bin/prey config hooks post_install",
     "post_update": "./bin/prey config hooks post_install",
