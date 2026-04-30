@@ -47,15 +47,7 @@ describe('Geo Strategies - PUT verified location behavior', () => {
   };
 
   const stubStorageSuccessFlow = () => {
-    storageStub.do.callsFake((operation, payload, cb) => {
-      if (operation === 'set' && payload.id === 'last_wifi_location') {
-        return cb(null);
-      }
-      if (operation === 'update' && payload.id === 'last_wifi_location') {
-        return cb(null);
-      }
-      return cb(null);
-    });
+    storageStub.do.callsFake((_operation, _payload, cb) => cb(null));
   };
 
   beforeEach(() => {
@@ -290,15 +282,15 @@ describe('Geo Strategies - win32LocationFetch', () => {
     });
   });
 
-  it('bootstrap: seeds history from existing last_wifi_location when trusted baseline exists', (done) => {
+  it('bootstrap: calls wifi for fresh data when anchor exists but history is empty', (done) => {
     trustedRows = [{ value: JSON.stringify(santiago) }];
-    wifiRows = [{ value: JSON.stringify(santiago) }];
+    wifiStub.callsFake((cb) => cb(null, santiago));
 
     strategies.win32LocationFetch((err, result) => {
       expect(err).to.be.null;
       expect(result).to.deep.equal(santiago);
       expect(platformStub.get_location.called).to.be.false;
-      expect(wifiStub.called).to.be.false;
+      expect(wifiStub.calledOnce).to.be.true;
       expect(capturedHistorySave).to.be.an('array').with.lengthOf(1);
       expect(capturedHistorySave[0]).to.deep.equal(santiago);
       done();
@@ -354,16 +346,16 @@ describe('Geo Strategies - win32LocationFetch', () => {
     });
   });
 
-  it('normal: native ok (≤100m), distance >50km, wifi denies jump → saves wifi result', (done) => {
+  it('normal: jump detected, wifi accuracy < native accuracy → wifi wins via selectBestLocation', (done) => {
     historyRows = [{ value: JSON.stringify([santiago]) }];
-    // native says Buenos Aires but wifi confirms Santiago → no real jump
-    platformStub.get_location.callsFake((cb) => cb(null, { ...buenosAires, accuracy: 30 }));
-    wifiStub.callsFake((cb) => cb(null, { ...santiagoNear, method: 'wifi' }));
+    // native 150m (passes ≤200m check), wifi 48m (better accuracy) → wifi wins
+    platformStub.get_location.callsFake((cb) => cb(null, { ...buenosAires, accuracy: 150 }));
+    wifiStub.callsFake((cb) => cb(null, { ...buenosAires, accuracy: 48, method: 'wifi' }));
 
     strategies.win32LocationFetch((err, result) => {
       expect(err).to.be.null;
-      expect(result.lat).to.be.closeTo(santiagoNear.lat, 0.01);
-      expect(result.lng).to.be.closeTo(santiagoNear.lng, 0.01);
+      expect(result.accuracy).to.equal(48);
+      expect(result.method).to.equal('wifi');
       done();
     });
   });
@@ -536,7 +528,7 @@ describe('Geo Strategies - Recovery Mechanism (Option 6)', () => {
     makeStorageStub();
 
     // Reset module state before each test
-    strategies.__set__('win32LastTrustedLocation', null);
+    strategies.__set__('win32AnchorLocation', null);
     strategies.__set__('win32NativeOnlyCount', 0);
     strategies.__set__('win32LastFetchTime', null);
   });
@@ -545,14 +537,14 @@ describe('Geo Strategies - Recovery Mechanism (Option 6)', () => {
     sinon.restore();
   });
 
-  it('bootstrap: uses last_wifi_location when trusted baseline already exists (no WiFi call)', (done) => {
+  it('bootstrap: calls wifi for fresh data even when anchor exists (history empty)', (done) => {
     trustedRows = [{ value: JSON.stringify(santiago) }];
-    wifiRows = [{ value: JSON.stringify(santiago) }];
+    wifiStub.callsFake((cb) => cb(null, santiago));
 
     strategies.win32LocationFetch((err, result) => {
       expect(err).to.be.null;
       expect(result).to.deep.equal(santiago);
-      expect(wifiStub.called).to.be.false;
+      expect(wifiStub.calledOnce).to.be.true;
       expect(capturedHistorySave).to.be.an('array').with.lengthOf(1);
       expect(capturedHistorySave[0]).to.deep.equal(santiago);
       done();
@@ -585,7 +577,7 @@ describe('Geo Strategies - Recovery Mechanism (Option 6)', () => {
 
   it('recovery: wifi fails during jump detection, falls back to geoip, trusted not corrupted', (done) => {
     // Setup: Santiago is trusted baseline
-    strategies.__set__('win32LastTrustedLocation', santiago);
+    strategies.__set__('win32AnchorLocation', santiago);
     historyRows = [{ value: JSON.stringify([santiago]) }];
 
     platformStub.get_location.callsFake((cb) => {
@@ -610,7 +602,7 @@ describe('Geo Strategies - Recovery Mechanism (Option 6)', () => {
       expect(err1).to.be.null;
       expect(result1.method).to.equal('geoip');
       // Trusted must STAY Santiago (not corrupted by spurious London native)
-      const trusted = strategies.__get__('win32LastTrustedLocation');
+      const trusted = strategies.__get__('win32AnchorLocation');
       expect(trusted).to.deep.equal(santiago);
       done();
     });
@@ -618,7 +610,7 @@ describe('Geo Strategies - Recovery Mechanism (Option 6)', () => {
 
   it('recovery: native-only counter increments and resets correctly', (done) => {
     historyRows = [{ value: JSON.stringify([santiago]) }];
-    strategies.__set__('win32LastTrustedLocation', santiago);
+    strategies.__set__('win32AnchorLocation', santiago);
 
     platformStub.get_location.callsFake((cb) => {
       // Native returns Santiago nearby (OK distance)
@@ -657,7 +649,7 @@ describe('Geo Strategies - Recovery Mechanism (Option 6)', () => {
 
   it('recovery: periodic validation every 3 cycles triggers wifi call', (done) => {
     historyRows = [{ value: JSON.stringify([santiago]) }];
-    strategies.__set__('win32LastTrustedLocation', santiago);
+    strategies.__set__('win32AnchorLocation', santiago);
 
     platformStub.get_location.callsFake((cb) => {
       cb(null, santiagoNear);
@@ -696,7 +688,7 @@ describe('Geo Strategies - Recovery Mechanism (Option 6)', () => {
   it('recovery: periodic validation updates trusted location on success', (done) => {
     const initialTrusted = santiago;
     historyRows = [{ value: JSON.stringify([initialTrusted]) }];
-    strategies.__set__('win32LastTrustedLocation', initialTrusted);
+    strategies.__set__('win32AnchorLocation', initialTrusted);
     strategies.__set__('win32NativeOnlyCount', 2); // Set to 2, next fetch will trigger validation
 
     const updatedTrusted = { lat: -33.5, lng: -70.6, accuracy: 20, method: 'wifi' };
@@ -713,7 +705,7 @@ describe('Geo Strategies - Recovery Mechanism (Option 6)', () => {
     strategies.win32LocationFetch((err, result) => {
       expect(err).to.be.null;
       // After periodic validation, trusted should be updated
-      const trusted = strategies.__get__('win32LastTrustedLocation');
+      const trusted = strategies.__get__('win32AnchorLocation');
       expect(trusted).to.deep.equal(updatedTrusted);
       // Counter should be reset to 0 after validation
       const counter = strategies.__get__('win32NativeOnlyCount');
@@ -724,7 +716,7 @@ describe('Geo Strategies - Recovery Mechanism (Option 6)', () => {
 
   it('recovery: jump detection resets counter', (done) => {
     historyRows = [{ value: JSON.stringify([santiago]) }];
-    strategies.__set__('win32LastTrustedLocation', santiago);
+    strategies.__set__('win32AnchorLocation', santiago);
     strategies.__set__('win32NativeOnlyCount', 2);
 
     platformStub.get_location.callsFake((cb) => {
@@ -760,7 +752,7 @@ describe('Geo Strategies - Recovery Mechanism (Option 6)', () => {
     const validNearby = { lat: -33.457, lng: -70.648, accuracy: 50, method: 'native' };
 
     historyRows = [{ value: JSON.stringify([spuriousLoc]) }]; // Last entry is bogus
-    strategies.__set__('win32LastTrustedLocation', trustedLoc); // But trusted is correct
+    strategies.__set__('win32AnchorLocation', trustedLoc); // But trusted is correct
 
     platformStub.get_location.callsFake((cb) => {
       cb(null, validNearby); // ~0.1km from trusted, well within 1km threshold
@@ -780,7 +772,7 @@ describe('Geo Strategies - Recovery Mechanism (Option 6)', () => {
 
   it('telemetry: location.native_accepted sent when native is within threshold', (done) => {
     historyRows = [{ value: JSON.stringify([santiago]) }];
-    strategies.__set__('win32LastTrustedLocation', santiago);
+    strategies.__set__('win32AnchorLocation', santiago);
 
     platformStub.get_location.callsFake((cb) => cb(null, { ...santiagoNear, accuracy: 45 }));
     platformStub.getLastPositionSource.returns('satellite');
@@ -812,7 +804,7 @@ describe('Geo Strategies - Recovery Mechanism (Option 6)', () => {
 
   it('telemetry: location.wifi_crosscheck sent with suspicious_distance + wifi_accepted', (done) => {
     historyRows = [{ value: JSON.stringify([santiago]) }];
-    strategies.__set__('win32LastTrustedLocation', santiago);
+    strategies.__set__('win32AnchorLocation', santiago);
 
     platformStub.get_location.callsFake((cb) => cb(null, { ...buenosAires, accuracy: 150 }));
     platformStub.getLastPositionSource.returns('cellular');
@@ -848,7 +840,7 @@ describe('Geo Strategies - Recovery Mechanism (Option 6)', () => {
 
   it('telemetry: location.wifi_crosscheck sent with suspicious_distance + unverified when wifi fails', (done) => {
     historyRows = [{ value: JSON.stringify([santiago]) }];
-    strategies.__set__('win32LastTrustedLocation', santiago);
+    strategies.__set__('win32AnchorLocation', santiago);
 
     platformStub.get_location.callsFake((cb) => cb(null, { ...buenosAires, accuracy: 150 }));
     platformStub.getLastPositionSource.returns('unknown');
@@ -880,7 +872,7 @@ describe('Geo Strategies - Recovery Mechanism (Option 6)', () => {
 
   it('telemetry: location.wifi_crosscheck sent with calibration trigger on 3rd native cycle', (done) => {
     historyRows = [{ value: JSON.stringify([santiago]) }];
-    strategies.__set__('win32LastTrustedLocation', santiago);
+    strategies.__set__('win32AnchorLocation', santiago);
     strategies.__set__('win32NativeOnlyCount', 2);
 
     platformStub.get_location.callsFake((cb) => cb(null, { ...santiagoNear, accuracy: 55 }));
@@ -916,7 +908,7 @@ describe('Geo Strategies - Recovery Mechanism (Option 6)', () => {
 
   it('telemetry: calibration wifi_crosscheck shows unverified when wifi fails', (done) => {
     historyRows = [{ value: JSON.stringify([santiago]) }];
-    strategies.__set__('win32LastTrustedLocation', santiago);
+    strategies.__set__('win32AnchorLocation', santiago);
     strategies.__set__('win32NativeOnlyCount', 2);
 
     platformStub.get_location.callsFake((cb) => cb(null, { ...santiagoNear, accuracy: 55 }));
@@ -947,73 +939,276 @@ describe('Geo Strategies - Recovery Mechanism (Option 6)', () => {
     });
   });
 
-  it('recovery: processResponse updates trusted on every successful wifi', (done) => {
-    const sendData = strategies.__get__('sendData');
-    const needleStub = sinon.stub();
-    const configStub2 = {
-      getData: sinon.stub().callsFake((key) => {
-        if (key === 'try_proxy') return null;
-        if (key === 'control-panel.host') return 'panel.prey.example';
-        return null;
-      }),
+  it('processResponse: returns data without writing to variables or storage', (done) => {
+    const processResponse = strategies.__get__('processResponse');
+    const coords = {
+      location: { lat: -33.456, lng: -70.648, accuracy: 25 },
+      accuracy: 25,
     };
+    storageStub.do.reset();
 
-    strategies.__set__('config', configStub2);
+    processResponse(coords, (err, result) => {
+      expect(err).to.be.null;
+      expect(result).to.deep.equal({
+        lat: -33.456, lng: -70.648, accuracy: 25, method: 'wifi',
+      });
+      expect(storageStub.do.called).to.be.false;
+      done();
+    });
+  });
+});
 
-    const accessPoints = [
-      { mac_address: 'AA:BB:CC:11:22:33', ssid: 'test1', signal_strength: -50, channel: 1 },
-      { mac_address: 'AA:BB:CC:44:55:66', ssid: 'test2', signal_strength: -40, channel: 6 },
-    ];
+describe('Geo Strategies - Anchor Eligibility & Quality Separation', () => {
+  const santiago = { lat: -33.4569, lng: -70.6483, accuracy: 30, method: 'wifi' };
+  const buenosAires = { lat: -34.6037, lng: -58.3816, accuracy: 30, method: 'native' };
 
-    const endpointResponse = {
-      endpoint: {
-        url: 'https://example.com/loc',
-        provider: 'test-provider',
-        'user-agent': 'test-agent',
-      },
-    };
+  let strategies;
+  let storageStub;
+  let loggerStub;
+  let platformStub;
+  let wifiStub;
+  let configStub;
+  let historyRows;
+  let trustedRows;
+  let capturedHistorySave;
+  let capturedTrustedSave;
 
-    const providerGeolocation = {
-      location: {
-        lat: -33.456,
-        lng: -70.648,
-        accuracy: 25,
-      },
-    };
-
-    const needle = {
-      post: sinon.stub()
-        .onFirstCall()
-        .callsFake((_url, _data, _opts, cb) => cb(null, { statusCode: 200 }, endpointResponse))
-        .onSecondCall()
-        .callsFake((_url, _data, _opts, cb) => cb(null, { statusCode: 200 }, providerGeolocation)),
-      put: sinon.stub().callsFake((_url, _data, _opts, cb) => cb(null, { statusCode: 200, body: null })),
-    };
-
-    strategies.__set__('needle', needle);
-
-    // Stub storage for processResponse
+  const makeStorageStub = () => {
     storageStub.do.callsFake((operation, payload, cb) => {
-      if (operation === 'query' && (payload.id === 'last_wifi_location' || payload.id === 'last_trusted_location')) {
-        return cb(null, []);
+      const key = payload.data || payload.id;
+      if (operation === 'query' && key === 'location_history_win32') return cb(null, historyRows);
+      if (operation === 'query' && key === 'last_trusted_location') return cb(null, trustedRows);
+      if (operation === 'set' && payload.id === 'location_history_win32') {
+        capturedHistorySave = JSON.parse(payload.data.value);
+        return cb(null);
       }
-      if (operation === 'set') {
-        if (payload.id === 'last_trusted_location') {
-          capturedTrustedSave = payload.data ? JSON.parse(payload.data.value) : JSON.parse(payload.data);
-        }
+      if (operation === 'update' && payload.id === 'location_history_win32') {
+        capturedHistorySave = JSON.parse(payload.values);
+        return cb(null);
+      }
+      if (operation === 'set' && payload.id === 'last_trusted_location') {
+        capturedTrustedSave = JSON.parse(payload.data.value);
         return cb(null);
       }
       return cb(null);
     });
+  };
 
-    sendData(accessPoints, (err, result) => {
+  beforeEach(() => {
+    strategies = rewire('../../../../../lib/agent/providers/geo/strategies');
+
+    storageStub = { do: sinon.stub() };
+    loggerStub = { debug: sinon.stub(), info: sinon.stub(), error: sinon.stub() };
+    configStub = {
+      getData: sinon.stub().callsFake((key) => {
+        if (key === 'control-panel.host') return 'panel.prey.example';
+        return null;
+      }),
+    };
+    platformStub = {
+      get_location: sinon.stub(),
+      getLastPositionSource: sinon.stub().returns('unknown'),
+    };
+    wifiStub = sinon.stub();
+
+    strategies.__set__('storage', storageStub);
+    strategies.__set__('logger', loggerStub);
+    strategies.__set__('config', configStub);
+    strategies.__set__('platform', platformStub);
+    strategies.__set__('wifi', wifiStub);
+    strategies.__set__('saveDataWifi', sinon.stub());
+    strategies.__set__('needle', {
+      post: sinon.stub(),
+      put: sinon.stub(),
+      get: sinon.stub().callsFake((_url, cb) => cb(new Error('geoip unavailable'))),
+    });
+    strategies.__set__('keys', { get: sinon.stub().returns({ device: 'd', api: 'k' }) });
+
+    historyRows = [];
+    trustedRows = [];
+    capturedHistorySave = null;
+    capturedTrustedSave = null;
+    makeStorageStub();
+
+    strategies.__set__('win32AnchorLocation', null);
+    strategies.__set__('win32NativeOnlyCount', 0);
+    strategies.__set__('win32LastFetchTime', null);
+  });
+
+  afterEach(() => {
+    sinon.restore();
+  });
+
+  it('isAnchorEligible: true para accuracy = 300m (límite exacto)', () => {
+    const isAnchorEligible = strategies.__get__('isAnchorEligible');
+    expect(isAnchorEligible({ accuracy: 300 })).to.be.true;
+  });
+
+  it('isAnchorEligible: false para accuracy = 301m (sobre el límite)', () => {
+    const isAnchorEligible = strategies.__get__('isAnchorEligible');
+    expect(isAnchorEligible({ accuracy: 301 })).to.be.false;
+  });
+
+  it('isAnchorEligible: false cuando accuracy falta', () => {
+    const isAnchorEligible = strategies.__get__('isAnchorEligible');
+    expect(isAnchorEligible({ lat: 1, lng: 1 })).to.be.false;
+  });
+
+  it('isAnchorEligible: false cuando accuracy es NaN', () => {
+    const isAnchorEligible = strategies.__get__('isAnchorEligible');
+    expect(isAnchorEligible({ accuracy: NaN })).to.be.false;
+  });
+
+  it('isAnchorEligible: false cuando accuracy es Infinity', () => {
+    const isAnchorEligible = strategies.__get__('isAnchorEligible');
+    expect(isAnchorEligible({ accuracy: Infinity })).to.be.false;
+  });
+
+  it('selectBestLocation: WiFi accuracy < native accuracy, WiFi ≤ 300m → retorna WiFi', () => {
+    const selectBestLocation = strategies.__get__('selectBestLocation');
+    const native = { lat: 1, lng: 1, accuracy: 150 };
+    const wifi = { lat: 2, lng: 2, accuracy: 48, method: 'wifi' };
+    expect(selectBestLocation(native, wifi)).to.equal(wifi);
+  });
+
+  it('selectBestLocation: Native accuracy < WiFi accuracy, WiFi ≤ 300m → retorna native', () => {
+    const selectBestLocation = strategies.__get__('selectBestLocation');
+    const native = { lat: 1, lng: 1, accuracy: 30 };
+    const wifi = { lat: 2, lng: 2, accuracy: 50, method: 'wifi' };
+    expect(selectBestLocation(native, wifi)).to.equal(native);
+  });
+
+  it('selectBestLocation: WiFi accuracy > 300m, native válido → retorna native', () => {
+    const selectBestLocation = strategies.__get__('selectBestLocation');
+    const native = { lat: 1, lng: 1, accuracy: 150 };
+    const wifi = { lat: 2, lng: 2, accuracy: 400, method: 'wifi' };
+    expect(selectBestLocation(native, wifi)).to.equal(native);
+  });
+
+  it('selectBestLocation: WiFi accuracy > 300m, no native → retorna WiFi (único disponible)', () => {
+    const selectBestLocation = strategies.__get__('selectBestLocation');
+    const wifi = { lat: 2, lng: 2, accuracy: 400, method: 'wifi' };
+    expect(selectBestLocation(null, wifi)).to.equal(wifi);
+  });
+
+  it('selectBestLocation: WiFi null → retorna native', () => {
+    const selectBestLocation = strategies.__get__('selectBestLocation');
+    const native = { lat: 1, lng: 1, accuracy: 50 };
+    expect(selectBestLocation(native, null)).to.equal(native);
+  });
+
+  it('selectBestLocation: Native null → retorna WiFi', () => {
+    const selectBestLocation = strategies.__get__('selectBestLocation');
+    const wifi = { lat: 2, lng: 2, accuracy: 50, method: 'wifi' };
+    expect(selectBestLocation(null, wifi)).to.equal(wifi);
+  });
+
+  it('selectBestLocation: Native position_source ipaddress, WiFi disponible → descarta native', () => {
+    const selectBestLocation = strategies.__get__('selectBestLocation');
+    const native = { lat: 1, lng: 1, accuracy: 10, position_source: 'ipaddress' };
+    const wifi = { lat: 2, lng: 2, accuracy: 200, method: 'wifi' };
+    expect(selectBestLocation(native, wifi)).to.equal(wifi);
+  });
+
+  it('selectBestLocation: Native position_source ipaddress, WiFi null → retorna native (único)', () => {
+    const selectBestLocation = strategies.__get__('selectBestLocation');
+    const native = { lat: 1, lng: 1, accuracy: 10, position_source: 'ipaddress' };
+    expect(selectBestLocation(native, null)).to.equal(native);
+  });
+
+  it('bootstrap fresh: WiFi accuracy > 300m → en history, anchor sigue null', (done) => {
+    const badWifi = { lat: -33.4569, lng: -70.6483, accuracy: 500, method: 'wifi' };
+    wifiStub.callsFake((cb) => cb(null, badWifi));
+
+    strategies.win32LocationFetch((err, result) => {
       expect(err).to.be.null;
-      expect(capturedTrustedSave).to.deep.equal({
-        lat: providerGeolocation.location.lat,
-        lng: providerGeolocation.location.lng,
-        accuracy: providerGeolocation.location.accuracy,
-        method: 'wifi',
-      });
+      expect(result).to.deep.equal(badWifi);
+      expect(capturedHistorySave).to.be.an('array').with.lengthOf(1);
+      const anchor = strategies.__get__('win32AnchorLocation');
+      expect(anchor).to.be.null;
+      expect(capturedTrustedSave).to.be.null;
+      done();
+    });
+  });
+
+  it('bootstrap fresh: WiFi accuracy ≤ 300m → en history y anchor actualizado', (done) => {
+    wifiStub.callsFake((cb) => cb(null, santiago));
+
+    strategies.win32LocationFetch((err, result) => {
+      expect(err).to.be.null;
+      expect(result).to.deep.equal(santiago);
+      const anchor = strategies.__get__('win32AnchorLocation');
+      expect(anchor).to.deep.equal(santiago);
+      expect(capturedTrustedSave).to.deep.equal(santiago);
+      done();
+    });
+  });
+
+  it('jump detection: WiFi gana selectBestLocation + accuracy ≤ 300m → anchor actualizado', (done) => {
+    historyRows = [{ value: JSON.stringify([santiago]) }];
+    strategies.__set__('win32AnchorLocation', santiago);
+    // native 150m (passes ≤200m check), wifi 48m (mejor) → wifi gana
+    platformStub.get_location.callsFake((cb) => cb(null, { ...buenosAires, accuracy: 150 }));
+    wifiStub.callsFake((cb) => cb(null, { ...buenosAires, accuracy: 48, method: 'wifi' }));
+
+    strategies.win32LocationFetch((err, result) => {
+      expect(err).to.be.null;
+      expect(result.accuracy).to.equal(48);
+      expect(result.method).to.equal('wifi');
+      const anchor = strategies.__get__('win32AnchorLocation');
+      expect(anchor.accuracy).to.equal(48);
+      done();
+    });
+  });
+
+  it('jump detection: Native gana selectBestLocation → anchor NO se toca', (done) => {
+    historyRows = [{ value: JSON.stringify([santiago]) }];
+    strategies.__set__('win32AnchorLocation', santiago);
+    // native accuracy 30 (mejor), wifi accuracy 50 → native gana
+    platformStub.get_location.callsFake((cb) => cb(null, { ...buenosAires, accuracy: 30 }));
+    wifiStub.callsFake((cb) => cb(null, { ...buenosAires, accuracy: 50, method: 'wifi' }));
+
+    strategies.win32LocationFetch((err, result) => {
+      expect(err).to.be.null;
+      expect(result.accuracy).to.equal(30);
+      expect(result.method).to.equal('native');
+      const anchor = strategies.__get__('win32AnchorLocation');
+      expect(anchor).to.deep.equal(santiago); // anchor intacto
+      done();
+    });
+  });
+
+  it('periodic validation: WiFi accuracy > 300m → anchor NO se actualiza', (done) => {
+    historyRows = [{ value: JSON.stringify([santiago]) }];
+    strategies.__set__('win32AnchorLocation', santiago);
+    strategies.__set__('win32NativeOnlyCount', 2);
+
+    const santiagoNear = { lat: -33.46, lng: -70.65, accuracy: 50 };
+    platformStub.get_location.callsFake((cb) => cb(null, santiagoNear));
+    wifiStub.callsFake((cb) => cb(null, { ...santiago, accuracy: 400, method: 'wifi' }));
+
+    strategies.win32LocationFetch((err) => {
+      expect(err).to.be.null;
+      const anchor = strategies.__get__('win32AnchorLocation');
+      expect(anchor).to.deep.equal(santiago); // anchor intacto, WiFi 400m > 300m
+      done();
+    });
+  });
+
+  it('periodic validation: WiFi accuracy ≤ 300m → anchor actualizado', (done) => {
+    historyRows = [{ value: JSON.stringify([santiago]) }];
+    strategies.__set__('win32AnchorLocation', santiago);
+    strategies.__set__('win32NativeOnlyCount', 2);
+
+    const santiagoNear = { lat: -33.46, lng: -70.65, accuracy: 50 };
+    const updatedWifi = { ...santiago, accuracy: 100, method: 'wifi' };
+    platformStub.get_location.callsFake((cb) => cb(null, santiagoNear));
+    wifiStub.callsFake((cb) => cb(null, updatedWifi));
+
+    strategies.win32LocationFetch((err) => {
+      expect(err).to.be.null;
+      const anchor = strategies.__get__('win32AnchorLocation');
+      expect(anchor).to.deep.equal(updatedWifi);
       done();
     });
   });
