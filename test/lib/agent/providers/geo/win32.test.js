@@ -145,7 +145,7 @@ describe('Geo Win32 Native Geolocation', () => {
 
       win32Geo.get_location((err) => {
         expect(err).to.be.an.instanceOf(Error);
-        expect(err.message).to.equal('Got ipaddress native');
+        expect(err.message).to.equal('Got ipaddress native or non-WINRT source, which is not accurate');
         done();
       });
     });
