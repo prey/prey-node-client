@@ -1,0 +1,5 @@
+"invalidMD5" = "Necesitas pasar una cadena MD5 válida";
+"invalidPassword" = "Contraseña incorrecta. Intenta nuevamente.";
+"typePassword" = "Por favor ingresa contraseña de desbloqueo";
+"invalidOption" = "Opción inválida";
+"ok" = "Aceptar";

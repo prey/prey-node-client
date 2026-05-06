@@ -1,5 +1,38 @@
 # Change Log
 
+## [v1.13.32](https://github.com/prey/prey-node-client/tree/v1.13.32) (2026-04-30)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.31..v1.13.32)
+
+- Feat: New Windows location orchestration system that coordinates native and Wi-Fi location sources, with periodic validation and persistent recovery across restarts. ([SoraKenji](https://github.com/SoraKenji))
+
+- Feat: Disk encryption data is now only collected and reported when the control panel explicitly requests it via backend configuration. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Fixed a bug where a missing Wi-Fi location would cause the location strategy to fail entirely instead of falling back gracefully. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: New MacSVC 1.0.9 with a fix for screenshot capture on macOS. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: New WinSVC 2.0.33. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: On Windows, the native location source is now restricted to WinRT only, improving reliability by avoiding incompatible sources. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Windows location orchestrator now uses a finer-grained change verification strategy instead of a broad jump-detection threshold, reducing false location updates. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Increased the native location accuracy threshold from 100 to 200 meters for better location acceptance on Windows. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: The lock action on Windows now correctly restores the taskbar and re-applies the lock when a Fast User Switch occurs. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: The unlock password is now masked in WebSocket communication logs to avoid exposing it. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: WebSocket reconnection backoff maximum wait time was reduced to 2 minutes to recover faster after connectivity issues. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Added timeouts to system calls (PowerShell/exec) to prevent the agent from blocking indefinitely when a command hangs. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Prevents report gathering from stacking up when the agent is under degraded conditions (slow storage or hanging commands). ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Fixed a border case where multiple simultaneous timers could open more than one WebSocket connection for the same device. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Fixed an error that caused the alarm action to fail silently when the device session was inactive. ([SoraKenji](https://github.com/SoraKenji))
+
 ## [v1.13.31](https://github.com/prey/prey-node-client/tree/v1.13.31) (2026-04-08)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.30..v1.13.31)
 

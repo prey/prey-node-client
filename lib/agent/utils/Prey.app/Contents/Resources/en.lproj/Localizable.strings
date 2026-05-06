@@ -1,0 +1,5 @@
+"invalidMD5" = "You need to pass an MD5 hexdigested string";
+"invalidPassword" = "Invalid password. Try again.";
+"typePassword" = "Please type the password to unlock";
+"invalidOption" = "Invalid option";
+"ok" = "OK";

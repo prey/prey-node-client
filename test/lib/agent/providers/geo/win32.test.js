@@ -145,7 +145,7 @@ describe('Geo Win32 Native Geolocation', () => {
 
       win32Geo.get_location((err) => {
         expect(err).to.be.an.instanceOf(Error);
-        expect(err.message).to.equal('Got ipaddress native');
+        expect(err.message).to.equal('Got ipaddress native or non-WINRT source, which is not accurate');
         done();
       });
     });
@@ -186,19 +186,23 @@ describe('Geo Win32 Native Geolocation', () => {
       });
     });
 
-    it('should return error when accuracy is greater than 100', (done) => {
+    it('should return result (no error) when accuracy is greater than 100', (done) => {
+      const locationData = {
+        lat: 37.7749,
+        lng: -122.4194,
+        accuracy: 200,
+        method: 'native',
+      };
+
       systemStub.get_as_admin_user.callsFake((provider, cb) => {
-        cb(null, {
-          lat: 37.7749,
-          lng: -122.4194,
-          accuracy: 101,
-          method: 'native',
-        });
+        cb(null, locationData);
       });
 
-      win32Geo.get_location((err) => {
-        expect(err).to.be.an.instanceOf(Error);
-        expect(err.message).to.equal('Accuracy from admin service exceeds maximum allowed value (100)');
+      win32Geo.get_location((err, result) => {
+        expect(err).to.be.null;
+        expect(result.accuracy).to.equal(200);
+        expect(result.lat).to.equal(37.7749);
+        expect(result.lng).to.equal(-122.4194);
         done();
       });
     });
@@ -294,6 +298,37 @@ describe('Geo Win32 Native Geolocation', () => {
 
     it('should not throw when callback is not provided', () => {
       expect(() => win32Geo.askLocationNativePermission()).to.not.throw();
+    });
+  });
+
+  describe('getLastPositionSource', () => {
+    it('should return the position_source from the last successful get_location call', (done) => {
+      systemStub.get_as_admin_user.callsFake((provider, cb) => {
+        cb(null, {
+          lat: 37.7749,
+          lng: -122.4194,
+          accuracy: 10,
+          position_source: 'satellite',
+        });
+      });
+
+      win32Geo.get_location((err) => {
+        expect(err).to.be.null;
+        expect(win32Geo.getLastPositionSource()).to.equal('satellite');
+        done();
+      });
+    });
+
+    it('should return "unknown" when position_source is absent', (done) => {
+      systemStub.get_as_admin_user.callsFake((provider, cb) => {
+        cb(null, { lat: 37.7749, lng: -122.4194, accuracy: 10 });
+      });
+
+      win32Geo.get_location((err) => {
+        expect(err).to.be.null;
+        expect(win32Geo.getLastPositionSource()).to.equal('unknown');
+        done();
+      });
     });
   });
 });
