@@ -11,6 +11,7 @@ describe('tasks.pre_uninstall orchestration', () => {
   let daemonRemoveStub;
   let preUninstallStub;
   let deletePreyFenixStub;
+  let cleanupRegistryKeysStub;
   let deleteOsqueryStub;
   let deepCleanupStub;
   let originalModuleLoad;
@@ -27,6 +28,7 @@ describe('tasks.pre_uninstall orchestration', () => {
     daemonRemoveStub = sinon.stub().callsFake((cb) => cb());
     preUninstallStub = sinon.stub().callsFake((cb) => cb());
     deletePreyFenixStub = sinon.stub().callsFake((cb) => cb());
+    cleanupRegistryKeysStub = sinon.stub().callsFake((cb) => cb());
     deleteOsqueryStub = sinon.stub().callsFake((cb) => cb());
     deepCleanupStub = sinon.stub().callsFake((cb) => cb());
 
@@ -37,6 +39,7 @@ describe('tasks.pre_uninstall orchestration', () => {
     tasks.__set__('osHooks', {
       pre_uninstall: preUninstallStub,
       deletePreyFenix: deletePreyFenixStub,
+      cleanup_registry_keys: cleanupRegistryKeysStub,
       deleteOsquery: deleteOsqueryStub,
       deep_cleanup: deepCleanupStub,
     });
@@ -67,6 +70,7 @@ describe('tasks.pre_uninstall orchestration', () => {
       expect(daemonRemoveStub.calledOnce).to.equal(true);
       expect(preUninstallStub.calledOnce).to.equal(true);
       expect(deletePreyFenixStub.calledOnce).to.equal(true);
+      expect(cleanupRegistryKeysStub.calledOnce).to.equal(true);
       expect(deleteOsqueryStub.calledOnce).to.equal(true);
       expect(deepCleanupStub.calledOnce).to.equal(true);
       done();
@@ -84,6 +88,7 @@ describe('tasks.pre_uninstall orchestration', () => {
       expect(daemonRemoveStub.calledOnce).to.equal(true);
       expect(preUninstallStub.calledOnce).to.equal(true);
       expect(deletePreyFenixStub.called).to.equal(false);
+      expect(cleanupRegistryKeysStub.called).to.equal(false);
       expect(deleteOsqueryStub.called).to.equal(false);
       expect(deepCleanupStub.called).to.equal(false);
       done();
