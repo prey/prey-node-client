@@ -1,5 +1,10 @@
 # Change Log
 
+## [v1.13.33](https://github.com/prey/prey-node-client/tree/v1.13.33) (2026-05-15)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.32..v1.13.33)
+
+- Feat: Location methods (native, Wi-Fi, and IP-based) can now be individually disabled from the control panel. When a method is disabled, the agent automatically falls back to the next available source. ([SoraKenji](https://github.com/SoraKenji))
+
 ## [v1.13.32](https://github.com/prey/prey-node-client/tree/v1.13.32) (2026-04-30)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.31..v1.13.32)
 
