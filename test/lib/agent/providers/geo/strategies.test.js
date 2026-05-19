@@ -191,6 +191,32 @@ describe('Geo Strategies - PUT verified location behavior', () => {
       done();
     });
   });
+
+  it('429: returns processed format { lat, lng, accuracy, method } from cached raw API data', (done) => {
+    const rawCachedData = {
+      location: { lat: -33.456, lng: -70.648 },
+      accuracy: 50,
+    };
+
+    needleStub.post
+      .onFirstCall()
+      .callsFake((_url, _data, _opts, cb) => cb(null, { statusCode: 429 }, null));
+
+    storageStub.do.callsFake((_operation, _payload, cb) => {
+      cb(null, [{ value: JSON.stringify(rawCachedData) }]);
+    });
+
+    sendData(accessPoints, (err, result) => {
+      expect(err).to.be.null;
+      expect(result).to.deep.equal({
+        lat: -33.456,
+        lng: -70.648,
+        accuracy: 50,
+        method: 'wifi',
+      });
+      done();
+    });
+  });
 });
 
 describe('Geo Strategies - win32LocationFetch', () => {
@@ -956,6 +982,35 @@ describe('Geo Strategies - Recovery Mechanism (Option 6)', () => {
         lat: -33.456, lng: -70.648, accuracy: 25, method: 'wifi',
       });
       expect(storageStub.do.called).to.be.false;
+      done();
+    });
+  });
+
+  it('processResponse: handles lng=0 correctly (prime meridian, not treated as falsy)', (done) => {
+    const processResponse = strategies.__get__('processResponse');
+    const coords = {
+      location: { lat: 51.476, lng: 0 },
+      accuracy: 100,
+    };
+
+    processResponse(coords, (err, result) => {
+      expect(err).to.be.null;
+      expect(result.lat).to.equal(51.476);
+      expect(result.lng).to.equal(0);
+      expect(result.method).to.equal('wifi');
+      done();
+    });
+  });
+
+  it('processResponse: returns error when lng is missing (prevents undefined crash)', (done) => {
+    const processResponse = strategies.__get__('processResponse');
+    const coords = {
+      location: { lat: -33.456 },
+      accuracy: 25,
+    };
+
+    processResponse(coords, (err) => {
+      expect(err).to.be.an.instanceOf(Error);
       done();
     });
   });
