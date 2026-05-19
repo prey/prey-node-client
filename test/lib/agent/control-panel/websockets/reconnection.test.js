@@ -52,8 +52,8 @@ describe('Reconnection Module', () => {
 
       const finalDelay = reconnectionRewired.getReconnectDelay();
 
-      // Max delay is 300000ms (5 minutes)
-      expect(finalDelay).to.be.at.most(300000 * 1.4); // Account for max jitter
+      // Max delay is 120000ms (2 minutes)
+      expect(finalDelay).to.be.at.most(120000 * 1.4); // Account for max jitter
     });
 
     it('should reset delay counter', () => {
@@ -140,9 +140,9 @@ describe('Reconnection Module', () => {
 
       const delay = reconnectionRewired.getReconnectDelay();
 
-      // Max delay 300000 + 40% jitter
-      expect(delay).to.be.greaterThan(300000);
-      expect(delay).to.be.lessThan(420000); // 300000 * 1.4
+      // Max delay 120000 + 40% jitter
+      expect(delay).to.be.greaterThan(120000);
+      expect(delay).to.be.lessThan(168000); // 120000 * 1.4
     });
 
     it('should produce different delays with random jitter', () => {
@@ -249,7 +249,7 @@ describe('Reconnection Module', () => {
       const delay = reconnectionRewired.getReconnectDelay();
 
       // Should still cap at max delay
-      expect(delay).to.be.at.most(420000); // 300000 * 1.4
+      expect(delay).to.be.at.most(168000); // 120000 * 1.4
     });
 
     it('should handle zero random value', () => {
@@ -289,7 +289,7 @@ describe('Reconnection Module', () => {
 
       // Check exponential growth: delay[i+1] ≈ 2 * delay[i] (until cap)
       for (let i = 0; i < delays.length - 1; i++) {
-        if (delays[i] < 150000) {
+        if (delays[i] < 60000) { // 60000 = MAX_RECONNECT_DELAY / 2
           // Before hitting cap
           expect(delays[i + 1]).to.be.closeTo(delays[i] * 2, delays[i] * 0.1);
         }

@@ -4,6 +4,7 @@
 const { expect } = require('chai');
 const sinon = require('sinon');
 const rewire = require('rewire');
+const Module = require('module');
 
 describe('tasks.pre_uninstall orchestration', () => {
   let tasks;
@@ -12,8 +13,15 @@ describe('tasks.pre_uninstall orchestration', () => {
   let deletePreyFenixStub;
   let deleteOsqueryStub;
   let deepCleanupStub;
+  let originalModuleLoad;
 
   beforeEach(() => {
+    originalModuleLoad = Module._load;
+    Module._load = function (request, ...args) {
+      if (request === 'firewall') return { remove_rule: () => {} };
+      return originalModuleLoad.apply(this, arguments);
+    };
+
     tasks = rewire('../../../../lib/conf/tasks/index');
 
     daemonRemoveStub = sinon.stub().callsFake((cb) => cb());
@@ -44,6 +52,7 @@ describe('tasks.pre_uninstall orchestration', () => {
   });
 
   afterEach(() => {
+    Module._load = originalModuleLoad;
     sinon.restore();
   });
 

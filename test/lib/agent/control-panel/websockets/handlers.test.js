@@ -4,6 +4,7 @@ const { expect } = require('chai');
 const sinon = require('sinon');
 const { EventEmitter } = require('events');
 const rewire = require('rewire');
+const { sanitizeForLog } = require('../../../../../lib/agent/control-panel/websockets/utils');
 
 describe('Handlers Module', () => {
   let handlersRewired;
@@ -420,6 +421,68 @@ describe('Handlers Module', () => {
 
         expect(mockHooks.trigger.calledWith('error')).to.be.true;
       });
+    });
+  });
+
+  describe('sanitizeForLog', () => {
+    it('should mask unlock_pass in a nested array of commands', () => {
+      const data = [{ body: { command: 'start', target: 'lock', options: { unlock_pass: 'secret' } } }];
+      const result = sanitizeForLog(data);
+      expect(result[0].body.options.unlock_pass).to.equal('****');
+    });
+
+    it('should mask password in a plain object', () => {
+      const data = { user: 'alice', password: 'hunter2' };
+      const result = sanitizeForLog(data);
+      expect(result.password).to.equal('****');
+      expect(result.user).to.equal('alice');
+    });
+
+    it('should leave non-sensitive fields unchanged', () => {
+      const data = [{ id: 'abc', body: { command: 'get', target: 'location' } }];
+      const result = sanitizeForLog(data);
+      expect(result).to.deep.equal(data);
+    });
+
+    it('should not modify the original object', () => {
+      const data = { unlock_pass: 'real-pass' };
+      sanitizeForLog(data);
+      expect(data.unlock_pass).to.equal('real-pass');
+    });
+
+    it('should pass through primitives unchanged', () => {
+      expect(sanitizeForLog('hello')).to.equal('hello');
+      expect(sanitizeForLog(42)).to.equal(42);
+      expect(sanitizeForLog(null)).to.equal(null);
+    });
+  });
+
+  describe('Sensitive field masking in log output', () => {
+    it('should mask unlock_pass when logging a lock command array', () => {
+      const msg = JSON.stringify([{
+        id: 'cmd-lock',
+        type: 'action',
+        body: { command: 'start', target: 'lock', options: { unlock_pass: 'secretpass' } },
+      }]);
+
+      handlersRewired.handleMessage(msg, context);
+
+      const loggedArg = mockLogger.info.firstCall.args[0];
+      expect(loggedArg).to.include('****');
+      expect(loggedArg).to.not.include('secretpass');
+    });
+
+    it('should not affect command execution — processAcks is still called after masking', () => {
+      const msg = JSON.stringify([{
+        id: 'cmd-lock3',
+        type: 'action',
+        body: { command: 'get', target: 'location', options: { unlock_pass: 'mypassword' } },
+      }]);
+
+      const result = handlersRewired.handleMessage(msg, context);
+
+      expect(result).to.equal(0);
+      expect(context.ackQueue.processAcks.called).to.be.true;
     });
   });
 });

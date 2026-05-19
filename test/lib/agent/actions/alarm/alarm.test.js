@@ -156,9 +156,7 @@ describe('alarm action', () => {
         child.kill = sinon.stub();
         child.exitCode = null;
         cb(null, child);
-
-        // Simulate exit after being spawned
-        process.nextTick(() => child.emit('exit', 0));
+        child.emit('exit', 0);
       });
 
       alarmRewired.start('test-id', { loops: 3 }, (err, emitter) => {
@@ -180,7 +178,7 @@ describe('alarm action', () => {
         child.kill = sinon.stub();
         child.exitCode = null;
         cb(null, child);
-        process.nextTick(() => child.emit('exit', 0));
+        child.emit('exit', 0);
       });
 
       alarmRewired.start('test-id', { loops: '2' }, (err, emitter) => {
@@ -359,12 +357,8 @@ describe('alarm action', () => {
 
       fakeChild.emit('exit', 0);
       fakeChild.emit('exit', 0);
-
-      // Use nextTick to let events process
-      process.nextTick(() => {
-        expect(endCount).to.equal(1);
-        done();
-      });
+      expect(endCount).to.equal(1);
+      done();
     });
   });
 

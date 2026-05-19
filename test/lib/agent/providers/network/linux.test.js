@@ -47,7 +47,7 @@ describe('Network Linux Provider', () => {
 
   describe('get_access_points_list', () => {
     it('returns cached nmcli list without rescan when AP count is >= 4', async () => {
-      const execStub = sinon.stub().callsFake((cmd, cb) => {
+      const execStub = sinon.stub().callsFake((cmd, opts, cb) => {
         if (cmd === WIFI_LIST_CMD) return cb(null, listWithCount(4), '');
         return cb(new Error(`Unexpected command: ${cmd}`));
       });
@@ -62,7 +62,7 @@ describe('Network Linux Provider', () => {
 
     it('forces one nmcli rescan when cached AP count is below threshold and returns fresher list', async () => {
       let listCalls = 0;
-      const execStub = sinon.stub().callsFake((cmd, cb) => {
+      const execStub = sinon.stub().callsFake((cmd, opts, cb) => {
         if (cmd === WIFI_LIST_CMD) {
           listCalls += 1;
           if (listCalls === 1) return cb(null, listWithCount(2), '');
@@ -82,7 +82,7 @@ describe('Network Linux Provider', () => {
 
     it('keeps cached list when fresh nmcli scan returns fewer APs', async () => {
       let listCalls = 0;
-      const execStub = sinon.stub().callsFake((cmd, cb) => {
+      const execStub = sinon.stub().callsFake((cmd, opts, cb) => {
         if (cmd === WIFI_LIST_CMD) {
           listCalls += 1;
           if (listCalls === 1) return cb(null, listWithCount(3), '');
@@ -102,7 +102,7 @@ describe('Network Linux Provider', () => {
 
     it('does not rescan again while within cooldown window', async () => {
       let listCalls = 0;
-      const execStub = sinon.stub().callsFake((cmd, cb) => {
+      const execStub = sinon.stub().callsFake((cmd, opts, cb) => {
         if (cmd === WIFI_LIST_CMD) {
           listCalls += 1;
           if (listCalls === 1) return cb(null, listWithCount(1), '');
@@ -127,7 +127,7 @@ describe('Network Linux Provider', () => {
     it('falls back to iwlist alternative when nmcli returns empty after rescan', async () => {
       let listCalls = 0;
       const fallbackList = [{ ssid: 'fallback-net', signal_strength: -60 }];
-      const execStub = sinon.stub().callsFake((cmd, cb) => {
+      const execStub = sinon.stub().callsFake((cmd, opts, cb) => {
         if (cmd === WIFI_LIST_CMD) {
           listCalls += 1;
           if (listCalls === 1) return cb(null, '', '');
