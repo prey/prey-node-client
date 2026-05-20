@@ -1,5 +1,12 @@
 # Change Log
 
+## [v1.13.34](https://github.com/prey/prey-node-client/tree/v1.13.34) (2026-05-20)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.33..v1.13.34)
+
+- Fix: Fixed a crash in hardware data collection where `os.cpus()` returning an empty array or undefined values in virtualized environments caused an unhandled TypeError. The agent now returns safe defaults instead. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Fixed a crash on Windows where the Wi-Fi location strategy could return coordinates in a raw API format instead of the expected processed format, causing `coords.lng.toString()` to fail. Also fixed a related issue where `lng=0` (prime meridian) was incorrectly treated as a missing value due to use of `||` instead of `??`. ([SoraKenji](https://github.com/SoraKenji))
+
 ## [v1.13.33](https://github.com/prey/prey-node-client/tree/v1.13.33) (2026-05-15)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.32..v1.13.33)
 
