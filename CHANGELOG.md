@@ -1,5 +1,12 @@
 # Change Log
 
+## [v1.13.35](https://github.com/prey/prey-node-client/tree/v1.13.35) (2026-06-05)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.34..v1.13.35)
+
+- Fix: Fixed a crash in the Wi-Fi location strategy where a server-side body error response was incorrectly propagated as a null callback argument, causing callers to receive an undefined result and crash on property access (`lat`, `accuracy`). ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Fixed coordinate validation in the location trigger to accept `lat`/`lng` values returned as strings by the geo provider, parsing and validating them against valid geographic ranges instead of rejecting them outright. ([SoraKenji](https://github.com/SoraKenji))
+
 ## [v1.13.34](https://github.com/prey/prey-node-client/tree/v1.13.34) (2026-05-20)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.33..v1.13.34)
 
