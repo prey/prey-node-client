@@ -436,6 +436,21 @@ describe('Geo Strategies - win32LocationFetch', () => {
     }, mockTimeout);
   });
 
+  it('normal: native fails both attempts → wifi returns null result → error propagated', (done) => {
+    historyRows = [{ value: JSON.stringify([santiago]) }];
+    strategies.__set__('win32AnchorLocation', santiago);
+    platformStub.get_location.callsFake((cb) => cb(new Error('native unavailable')));
+    wifiStub.callsFake((cb) => cb(null, null));
+
+    const mockTimeout = (_fn, _delay) => { _fn(); };
+
+    strategies.win32LocationFetch((err) => {
+      expect(err).to.be.an.instanceOf(Error);
+      expect(err.message).to.include('wifi returned no result');
+      done();
+    }, mockTimeout);
+  });
+
   it('concurrency guard: second call is queued and receives same result', (done) => {
     let pendingWifi;
     wifiStub.callsFake((cb) => { pendingWifi = cb; });
@@ -931,6 +946,39 @@ describe('Geo Strategies - Recovery Mechanism (Option 6)', () => {
       expect(capturedTelemetry.wifi_accuracy_m).to.not.be.null;
       expect(capturedTelemetry.native_wifi_delta_m).to.be.a('number');
       expect(capturedTelemetry.threshold_m).to.equal(1000);
+      done();
+    });
+  });
+
+  it('telemetry: calibration wifi_crosscheck shows unverified when wifi returns null result', (done) => {
+    historyRows = [{ value: JSON.stringify([santiago]) }];
+    strategies.__set__('win32AnchorLocation', santiago);
+    strategies.__set__('win32NativeOnlyCount', 2);
+
+    platformStub.get_location.callsFake((cb) => cb(null, { ...santiagoNear, accuracy: 55 }));
+    platformStub.getLastPositionSource.returns('unknown');
+    wifiStub.callsFake((cb) => cb(null, null));
+
+    let capturedTelemetry = null;
+    const needleStub2 = {
+      post: sinon.stub().callsFake((_url, payload, _opts, cb) => {
+        if (payload.event === 'location.wifi_crosscheck' && payload.trigger === 'calibration') {
+          capturedTelemetry = payload;
+        }
+        if (cb) cb(null);
+      }),
+      put: sinon.stub(),
+      get: sinon.stub(),
+    };
+    strategies.__set__('needle', needleStub2);
+
+    strategies.win32LocationFetch((err) => {
+      expect(err).to.be.null;
+      expect(capturedTelemetry).to.not.be.null;
+      expect(capturedTelemetry.trigger).to.equal('calibration');
+      expect(capturedTelemetry.outcome).to.equal('unverified');
+      expect(capturedTelemetry.wifi_accuracy_m).to.be.null;
+      expect(capturedTelemetry.native_wifi_delta_m).to.be.null;
       done();
     });
   });
