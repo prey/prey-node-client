@@ -50,6 +50,24 @@ describe('Module Tests', () => {
       expect(requestStub.args[0][2].headers['X-Prey-Status']).to.equal(JSON.stringify({ active: true }));
     });
 
+    it('should sanitize X-Prey-Status header and remove invalid characters', () => {
+      // Test with a pre-serialized JSON string that contains special characters
+      // Simulating a case where a field value has been corrupted or contains newlines
+      const dirtyJson = '{"logged_user":"Admin\nUser","status":"active"}';
+      const options = {};
+      const cb = sinon.spy();
+
+      // Manually create a request with the dirty JSON
+      // This simulates when status comes from an external source with special chars
+      const header = require('../../../../../lib/agent/utils/header');
+      const sanitized = header.sanitizeHeaderValue(dirtyJson);
+
+      expect(sanitized).to.not.include('\n');
+      expect(sanitized).to.include('logged_user');
+      // Newline should be removed, so "Admin" and "User" would be adjacent
+      expect(sanitized).to.include('AdminUser');
+    });
+
     it('should set the user_agent if not provided', () => {
       sinon.stub(common.system, 'user_agent').value('TestAgent');
       const options = {};
