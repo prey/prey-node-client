@@ -58,7 +58,7 @@
     "ocelot": "0.0.5",
     "os-triggers": "https://github.com/prey/os-triggers",
     "petit": "https://github.com/prey/node-logger.git",
-    "plist": "^3.1.0",
+    "plist": "^3.1.1",
     "qs": "^6.14.1",
     "remover": "0.1.2",
     "reply": "^0.3.1",
