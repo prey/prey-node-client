@@ -11,6 +11,7 @@ describe('Switcher Module', () => {
   let fsAccessStub;
   let execStub;
   let sharedLogStub;
+  let hadGetuid;
 
   beforeEach(() => {
     switcherRewired = rewire('../../../lib/conf/switcher');
@@ -30,8 +31,11 @@ describe('Switcher Module', () => {
   });
 
   afterEach(() => {
-    fsAccessStub.restore();
     sinon.restore();
+    if (hadGetuid === false && process.getuid) {
+      delete process.getuid;
+      hadGetuid = undefined;
+    }
   });
 
   describe('getAdditionalCommands', () => {
