@@ -29,7 +29,8 @@
   },
   "overrides": {
     "tar": "^7.5.7",
-    "axios": "^1.13.5"
+    "axios": "^1.13.5",
+    "node-forge": "^1.4.0"
   },
   "dependencies": {
     "arch": "^2.1.2",
