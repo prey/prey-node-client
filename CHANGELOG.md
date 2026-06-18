@@ -1,5 +1,26 @@
 # Change Log
 
+## [v1.13.36](https://github.com/prey/prey-node-client/tree/v1.13.36) (2026-06-19)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.35..v1.13.36)
+
+- Fix: Fixed an issue where the `X-Prey-Status` HTTP header could contain invalid characters (such as newlines) that violated RFC 7230, causing request failures when device status data included special characters. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Fixed the hostname trigger incorrectly firing a `device_renamed` event when location data (a JSON object) was stored as the hostname value in the local database, causing spurious rename notifications to the control panel. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Fixed edge cases in the Windows lock action where Task Manager windows opened during the lock session were not properly closed on unlock. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Removed an empty registry key created during installation that caused errors with the unattended (silent) installer on Windows. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Upgraded node-forge to 1.4.0 to address CVE-2026-33896 (BasicConstraints bypass vulnerability). ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Upgraded underscore to 1.13.8 to address a Denial of Service vulnerability in the `flatten` function. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Upgraded minimatch to address a ReDoS (Regular Expression Denial of Service) vulnerability (GHSA-3ppc-4f35-3m26). ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Upgraded plist to 3.1.1 to address a CVE in the bundled @xmldom/xmldom dependency. ([SoraKenji](https://github.com/SoraKenji))
+
+- Chore: Updated bundled Windows executables: Fenix 1.0.8, WpxSvc 2.0.34, and Updater 1.0.8. ([SoraKenji](https://github.com/SoraKenji))
+
 ## [v1.13.35](https://github.com/prey/prey-node-client/tree/v1.13.35) (2026-06-05)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.34..v1.13.35)
 
