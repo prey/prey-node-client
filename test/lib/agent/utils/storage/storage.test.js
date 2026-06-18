@@ -64,6 +64,28 @@ describe('storage_fns', () => {
       dbInstance.all.callsFake((sql, c) => c(null, [{ id: 'hostname', value: 'OLD' }]));
     });
 
+    it('should close db connection when id already exists', (done) => {
+      storage.storage_fns.set(
+        { type: 'keys', id: 'hostname', data: { value: 'NEW' } },
+        () => {
+          expect(dbInstance.close.called).to.be.true;
+          done();
+        },
+      );
+      dbInstance.all.callsFake((sql, c) => c(null, [{ id: 'hostname', value: 'OLD' }]));
+    });
+
+    it('should propagate init error to callback', (done) => {
+      storage.__set__('sqlite3', makeSqlite3({ code: 'SQLITE_CANTOPEN' }));
+      storage.storage_fns.set(
+        { type: 'keys', id: 'testkey', data: { value: 'hello' } },
+        (err) => {
+          expect(err).to.be.an('error');
+          done();
+        },
+      );
+    });
+
     it('should return SQLITE_ACCESS_ERR when INSERT fails with SQLITE_READONLY', (done) => {
       storage.storage_fns.set(
         { type: 'keys', id: 'testkey', data: { value: 'hello' } },
@@ -94,6 +116,14 @@ describe('storage_fns', () => {
         done();
       });
       dbInstance.run.onSecondCall().callsFake((sql, c) => c({ code: 'SQLITE_READONLY' }));
+    });
+
+    it('should propagate init error to callback', (done) => {
+      storage.__set__('sqlite3', makeSqlite3({ code: 'SQLITE_CANTOPEN' }));
+      storage.storage_fns.del({ type: 'keys', id: 'mykey' }, (err) => {
+        expect(err).to.be.an('error');
+        done();
+      });
     });
   });
 
@@ -156,6 +186,17 @@ describe('storage_fns', () => {
       );
       dbInstance.run.onSecondCall().callsFake((sql, c) => c({ code: 'SQLITE_READONLY' }));
     });
+
+    it('should propagate init error to callback', (done) => {
+      storage.__set__('sqlite3', makeSqlite3({ code: 'SQLITE_CANTOPEN' }));
+      storage.storage_fns.update(
+        { type: 'keys', id: 'hostname', columns: 'value', values: 'PC-02' },
+        (err) => {
+          expect(err).to.be.an('error');
+          done();
+        },
+      );
+    });
   });
 
   // ─── all ────────────────────────────────────────────────────────────────────
@@ -216,8 +257,6 @@ describe('storage_fns', () => {
       dbInstance.all.callsFake((sql, c) => c({ code: 'ENOENT' }));
     });
 
-    // This test fails with the current code (Bug #3: init error is ignored).
-    // It will pass after Fix #3 adds `if (err) return cb(err)` in storage_fns.query.
     it('should propagate init error to callback', (done) => {
       storage.__set__('sqlite3', makeSqlite3({ code: 'SQLITE_CANTOPEN' }));
       storage.storage_fns.query(
