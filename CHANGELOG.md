@@ -19,6 +19,8 @@
 
 - Fix: Upgraded plist to 3.1.1 to address a CVE in the bundled @xmldom/xmldom dependency. ([SoraKenji](https://github.com/SoraKenji))
 
+- Fix: New Windows Prey Lock guarding edge cases and solving focus on textbox issues. ([SoraKenji](https://github.com/SoraKenji))
+
 - Chore: Updated bundled Windows executables: Fenix 1.0.8, WpxSvc 2.0.34, and Updater 1.0.8. ([SoraKenji](https://github.com/SoraKenji))
 
 ## [v1.13.35](https://github.com/prey/prey-node-client/tree/v1.13.35) (2026-06-05)
