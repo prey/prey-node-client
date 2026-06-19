@@ -96,6 +96,29 @@ describe('storage_fns', () => {
       );
       dbInstance.run.onSecondCall().callsFake((sql, c) => c({ code: 'SQLITE_READONLY' }));
     });
+
+    it('should close db connection when dbComm.all errors', (done) => {
+      storage.storage_fns.set(
+        { type: 'keys', id: 'testkey', data: { value: 'hello' } },
+        () => {
+          expect(dbInstance.close.called).to.be.true;
+          done();
+        },
+      );
+      dbInstance.all.callsFake((sql, c) => c(new Error('DB_ERROR')));
+    });
+
+    it('should not crash and close db when dbComm.all returns (null, null)', (done) => {
+      storage.storage_fns.set(
+        { type: 'keys', id: 'testkey', data: { value: 'hello' } },
+        (err, rows) => {
+          expect(dbInstance.close.called).to.be.true;
+          expect(rows).to.deep.equal([]);
+          done();
+        },
+      );
+      dbInstance.all.callsFake((sql, c) => c(null, null));
+    });
   });
 
   // ─── del ────────────────────────────────────────────────────────────────────
@@ -228,6 +251,14 @@ describe('storage_fns', () => {
       });
       dbInstance.all.callsFake((sql, c) => c(new Error('DB_ERROR')));
     });
+
+    it('should close db connection on SELECT error', (done) => {
+      storage.storage_fns.all({ type: 'keys' }, () => {
+        expect(dbInstance.close.called).to.be.true;
+        done();
+      });
+      dbInstance.all.callsFake((sql, c) => c(new Error('DB_ERROR')));
+    });
   });
 
   // ─── query ──────────────────────────────────────────────────────────────────
@@ -257,6 +288,17 @@ describe('storage_fns', () => {
       dbInstance.all.callsFake((sql, c) => c({ code: 'ENOENT' }));
     });
 
+    it('should close db connection on ENOENT error', (done) => {
+      storage.storage_fns.query(
+        { type: 'keys', column: 'id', data: 'hostname' },
+        () => {
+          expect(dbInstance.close.called).to.be.true;
+          done();
+        },
+      );
+      dbInstance.all.callsFake((sql, c) => c({ code: 'ENOENT' }));
+    });
+
     it('should propagate init error to callback', (done) => {
       storage.__set__('sqlite3', makeSqlite3({ code: 'SQLITE_CANTOPEN' }));
       storage.storage_fns.query(
@@ -273,22 +315,28 @@ describe('storage_fns', () => {
 
   describe('clear', () => {
     it('should execute DELETE FROM table and call back without error', (done) => {
-      const clearStub = sinon.stub().callsFake((sql, c) => c(null));
-      storage.__set__('dbComm', { all: clearStub });
       storage.storage_fns.clear({ type: 'keys' }, (err) => {
         expect(err).to.be.null;
-        expect(clearStub.calledOnce).to.be.true;
-        expect(clearStub.firstCall.args[0]).to.match(/DELETE FROM keys/);
+        // run call #1 = CREATE TABLE, call #2 = DELETE FROM keys
+        expect(dbInstance.run.callCount).to.equal(2);
+        expect(dbInstance.run.secondCall.args[0]).to.match(/DELETE FROM keys/);
+        expect(dbInstance.close.called).to.be.true;
         done();
       });
     });
 
     it('should return SQLITE_ACCESS_ERR when clear fails with SQLITE_READONLY', (done) => {
-      storage.__set__('dbComm', {
-        all: sinon.stub().callsFake((sql, c) => c({ code: 'SQLITE_READONLY' })),
-      });
       storage.storage_fns.clear({ type: 'keys' }, (err) => {
         expect(err).to.equal(SQLITE_ACCESS_ERR);
+        done();
+      });
+      dbInstance.run.onSecondCall().callsFake((sql, c) => c({ code: 'SQLITE_READONLY' }));
+    });
+
+    it('should propagate init error to callback', (done) => {
+      storage.__set__('sqlite3', makeSqlite3({ code: 'SQLITE_CANTOPEN' }));
+      storage.storage_fns.clear({ type: 'keys' }, (err) => {
+        expect(err).to.be.an('error');
         done();
       });
     });
