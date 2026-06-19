@@ -43,7 +43,6 @@
     "commander": "9.1.0",
     "compare-versions": "3.3.0",
     "dotenv": "^16.4.5",
-    "firewall": "0.0.5",
     "getset": "https://github.com/prey/getset",
     "graceful-fs": "4.1.15",
     "https-proxy-agent": "^5.0.0",

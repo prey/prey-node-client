@@ -17,7 +17,9 @@ describe('alarm action', () => {
   let clock;
 
   beforeEach(() => {
-    clock = sinon.useFakeTimers();
+    clock = sinon.useFakeTimers({
+      toFake: ['setTimeout', 'clearTimeout', 'setInterval', 'clearInterval', 'setImmediate', 'clearImmediate', 'Date'],
+    });
 
     // Create a fake child process
     fakeChild = new EventEmitter();
