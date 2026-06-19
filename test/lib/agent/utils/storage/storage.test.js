@@ -107,6 +107,18 @@ describe('storage_fns', () => {
       );
       dbInstance.all.callsFake((sql, c) => c(new Error('DB_ERROR')));
     });
+
+    it('should not crash and close db when dbComm.all returns (null, null)', (done) => {
+      storage.storage_fns.set(
+        { type: 'keys', id: 'testkey', data: { value: 'hello' } },
+        (err, rows) => {
+          expect(dbInstance.close.called).to.be.true;
+          expect(rows).to.deep.equal([]);
+          done();
+        },
+      );
+      dbInstance.all.callsFake((sql, c) => c(null, null));
+    });
   });
 
   // ─── del ────────────────────────────────────────────────────────────────────
