@@ -23,6 +23,14 @@
 
 - Chore: Updated bundled Windows executables: Fenix 1.0.8, WpxSvc 2.0.34, and Updater 1.0.8. ([SoraKenji](https://github.com/SoraKenji))
 
+- Fix: Ensured the SQLite database connection is properly closed after every storage operation (`set`, `del`, `update`, `all`, `query`) and that initialization errors are propagated to callers, preventing connection leaks. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Replaced the `firewall` npm dependency with direct Windows API calls via the new `winsvc` module for managing firewall rules, with multi-level fallback (winsvc HTTP → CLI → PowerShell). Registry `set`/`del` operations also now prefer the Windows API with `reg.exe` fallback. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Registry keys are now cleaned up during full uninstallation (`pre_uninstall`), not only during dedicated cleanup tasks. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Fixed the Windows anchor location storage to perform an upsert (update if already exists) instead of silently failing on duplicate entries. Invalid cached locations are now cleared on load. ([SoraKenji](https://github.com/SoraKenji))
+
 ## [v1.13.35](https://github.com/prey/prey-node-client/tree/v1.13.35) (2026-06-05)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.34..v1.13.35)
 
