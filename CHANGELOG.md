@@ -31,6 +31,24 @@
 
 - Fix: Fixed the Windows anchor location storage to perform an upsert (update if already exists) instead of silently failing on duplicate entries. Invalid cached locations are now cleared on load. ([SoraKenji](https://github.com/SoraKenji))
 
+- Fix: Fixed two connection leak edge cases in the storage layer: `storage_fns.all` and `storage_fns.query` were closing the SQLite connection on the success path but not on error paths. Also fixed a null dereference crash when the underlying `dbComm.all` callback returned `(null, null)`, causing a `TypeError` reading `err.code` on a null value. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Fixed a double-callback and uncaught exception risk in the Wi-Fi geo location strategy: when the server returned HTTP 429 (rate limit), execution fell through to a second `checkResponse` call after the cache-query block completed, and a `catch` block was using `throw` inside an async callback instead of calling back with the error. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Fixed a double-callback during `post_install` on Windows where both `setUpVersion` and `prey_user.create` were invoked with the same `ready` callback, causing it to fire twice. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Fixed the Windows service version cache permanently storing `null` on a failed first attempt, preventing retries when the service binary was not yet present on disk. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Fixed command injection in the `registry.js` `reg.exe` fallback: `path`, `key`, and `value` parameters were unquoted in the shell exec string, allowing values with spaces or metacharacters to break the command or inject additional shell instructions. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Added NaN guards before `process.kill()` calls in `utilinformation.js`, `tasks/os/windows.js`, and `panel/index.js`: a corrupt or empty pidfile returning `NaN` from `parseInt` was passed directly to `process.kill`, causing unpredictable behavior. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Fixed `force_new_config` on Unix silently issuing `kill -9 undefined` when `client_pid` returned an error: a missing `return` caused execution to continue past the error log and schedule the kill command with an undefined PID. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Converted `edr_log.js` to a no-op module, removing synchronous `fs.appendFileSync` disk writes from production code paths. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Improved the hostname JSON guard to apply `.trim()` before checking the first character, preventing bypass when a stored hostname value has leading whitespace. ([SoraKenji](https://github.com/SoraKenji))
+
 ## [v1.13.35](https://github.com/prey/prey-node-client/tree/v1.13.35) (2026-06-05)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.34..v1.13.35)
 
