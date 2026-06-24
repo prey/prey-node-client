@@ -1,5 +1,68 @@
 # Change Log
 
+## [v1.13.36](https://github.com/prey/prey-node-client/tree/v1.13.36) (2026-06-19)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.35..v1.13.36)
+
+- Fix: Fixed an issue where the `X-Prey-Status` HTTP header could contain invalid characters (such as newlines) that violated RFC 7230, causing request failures when device status data included special characters. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Fixed the hostname trigger incorrectly firing a `device_renamed` event when location data (a JSON object) was stored as the hostname value in the local database, causing spurious rename notifications to the control panel. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Fixed edge cases in the Windows lock action where Task Manager windows opened during the lock session were not properly closed on unlock. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Removed an empty registry key created during installation that caused errors with the unattended (silent) installer on Windows. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Upgraded node-forge to 1.4.0 to address CVE-2026-33896 (BasicConstraints bypass vulnerability). ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Upgraded underscore to 1.13.8 to address a Denial of Service vulnerability in the `flatten` function. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Upgraded minimatch to address a ReDoS (Regular Expression Denial of Service) vulnerability (GHSA-3ppc-4f35-3m26). ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Upgraded plist to 3.1.1 to address a CVE in the bundled @xmldom/xmldom dependency. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: New Windows Prey Lock guarding edge cases and solving focus on textbox issues. ([SoraKenji](https://github.com/SoraKenji))
+
+- Chore: Updated bundled Windows executables: Fenix 1.0.8, WpxSvc 2.0.34, and Updater 1.0.8. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Ensured the SQLite database connection is properly closed after every storage operation (`set`, `del`, `update`, `all`, `query`) and that initialization errors are propagated to callers, preventing connection leaks. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Replaced the `firewall` npm dependency with direct Windows API calls via the new `winsvc` module for managing firewall rules, with multi-level fallback (winsvc HTTP → CLI → PowerShell). Registry `set`/`del` operations also now prefer the Windows API with `reg.exe` fallback. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Registry keys are now cleaned up during full uninstallation (`pre_uninstall`), not only during dedicated cleanup tasks. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Fixed the Windows anchor location storage to perform an upsert (update if already exists) instead of silently failing on duplicate entries. Invalid cached locations are now cleared on load. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Fixed two connection leak edge cases in the storage layer: `storage_fns.all` and `storage_fns.query` were closing the SQLite connection on the success path but not on error paths. Also fixed a null dereference crash when the underlying `dbComm.all` callback returned `(null, null)`, causing a `TypeError` reading `err.code` on a null value. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Fixed a double-callback and uncaught exception risk in the Wi-Fi geo location strategy: when the server returned HTTP 429 (rate limit), execution fell through to a second `checkResponse` call after the cache-query block completed, and a `catch` block was using `throw` inside an async callback instead of calling back with the error. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Fixed a double-callback during `post_install` on Windows where both `setUpVersion` and `prey_user.create` were invoked with the same `ready` callback, causing it to fire twice. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Fixed the Windows service version cache permanently storing `null` on a failed first attempt, preventing retries when the service binary was not yet present on disk. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Fixed command injection in the `registry.js` `reg.exe` fallback: `path`, `key`, and `value` parameters were unquoted in the shell exec string, allowing values with spaces or metacharacters to break the command or inject additional shell instructions. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Added NaN guards before `process.kill()` calls in `utilinformation.js`, `tasks/os/windows.js`, and `panel/index.js`: a corrupt or empty pidfile returning `NaN` from `parseInt` was passed directly to `process.kill`, causing unpredictable behavior. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Fixed `force_new_config` on Unix silently issuing `kill -9 undefined` when `client_pid` returned an error: a missing `return` caused execution to continue past the error log and schedule the kill command with an undefined PID. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Converted `edr_log.js` to a no-op module, removing synchronous `fs.appendFileSync` disk writes from production code paths. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Improved the hostname JSON guard to apply `.trim()` before checking the first character, preventing bypass when a stored hostname value has leading whitespace. ([SoraKenji](https://github.com/SoraKenji))
+
+## [v1.13.35](https://github.com/prey/prey-node-client/tree/v1.13.35) (2026-06-05)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.34..v1.13.35)
+
+- Fix: Fixed a crash in the Wi-Fi location strategy where a server-side body error response was incorrectly propagated as a null callback argument, causing callers to receive an undefined result and crash on property access (`lat`, `accuracy`). ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Fixed coordinate validation in the location trigger to accept `lat`/`lng` values returned as strings by the geo provider, parsing and validating them against valid geographic ranges instead of rejecting them outright. ([SoraKenji](https://github.com/SoraKenji))
+
+## [v1.13.34](https://github.com/prey/prey-node-client/tree/v1.13.34) (2026-05-20)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.33..v1.13.34)
+
+- Fix: Fixed a crash in hardware data collection where `os.cpus()` returning an empty array or undefined values in virtualized environments caused an unhandled TypeError. The agent now returns safe defaults instead. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Fixed a crash on Windows where the Wi-Fi location strategy could return coordinates in a raw API format instead of the expected processed format, causing `coords.lng.toString()` to fail. Also fixed a related issue where `lng=0` (prime meridian) was incorrectly treated as a missing value due to use of `||` instead of `??`. ([SoraKenji](https://github.com/SoraKenji))
+
 ## [v1.13.33](https://github.com/prey/prey-node-client/tree/v1.13.33) (2026-05-15)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.32..v1.13.33)
 

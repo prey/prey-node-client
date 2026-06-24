@@ -191,6 +191,32 @@ describe('Geo Strategies - PUT verified location behavior', () => {
       done();
     });
   });
+
+  it('429: returns processed format { lat, lng, accuracy, method } from cached raw API data', (done) => {
+    const rawCachedData = {
+      location: { lat: -33.456, lng: -70.648 },
+      accuracy: 50,
+    };
+
+    needleStub.post
+      .onFirstCall()
+      .callsFake((_url, _data, _opts, cb) => cb(null, { statusCode: 429 }, null));
+
+    storageStub.do.callsFake((_operation, _payload, cb) => {
+      cb(null, [{ value: JSON.stringify(rawCachedData) }]);
+    });
+
+    sendData(accessPoints, (err, result) => {
+      expect(err).to.be.null;
+      expect(result).to.deep.equal({
+        lat: -33.456,
+        lng: -70.648,
+        accuracy: 50,
+        method: 'wifi',
+      });
+      done();
+    });
+  });
 });
 
 describe('Geo Strategies - win32LocationFetch', () => {
@@ -406,6 +432,21 @@ describe('Geo Strategies - win32LocationFetch', () => {
     strategies.win32LocationFetch((err) => {
       expect(err).to.be.an.instanceOf(Error);
       expect(err.message).to.equal('wifi unavailable');
+      done();
+    }, mockTimeout);
+  });
+
+  it('normal: native fails both attempts → wifi returns null result → error propagated', (done) => {
+    historyRows = [{ value: JSON.stringify([santiago]) }];
+    strategies.__set__('win32AnchorLocation', santiago);
+    platformStub.get_location.callsFake((cb) => cb(new Error('native unavailable')));
+    wifiStub.callsFake((cb) => cb(null, null));
+
+    const mockTimeout = (_fn, _delay) => { _fn(); };
+
+    strategies.win32LocationFetch((err) => {
+      expect(err).to.be.an.instanceOf(Error);
+      expect(err.message).to.include('wifi returned no result');
       done();
     }, mockTimeout);
   });
@@ -909,6 +950,39 @@ describe('Geo Strategies - Recovery Mechanism (Option 6)', () => {
     });
   });
 
+  it('telemetry: calibration wifi_crosscheck shows unverified when wifi returns null result', (done) => {
+    historyRows = [{ value: JSON.stringify([santiago]) }];
+    strategies.__set__('win32AnchorLocation', santiago);
+    strategies.__set__('win32NativeOnlyCount', 2);
+
+    platformStub.get_location.callsFake((cb) => cb(null, { ...santiagoNear, accuracy: 55 }));
+    platformStub.getLastPositionSource.returns('unknown');
+    wifiStub.callsFake((cb) => cb(null, null));
+
+    let capturedTelemetry = null;
+    const needleStub2 = {
+      post: sinon.stub().callsFake((_url, payload, _opts, cb) => {
+        if (payload.event === 'location.wifi_crosscheck' && payload.trigger === 'calibration') {
+          capturedTelemetry = payload;
+        }
+        if (cb) cb(null);
+      }),
+      put: sinon.stub(),
+      get: sinon.stub(),
+    };
+    strategies.__set__('needle', needleStub2);
+
+    strategies.win32LocationFetch((err) => {
+      expect(err).to.be.null;
+      expect(capturedTelemetry).to.not.be.null;
+      expect(capturedTelemetry.trigger).to.equal('calibration');
+      expect(capturedTelemetry.outcome).to.equal('unverified');
+      expect(capturedTelemetry.wifi_accuracy_m).to.be.null;
+      expect(capturedTelemetry.native_wifi_delta_m).to.be.null;
+      done();
+    });
+  });
+
   it('telemetry: calibration wifi_crosscheck shows unverified when wifi fails', (done) => {
     historyRows = [{ value: JSON.stringify([santiago]) }];
     strategies.__set__('win32AnchorLocation', santiago);
@@ -956,6 +1030,35 @@ describe('Geo Strategies - Recovery Mechanism (Option 6)', () => {
         lat: -33.456, lng: -70.648, accuracy: 25, method: 'wifi',
       });
       expect(storageStub.do.called).to.be.false;
+      done();
+    });
+  });
+
+  it('processResponse: handles lng=0 correctly (prime meridian, not treated as falsy)', (done) => {
+    const processResponse = strategies.__get__('processResponse');
+    const coords = {
+      location: { lat: 51.476, lng: 0 },
+      accuracy: 100,
+    };
+
+    processResponse(coords, (err, result) => {
+      expect(err).to.be.null;
+      expect(result.lat).to.equal(51.476);
+      expect(result.lng).to.equal(0);
+      expect(result.method).to.equal('wifi');
+      done();
+    });
+  });
+
+  it('processResponse: returns error when lng is missing (prevents undefined crash)', (done) => {
+    const processResponse = strategies.__get__('processResponse');
+    const coords = {
+      location: { lat: -33.456 },
+      accuracy: 25,
+    };
+
+    processResponse(coords, (err) => {
+      expect(err).to.be.an.instanceOf(Error);
       done();
     });
   });

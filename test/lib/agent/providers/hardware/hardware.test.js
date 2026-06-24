@@ -1,5 +1,6 @@
 /* eslint-disable no-unused-expressions */
 /* eslint-disable no-undef */
+const os = require('node:os');
 const sinon = require('sinon');
 const { expect } = require('chai');
 const exp = require('../../../../../lib/agent/providers/hardware');
@@ -130,6 +131,67 @@ describe('Hardware_Provider', () => {
       exp.compareField(hardware1.winsvc_version, hardware2.winsvc_version);
       expect(exp.diffCount).to.be.equal(1);
       done();
+    });
+  });
+
+  describe('get_processor_info', () => {
+    let cpusStub;
+
+    afterEach(() => {
+      if (cpusStub) {
+        cpusStub.restore();
+        cpusStub = null;
+      }
+    });
+
+    it('should return correct info with valid cpu data', (done) => {
+      cpusStub = sinon.stub(os, 'cpus').returns([
+        { model: '  Intel Core i7  ', speed: 2400, times: {} },
+        { model: '  Intel Core i7  ', speed: 2400, times: {} },
+      ]);
+      exp.get_processor_info((err, info) => {
+        expect(err).to.be.null;
+        expect(info).to.deep.equal({ model: 'Intel Core i7', speed: 2400, cores: 2 });
+        done();
+      });
+    });
+
+    it('should return defaults when os.cpus() returns empty array', (done) => {
+      cpusStub = sinon.stub(os, 'cpus').returns([]);
+      exp.get_processor_info((err, info) => {
+        expect(err).to.be.null;
+        expect(info).to.deep.equal({ model: '', speed: 0, cores: 0 });
+        done();
+      });
+    });
+
+    it('should return defaults when os.cpus() returns null', (done) => {
+      cpusStub = sinon.stub(os, 'cpus').returns(null);
+      exp.get_processor_info((err, info) => {
+        expect(err).to.be.null;
+        expect(info).to.deep.equal({ model: '', speed: 0, cores: 0 });
+        done();
+      });
+    });
+
+    it('should return empty model when cpus[0].model is undefined', (done) => {
+      cpusStub = sinon.stub(os, 'cpus').returns([{ model: undefined, speed: 3000, times: {} }]);
+      exp.get_processor_info((err, info) => {
+        expect(err).to.be.null;
+        expect(info.model).to.equal('');
+        expect(info.speed).to.equal(3000);
+        done();
+      });
+    });
+
+    it('should return 0 speed when cpus[0].speed is undefined', (done) => {
+      cpusStub = sinon.stub(os, 'cpus').returns([{ model: 'Intel Core i5', speed: undefined, times: {} }]);
+      exp.get_processor_info((err, info) => {
+        expect(err).to.be.null;
+        expect(info.model).to.equal('Intel Core i5');
+        expect(info.speed).to.equal(0);
+        done();
+      });
     });
   });
 });
