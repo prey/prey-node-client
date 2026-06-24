@@ -28,6 +28,9 @@ describe('Switcher Module', () => {
     // Stub exec
     execStub = sinon.stub();
     switcherRewired.__set__('exec', execStub);
+
+    // Default: not sudo-rs. Individual tests can override this.
+    switcherRewired.__set__('isSudoRs', (cb) => cb(false));
   });
 
   afterEach(() => {
@@ -280,6 +283,91 @@ describe('Switcher Module', () => {
       createNewFile([], (err) => {
         expect(err).to.be.instanceOf(Error);
         expect(err.message).to.include('Failed to create sudoers file');
+        done();
+      });
+    });
+
+    it('should use wrapper path instead of su wildcard when sudo-rs is detected', (done) => {
+      switcherRewired.__set__('isSudoRs', (cb) => cb(true));
+      fsAccessStub.callsFake((path, mode, cb) => {
+        cb(new Error('ENOENT'));
+      });
+
+      let capturedCmd = '';
+      execStub.withArgs('mkdir -p /etc/sudoers.d').callsFake((cmd, opts, cb) => {
+        cb(null);
+      });
+      execStub.withArgs(sinon.match(/grep -q/)).callsFake((cmd, opts, cb) => {
+        cb(null);
+      });
+      execStub.withArgs(sinon.match(/umask.*echo/)).callsFake((cmd, opts, cb) => {
+        capturedCmd = cmd;
+        cb(null);
+      });
+
+      const createNewFile = switcherRewired.__get__('createNewFile');
+      createNewFile(['/usr/sbin/iwlist', '/usr/bin/nmcli'], (err, created) => {
+        expect(err).to.be.null;
+        expect(created).to.be.true;
+        expect(capturedCmd).to.include('prey-su');
+        expect(capturedCmd).to.not.include('[A-z]');
+        expect(capturedCmd).to.not.include('!/usr/bin/su');
+        done();
+      });
+    });
+
+    it('should include wrapper even with no additional commands when sudo-rs is detected', (done) => {
+      switcherRewired.__set__('isSudoRs', (cb) => cb(true));
+      fsAccessStub.callsFake((path, mode, cb) => {
+        cb(new Error('ENOENT'));
+      });
+
+      let capturedCmd = '';
+      execStub.withArgs('mkdir -p /etc/sudoers.d').callsFake((cmd, opts, cb) => {
+        cb(null);
+      });
+      execStub.withArgs(sinon.match(/grep -q/)).callsFake((cmd, opts, cb) => {
+        cb(null);
+      });
+      execStub.withArgs(sinon.match(/umask.*echo/)).callsFake((cmd, opts, cb) => {
+        capturedCmd = cmd;
+        cb(null);
+      });
+
+      const createNewFile = switcherRewired.__get__('createNewFile');
+      createNewFile([], (err, created) => {
+        expect(err).to.be.null;
+        expect(created).to.be.true;
+        expect(capturedCmd).to.include('prey-su');
+        done();
+      });
+    });
+
+    it('should include su wildcard entries when traditional sudo is in use', (done) => {
+      switcherRewired.__set__('isSudoRs', (cb) => cb(false));
+      fsAccessStub.callsFake((path, mode, cb) => {
+        cb(new Error('ENOENT'));
+      });
+
+      let capturedCmd = '';
+      execStub.withArgs('mkdir -p /etc/sudoers.d').callsFake((cmd, opts, cb) => {
+        cb(null);
+      });
+      execStub.withArgs(sinon.match(/grep -q/)).callsFake((cmd, opts, cb) => {
+        cb(null);
+      });
+      execStub.withArgs(sinon.match(/umask.*echo/)).callsFake((cmd, opts, cb) => {
+        capturedCmd = cmd;
+        cb(null);
+      });
+
+      const createNewFile = switcherRewired.__get__('createNewFile');
+      createNewFile(['/usr/bin/nmcli'], (err, created) => {
+        expect(err).to.be.null;
+        expect(created).to.be.true;
+        expect(capturedCmd).to.include('/usr/bin/su [A-z]*');
+        expect(capturedCmd).to.include('!/usr/bin/su root*');
+        expect(capturedCmd).to.include('!/usr/bin/su -*');
         done();
       });
     });

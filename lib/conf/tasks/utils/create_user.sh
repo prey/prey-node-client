@@ -12,8 +12,20 @@ FULL_NAME="Prey Anti-Theft"
 
 SU_CMD=$(command -v su) || SU_CMD="/bin/su"
 
+# Detect sudo-rs (Ubuntu 26+), which doesn't support wildcards in sudoers command arguments.
+# On such systems, use the prey-su wrapper script instead of the 'su [A-z]*' wildcard entries.
+sudo -V 2>&1 | grep -qi "sudo-rs" && SUDO_RS=true || SUDO_RS=false
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PREY_ROOT="$(cd "$SCRIPT_DIR/../../../.." && pwd)"
+PREY_SU_WRAPPER="$PREY_ROOT/lib/system/linux/prey-su"
+
 # With SUDOERS_FILE user will be able to run commands as other users except root
-SUDOERS_ARGS="${SU_CMD} [A-z]*, !${SU_CMD} root*, !${SU_CMD} -*"
+if [ "$SUDO_RS" = "true" ]; then
+  SUDOERS_ARGS="$PREY_SU_WRAPPER"
+else
+  SUDOERS_ARGS="${SU_CMD} [A-z]*, !${SU_CMD} root*, !${SU_CMD} -*"
+fi
 SUDOERS_FILE_50="/etc/sudoers.d/50_${USER_NAME}_switcher"
 SUDOERS_FILE_51="/etc/sudoers.d/51_${USER_NAME}_switcher"
 SUDOERS_FILE_52="/etc/sudoers.d/52_${USER_NAME}_switcher" # New version for macOS
@@ -25,9 +37,15 @@ USERS_PATH_MAC="/Users"
 if [ "$(uname)" == "Linux" ]; then
   USERS_PATH="/home"
   SUDOERS_FILE="$SUDOERS_FILE_51"
-  [ -n "$(which dmidecode)" ] && SUDOERS_ARGS="$(which dmidecode), ${SUDOERS_ARGS}"
-  [ -n "$(which iwlist)" ] && SUDOERS_ARGS="$(which iwlist), ${SUDOERS_ARGS}"
-  [ -n "$(which nmcli)" ] && SUDOERS_ARGS="$(which nmcli), ${SUDOERS_ARGS}"
+  if [ -n "$(which dmidecode)" ]; then
+    SUDOERS_ARGS="$(which dmidecode), ${SUDOERS_ARGS}"
+  fi
+  if [ -n "$(which iwlist)" ]; then
+    SUDOERS_ARGS="$(which iwlist), ${SUDOERS_ARGS}"
+  fi
+  if [ -n "$(which nmcli)" ]; then
+    SUDOERS_ARGS="$(which nmcli), ${SUDOERS_ARGS}"
+  fi
   # for security reasons, Prey user shouldn't have a login shell defined
   # also, since nologin path changes between linux distros, lets use /bin/false instead
   SHELL="/bin/false"
@@ -127,6 +145,11 @@ grant_privileges() {
   if [ -f "$SUDOERS_FILE" ]; then
     remove_old_files
     echo "${USER_NAME} already seems to have impersonation privileges. Skipping..."
+    return 0
+  fi
+
+  if [ -z "$SUDOERS_ARGS" ]; then
+    echo "Warning: No sudoers commands to configure. Skipping sudoers file creation."
     return 0
   fi
 
