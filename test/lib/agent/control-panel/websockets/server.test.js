@@ -46,6 +46,26 @@ describe('server.js test function', () => {
       serverRewired.check_service(cbStub);
       expect(cbStub.calledWith(true)).to.be.true;
     });
+
+    it('should return false and not throw when get_winsvc_version throws EROFS', () => {
+      serverRewired.osName = 'windows';
+      serverRewired.requireSysWin = sinon.stub();
+      serverRewired.sysWin = {
+        get_winsvc_version: sinon.stub().throws(Object.assign(new Error('spawn EROFS'), { code: 'EROFS' })),
+      };
+      expect(() => serverRewired.check_service(cbStub)).not.to.throw();
+      expect(cbStub.calledWith(false)).to.be.true;
+    });
+
+    it('should return false and not throw when get_winsvc_version throws EPERM', () => {
+      serverRewired.osName = 'windows';
+      serverRewired.requireSysWin = sinon.stub();
+      serverRewired.sysWin = {
+        get_winsvc_version: sinon.stub().throws(Object.assign(new Error('spawn EPERM'), { code: 'EPERM' })),
+      };
+      expect(() => serverRewired.check_service(cbStub)).not.to.throw();
+      expect(cbStub.calledWith(false)).to.be.true;
+    });
   });
 
   describe('checkServerDown function', () => {
