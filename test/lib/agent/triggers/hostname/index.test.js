@@ -176,6 +176,49 @@ describe('Hostname Trigger', () => {
     });
   });
 
+  describe('start — synchronous spawn error (spawn EPERM)', () => {
+    it('should catch synchronous EPERM throw from triggers.watch and fall back to polling', (done) => {
+      triggersStub.watch.throws(new Error('spawn EPERM'));
+      providersStub.get.callsFake((name, cb) => cb(null, 'my-host'));
+      storageStub.do.callsFake((op, opts, cb) => cb(null, []));
+
+      hostnameRewired.start({}, (err, emitter) => {
+        expect(err).to.be.null;
+        expect(emitter).to.be.an.instanceof(EventEmitter);
+        expect(loggerStub.warn.calledWith(sinon.match('Failed to spawn OS trigger process'))).to.be.true;
+        expect(loggerStub.warn.calledWith(sinon.match('Falling back to polling'))).to.be.true;
+        done();
+      });
+
+      clock.tick(1000);
+    });
+
+    it('should not throw an unhandled exception when spawn fails with EPERM', (done) => {
+      triggersStub.watch.throws(new Error('spawn EPERM'));
+      providersStub.get.callsFake((name, cb) => cb(null, 'my-host'));
+      storageStub.do.callsFake((op, opts, cb) => cb(null, []));
+
+      expect(() => {
+        hostnameRewired.start({}, () => { done(); });
+        clock.tick(1000);
+      }).to.not.throw();
+    });
+
+    it('should set poll_timer after EPERM spawn failure', (done) => {
+      triggersStub.watch.throws(new Error('spawn EPERM'));
+      providersStub.get.callsFake((name, cb) => cb(null, 'my-host'));
+      storageStub.do.callsFake((op, opts, cb) => cb(null, []));
+
+      hostnameRewired.start({}, () => {
+        const pollTimer = hostnameRewired.__get__('poll_timer');
+        expect(pollTimer).to.not.be.null;
+        done();
+      });
+
+      clock.tick(1000);
+    });
+  });
+
   describe('stop', () => {
     it('should clear poll_timer when polling fallback is active', (done) => {
       triggersStub.watch.throws(new Error('spawn UNKNOWN'));
