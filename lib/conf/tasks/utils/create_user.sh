@@ -142,6 +142,15 @@ remove_old_files() {
 }
 
 grant_privileges() {
+  # On sudo-rs systems: if existing sudoers file has incompatible wildcard entries,
+  # remove it now (runs as root via installer, no sudo needed) so it gets recreated below.
+  if [ "$SUDO_RS" = "true" ] && [ -f "$SUDOERS_FILE" ]; then
+    if grep -qF '[A-z]*' "$SUDOERS_FILE" 2>/dev/null; then
+      echo "sudo-rs: removing sudoers file with incompatible wildcard entries"
+      rm -f "$SUDOERS_FILE"
+    fi
+  fi
+
   if [ -f "$SUDOERS_FILE" ]; then
     remove_old_files
     echo "${USER_NAME} already seems to have impersonation privileges. Skipping..."
