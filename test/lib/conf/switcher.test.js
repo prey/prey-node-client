@@ -9,6 +9,7 @@ const { exec } = require('child_process');
 describe('Switcher Module', () => {
   let switcherRewired;
   let fsAccessStub;
+  let fsReadFileStub;
   let execStub;
   let sharedLogStub;
   let hadGetuid;
@@ -22,8 +23,9 @@ describe('Switcher Module', () => {
       log: sharedLogStub,
     });
 
-    // Stub fs.access
+    // Stub fs.access and fs.readFile
     fsAccessStub = sinon.stub(fs, 'access');
+    fsReadFileStub = sinon.stub(fs, 'readFile');
 
     // Stub exec
     execStub = sinon.stub();
@@ -394,6 +396,72 @@ describe('Switcher Module', () => {
         expect(err).to.be.null;
         expect(created).to.be.true;
         expect(sharedLogStub.calledWith(sinon.match(/Warning/))).to.be.true;
+        done();
+      });
+    });
+  });
+
+  describe('migrateWildcardFile', () => {
+    it('should remove v51 file on sudo-rs when it contains wildcard entries', (done) => {
+      switcherRewired.__set__('isSudoRs', (cb) => cb(true));
+      fsAccessStub.callsFake((filePath, mode, cb) => cb(null)); // file exists
+      fsReadFileStub.callsFake((filePath, enc, cb) => cb(null, 'prey ALL=(ALL) NOPASSWD: /usr/bin/su [A-z]*, !/usr/bin/su root*'));
+      execStub.withArgs(sinon.match(/rm -rf.*51_prey_switcher/)).callsFake((cmd, opts, cb) => cb(null));
+
+      const migrateWildcardFile = switcherRewired.__get__('migrateWildcardFile');
+      migrateWildcardFile((err) => {
+        expect(err).to.be.null;
+        expect(execStub.calledWith(sinon.match(/rm -rf.*51_prey_switcher/))).to.be.true;
+        done();
+      });
+    });
+
+    it('should skip removal on sudo-rs when file has no wildcards (already migrated)', (done) => {
+      switcherRewired.__set__('isSudoRs', (cb) => cb(true));
+      fsAccessStub.callsFake((filePath, mode, cb) => cb(null)); // file exists
+      fsReadFileStub.callsFake((filePath, enc, cb) => cb(null, 'prey ALL=(ALL) NOPASSWD: /path/to/prey-su'));
+
+      const migrateWildcardFile = switcherRewired.__get__('migrateWildcardFile');
+      migrateWildcardFile((err) => {
+        expect(err).to.be.null;
+        expect(execStub.called).to.be.false;
+        done();
+      });
+    });
+
+    it('should skip on traditional sudo even if file has wildcards', (done) => {
+      switcherRewired.__set__('isSudoRs', (cb) => cb(false));
+
+      const migrateWildcardFile = switcherRewired.__get__('migrateWildcardFile');
+      migrateWildcardFile((err) => {
+        expect(err).to.be.null;
+        expect(execStub.called).to.be.false;
+        done();
+      });
+    });
+
+    it('should skip when v51 file does not exist', (done) => {
+      switcherRewired.__set__('isSudoRs', (cb) => cb(true));
+      fsAccessStub.callsFake((filePath, mode, cb) => cb(new Error('ENOENT')));
+
+      const migrateWildcardFile = switcherRewired.__get__('migrateWildcardFile');
+      migrateWildcardFile((err) => {
+        expect(err).to.be.null;
+        expect(execStub.called).to.be.false;
+        done();
+      });
+    });
+
+    it('should return error if rm fails', (done) => {
+      switcherRewired.__set__('isSudoRs', (cb) => cb(true));
+      fsAccessStub.callsFake((filePath, mode, cb) => cb(null)); // file exists
+      fsReadFileStub.callsFake((filePath, enc, cb) => cb(null, 'prey ALL=(ALL) NOPASSWD: /usr/bin/su [A-z]*'));
+      execStub.withArgs(sinon.match(/rm -rf/)).callsFake((cmd, opts, cb) => cb(new Error('Permission denied')));
+
+      const migrateWildcardFile = switcherRewired.__get__('migrateWildcardFile');
+      migrateWildcardFile((err) => {
+        expect(err).to.be.instanceOf(Error);
+        expect(err.message).to.include('Failed to remove incompatible sudoers file');
         done();
       });
     });
