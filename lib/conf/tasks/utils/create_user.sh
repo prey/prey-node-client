@@ -17,8 +17,9 @@ SU_CMD=$(command -v su) || SU_CMD="/bin/su"
 sudo -V 2>&1 | grep -qi "sudo-rs" && SUDO_RS=true || SUDO_RS=false
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PREY_ROOT="$(cd "$SCRIPT_DIR/../../../.." && pwd)"
-PREY_SU_WRAPPER="$PREY_ROOT/lib/system/linux/prey-su"
+PREY_ROOT="$(cd "$SCRIPT_DIR/../../../.." && pwd)"      # /usr/local/lib/prey/versions/x.y.z
+PREY_INSTALL="$(cd "$PREY_ROOT/../.." && pwd)"          # /usr/local/lib/prey
+PREY_SU_WRAPPER="$PREY_INSTALL/current/lib/system/linux/prey-su"
 
 # With SUDOERS_FILE user will be able to run commands as other users except root
 if [ "$SUDO_RS" = "true" ]; then
@@ -30,7 +31,7 @@ SUDOERS_FILE_50="/etc/sudoers.d/50_${USER_NAME}_switcher"
 SUDOERS_FILE_51="/etc/sudoers.d/51_${USER_NAME}_switcher"
 SUDOERS_FILE_52="/etc/sudoers.d/52_${USER_NAME}_switcher" # New version for macOS
 AIRPORT_CMD="/System/Library/PrivateFrameworks/Apple80211.framework/Versions/Current/Resources/airport"
-TRINITY_CMD="/usr/local/lib/prey/current/bin/trinity"
+TRINITY_CMD="$PREY_INSTALL/current/bin/trinity"
 SHELL_MAC="/sbin/nologin"
 USERS_PATH_MAC="/Users"
 
