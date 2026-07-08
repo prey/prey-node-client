@@ -1,5 +1,22 @@
 # Change Log
 
+## [v1.13.37](https://github.com/prey/prey-node-client/tree/v1.13.37) (2026-07-08)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.36..v1.13.37)
+
+- Feat: Added daily rate limiting to exception sends: a global cap of 50 exceptions/day and a per-error cap of 3/day prevent flooding the exception server. Counters are persisted to SQLite so limits survive agent restarts, reset automatically at UTC midnight, and are configurable from the backend via `exceptions_daily_limit` and `exceptions_per_error_limit`. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Fixed a re-entrancy window in the exception quota loader where two concurrent sends arriving while the SQLite read was in-flight could both see `total=0` and bypass the daily limit. The DB callback now reuses an already-populated in-memory quota instead of overwriting it. Also added type sanitization so a corrupted non-numeric `total` value in SQLite cannot permanently disable the rate limit. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Added EPIPE and EIO error handling to the shared configuration log stream. Synchronous throws from `stream.write()` are now caught and the stream is switched to a file fallback (`<tmpdir>/prey-config.log`); asynchronous EPIPE events emitted by stdout (e.g. when the parent process closes the pipe during an agent upgrade) are handled via a `once('error')` listener. The previous stream is properly destroyed before the fallback is opened. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Fixed the switcher sudoers update flow on sudo-rs systems (Ubuntu 26+): `migrateWildcardFile` errors are now logged as warnings instead of aborting the update, ensuring `createNewFile` always runs and the sudoers entry is never left absent. Added an existence check for the `prey-su` wrapper before writing a sudoers entry that depends on it, reporting a clear error if the wrapper is missing. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Handled synchronous spawn errors (EROFS, EPERM) in `get_winsvc_version` on Windows: `exec()` is now wrapped in a try-catch so filesystem-level errors during binary spawn degrade gracefully to `callback(null, null)` instead of propagating as unhandled exceptions. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Added test coverage for synchronous spawn errors (UNKNOWN, EPERM) in the hostname trigger on Windows, confirming the existing try-catch correctly prevents unhandled exceptions and falls back to poll-based hostname monitoring. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Fixed sudoers wildcard incompatibility with sudo-rs (Ubuntu 26+): introduced a `prey-su` wrapper script that validates usernames before calling `su`, replacing the `su [A-z]*` wildcard entry that sudo-rs rejects. The switcher detects sudo-rs via `sudo -V` and writes the wrapper path instead of the wildcard. ([SoraKenji](https://github.com/SoraKenji))
+
 ## [v1.13.36](https://github.com/prey/prey-node-client/tree/v1.13.36) (2026-06-19)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.35..v1.13.36)
 
