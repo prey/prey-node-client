@@ -1,0 +1,19 @@
+#!/bin/bash
+# prey-su: wrapper for su impersonation on sudo-rs systems (Ubuntu 26+)
+# Replaces the wildcard sudoers entry 'su [A-z]*' with explicit argument validation.
+# Must be owned by root:root and not writable by the prey user.
+set -e
+USERNAME="$1"
+shift
+
+# Mirror original sudoers restrictions:
+#   '!su root*' -> block root and any root-prefixed username
+#   '!su -*'    -> block option-style arguments (e.g. -l, --login)
+case "$USERNAME" in
+  root* | "" | -*)
+    echo "prey-su: disallowed username" >&2
+    exit 1
+    ;;
+esac
+
+exec su "$USERNAME" "$@"
