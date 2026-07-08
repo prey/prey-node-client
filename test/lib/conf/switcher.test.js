@@ -416,15 +416,14 @@ describe('Switcher Module', () => {
       });
     });
 
-    it('should skip removal on sudo-rs when file has no wildcards (already migrated)', (done) => {
+    it('should remove v51 file on sudo-rs even when it has no wildcards (unconditional migration)', (done) => {
       switcherRewired.__set__('isSudoRs', (cb) => cb(true));
-      fsAccessStub.callsFake((filePath, mode, cb) => cb(null)); // file exists
-      fsReadFileStub.callsFake((filePath, enc, cb) => cb(null, 'prey ALL=(ALL) NOPASSWD: /path/to/prey-su'));
+      execStub.withArgs(sinon.match(/rm -rf.*51_prey_switcher/)).callsFake((cmd, opts, cb) => cb(null));
 
       const migrateWildcardFile = switcherRewired.__get__('migrateWildcardFile');
       migrateWildcardFile((err) => {
         expect(err).to.be.null;
-        expect(execStub.called).to.be.false;
+        expect(execStub.calledWith(sinon.match(/rm -rf.*51_prey_switcher/))).to.be.true;
         done();
       });
     });
@@ -440,14 +439,14 @@ describe('Switcher Module', () => {
       });
     });
 
-    it('should skip when v51 file does not exist', (done) => {
+    it('should attempt removal on sudo-rs even when v51 file does not exist (rm -rf is idempotent)', (done) => {
       switcherRewired.__set__('isSudoRs', (cb) => cb(true));
-      fsAccessStub.callsFake((filePath, mode, cb) => cb(new Error('ENOENT')));
+      execStub.withArgs(sinon.match(/rm -rf.*51_prey_switcher/)).callsFake((cmd, opts, cb) => cb(null));
 
       const migrateWildcardFile = switcherRewired.__get__('migrateWildcardFile');
       migrateWildcardFile((err) => {
         expect(err).to.be.null;
-        expect(execStub.called).to.be.false;
+        expect(execStub.calledWith(sinon.match(/rm -rf.*51_prey_switcher/))).to.be.true;
         done();
       });
     });
@@ -591,6 +590,41 @@ describe('Switcher Module', () => {
       switcherRewired.update((err) => {
         expect(err).to.be.instanceOf(Error);
         expect(err.message).to.equal('Create failed');
+        done();
+      });
+    });
+
+    it('should log warning and still call createNewFile when migrateWildcardFile fails', (done) => {
+      const getAdditionalCommandsStub = sinon.stub().callsFake((cb) => {
+        cb([]);
+      });
+      switcherRewired.__set__('getAdditionalCommands', getAdditionalCommandsStub);
+
+      const removeOldFileStub = sinon.stub().callsFake((cb) => {
+        cb(null);
+      });
+      switcherRewired.__set__('removeOldFile', removeOldFileStub);
+
+      const migrateWildcardFileStub = sinon.stub().callsFake((cb) => {
+        cb(new Error('Permission denied'));
+      });
+      switcherRewired.__set__('migrateWildcardFile', migrateWildcardFileStub);
+
+      const createNewFileStub = sinon.stub().callsFake((commands, cb) => {
+        cb(null, true);
+      });
+      switcherRewired.__set__('createNewFile', createNewFileStub);
+
+      const testImpersonationStub = sinon.stub().callsFake((cb) => {
+        cb(null);
+      });
+      switcherRewired.__set__('testImpersonation', testImpersonationStub);
+
+      switcherRewired.update((err, message) => {
+        expect(err).to.be.null;
+        expect(message).to.include('updated successfully');
+        expect(createNewFileStub.called).to.be.true;
+        expect(sharedLogStub.calledWith(sinon.match(/WARNING.*could not remove/))).to.be.true;
         done();
       });
     });
