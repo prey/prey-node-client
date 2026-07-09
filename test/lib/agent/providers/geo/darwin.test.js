@@ -91,7 +91,50 @@ describe('Geo Darwin Native Provider', () => {
         expect(res.lng).to.equal(-56.78);
         expect(socketStub.writeMessage.calledOnce).to.be.true;
         expect(socketStub.writeMessage.firstCall.args[0]).to.equal(nameArray[0]);
+        expect(socketStub.writeMessage.firstCall.args[2]).to.equal(65000);
         done();
+      });
+    });
+
+    it('should dedupe concurrent calls into a single in-flight socket request', (done) => {
+      systemStub.get_os_version.callsFake((cb) => cb(null, '13.0.0'));
+      configutilStub.getDataDbKey.callsFake((_key, cb) => cb(null, [{ value: JSON.stringify({ location: 'false' }) }]));
+
+      let socketCallback;
+      socketStub.writeMessage.callsFake((_name, cb) => { socketCallback = cb; });
+
+      let firstResult;
+      let secondResult;
+
+      const finish = (err) => {
+        expect(err).to.be.null;
+        if (firstResult && secondResult) {
+          expect(firstResult).to.deep.equal(secondResult);
+          expect(socketStub.writeMessage.calledOnce).to.be.true;
+          done();
+        }
+      };
+
+      darwinGeo.get_location((err, res) => { firstResult = res; finish(err); });
+      darwinGeo.get_location((err, res) => { secondResult = res; finish(err); });
+
+      // Both calls reached callSocket synchronously (the stubs above call back
+      // synchronously), so only one native request should have gone out.
+      expect(socketStub.writeMessage.calledOnce).to.be.true;
+
+      socketCallback(null, getSocketPayload());
+    });
+
+    it('should issue a new socket request once the in-flight one has resolved', (done) => {
+      systemStub.get_os_version.callsFake((cb) => cb(null, '13.0.0'));
+      configutilStub.getDataDbKey.callsFake((_key, cb) => cb(null, [{ value: JSON.stringify({ location: 'false' }) }]));
+      socketStub.writeMessage.callsFake((_name, cb) => cb(null, getSocketPayload()));
+
+      darwinGeo.get_location(() => {
+        darwinGeo.get_location(() => {
+          expect(socketStub.writeMessage.calledTwice).to.be.true;
+          done();
+        });
       });
     });
 
