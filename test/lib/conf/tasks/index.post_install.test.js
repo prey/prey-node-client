@@ -50,6 +50,7 @@ describe('tasks.post_install orchestration', () => {
       mkdir: sinon.stub().callsFake((dir, cb) => cb()),
     });
     // Stub setUpVersion (Windows-only branch) so it doesn't invoke ready
+    tasks.__set__('isWindows', false);
     tasks.__set__('setUpVersion', sinon.stub());
   });
 
