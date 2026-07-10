@@ -17,6 +17,14 @@
 
 - Fix: Fixed sudoers wildcard incompatibility with sudo-rs (Ubuntu 26+): introduced a `prey-su` wrapper script that validates usernames before calling `su`, replacing the `su [A-z]*` wildcard entry that sudo-rs rejects. The switcher detects sudo-rs via `sudo -V` and writes the wrapper path instead of the wildcard. ([SoraKenji](https://github.com/SoraKenji))
 
+- Fix: Fixed three macOS owl daemon setup bugs: `activeWatcher` silently dropped its callback when `create_watcher` failed, leaving `post_install` unaware that the daemon was never configured; `testExistingConfigurations` ran the upgrade and fresh-install branches concurrently during upgrades, causing the completion callback to fire before `launchctl load` finished and leaving `prey.sock` unavailable when the agent needed it; `trigger_set_watcher` treated a missing `prey-user` binary in `current/bin` as a fatal error instead of falling back to `testExistingConfigurations`. Installation progress is now also logged to `/tmp/installation_prey.log` across `prey_owl.js`, `index.js`, and `daemon.js` for easier diagnosis. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Fixed two race conditions in the macOS native location path that could permanently wedge CLLocationManager's WifiLoc provider until `locationd` restarted: `callSocket()` used the default 7s socket timeout for an operation that legitimately takes 30–60s, causing a fallback to a second independent `Prey.app -location` process while the first was still in flight; the location trigger fired an unconditional `forceLocation()` at startup alongside a 10s-delayed client-start fetch, creating a race on every agent start. The native-location socket timeout is now raised to match `macsvc`'s ~60s ceiling, concurrent callers are deduplicated onto a single in-flight request, and the startup `forceLocation()` call is staggered as defense in depth. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Updated the bundled `prey-user` (macsvc) binary to v1.0.10 to fix native location retrieval failing on macOS. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Fixed `doLoadDaemon` in `prey_owl.js` silently discarding a binary copy failure when `launchctl load` subsequently succeeded: `done(errorLoad || null)` is now `done(copyError || errorLoad || null)`, propagating the copy error to the caller. Also replaced a non-rewireable `process.platform == 'win32'` inline check in `post_install` with the module-level `isWindows` variable (consistent with `pre_uninstall`), which caused the 11 `post_install` orchestration tests to hang indefinitely on Windows developer machines. ([SoraKenji](https://github.com/SoraKenji))
+
 ## [v1.13.36](https://github.com/prey/prey-node-client/tree/v1.13.36) (2026-06-19)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.35..v1.13.36)
 
