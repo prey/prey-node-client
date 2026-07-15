@@ -166,6 +166,18 @@ describe('Geo Darwin Native Provider', () => {
         done();
       });
     });
+
+    it('should not throw when cb is not a function (version not supported path)', () => {
+      systemStub.get_os_version.callsFake((cb) => cb(null, '10.5.0'));
+      expect(() => darwinGeo.get_location(null)).to.not.throw();
+      expect(() => darwinGeo.get_location(undefined)).to.not.throw();
+    });
+
+    it('should not throw when cb is not a function (skipped permission path)', () => {
+      systemStub.get_os_version.callsFake((cb) => cb(null, '10.6.0'));
+      configutilStub.getDataDbKey.callsFake((_key, cb) => cb(null, [{ value: JSON.stringify({ location: 'true' }) }]));
+      expect(() => darwinGeo.get_location(null)).to.not.throw();
+    });
   });
 
   describe('askLocationNativePermission', () => {
@@ -191,6 +203,17 @@ describe('Geo Darwin Native Provider', () => {
         expect(err.message).to.equal('permission request failed');
         done();
       });
+    });
+
+    it('should not throw when cb is not a function on socket error', () => {
+      socketStub.writeMessage.callsFake((_name, cb) => cb(new Error('socket failed')));
+      expect(() => darwinGeo.askLocationNativePermission(null)).to.not.throw();
+      expect(() => darwinGeo.askLocationNativePermission(undefined)).to.not.throw();
+    });
+
+    it('should not throw when cb is not a function on socket success', () => {
+      socketStub.writeMessage.callsFake((_name, cb) => cb(null, {}));
+      expect(() => darwinGeo.askLocationNativePermission(null)).to.not.throw();
     });
   });
 });
