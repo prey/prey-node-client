@@ -114,6 +114,7 @@
     "exit": true
   },
   "scripts": {
+    "prepare": "git config core.hooksPath .githooks || true",
     "start": "./bin/prey",
     "test": "nyc --reporter=text --reporter=html mocha --exit './test/**/*.test.js'",
     "test-sf": "mocha --exit './test/**/*.test.js'",

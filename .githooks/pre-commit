@@ -1,5 +1,3 @@
-#!/bin/sh
-@@ -0,0 +1,22 @@
 #!/usr/bin/env bash
 LC_ALL=C
 
@@ -13,10 +11,24 @@ message3="You should rename your branch using: git branch -m BRANCH-NAME"
 
 if [[ ! $local_branch =~ $valid_branch_regex ]]
 then
-		echo "$message1"
-		echo "$message2"
-		echo "$message3"
+    echo "$message1"
+    echo "$message2"
+    echo "$message3"
     exit 1
+fi
+
+echo "Running typecheck..."
+npm run typecheck
+if [ $? -ne 0 ]; then
+  echo "Typecheck failed. Fix type errors before committing."
+  exit 1
+fi
+
+echo "Running tests..."
+npm run test-sf
+if [ $? -ne 0 ]; then
+  echo "Tests failed. All tests must pass before committing."
+  exit 1
 fi
 
 exit 0
