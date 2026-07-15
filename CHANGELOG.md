@@ -1,5 +1,16 @@
 # Change Log
 
+## [v1.13.38](https://github.com/prey/prey-node-client/tree/v1.13.38) (2026-07-15)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.37..v1.13.38)
+
+- Fix: Fixed a crash on macOS where `permissionFile.getData()` could return a raw boolean (written by the mac native location helper without string coercion) instead of the expected string, causing an uncaught `.localeCompare is not a function` TypeError. `permissionfile.js` now normalizes on read and write so already-corrupted SQLite data self-heals; `listeners.js` comparisons and the mac branch's error handling are also hardened as defense in depth. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Fixed two startup crashes on Windows: `countLinesLoggerRestarts` now wraps its file read in a try-catch to prevent an uncaught EPERM when `prey_restarts.log` is locked or has missing permissions; the `storage_fns.set` check-then-insert pattern is replaced with a single `INSERT OR REPLACE` to eliminate the TOCTOU race that produced "Already registered" errors for `preyconf` and `shouldPreyCFile` during concurrent agent initialization. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Fixed a TypeError crash when `daemon.set_watcher` is invoked through the CLI `run` helper: `run` always calls commands as `command(values, cb)`, but `set_watcher` only accepts `(cb)`, so the parsed CLI `values` object landed in the callback slot. Because the object is truthy, the `!cb` guard was bypassed and the object propagated through the full call chain, crashing as "done/cb is not a function" at the upgrade and fresh-install paths in `prey_owl.js`. The CLI registration now wraps the call to forward only the real callback. Callback guards in `prey_owl.js` are also standardised from `cb && cb(...)` to `typeof cb === 'function' && cb(...)` for consistency. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Fixed a double-callback crash in the macOS geo location socket layer: `tryToSendNew` could fire `cbAttached` on already-completed messages, causing a second callback invocation after the socket response was processed. The optional `time` parameter is now forwarded through `writeMessage` to `addAndWait` so callers can override the default 7 s timeout (the darwin provider passes 65 s). A null guard on `inFlightCallbacks` in `callSocket` is added as defense in depth. ([SoraKenji](https://github.com/SoraKenji))
+
 ## [v1.13.37](https://github.com/prey/prey-node-client/tree/v1.13.37) (2026-07-08)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.36..v1.13.37)
 
