@@ -92,6 +92,7 @@ npx mocha <path>             # Run specific test file
 npm run lint                 # Check linting
 npm run lint-fix             # Auto-fix linting issues
 npm run coverage             # Generate coverage report
+npm run typecheck            # Type-check files that have // @ts-check
 ```
 
 ### Development
@@ -120,6 +121,38 @@ npm run sonar                # Run SonarQube analysis
 - **No New Dependencies**: Do not introduce new dependencies without team discussion
 - **Explicit Error Handling**: Handle errors explicitly - this is a system agent that runs unattended
 - **Test Coverage**: Ensure all changes have corresponding tests
+
+### Type Safety (gradual adoption)
+
+Every file you **create or modify** must have `// @ts-check` at the top. Every function you **create or significantly modify** must have JSDoc `@param` annotations with types.
+
+```js
+// @ts-check
+
+/**
+ * @param {string} version
+ * @param {function(Error|null): void} cb
+ */
+exports.set_watcher = (version, cb) => { ... };
+```
+
+Run `npm run typecheck` before committing — it only checks files that have `// @ts-check`, so it never breaks files you didn't touch.
+
+### Callback guards
+
+Never use `cb && cb(err)` — it only blocks `null`/`undefined`, not a truthy non-function. Always use:
+
+```js
+typeof cb === 'function' && cb(err);
+// or
+if (typeof cb === 'function') cb(err);
+```
+
+### Adapter/intermediary call paths need integration tests
+
+Whenever a function is called **through an adapter layer** (e.g. the CLI `run()` helper, a loader, a dynamic `require`) add a test that exercises that specific path — not just the function directly. Calling the function alone does not test whether the adapter passes arguments correctly.
+
+Example: a function registered with `run(cmd, myFn)` must have a test where `run` is the caller, not one where `myFn` is called directly.
 
 ## Git Workflow
 

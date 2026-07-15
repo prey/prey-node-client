@@ -31,6 +31,51 @@ describe('verifyConsistencyData', () => {
   });
 });
 
+describe('executeOwnershipCommand', () => {
+  let socketExecModule;
+  let execStub;
+  let executeOwnershipCommand;
+
+  beforeEach(() => {
+    socketExecModule = rewire('../../../../lib/agent/socket');
+    execStub = sinon.stub();
+    // eslint-disable-next-line no-underscore-dangle
+    socketExecModule.__set__('exec', execStub);
+    // eslint-disable-next-line no-underscore-dangle
+    executeOwnershipCommand = socketExecModule.__get__('executeOwnershipCommand');
+  });
+
+  afterEach(() => {
+    sinon.restore();
+  });
+
+  it('should invoke exec with ls -l on the socket file and pass results to cb', (done) => {
+    execStub.callsArgWith(1, null, 'prey  0 prey.sock', null);
+    executeOwnershipCommand((err, stdout, stderr) => {
+      expect(err).to.be.null;
+      expect(stdout).to.equal('prey  0 prey.sock');
+      expect(stderr).to.be.null;
+      expect(execStub.firstCall.args[0]).to.include('ls -l');
+      done();
+    });
+  });
+
+  it('should propagate exec errors to cb', (done) => {
+    const error = new Error('exec failed');
+    execStub.callsArgWith(1, error, null, null);
+    executeOwnershipCommand((err) => {
+      expect(err).to.equal(error);
+      done();
+    });
+  });
+
+  it('should not throw when cb is not a function', () => {
+    execStub.callsArgWith(1, null, 'output', null);
+    expect(() => executeOwnershipCommand(null)).to.not.throw();
+    expect(() => executeOwnershipCommand(undefined)).to.not.throw();
+  });
+});
+
 describe('processOwnershipResult', () => {
   it('should return an array with owner correctly', (done) => {
     socket.processOwnershipResult((err, owner) => {
@@ -53,6 +98,11 @@ describe('processOwnershipResult', () => {
       expect(err).to.equal(error);
       done();
     }, null, null, error);
+  });
+
+  it('should not throw when cb is not a function', () => {
+    expect(() => socket.processOwnershipResult(null, null, 'owner output', null)).to.not.throw();
+    expect(() => socket.processOwnershipResult(undefined, new Error('e'), null, null)).to.not.throw();
   });
 });
 describe('writeMessage', () => {
@@ -314,6 +364,17 @@ describe('handleDataConnection', () => {
     expect(cb.calledOnce).to.be.true;
     expect(cb.args[0][0]).to.be.null;
   });
+
+  it('should call cb with error string when message context does not match current message', () => {
+    socketHandleDataConnection.currentMessage = { functionName: 'different-function' };
+    socketHandleDataConnection.handleDataConnection(messageToSendSocket, data, cb);
+    expect(cb.calledOnce).to.be.true;
+    expect(typeof cb.args[0][0]).to.equal('string');
+  });
+
+  it('should not throw when cb is not a function', () => {
+    expect(() => socketHandleDataConnection.handleDataConnection(messageToSendSocket, data, null)).to.not.throw();
+  });
 });
 
 describe('ownerShipVerify', () => {
@@ -342,6 +403,11 @@ describe('ownerShipVerify', () => {
     socket.ownerShipVerify(err, owner, cb);
     expect(cb.calledOnce).to.be.true;
     expect(cb.args[0][0]).to.be.undefined;
+  });
+
+  it('should not throw when cb is not a function', () => {
+    expect(() => socket.ownerShipVerify(null, ['prey'], null)).to.not.throw();
+    expect(() => socket.ownerShipVerify('some error', [], undefined)).to.not.throw();
   });
 });
 
