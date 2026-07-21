@@ -38,7 +38,13 @@
     "lodash": "^4.18.0",
     "follow-redirects": "^1.16.0",
     "ip-address": "^10.1.1",
-    "@tootallnate/once": "^2.0.1"
+    "@tootallnate/once": "^2.0.1",
+    "form-data": ">=4.0.6",
+    "js-yaml": ">=4.2.1",
+    "linkify-it": ">=5.0.1",
+    "markdown-it": ">=14.1.2",
+    "adm-zip": ">=0.6.0",
+    "uuid": "^11.1.1"
   },
   "dependencies": {
     "arch": "^2.1.2",
@@ -74,13 +80,13 @@
     "semver": "^7.5.2",
     "sqlite3": "^5.1.7",
     "sudoer": "https://github.com/prey/node-sudoer.git",
-    "systeminformation": "^5.31.5",
+    "systeminformation": "^5.31.7",
     "uid-number": "0.0.5",
     "underscore": "^1.13.8",
     "uuid": "^11.1.1",
     "whenever": "0.0.3",
     "wink": "0.0.1",
-    "ws": "^7.5.10",
+    "ws": "^8.0.0",
     "xml2js": "^0.5.0"
   },
   "devDependencies": {
