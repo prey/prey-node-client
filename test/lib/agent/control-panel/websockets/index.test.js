@@ -102,8 +102,8 @@ describe('WebSocket Module', () => {
       expect(constantsModule.MAX_RECONNECT_DELAY).to.equal(120000);
     });
 
-    it('should have correct MAX_RETRIES', () => {
-      expect(constantsModule.MAX_RETRIES).to.equal(10);
+    it('should have correct MAX_RESPONSE_AGE (1 year in ms)', () => {
+      expect(constantsModule.MAX_RESPONSE_AGE).to.equal(365 * 24 * 60 * 60 * 1000);
     });
 
     it('should have correct MAX_ACK_RETRIES', () => {
@@ -553,10 +553,13 @@ describe('WebSocket Module', () => {
     });
 
     describe('loadFromStorage', () => {
-      it('should load responses from storage', () => {
+      const recentTime = new Date().toISOString();
+      const mockConstants = { MAX_RESPONSE_AGE: 365 * 24 * 60 * 60 * 1000 };
+
+      it('should load recent responses from storage', () => {
         const storedResponses = [
           {
-            id: 'stored-1', status: 'pending', action: 'lock', action_id: '123', time: '2023-01-01', retries: 0, opts: 'target1',
+            id: 'stored-1', status: 'pending', action: 'lock', action_id: '123', time: recentTime, retries: 0, opts: 'target1',
           },
         ];
         const mockStorageLoad = {
@@ -567,9 +570,31 @@ describe('WebSocket Module', () => {
           }),
         };
 
-        responseQueueRewired.loadFromStorage(mockStorageLoad, () => {});
+        responseQueueRewired.loadFromStorage(mockStorageLoad, mockConstants, () => {});
 
         expect(responseQueueRewired.getQueue().length).to.be.greaterThan(0);
+      });
+
+      it('should discard and delete responses older than MAX_RESPONSE_AGE', () => {
+        const oldTime = new Date(Date.now() - (366 * 24 * 60 * 60 * 1000)).toISOString();
+        const storedResponses = [
+          {
+            id: 'old-resp-1', status: 'stopped', action: 'lock', action_id: '456', time: oldTime, retries: 0,
+          },
+        ];
+        const mockStorageDel = {
+          do: sinon.stub().callsFake((action, opts, cb) => {
+            if (action === 'all') cb(null, storedResponses);
+            if (action === 'del' && cb) cb(null);
+          }),
+        };
+
+        responseQueueRewired.loadFromStorage(mockStorageDel, mockConstants, () => {});
+
+        // Old item should be excluded from queue
+        expect(responseQueueRewired.getQueue().length).to.equal(0);
+        // Old item should be deleted from storage
+        expect(mockStorageDel.do.calledWith('del')).to.be.true;
       });
 
       it('should handle storage error', () => {
@@ -580,7 +605,7 @@ describe('WebSocket Module', () => {
         };
 
         expect(() => {
-          responseQueueRewired.loadFromStorage(mockStorageError, () => {});
+          responseQueueRewired.loadFromStorage(mockStorageError, mockConstants, () => {});
         }).to.not.throw();
       });
 
@@ -592,7 +617,7 @@ describe('WebSocket Module', () => {
         };
 
         expect(() => {
-          responseQueueRewired.loadFromStorage(mockStorageNull, () => {});
+          responseQueueRewired.loadFromStorage(mockStorageNull, mockConstants, () => {});
         }).to.not.throw();
       });
 
@@ -603,7 +628,7 @@ describe('WebSocket Module', () => {
           }),
         };
 
-        responseQueueRewired.loadFromStorage(mockStorageEmpty, () => {});
+        responseQueueRewired.loadFromStorage(mockStorageEmpty, mockConstants, () => {});
         // Should complete without error
       });
 
@@ -614,7 +639,7 @@ describe('WebSocket Module', () => {
             status: 'stopped',
             action: 'lock',
             action_id: '123',
-            time: '2023-01-01',
+            time: recentTime,
             retries: 0,
             reason: '{"message":"Error occurred"}',
           },
@@ -627,7 +652,7 @@ describe('WebSocket Module', () => {
           }),
         };
 
-        responseQueueRewired.loadFromStorage(mockStorageLoad, () => {});
+        responseQueueRewired.loadFromStorage(mockStorageLoad, mockConstants, () => {});
 
         const queue = responseQueueRewired.getQueue();
         expect(queue.length).to.be.greaterThan(0);
@@ -1174,7 +1199,7 @@ describe('WebSocket Module', () => {
         expect(sentData.body.target).to.equal('C:');
       });
 
-      it('should delete response from storage when max retries exceeded', () => {
+      it('should keep response in queue regardless of high retry count', () => {
         const context = {
           ws: mockWs, storage: mockStorage, responseQueue: responseQueueRewired, logger: mockLogger,
         };
@@ -1182,11 +1207,14 @@ describe('WebSocket Module', () => {
           status: 'started',
           id: '123',
           action: 'lock',
-          retries: 10,
+          retries: 100,
           respId: 'resp-123',
         });
 
-        expect(mockStorage.do.calledWith('del')).to.be.true;
+        // Should NOT delete from storage — responses are only removed on server ACK
+        expect(mockStorage.do.calledWith('del')).to.be.false;
+        // Should still attempt to send
+        expect(mockWs.send.called).to.be.true;
       });
 
       it('should use existing time if provided', () => {
@@ -1250,12 +1278,12 @@ describe('WebSocket Module', () => {
         expect(markedToBePushed.length).to.be.greaterThan(0);
       });
 
-      it('should update existing response in queue', () => {
+      it('should resend existing response on every retry tick regardless of sent flag', () => {
         const context = {
           ws: mockWs, storage: mockStorage, responseQueue: responseQueueRewired, logger: mockLogger,
         };
 
-        // First call adds to queue
+        // First call: adds to queue and sends
         notificationsRewired.notifyAction(context, {
           status: 'started',
           id: '123',
@@ -1263,16 +1291,19 @@ describe('WebSocket Module', () => {
           respId: 'existing-resp',
         });
 
-        // Second call updates
+        expect(mockWs.send.callCount).to.equal(1);
+
+        // Second call (retry tick, fromWithin=true): should resend even though already sent
         notificationsRewired.notifyAction(context, {
-          status: 'completed',
+          status: 'started',
           id: '123',
           action: 'lock',
           respId: 'existing-resp',
           retries: 1,
+          fromWithin: true,
         });
 
-        expect(mockStorage.do.calledWith('update')).to.be.true;
+        expect(mockWs.send.callCount).to.equal(2);
       });
 
       it('should not send when ws is not ready', () => {
@@ -2511,7 +2542,7 @@ describe('WebSocket Module', () => {
         };
         const mockResponseQueue = {
           getQueue: sinon.stub().returns([]),
-          loadFromStorage: sinon.stub().callsFake((storage, cb) => cb()),
+          loadFromStorage: sinon.stub().callsFake((storage, consts, cb) => cb()),
           retryQueuedResponses: sinon.stub(),
         };
 
@@ -2748,7 +2779,7 @@ describe('WebSocket Module', () => {
       expect(mockWs.send.called).to.be.false;
     });
 
-    it('should not send response multiple times', () => {
+    it('should resend response on every retry until server ACKs', () => {
       const notifyContext = {
         ws: mockWs,
         storage: mockStorage,
@@ -2773,16 +2804,12 @@ describe('WebSocket Module', () => {
 
       // Send first time
       notificationsRewired.notifyAction(notifyContext, responseParams);
+      expect(mockWs.send.callCount).to.equal(1);
 
-      // Verify sent exactly once
-      expect(mockWs.send.calledOnce).to.be.true;
-
-      // Try to send again with same respId
+      // Send again with same respId (retry tick) — should resend, server deduplicates by reply_id
       mockWs.send.resetHistory();
-      notificationsRewired.notifyAction(notifyContext, responseParams);
-
-      // Should not send again because already sent
-      expect(mockWs.send.called).to.be.false;
+      notificationsRewired.notifyAction(notifyContext, { ...responseParams, fromWithin: true });
+      expect(mockWs.send.callCount).to.equal(1);
     });
 
     it('should emit command event with correct action data', (done) => {
