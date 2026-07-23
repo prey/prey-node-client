@@ -36,43 +36,38 @@ describe('storage_fns', () => {
   // ─── set ────────────────────────────────────────────────────────────────────
 
   describe('set', () => {
-    it('should INSERT a new record when the id does not exist', (done) => {
+    it('should INSERT OR REPLACE a new record', (done) => {
       storage.storage_fns.set(
         { type: 'keys', id: 'testkey', data: { value: 'hello' } },
         (err) => {
           expect(err).to.be.null;
-          // run call #1 = CREATE TABLE, call #2 = INSERT
+          // run call #1 = CREATE TABLE, call #2 = INSERT OR REPLACE
           expect(dbInstance.run.callCount).to.equal(2);
-          expect(dbInstance.run.secondCall.args[0]).to.match(/^INSERT INTO keys/);
+          expect(dbInstance.run.secondCall.args[0]).to.match(/^INSERT OR REPLACE INTO keys/);
           done();
         },
       );
-      // dbInstance.all default returns [] (no existing row)
     });
 
-    it('should return "Already registered" error when id already exists', (done) => {
+    it('should silently overwrite an existing record (upsert semantics)', (done) => {
       storage.storage_fns.set(
         { type: 'keys', id: 'hostname', data: { value: 'NEW' } },
         (err) => {
-          expect(err).to.be.an('error');
-          expect(err.message).to.include('Already registered');
-          expect(err.message).to.include('hostname');
+          expect(err).to.be.null;
+          expect(dbInstance.run.secondCall.args[0]).to.match(/^INSERT OR REPLACE INTO keys/);
           done();
         },
       );
-      // Override all to return an existing row
-      dbInstance.all.callsFake((sql, c) => c(null, [{ id: 'hostname', value: 'OLD' }]));
     });
 
-    it('should close db connection when id already exists', (done) => {
+    it('should close db connection after upsert', (done) => {
       storage.storage_fns.set(
-        { type: 'keys', id: 'hostname', data: { value: 'NEW' } },
+        { type: 'keys', id: 'testkey', data: { value: 'hello' } },
         () => {
           expect(dbInstance.close.called).to.be.true;
           done();
         },
       );
-      dbInstance.all.callsFake((sql, c) => c(null, [{ id: 'hostname', value: 'OLD' }]));
     });
 
     it('should propagate init error to callback', (done) => {
@@ -86,7 +81,7 @@ describe('storage_fns', () => {
       );
     });
 
-    it('should return SQLITE_ACCESS_ERR when INSERT fails with SQLITE_READONLY', (done) => {
+    it('should return SQLITE_ACCESS_ERR when UPSERT fails with SQLITE_READONLY', (done) => {
       storage.storage_fns.set(
         { type: 'keys', id: 'testkey', data: { value: 'hello' } },
         (err) => {
@@ -95,29 +90,6 @@ describe('storage_fns', () => {
         },
       );
       dbInstance.run.onSecondCall().callsFake((sql, c) => c({ code: 'SQLITE_READONLY' }));
-    });
-
-    it('should close db connection when dbComm.all errors', (done) => {
-      storage.storage_fns.set(
-        { type: 'keys', id: 'testkey', data: { value: 'hello' } },
-        () => {
-          expect(dbInstance.close.called).to.be.true;
-          done();
-        },
-      );
-      dbInstance.all.callsFake((sql, c) => c(new Error('DB_ERROR')));
-    });
-
-    it('should not crash and close db when dbComm.all returns (null, null)', (done) => {
-      storage.storage_fns.set(
-        { type: 'keys', id: 'testkey', data: { value: 'hello' } },
-        (err, rows) => {
-          expect(dbInstance.close.called).to.be.true;
-          expect(rows).to.deep.equal([]);
-          done();
-        },
-      );
-      dbInstance.all.callsFake((sql, c) => c(null, null));
     });
   });
 

@@ -9,6 +9,7 @@ const { exec } = require('child_process');
 describe('Switcher Module', () => {
   let switcherRewired;
   let fsAccessStub;
+  let fsReadFileStub;
   let execStub;
   let sharedLogStub;
   let hadGetuid;
@@ -22,12 +23,16 @@ describe('Switcher Module', () => {
       log: sharedLogStub,
     });
 
-    // Stub fs.access
+    // Stub fs.access and fs.readFile
     fsAccessStub = sinon.stub(fs, 'access');
+    fsReadFileStub = sinon.stub(fs, 'readFile');
 
     // Stub exec
     execStub = sinon.stub();
     switcherRewired.__set__('exec', execStub);
+
+    // Default: not sudo-rs. Individual tests can override this.
+    switcherRewired.__set__('isSudoRs', (cb) => cb(false));
   });
 
   afterEach(() => {
@@ -284,6 +289,91 @@ describe('Switcher Module', () => {
       });
     });
 
+    it('should use wrapper path instead of su wildcard when sudo-rs is detected', (done) => {
+      switcherRewired.__set__('isSudoRs', (cb) => cb(true));
+      fsAccessStub.callsFake((path, mode, cb) => {
+        cb(new Error('ENOENT'));
+      });
+
+      let capturedCmd = '';
+      execStub.withArgs('mkdir -p /etc/sudoers.d').callsFake((cmd, opts, cb) => {
+        cb(null);
+      });
+      execStub.withArgs(sinon.match(/grep -q/)).callsFake((cmd, opts, cb) => {
+        cb(null);
+      });
+      execStub.withArgs(sinon.match(/umask.*echo/)).callsFake((cmd, opts, cb) => {
+        capturedCmd = cmd;
+        cb(null);
+      });
+
+      const createNewFile = switcherRewired.__get__('createNewFile');
+      createNewFile(['/usr/sbin/iwlist', '/usr/bin/nmcli'], (err, created) => {
+        expect(err).to.be.null;
+        expect(created).to.be.true;
+        expect(capturedCmd).to.include('prey-su');
+        expect(capturedCmd).to.not.include('[A-z]');
+        expect(capturedCmd).to.not.include('!/usr/bin/su');
+        done();
+      });
+    });
+
+    it('should include wrapper even with no additional commands when sudo-rs is detected', (done) => {
+      switcherRewired.__set__('isSudoRs', (cb) => cb(true));
+      fsAccessStub.callsFake((path, mode, cb) => {
+        cb(new Error('ENOENT'));
+      });
+
+      let capturedCmd = '';
+      execStub.withArgs('mkdir -p /etc/sudoers.d').callsFake((cmd, opts, cb) => {
+        cb(null);
+      });
+      execStub.withArgs(sinon.match(/grep -q/)).callsFake((cmd, opts, cb) => {
+        cb(null);
+      });
+      execStub.withArgs(sinon.match(/umask.*echo/)).callsFake((cmd, opts, cb) => {
+        capturedCmd = cmd;
+        cb(null);
+      });
+
+      const createNewFile = switcherRewired.__get__('createNewFile');
+      createNewFile([], (err, created) => {
+        expect(err).to.be.null;
+        expect(created).to.be.true;
+        expect(capturedCmd).to.include('prey-su');
+        done();
+      });
+    });
+
+    it('should include su wildcard entries when traditional sudo is in use', (done) => {
+      switcherRewired.__set__('isSudoRs', (cb) => cb(false));
+      fsAccessStub.callsFake((path, mode, cb) => {
+        cb(new Error('ENOENT'));
+      });
+
+      let capturedCmd = '';
+      execStub.withArgs('mkdir -p /etc/sudoers.d').callsFake((cmd, opts, cb) => {
+        cb(null);
+      });
+      execStub.withArgs(sinon.match(/grep -q/)).callsFake((cmd, opts, cb) => {
+        cb(null);
+      });
+      execStub.withArgs(sinon.match(/umask.*echo/)).callsFake((cmd, opts, cb) => {
+        capturedCmd = cmd;
+        cb(null);
+      });
+
+      const createNewFile = switcherRewired.__get__('createNewFile');
+      createNewFile(['/usr/bin/nmcli'], (err, created) => {
+        expect(err).to.be.null;
+        expect(created).to.be.true;
+        expect(capturedCmd).to.include('/usr/bin/su [A-z]*');
+        expect(capturedCmd).to.include('!/usr/bin/su root*');
+        expect(capturedCmd).to.include('!/usr/bin/su -*');
+        done();
+      });
+    });
+
     it('should handle grep error gracefully', (done) => {
       fsAccessStub.callsFake((path, mode, cb) => {
         cb(new Error('ENOENT'));
@@ -306,6 +396,71 @@ describe('Switcher Module', () => {
         expect(err).to.be.null;
         expect(created).to.be.true;
         expect(sharedLogStub.calledWith(sinon.match(/Warning/))).to.be.true;
+        done();
+      });
+    });
+  });
+
+  describe('migrateWildcardFile', () => {
+    it('should remove v51 file on sudo-rs when it contains wildcard entries', (done) => {
+      switcherRewired.__set__('isSudoRs', (cb) => cb(true));
+      fsAccessStub.callsFake((filePath, mode, cb) => cb(null)); // file exists
+      fsReadFileStub.callsFake((filePath, enc, cb) => cb(null, 'prey ALL=(ALL) NOPASSWD: /usr/bin/su [A-z]*, !/usr/bin/su root*'));
+      execStub.withArgs(sinon.match(/rm -rf.*51_prey_switcher/)).callsFake((cmd, opts, cb) => cb(null));
+
+      const migrateWildcardFile = switcherRewired.__get__('migrateWildcardFile');
+      migrateWildcardFile((err) => {
+        expect(err).to.be.null;
+        expect(execStub.calledWith(sinon.match(/rm -rf.*51_prey_switcher/))).to.be.true;
+        done();
+      });
+    });
+
+    it('should remove v51 file on sudo-rs even when it has no wildcards (unconditional migration)', (done) => {
+      switcherRewired.__set__('isSudoRs', (cb) => cb(true));
+      execStub.withArgs(sinon.match(/rm -rf.*51_prey_switcher/)).callsFake((cmd, opts, cb) => cb(null));
+
+      const migrateWildcardFile = switcherRewired.__get__('migrateWildcardFile');
+      migrateWildcardFile((err) => {
+        expect(err).to.be.null;
+        expect(execStub.calledWith(sinon.match(/rm -rf.*51_prey_switcher/))).to.be.true;
+        done();
+      });
+    });
+
+    it('should skip on traditional sudo even if file has wildcards', (done) => {
+      switcherRewired.__set__('isSudoRs', (cb) => cb(false));
+
+      const migrateWildcardFile = switcherRewired.__get__('migrateWildcardFile');
+      migrateWildcardFile((err) => {
+        expect(err).to.be.null;
+        expect(execStub.called).to.be.false;
+        done();
+      });
+    });
+
+    it('should attempt removal on sudo-rs even when v51 file does not exist (rm -rf is idempotent)', (done) => {
+      switcherRewired.__set__('isSudoRs', (cb) => cb(true));
+      execStub.withArgs(sinon.match(/rm -rf.*51_prey_switcher/)).callsFake((cmd, opts, cb) => cb(null));
+
+      const migrateWildcardFile = switcherRewired.__get__('migrateWildcardFile');
+      migrateWildcardFile((err) => {
+        expect(err).to.be.null;
+        expect(execStub.calledWith(sinon.match(/rm -rf.*51_prey_switcher/))).to.be.true;
+        done();
+      });
+    });
+
+    it('should return error if rm fails', (done) => {
+      switcherRewired.__set__('isSudoRs', (cb) => cb(true));
+      fsAccessStub.callsFake((filePath, mode, cb) => cb(null)); // file exists
+      fsReadFileStub.callsFake((filePath, enc, cb) => cb(null, 'prey ALL=(ALL) NOPASSWD: /usr/bin/su [A-z]*'));
+      execStub.withArgs(sinon.match(/rm -rf/)).callsFake((cmd, opts, cb) => cb(new Error('Permission denied')));
+
+      const migrateWildcardFile = switcherRewired.__get__('migrateWildcardFile');
+      migrateWildcardFile((err) => {
+        expect(err).to.be.instanceOf(Error);
+        expect(err.message).to.include('Failed to remove incompatible sudoers file');
         done();
       });
     });
@@ -435,6 +590,41 @@ describe('Switcher Module', () => {
       switcherRewired.update((err) => {
         expect(err).to.be.instanceOf(Error);
         expect(err.message).to.equal('Create failed');
+        done();
+      });
+    });
+
+    it('should log warning and still call createNewFile when migrateWildcardFile fails', (done) => {
+      const getAdditionalCommandsStub = sinon.stub().callsFake((cb) => {
+        cb([]);
+      });
+      switcherRewired.__set__('getAdditionalCommands', getAdditionalCommandsStub);
+
+      const removeOldFileStub = sinon.stub().callsFake((cb) => {
+        cb(null);
+      });
+      switcherRewired.__set__('removeOldFile', removeOldFileStub);
+
+      const migrateWildcardFileStub = sinon.stub().callsFake((cb) => {
+        cb(new Error('Permission denied'));
+      });
+      switcherRewired.__set__('migrateWildcardFile', migrateWildcardFileStub);
+
+      const createNewFileStub = sinon.stub().callsFake((commands, cb) => {
+        cb(null, true);
+      });
+      switcherRewired.__set__('createNewFile', createNewFileStub);
+
+      const testImpersonationStub = sinon.stub().callsFake((cb) => {
+        cb(null);
+      });
+      switcherRewired.__set__('testImpersonation', testImpersonationStub);
+
+      switcherRewired.update((err, message) => {
+        expect(err).to.be.null;
+        expect(message).to.include('updated successfully');
+        expect(createNewFileStub.called).to.be.true;
+        expect(sharedLogStub.calledWith(sinon.match(/WARNING.*could not remove/))).to.be.true;
         done();
       });
     });

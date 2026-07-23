@@ -1,5 +1,41 @@
 # Change Log
 
+## [v1.13.38](https://github.com/prey/prey-node-client/tree/v1.13.38) (2026-07-15)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.37..v1.13.38)
+
+- Fix: Fixed a crash on macOS where `permissionFile.getData()` could return a raw boolean (written by the mac native location helper without string coercion) instead of the expected string, causing an uncaught `.localeCompare is not a function` TypeError. `permissionfile.js` now normalizes on read and write so already-corrupted SQLite data self-heals; `listeners.js` comparisons and the mac branch's error handling are also hardened as defense in depth. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Fixed two startup crashes on Windows: `countLinesLoggerRestarts` now wraps its file read in a try-catch to prevent an uncaught EPERM when `prey_restarts.log` is locked or has missing permissions; the `storage_fns.set` check-then-insert pattern is replaced with a single `INSERT OR REPLACE` to eliminate the TOCTOU race that produced "Already registered" errors for `preyconf` and `shouldPreyCFile` during concurrent agent initialization. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Fixed a TypeError crash when `daemon.set_watcher` is invoked through the CLI `run` helper: `run` always calls commands as `command(values, cb)`, but `set_watcher` only accepts `(cb)`, so the parsed CLI `values` object landed in the callback slot. Because the object is truthy, the `!cb` guard was bypassed and the object propagated through the full call chain, crashing as "done/cb is not a function" at the upgrade and fresh-install paths in `prey_owl.js`. The CLI registration now wraps the call to forward only the real callback. Callback guards in `prey_owl.js` are also standardised from `cb && cb(...)` to `typeof cb === 'function' && cb(...)` for consistency. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Fixed a double-callback crash in the macOS geo location socket layer: `tryToSendNew` could fire `cbAttached` on already-completed messages, causing a second callback invocation after the socket response was processed. The optional `time` parameter is now forwarded through `writeMessage` to `addAndWait` so callers can override the default 7 s timeout (the darwin provider passes 65 s). A null guard on `inFlightCallbacks` in `callSocket` is added as defense in depth. ([SoraKenji](https://github.com/SoraKenji))
+
+## [v1.13.37](https://github.com/prey/prey-node-client/tree/v1.13.37) (2026-07-08)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.36..v1.13.37)
+
+- Feat: Added daily rate limiting to exception sends: a global cap of 50 exceptions/day and a per-error cap of 3/day prevent flooding the exception server. Counters are persisted to SQLite so limits survive agent restarts, reset automatically at UTC midnight, and are configurable from the backend via `exceptions_daily_limit` and `exceptions_per_error_limit`. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Fixed a re-entrancy window in the exception quota loader where two concurrent sends arriving while the SQLite read was in-flight could both see `total=0` and bypass the daily limit. The DB callback now reuses an already-populated in-memory quota instead of overwriting it. Also added type sanitization so a corrupted non-numeric `total` value in SQLite cannot permanently disable the rate limit. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Added EPIPE and EIO error handling to the shared configuration log stream. Synchronous throws from `stream.write()` are now caught and the stream is switched to a file fallback (`<tmpdir>/prey-config.log`); asynchronous EPIPE events emitted by stdout (e.g. when the parent process closes the pipe during an agent upgrade) are handled via a `once('error')` listener. The previous stream is properly destroyed before the fallback is opened. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Fixed the switcher sudoers update flow on sudo-rs systems (Ubuntu 26+): `migrateWildcardFile` errors are now logged as warnings instead of aborting the update, ensuring `createNewFile` always runs and the sudoers entry is never left absent. Added an existence check for the `prey-su` wrapper before writing a sudoers entry that depends on it, reporting a clear error if the wrapper is missing. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Handled synchronous spawn errors (EROFS, EPERM) in `get_winsvc_version` on Windows: `exec()` is now wrapped in a try-catch so filesystem-level errors during binary spawn degrade gracefully to `callback(null, null)` instead of propagating as unhandled exceptions. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Added test coverage for synchronous spawn errors (UNKNOWN, EPERM) in the hostname trigger on Windows, confirming the existing try-catch correctly prevents unhandled exceptions and falls back to poll-based hostname monitoring. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Fixed sudoers wildcard incompatibility with sudo-rs (Ubuntu 26+): introduced a `prey-su` wrapper script that validates usernames before calling `su`, replacing the `su [A-z]*` wildcard entry that sudo-rs rejects. The switcher detects sudo-rs via `sudo -V` and writes the wrapper path instead of the wildcard. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Fixed three macOS owl daemon setup bugs: `activeWatcher` silently dropped its callback when `create_watcher` failed, leaving `post_install` unaware that the daemon was never configured; `testExistingConfigurations` ran the upgrade and fresh-install branches concurrently during upgrades, causing the completion callback to fire before `launchctl load` finished and leaving `prey.sock` unavailable when the agent needed it; `trigger_set_watcher` treated a missing `prey-user` binary in `current/bin` as a fatal error instead of falling back to `testExistingConfigurations`. Installation progress is now also logged to `/tmp/installation_prey.log` across `prey_owl.js`, `index.js`, and `daemon.js` for easier diagnosis. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Fixed two race conditions in the macOS native location path that could permanently wedge CLLocationManager's WifiLoc provider until `locationd` restarted: `callSocket()` used the default 7s socket timeout for an operation that legitimately takes 30–60s, causing a fallback to a second independent `Prey.app -location` process while the first was still in flight; the location trigger fired an unconditional `forceLocation()` at startup alongside a 10s-delayed client-start fetch, creating a race on every agent start. The native-location socket timeout is now raised to match `macsvc`'s ~60s ceiling, concurrent callers are deduplicated onto a single in-flight request, and the startup `forceLocation()` call is staggered as defense in depth. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Updated the bundled `prey-user` (macsvc) binary to v1.0.10 to fix native location retrieval failing on macOS. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Fixed `doLoadDaemon` in `prey_owl.js` silently discarding a binary copy failure when `launchctl load` subsequently succeeded: `done(errorLoad || null)` is now `done(copyError || errorLoad || null)`, propagating the copy error to the caller. Also replaced a non-rewireable `process.platform == 'win32'` inline check in `post_install` with the module-level `isWindows` variable (consistent with `pre_uninstall`), which caused the 11 `post_install` orchestration tests to hang indefinitely on Windows developer machines. ([SoraKenji](https://github.com/SoraKenji))
+
 ## [v1.13.36](https://github.com/prey/prey-node-client/tree/v1.13.36) (2026-06-19)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.35..v1.13.36)
 

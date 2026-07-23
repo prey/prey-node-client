@@ -144,6 +144,33 @@ describe('Geo Index - Strategy Orchestration', () => {
         done();
       });
     });
+
+    // Regression: on affected machines, permissionFile's SQLite-backed
+    // 'nativeLocation' can already contain a legacy raw boolean (see
+    // lib/utils/permissionfile.js). Uses the real permissionFile singleton
+    // (not the stub) to prove its getData() normalization protects this
+    // consumer, which itself calls .localeCompare() with no type guard.
+    it('should not throw and should pick native strategy when permissionFile holds a legacy boolean', (done) => {
+      // eslint-disable-next-line global-require
+      const permissionFile = require('../../../../../lib/utils/permissionfile');
+      geoIndex.__set__('permissionFile', permissionFile);
+      const savedNative = permissionFile.permissionData.nativeLocation;
+      const savedWifi = permissionFile.permissionData.wifiLocation;
+      permissionFile.permissionData.nativeLocation = true;
+      permissionFile.permissionData.wifiLocation = false;
+
+      const locationData = { lat: 1.1, lng: 2.2, method: 'native' };
+      strategiesStub.native.callsFake((cb) => cb(null, locationData));
+
+      geoIndex.fetch_location((err, res) => {
+        permissionFile.permissionData.nativeLocation = savedNative;
+        permissionFile.permissionData.wifiLocation = savedWifi;
+        expect(err).to.be.null;
+        expect(res).to.deep.equal(locationData);
+        expect(strategiesStub.native.calledOnce).to.be.true;
+        done();
+      });
+    });
   });
 
   describe('fetch_location on Linux/Ubuntu', () => {

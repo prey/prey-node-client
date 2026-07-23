@@ -173,4 +173,53 @@ describe('listeners', () => {
     listeners.reacToWatcher(data);
     expect(callbackStub.called).to.be.true;
   });
+
+  // Regression for the production crash: `config.getData` can return a raw
+  // boolean (e.g. synced from the control panel without string coercion),
+  // which used to be compared directly with `.localeCompare` and throw.
+  describe('regression: non-string permission config values', () => {
+    it('should not throw on MacOs when config permission values are raw booleans', () => {
+      config.preyConfiguration['control-panel.permissions.wifi_location'] = true;
+      config.preyConfiguration['control-panel.permissions.native_location'] = true;
+
+      const data = [nameArray[1], { result: true }, sinon.stub()];
+      const permissionFileStub = sinon.stub().callsFake((_x, _y, z) => z());
+      const networkStub = sinon.stub().callsFake((z) => z(true));
+
+      listeners.osName = 'mac';
+      listeners.setDataToPermissionFile = permissionFileStub;
+      listeners.isWifiPermissionActive = networkStub;
+      listeners.callApi = sinon.stub();
+
+      expect(() => listeners.reactToCheckLocationPerms(data)).to.not.throw();
+    });
+
+    it('should not throw on Windows when config permission value is a raw boolean', () => {
+      config.preyConfiguration['control-panel.permissions.wifi_location'] = false;
+      config.preyConfiguration['control-panel.permissions.native_location'] = false;
+
+      const data = [nameArray[1], 'Allow', sinon.stub()];
+      const permissionFileStub = sinon.stub().callsFake((_x, _y, z) => z());
+
+      listeners.osName = 'windows';
+      listeners.setDataToPermissionFile = permissionFileStub;
+      listeners.callApi = sinon.stub();
+
+      expect(() => listeners.reactToCheckLocationPerms(data)).to.not.throw();
+    });
+
+    it('should catch errors thrown inside the mac async callback chain and still invoke the socket reply callback', () => {
+      const data = [nameArray[1], { result: true }, sinon.stub()];
+      const permissionFileStub = sinon.stub().callsFake((_x, _y, z) => z());
+      // Simulate an unexpected non-string output reaching `output.toString()`.
+      const networkStub = sinon.stub().callsFake((z) => z(null));
+
+      listeners.osName = 'mac';
+      listeners.setDataToPermissionFile = permissionFileStub;
+      listeners.isWifiPermissionActive = networkStub;
+
+      expect(() => listeners.reactToCheckLocationPerms(data)).to.not.throw();
+      expect(data[2].called).to.be.true;
+    });
+  });
 });
