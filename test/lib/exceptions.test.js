@@ -57,6 +57,27 @@ describe('exceptions', () => {
       });
     });
 
+    it('skips sending when err.level is set to any non-null value', (done) => {
+      const err = new Error('known expected error');
+      err.level = 'expected';
+      exceptionsModule.send(err, () => {
+        expect(needlePostStub.called).to.be.false;
+        done();
+      });
+    });
+
+    it('still sends when err.level is not set', (done) => {
+      storageDoStub
+        .onFirstCall().callsFake((op, opts, cb) => cb(null, []))
+        .onSecondCall().callsFake((op, opts, cb) => cb(null));
+
+      const err = new Error('real unexpected error');
+      exceptionsModule.send(err, () => {
+        expect(needlePostStub.calledOnce).to.be.true;
+        done();
+      });
+    });
+
     it('sends and creates quota on first call with no prior DB record', (done) => {
       storageDoStub
         .onFirstCall().callsFake((op, opts, cb) => cb(null, [])) // query returns empty
