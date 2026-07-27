@@ -1,5 +1,22 @@
 # Change Log
 
+## [v1.13.39](https://github.com/prey/prey-node-client/tree/v1.13.39) (2026-07-28)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.38..v1.13.39)
+
+- Feat: Added `tracking_schedule` support to control which days and time windows forced location can run; unified boot-time and runtime settings processing into a single shared path. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Hardened all Windows exec calls in system detection functions against synchronous EROFS and EPERM errors; removed `-NoProfile` to avoid unnecessary PowerShell profile loading. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: WebSocket action responses now retry indefinitely every 30 s until the server ACKs delivery, replacing the previous 10-attempt cap that could silently drop responses. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Errors with an `err.level` property are now skipped from exception reporting, providing a lightweight opt-out for non-fatal errors that should not reach telemetry. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Fixed a null-emitter crash in the hostname trigger when a pending async SQLite callback fires after `stop()` has already cleared the emitter reference. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: `handleError` now preserves all properties of the original Error object when wrapping exceptions; a bare `throw` in the command handler is replaced with a callback error to prevent unhandled crashes. ([SoraKenji](https://github.com/SoraKenji))
+
+- Chore: Updated dependencies to resolve npm audit security vulnerabilities. ([SoraKenji](https://github.com/SoraKenji))
+
 ## [v1.13.38](https://github.com/prey/prey-node-client/tree/v1.13.38) (2026-07-15)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.37..v1.13.38)
 
