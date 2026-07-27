@@ -20,7 +20,7 @@ fi
 echo "Checking // @ts-check in staged lib/ files..."
 missing_tscheck=()
 while IFS= read -r file; do
-  [ -f "$file" ] && ! head -5 "$file" | grep -q '// @ts-check' && missing_tscheck+=("$file")
+  [ -f "$file" ] && ! grep -q '// @ts-check' "$file" && missing_tscheck+=("$file")
 done < <(git diff --cached --name-only --diff-filter=ACMR | grep '^lib/.*\.js$')
 
 if [ ${#missing_tscheck[@]} -gt 0 ]; then

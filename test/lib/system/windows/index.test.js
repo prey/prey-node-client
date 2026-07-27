@@ -143,5 +143,180 @@ describe('lib/system/windows/index', () => {
         done();
       });
     });
+
+    it('sanitizes username with apostrophe before PowerShell interpolation', (done) => {
+      execStub.onFirstCall().callsFake((cmd, opts, cb) => cb(null, "DOMAIN\\O'Brien\r\n"));
+      execStub.onSecondCall().callsFake((cmd, opts, cb) => {
+        expect(cmd).to.not.include("'O'Brien'");
+        expect(cmd).to.include('O_Brien');
+        cb(null, '1');
+      });
+      execStub.onThirdCall().callsFake((cmd, opts, cb) => cb(null, '2'));
+
+      windowsModule.find_logged_user((err, _user) => {
+        expect(err).to.be.null;
+        done();
+      });
+    });
+
+    it('includes -NoProfile in all powershell exec calls', (done) => {
+      const commands = [];
+      execStub.callsFake((cmd, opts, cb) => {
+        commands.push(cmd);
+        if (commands.length === 1) cb(null, 'DOMAIN\\testuser\r\n');
+        else if (commands.length === 2) cb(null, '1');
+        else cb(null, '2');
+      });
+
+      windowsModule.find_logged_user(() => {
+        commands.filter((c) => c.startsWith('powershell')).forEach((c) => {
+          expect(c).to.include('-NoProfile');
+        });
+        done();
+      });
+    });
+
+    it('lock screen error message contains no embedded newlines', (done) => {
+      execStub.onFirstCall().callsFake((cmd, opts, cb) => cb(null, 'DOMAIN\\testuser\r\n'));
+      execStub.onSecondCall().callsFake((cmd, opts, cb) => cb(null, '1'));
+      execStub.onThirdCall().callsFake((cmd, opts, cb) => cb(null, '1'));
+
+      windowsModule.find_logged_user((err) => {
+        expect(err).to.be.instanceOf(Error);
+        expect(err.message).to.not.include('\r');
+        expect(err.message).to.not.include('\n');
+        expect(err.message).to.include('Lock Screen');
+        done();
+      });
+    });
+  });
+
+  describe('process_running', () => {
+    let windowsModule;
+    let execStub;
+
+    beforeEach(() => {
+      execStub = sinon.stub();
+      windowsModule = rewire('../../../../lib/system/windows/index');
+      windowsModule.__set__('exec', execStub);
+    });
+
+    afterEach(() => {
+      sinon.restore();
+    });
+
+    it('returns true when process name appears in tasklist output', (done) => {
+      execStub.callsFake((cmd, opts, cb) => cb(null, 'notepad.exe   1234 Console'));
+
+      windowsModule.process_running('notepad.exe', (running) => {
+        expect(running).to.be.true;
+        done();
+      });
+    });
+
+    it('returns false when process is not in tasklist output', (done) => {
+      execStub.callsFake((cmd, opts, cb) => cb(null, 'No tasks are running which match the specified criteria.'));
+
+      windowsModule.process_running('notepad.exe', (running) => {
+        expect(running).to.be.false;
+        done();
+      });
+    });
+
+    it('returns false when exec throws synchronously (EROFS)', (done) => {
+      execStub.throws(new Error('spawn EROFS'));
+
+      windowsModule.process_running('notepad.exe', (running) => {
+        expect(running).to.be.false;
+        done();
+      });
+    });
+  });
+
+  describe('get_lang', () => {
+    let windowsModule;
+    let execStub;
+
+    beforeEach(() => {
+      execStub = sinon.stub();
+      windowsModule = rewire('../../../../lib/system/windows/index');
+      windowsModule.__set__('exec', execStub);
+    });
+
+    afterEach(() => {
+      sinon.restore();
+    });
+
+    it('returns "en" when registry output does not contain 0C0A', (done) => {
+      execStub.callsFake((cmd, opts, cb) => cb(null, 'Installlanguage    0409'));
+
+      windowsModule.get_lang((lang) => {
+        expect(lang).to.equal('en');
+        done();
+      });
+    });
+
+    it('returns "es" when registry output contains 0C0A', (done) => {
+      execStub.callsFake((cmd, opts, cb) => cb(null, 'Installlanguage    0C0A'));
+
+      windowsModule.get_lang((lang) => {
+        expect(lang).to.equal('es');
+        done();
+      });
+    });
+
+    it('returns "en" fallback when exec throws synchronously (EROFS)', (done) => {
+      execStub.throws(new Error('spawn EROFS'));
+
+      windowsModule.get_lang((lang) => {
+        expect(lang).to.equal('en');
+        done();
+      });
+    });
+  });
+
+  describe('get_current_hostname', () => {
+    let windowsModule;
+    let execStub;
+
+    beforeEach(() => {
+      execStub = sinon.stub();
+      windowsModule = rewire('../../../../lib/system/windows/index');
+      windowsModule.__set__('exec', execStub);
+    });
+
+    afterEach(() => {
+      sinon.restore();
+    });
+
+    it('returns hostname from exec stdout', (done) => {
+      execStub.callsFake((cmd, opts, cb) => cb(null, 'MY-PC\r\n'));
+
+      windowsModule.get_current_hostname((err, hostname) => {
+        expect(err).to.be.null;
+        expect(hostname).to.equal('MY-PC');
+        done();
+      });
+    });
+
+    it('propagates error from exec callback', (done) => {
+      const execErr = new Error('exec failed');
+      execStub.callsFake((cmd, opts, cb) => cb(execErr, ''));
+
+      windowsModule.get_current_hostname((err) => {
+        expect(err).to.equal(execErr);
+        done();
+      });
+    });
+
+    it('propagates error when exec throws synchronously (EROFS)', (done) => {
+      const spawnErr = new Error('spawn EROFS');
+      execStub.throws(spawnErr);
+
+      windowsModule.get_current_hostname((err) => {
+        expect(err).to.equal(spawnErr);
+        done();
+      });
+    });
   });
 });
