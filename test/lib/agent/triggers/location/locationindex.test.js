@@ -5,7 +5,132 @@ const { expect } = require('chai');
 const sinon = require('sinon');
 const rewire = require('rewire');
 const storage = require('../../../../../lib/agent/utils/storage');
-const locationIndex = require('../../../../../lib/agent/triggers/location'); // Asumo que la función está en un archivo llamado locationIndex.js
+const config = require('../../../../../lib/utils/configfile');
+const locationIndex = require('../../../../../lib/agent/triggers/location');
+
+const SCHEDULE = {
+  start_at: '07:00',
+  end_at: '15:00',
+  sunday: false,
+  monday: true,
+  tuesday: true,
+  wednesday: true,
+  thursday: true,
+  friday: true,
+  saturday: false,
+};
+
+describe('checkSchedule', () => {
+  let clock;
+
+  afterEach(() => {
+    if (clock) clock.restore();
+  });
+
+  const withTime = (isoString) => {
+    clock = sinon.useFakeTimers(new Date(isoString).getTime());
+  };
+
+  it('returns shouldSend false when today is not a scheduled day (Sunday)', () => {
+    withTime('2025-01-05T10:00:00'); // Sunday
+    const result = locationIndex.checkSchedule({ ...SCHEDULE, sunday: false });
+    expect(result.shouldSend).to.be.false;
+  });
+
+  it('returns shouldSend false when current time is before start_at', () => {
+    withTime('2025-01-06T06:30:00'); // Monday, 06:30 < 07:00
+    const result = locationIndex.checkSchedule(SCHEDULE);
+    expect(result.shouldSend).to.be.false;
+  });
+
+  it('returns shouldSend true when current time is within the window', () => {
+    withTime('2025-01-06T10:00:00'); // Monday, 10:00 within 07:00-15:00
+    const result = locationIndex.checkSchedule(SCHEDULE);
+    expect(result.shouldSend).to.be.true;
+  });
+
+  it('returns shouldSend true at exactly start_at', () => {
+    withTime('2025-01-06T07:00:00'); // Monday, exactly 07:00
+    const result = locationIndex.checkSchedule(SCHEDULE);
+    expect(result.shouldSend).to.be.true;
+  });
+
+  it('returns shouldSend true at exactly end_at', () => {
+    withTime('2025-01-06T15:00:00'); // Monday, exactly 15:00
+    const result = locationIndex.checkSchedule(SCHEDULE);
+    expect(result.shouldSend).to.be.true;
+  });
+
+  it('returns shouldSend false when current time is past end_at', () => {
+    withTime('2025-01-06T15:30:00'); // Monday, 15:30 > 15:00
+    const result = locationIndex.checkSchedule(SCHEDULE);
+    expect(result.shouldSend).to.be.false;
+  });
+
+  it('returns shouldSend false on Saturday even within hours', () => {
+    withTime('2025-01-11T10:00:00'); // Saturday
+    const result = locationIndex.checkSchedule({ ...SCHEDULE, saturday: false });
+    expect(result.shouldSend).to.be.false;
+  });
+
+  it('returns shouldSend true for overnight window when time is after start', () => {
+    withTime('2025-01-08T23:30:00'); // Wednesday, 23:30 inside 22:00–06:00
+    const result = locationIndex.checkSchedule({ ...SCHEDULE, start_at: '22:00', end_at: '06:00' });
+    expect(result.shouldSend).to.be.true;
+  });
+
+  it('returns shouldSend true for overnight window when time is before end', () => {
+    withTime('2025-01-08T02:00:00'); // Wednesday, 02:00 inside 22:00–06:00
+    const result = locationIndex.checkSchedule({ ...SCHEDULE, start_at: '22:00', end_at: '06:00' });
+    expect(result.shouldSend).to.be.true;
+  });
+
+  it('returns shouldSend false for overnight window when time is in the gap', () => {
+    withTime('2025-01-08T12:00:00'); // Wednesday, 12:00 outside 22:00–06:00
+    const result = locationIndex.checkSchedule({ ...SCHEDULE, start_at: '22:00', end_at: '06:00' });
+    expect(result.shouldSend).to.be.false;
+  });
+
+  it('returns shouldSend false when start_at is malformed', () => {
+    withTime('2025-01-06T10:00:00'); // Monday
+    const result = locationIndex.checkSchedule({ ...SCHEDULE, start_at: 'bad' });
+    expect(result.shouldSend).to.be.false;
+  });
+
+  it('returns shouldSend false and logs warning when end_at is malformed', () => {
+    withTime('2025-01-06T10:00:00'); // Monday
+    const result = locationIndex.checkSchedule({ ...SCHEDULE, end_at: 'xx:yy' });
+    expect(result.shouldSend).to.be.false;
+  });
+});
+
+describe('stop', () => {
+  let locationModule;
+  let fakeConfig;
+
+  beforeEach(() => {
+    locationModule = rewire('../../../../../lib/agent/triggers/location');
+    fakeConfig = {
+      getData: sinon.stub().returns(null),
+      onDataChange: sinon.stub(),
+      offDataChange: sinon.stub(),
+    };
+    locationModule.__set__('config', fakeConfig);
+  });
+
+  it('clears the force interval on stop', () => {
+    const fakeId = setInterval(() => {}, 999999);
+    locationModule.__set__('forceIntervalId', fakeId);
+    locationModule.stop();
+    expect(locationModule.__get__('forceIntervalId')).to.be.null;
+    clearInterval(fakeId); // cleanup in case stop didn't clear it
+  });
+
+  it('calls config.offDataChange for tracking_schedule on stop', () => {
+    locationModule.stop();
+    expect(fakeConfig.offDataChange.calledWith('control-panel.tracking_schedule')).to.be.true;
+  });
+});
 
 describe('writeStorage', () => {
   it('should recognize localtime to be newer in the machine', () => {
