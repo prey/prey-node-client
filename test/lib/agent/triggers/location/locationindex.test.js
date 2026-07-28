@@ -210,6 +210,16 @@ describe('checkOneDayDifference', () => {
     const fecha2 = 'no es una fecha';
     expect(() => locationIndex.checkOneDayDifference(fecha1, fecha2)).to.throw(Error);
   });
+
+  it('should return true when day-of-month matches but month is different (cross-month)', () => {
+    locationIndex.checkOneDayDifference(
+      new Date('2024-02-15'),
+      new Date('2024-01-15'),
+      (result) => {
+        expect(result).to.be.true;
+      }
+    );
+  });
 });
 
 describe('callFetchLocation', () => {
@@ -294,5 +304,109 @@ describe('callFetchLocation', () => {
       },
       () => done(new Error('cb should not be called'))
     );
+  });
+});
+
+describe('fetchLocation force - geoip rejection', () => {
+  let locationModule;
+  let geoStub;
+  let fakeLogger;
+  let fetchLocation;
+
+  beforeEach(() => {
+    locationModule = rewire('../../../../../lib/agent/triggers/location');
+    geoStub = { fetch_location: sinon.stub() };
+    fakeLogger = {
+      warn: sinon.stub(),
+      info: sinon.stub(),
+      debug: sinon.stub(),
+      error: sinon.stub(),
+      notice: sinon.stub(),
+    };
+    locationModule.__set__('geo', geoStub);
+    locationModule.__set__('emitter', {});
+    locationModule.__set__('logger', fakeLogger);
+    fetchLocation = locationModule.__get__('fetchLocation');
+  });
+
+  it('rejects geoip result for force type and logs warning', () => {
+    geoStub.fetch_location.callsFake((cb) => cb(null, { lat: -33.45, lng: -70.65, method: 'geoip' }));
+    fetchLocation('force', () => {});
+    expect(fakeLogger.warn.calledWith('Force location rejected: geoip result is not allowed')).to.be.true;
+    expect(locationModule.__get__('checking')).to.be.false;
+  });
+
+  it('does not reject geoip result for interval type', () => {
+    geoStub.fetch_location.callsFake((cb) => cb(null, { lat: -33.45, lng: -70.65, method: 'geoip', accuracy: 100 }));
+    fetchLocation('interval', () => {});
+    expect(fakeLogger.warn.calledWith('Force location rejected: geoip result is not allowed')).to.be.false;
+  });
+
+  it('does not reject wifi result for force type', () => {
+    geoStub.fetch_location.callsFake((cb) => cb(null, { lat: -33.45, lng: -70.65, method: 'wifi', accuracy: 50 }));
+    fetchLocation('force', () => {});
+    expect(fakeLogger.warn.calledWith('Force location rejected: geoip result is not allowed')).to.be.false;
+  });
+});
+
+describe('forceLocation - logging', () => {
+  let locationModule;
+  let fakeLogger;
+  let fakeConfig;
+  let forceLocation;
+
+  beforeEach(() => {
+    locationModule = rewire('../../../../../lib/agent/triggers/location');
+    fakeLogger = {
+      info: sinon.stub(),
+      warn: sinon.stub(),
+      debug: sinon.stub(),
+      error: sinon.stub(),
+      notice: sinon.stub(),
+    };
+    fakeConfig = {
+      getData: sinon.stub().returns(null),
+      setData: sinon.stub(),
+      onDataChange: sinon.stub(),
+      offDataChange: sinon.stub(),
+    };
+    locationModule.__set__('logger', fakeLogger);
+    locationModule.__set__('config', fakeConfig);
+    forceLocation = locationModule.__get__('forceLocation');
+  });
+
+  it('logs Force location check triggered on every call', () => {
+    locationModule.__set__('writeStorage', (local, cb) => cb(false));
+    forceLocation();
+    expect(fakeLogger.info.calledWith('Force location check triggered')).to.be.true;
+  });
+
+  it('logs skipped when outside tracking schedule window', () => {
+    fakeConfig.getData.withArgs('control-panel.tracking_schedule').returns({
+      start_at: '09:00',
+      end_at: '17:00',
+      monday: false,
+      tuesday: false,
+      wednesday: false,
+      thursday: false,
+      friday: false,
+      saturday: false,
+      sunday: false,
+    });
+    forceLocation();
+    expect(fakeLogger.info.calledWith('Force location skipped: outside tracking schedule window')).to.be.true;
+  });
+
+  it('logs skipped when already sent today', () => {
+    locationModule.__set__('writeStorage', (local, cb) => cb(false));
+    forceLocation();
+    expect(fakeLogger.info.calledWith('Force location skipped: already sent today')).to.be.true;
+  });
+
+  it('logs Sending force location when writeStorage allows', () => {
+    locationModule.__set__('writeStorage', (local, cb) => cb(true));
+    locationModule.__set__('fetchLocation', () => {});
+    forceLocation();
+    expect(fakeLogger.info.calledWith('Sending force location...')).to.be.true;
   });
 });
