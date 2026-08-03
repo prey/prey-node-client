@@ -17,6 +17,21 @@ then
     exit 1
 fi
 
+echo "Checking // @ts-check in staged lib/ files..."
+missing_tscheck=()
+while IFS= read -r file; do
+  [ -f "$file" ] && ! grep -q '// @ts-check' "$file" && missing_tscheck+=("$file")
+done < <(git diff --cached --name-only --diff-filter=ACMR | grep '^lib/.*\.js$')
+
+if [ ${#missing_tscheck[@]} -gt 0 ]; then
+  echo "The following staged lib/ files are missing '// @ts-check':"
+  for f in "${missing_tscheck[@]}"; do
+    echo "  $f"
+  done
+  echo "Add '// @ts-check' at the top of each file before committing."
+  exit 1
+fi
+
 echo "Running typecheck..."
 npm run typecheck
 if [ $? -ne 0 ]; then

@@ -261,6 +261,47 @@ describe('Hostname Trigger', () => {
     });
   });
 
+  describe('race condition: stop() while storage callback is in-flight', () => {
+    it('should not throw when emit_event is called after stop() sets emitter to null', () => {
+      const emit_event = hostnameRewired.__get__('emit_event');
+      hostnameRewired.__set__('emitter', null);
+      hostnameRewired.__set__('connection_status', 'connected');
+      expect(() => emit_event({ old_name: 'host-a', new_name: 'host-b' })).to.not.throw();
+    });
+
+    it('should not throw when emit_event is called before start() initializes emitter', () => {
+      const emit_event = hostnameRewired.__get__('emit_event');
+      hostnameRewired.__set__('emitter', undefined);
+      hostnameRewired.__set__('connection_status', 'connected');
+      expect(() => emit_event({ old_name: 'host-a', new_name: 'host-b' })).to.not.throw();
+    });
+
+    it('should reset connection_status to null on stop()', (done) => {
+      const hostnameEmitter = new EventEmitter();
+      triggersStub.watch.callsFake((trigger, cb) => { cb(null, hostnameEmitter); });
+      providersStub.get.callsFake((name, cb) => cb(null, 'my-host'));
+      storageStub.do.callsFake((op, opts, cb) => cb(null, []));
+
+      hostnameRewired.start({}, () => {
+        hostnameRewired.__set__('connection_status', 'connected');
+        hostnameRewired.stop();
+        expect(hostnameRewired.__get__('connection_status')).to.be.null;
+        done();
+      });
+
+      clock.tick(1000);
+    });
+
+    it('storage callback arriving after stop() should not crash', () => {
+      // Simulate: stop() sets emitter=null and connection_status=null,
+      // then the in-flight storage callback fires and calls emit_event.
+      const emit_event = hostnameRewired.__get__('emit_event');
+      hostnameRewired.__set__('emitter', null);
+      hostnameRewired.__set__('connection_status', null);
+      expect(() => emit_event({ old_name: 'host-a', new_name: 'host-b' })).to.not.throw();
+    });
+  });
+
   describe('polling interval fires check_hostname', () => {
     it('should call check_hostname periodically when polling is active', (done) => {
       triggersStub.watch.throws(new Error('spawn UNKNOWN'));
