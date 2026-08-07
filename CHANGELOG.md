@@ -1,5 +1,14 @@
 # Change Log
 
+## [v1.13.40](https://github.com/prey/prey-node-client/tree/v1.13.40) (2026-08-07)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.39..v1.13.40)
+
+- Feat: Added `mdm_enroll` action for Windows MDM enrollment; the action invokes the MDM enrollment command via PowerShell and reports success or failure back to the control panel. ([SoraKenji](https://github.com/SoraKenji))
+
+- Feat: Extended schedule-aware force location with a smart polling interval: force location now runs when `location_aware=false` and a valid `tracking_schedule` is active; `last_force_datetime` is written only after a successful HTTP 200 response; `tracking_schedule` is cleared when the backend sends an empty or null value; fixed polling is replaced with window-based scheduling (2–20 min interval). ([SoraKenji](https://github.com/SoraKenji))
+
+- Chore: Tightened dependency overrides to patch DoS vulnerabilities in `brace-expansion`, `js-yaml`, and `tar`; bumped `ip-address` override to >=10.3.1 to fix a leading-zero octet SSRF bypass, IPv4-mapped/NAT64 address misclassification, and CIDR-suffix classification suppression. ([SoraKenji](https://github.com/SoraKenji))
+
 ## [v1.13.39](https://github.com/prey/prey-node-client/tree/v1.13.39) (2026-07-28)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.38..v1.13.39)
 
