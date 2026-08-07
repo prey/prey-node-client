@@ -25,7 +25,7 @@ describe('mdm_enroll', () => {
   });
 
   describe('start', () => {
-    it('should return error on non-windows platforms', (done) => {
+    it('should return error on MacOS platforms', (done) => {
       mdmEnrollRewired.__set__('osName', 'mac');
 
       const opts = {
