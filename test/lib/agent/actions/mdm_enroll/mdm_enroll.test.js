@@ -218,6 +218,38 @@ describe('mdm_enroll', () => {
         done();
       });
     });
+
+    it('should accept nested opts.opts form from the loader', (done) => {
+      const opts = {
+        opts: {
+          identifier: 'nested@contoso.com',
+          secret: 'nested-secret',
+          discovery_url: 'https://nested.contoso.com/Discovery.svc',
+        },
+      };
+
+      needleMock.post.callsFake((url, data, options, cb) => {
+        cb(null, { statusCode: 200, body: { enrolled: true } });
+      });
+
+      mdmEnrollRewired.start('test-id', opts, (err, emitter) => {
+        expect(err).to.be.null;
+        emitter.on('end', (id, error, out) => {
+          expect(id).to.equal('test-id');
+          expect(error).to.be.null;
+          expect(out).to.deep.equal({ enrolled: true });
+          done();
+        });
+      });
+
+      process.nextTick(() => {
+        expect(needleMock.post.calledOnce).to.be.true;
+        const payload = needleMock.post.firstCall.args[1];
+        expect(payload.opts.upn).to.equal('nested@contoso.com');
+        expect(payload.opts.secret).to.equal('nested-secret');
+        expect(payload.opts.discovery_url).to.equal('https://nested.contoso.com/Discovery.svc');
+      });
+    });
   });
 
   describe('stop', () => {
