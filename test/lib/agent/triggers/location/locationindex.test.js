@@ -130,6 +130,17 @@ describe('stop', () => {
     locationModule.stop();
     expect(fakeConfig.offDataChange.calledWith('control-panel.tracking_schedule')).to.be.true;
   });
+
+  it('removes get_location_request hook on stop', () => {
+    const fakeHooks = {
+      on: sinon.stub(),
+      remove: sinon.stub(),
+      trigger: sinon.stub(),
+    };
+    locationModule.__set__('hooks', fakeHooks);
+    locationModule.stop();
+    expect(fakeHooks.remove.calledWith('get_location_request')).to.be.true;
+  });
 });
 
 describe('writeStorage', () => {
@@ -376,7 +387,6 @@ describe('forceLocation - logging', () => {
   });
 
   it('logs Force location check triggered on every call', () => {
-    locationModule.__set__('writeStorage', (local, cb) => cb(false));
     forceLocation();
     expect(fakeLogger.info.calledWith('Force location check triggered')).to.be.true;
   });
@@ -397,14 +407,26 @@ describe('forceLocation - logging', () => {
     expect(fakeLogger.info.calledWith('Force location skipped: outside tracking schedule window')).to.be.true;
   });
 
+  it('logs skipped when no schedule and location_aware is false', () => {
+    fakeConfig.getData.withArgs('control-panel.tracking_schedule').returns(null);
+    fakeConfig.getData.withArgs('control-panel.location_aware').returns(false);
+    const fetchLocationSpy = sinon.stub();
+    locationModule.__set__('fetchLocation', fetchLocationSpy);
+    forceLocation();
+    expect(fakeLogger.info.calledWith('Force location skipped: no schedule and location_aware is false')).to.be.true;
+    expect(fetchLocationSpy.called).to.be.false;
+  });
+
   it('logs skipped when already sent today', () => {
-    locationModule.__set__('writeStorage', (local, cb) => cb(false));
+    fakeConfig.getData.withArgs('control-panel.location_aware').returns(true);
+    locationModule.__set__('writeStorage', (local, cb) => cb(false, false));
     forceLocation();
     expect(fakeLogger.info.calledWith('Force location skipped: already sent today')).to.be.true;
   });
 
   it('logs Sending force location when writeStorage allows', () => {
-    locationModule.__set__('writeStorage', (local, cb) => cb(true));
+    fakeConfig.getData.withArgs('control-panel.location_aware').returns(true);
+    locationModule.__set__('writeStorage', (local, cb) => cb(true, false));
     locationModule.__set__('fetchLocation', () => {});
     forceLocation();
     expect(fakeLogger.info.calledWith('Sending force location...')).to.be.true;
@@ -586,6 +608,8 @@ describe('forceLocation - storeForceData after confirmed success', () => {
       onDataChange: sinon.stub(),
       offDataChange: sinon.stub(),
     };
+    // location_aware=true avoids the Fix-2 early-return (no schedule + location_aware=false)
+    fakeConfig.getData.withArgs('control-panel.location_aware').returns(true);
     storageDoStub = sinon.stub(storage, 'do');
     locationModule.__set__('logger', fakeLogger);
     locationModule.__set__('config', fakeConfig);
@@ -625,6 +649,18 @@ describe('forceLocation - storeForceData after confirmed success', () => {
     forceLocation();
 
     expect(storageDoStub.called).to.be.false;
+  });
+
+  it('logs error when storage.do fails (storeForceData error path)', () => {
+    locationModule.__set__('writeStorage', (local, cb) => cb(true, false));
+    locationModule.__set__('fetchLocation', (type, cb) => cb(null));
+    storageDoStub.callsFake((op, query, cb) => cb(new Error('sqlite write failed')));
+
+    forceLocation();
+
+    expect(storageDoStub.calledOnce).to.be.true;
+    expect(fakeLogger.error.calledWith('Unable to update db keys last force location values')).to.be.true;
+    expect(fakeLogger.info.calledWith('Updated db keys last force location values')).to.be.false;
   });
 });
 
