@@ -33,7 +33,7 @@ describe('storeIdentification.save', () => {
     });
   });
 
-  it('calls storage.set when the key does not exist in the db', (done) => {
+  it('calls storage.set when the row does not exist in the db', (done) => {
     storageDoStub.withArgs('query').callsFake((_op, _opts, cb) => cb(null, []));
     storageDoStub.withArgs('set').callsFake((_op, _opts, cb) => cb(null));
 
@@ -44,7 +44,7 @@ describe('storeIdentification.save', () => {
       const setCall = storageDoStub.getCalls().find((c) => c.args[0] === 'set');
       expect(setCall).to.exist;
       expect(setCall.args[1].type).to.equal('keys');
-      expect(setCall.args[1].id).to.equal('abc-key-123');
+      expect(setCall.args[1].id).to.equal('deviceIdentificationData');
 
       const parsed = JSON.parse(setCall.args[1].data.value);
       expect(parsed.device_key).to.equal('abc-key-123');
@@ -54,8 +54,8 @@ describe('storeIdentification.save', () => {
     });
   });
 
-  it('calls storage.update when the key already exists in the db', (done) => {
-    storageDoStub.withArgs('query').callsFake((_op, _opts, cb) => cb(null, [{ id: 'abc-key-123', value: '{}' }]));
+  it('calls storage.update when the row already exists in the db', (done) => {
+    storageDoStub.withArgs('query').callsFake((_op, _opts, cb) => cb(null, [{ id: 'deviceIdentificationData', value: '{}' }]));
     storageDoStub.withArgs('update').callsFake((_op, _opts, cb) => cb(null));
 
     const payload = { name: 'MyDevice', os: 'mac' };
@@ -65,7 +65,7 @@ describe('storeIdentification.save', () => {
       const updateCall = storageDoStub.getCalls().find((c) => c.args[0] === 'update');
       expect(updateCall).to.exist;
       expect(updateCall.args[1].type).to.equal('keys');
-      expect(updateCall.args[1].id).to.equal('abc-key-123');
+      expect(updateCall.args[1].id).to.equal('deviceIdentificationData');
       expect(updateCall.args[1].columns).to.equal('value');
 
       const parsed = JSON.parse(updateCall.args[1].values);
