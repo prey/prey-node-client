@@ -936,3 +936,182 @@ describe('restartForceInterval - scheduling behavior', () => {
     expect(locationModule.__get__('forceTimeoutId')).to.be.null;
   });
 });
+
+describe('getTimeComponents', () => {
+  let clock;
+
+  afterEach(() => {
+    if (clock) { clock.restore(); clock = null; }
+  });
+
+  it('returns correct hours and minutes in the given IANA timezone', () => {
+    // 2025-01-06T15:00:00Z (Mon 15:00 UTC) = Mon 07:00 in America/Los_Angeles (UTC-8 in Jan)
+    clock = sinon.useFakeTimers(new Date('2025-01-06T15:00:00Z').getTime());
+    const result = locationIndex.getTimeComponents(new Date(), 'America/Los_Angeles');
+    expect(result.hours).to.equal(7);
+    expect(result.minutes).to.equal(0);
+    expect(result.dayOfWeek).to.equal(1); // Monday
+  });
+
+  it('handles half-hour UTC offset timezones (Asia/Kolkata UTC+5:30)', () => {
+    // 2025-01-06T01:30:00Z (Mon 01:30 UTC) = Mon 07:00 in Asia/Kolkata (UTC+5:30)
+    clock = sinon.useFakeTimers(new Date('2025-01-06T01:30:00Z').getTime());
+    const result = locationIndex.getTimeComponents(new Date(), 'Asia/Kolkata');
+    expect(result.hours).to.equal(7);
+    expect(result.minutes).to.equal(0);
+    expect(result.dayOfWeek).to.equal(1); // Monday
+  });
+
+  it('returns a different weekday when the account timezone is ahead of UTC', () => {
+    // 2025-01-05T18:30:00Z (Sun 18:30 UTC) = Mon 00:00 in Asia/Kolkata (UTC+5:30)
+    clock = sinon.useFakeTimers(new Date('2025-01-05T18:30:00Z').getTime());
+    const result = locationIndex.getTimeComponents(new Date(), 'Asia/Kolkata');
+    expect(result.hours).to.equal(0);
+    expect(result.minutes).to.equal(0);
+    expect(result.dayOfWeek).to.equal(1); // Monday, not Sunday
+  });
+
+  it('falls back to local time when timezone is null', () => {
+    clock = sinon.useFakeTimers(new Date('2025-01-06T12:00:00').getTime());
+    const now = new Date();
+    const result = locationIndex.getTimeComponents(now, null);
+    expect(result.hours).to.equal(now.getHours());
+    expect(result.minutes).to.equal(now.getMinutes());
+    expect(result.dayOfWeek).to.equal(now.getDay());
+  });
+
+  it('falls back to local time and does not throw when timezone is invalid', () => {
+    clock = sinon.useFakeTimers(new Date('2025-01-06T12:00:00').getTime());
+    const now = new Date();
+    expect(() => locationIndex.getTimeComponents(now, 'Not/AValidZone')).to.not.throw();
+    const result = locationIndex.getTimeComponents(now, 'Not/AValidZone');
+    expect(result).to.have.property('hours');
+    expect(result).to.have.property('minutes');
+    expect(result).to.have.property('dayOfWeek');
+  });
+});
+
+describe('checkSchedule — timezone aware', () => {
+  let clock;
+
+  afterEach(() => {
+    if (clock) { clock.restore(); clock = null; }
+  });
+
+  it('evaluates schedule times in the account timezone, not device local time', () => {
+    // 2025-01-06T15:00:00Z (Mon 15:00 UTC) = Mon 07:00 in America/Los_Angeles (UTC-8)
+    // Without timezone: 15:00 local > end_at 15:00 → false (or device-dependent)
+    // With timezone LA: 07:00 = start_at → shouldSend: true
+    clock = sinon.useFakeTimers(new Date('2025-01-06T15:00:00Z').getTime());
+    const result = locationIndex.checkSchedule(SCHEDULE, 'America/Los_Angeles');
+    expect(result.shouldSend).to.be.true;
+  });
+
+  it('returns false when the current time in account timezone is past end_at', () => {
+    // 2025-01-06T23:30:00Z (Mon 23:30 UTC) = Mon 15:30 LA — past end_at 15:00
+    clock = sinon.useFakeTimers(new Date('2025-01-06T23:30:00Z').getTime());
+    const result = locationIndex.checkSchedule(SCHEDULE, 'America/Los_Angeles');
+    expect(result.shouldSend).to.be.false;
+  });
+
+  it('correctly resolves weekday from account timezone when it differs from UTC', () => {
+    // 2025-01-05T18:30:00Z = Sun 18:30 UTC = Mon 00:00 IST.
+    // SCHEDULE: sunday: false, monday: true, start_at: '07:00'
+    // In IST it is Monday (day enabled) but 00:00 < 07:00 → shouldSend: false
+    clock = sinon.useFakeTimers(new Date('2025-01-05T18:30:00Z').getTime());
+    const result = locationIndex.checkSchedule(SCHEDULE, 'Asia/Kolkata');
+    expect(result.shouldSend).to.be.false;
+  });
+
+  it('returns true at exactly start_at in account timezone (half-hour offset)', () => {
+    // 2025-01-06T01:30:00Z = Mon 07:00 IST — exactly at start_at
+    clock = sinon.useFakeTimers(new Date('2025-01-06T01:30:00Z').getTime());
+    const result = locationIndex.checkSchedule(SCHEDULE, 'Asia/Kolkata');
+    expect(result.shouldSend).to.be.true;
+  });
+
+  it('falls back gracefully when timezone is undefined (backward compat)', () => {
+    clock = sinon.useFakeTimers(new Date('2025-01-06T10:00:00').getTime());
+    expect(() => locationIndex.checkSchedule(SCHEDULE)).to.not.throw();
+    const result = locationIndex.checkSchedule(SCHEDULE);
+    expect(result).to.have.property('shouldSend');
+  });
+
+  it('falls back gracefully when timezone is invalid', () => {
+    clock = sinon.useFakeTimers(new Date('2025-01-06T10:00:00').getTime());
+    expect(() => locationIndex.checkSchedule(SCHEDULE, 'Bad/Zone')).to.not.throw();
+  });
+});
+
+describe('timezone change listener registration', () => {
+  let locationModule;
+  let fakeConfig;
+  let fakeHooks;
+  let clock;
+
+  beforeEach(() => {
+    clock = sinon.useFakeTimers(); // prevent real timers from firing during start()
+    locationModule = rewire('../../../../../lib/agent/triggers/location');
+    fakeConfig = {
+      getData: sinon.stub().returns(null),
+      onDataChange: sinon.stub(),
+      offDataChange: sinon.stub(),
+    };
+    fakeHooks = { on: sinon.stub(), remove: sinon.stub(), trigger: sinon.stub() };
+    locationModule.__set__('config', fakeConfig);
+    locationModule.__set__('hooks', fakeHooks);
+    locationModule.__set__('logger', {
+      info: sinon.stub(), warn: sinon.stub(), debug: sinon.stub(),
+      error: sinon.stub(), notice: sinon.stub(),
+    });
+  });
+
+  afterEach(() => {
+    locationModule.__get__('clearForceTimers')();
+    if (clock) { clock.restore(); clock = null; }
+  });
+
+  it('registers onDataChange for "timezone" on start', () => {
+    locationModule.start({}, () => {});
+    expect(fakeConfig.onDataChange.calledWith('timezone', sinon.match.func)).to.be.true;
+  });
+
+  it('unregisters offDataChange for "timezone" on stop', () => {
+    locationModule.stop();
+    expect(fakeConfig.offDataChange.calledWith('timezone', sinon.match.func)).to.be.true;
+  });
+});
+
+describe('fetchLocation force callback on error', () => {
+  let locationModule;
+  let clock;
+
+  beforeEach(() => {
+    clock = sinon.useFakeTimers();
+    locationModule = rewire('../../../../../lib/agent/triggers/location');
+    locationModule.__set__('checking', false);
+    locationModule.__set__('locCallbacks', []);
+    locationModule.__set__('emitter', new (require('events').EventEmitter)());
+    locationModule.__set__('geo', {
+      fetch_location: (cb) => cb(new Error('GPS unavailable')),
+    });
+    locationModule.__set__('logger', {
+      info: sinon.stub(), warn: sinon.stub(), debug: sinon.stub(),
+      error: sinon.stub(), notice: sinon.stub(),
+    });
+  });
+
+  afterEach(() => {
+    locationModule.__get__('clearForceTimers')();
+    if (clock) { clock.restore(); clock = null; }
+  });
+
+  it('invokes force callback with error when geo.fetch_location fails', (done) => {
+    const fetchLocation = locationModule.__get__('fetchLocation');
+    fetchLocation('force', (err) => {
+      expect(err).to.be.an.instanceOf(Error);
+      expect(err.message).to.equal('Unable to get location');
+      done();
+    });
+  });
+});
