@@ -51,10 +51,19 @@ build() {
 	# https://github.com/TryGhost/node-sqlite3/issues/1552#issuecomment-1073309408
 	# npm config set python python3
 
-	BUNDLE_ONLY=1 npm ci --production # > /dev/null
+	# sqlite3 se instala desde los binarios precompilados en tools/sqlite3/,
+	# por eso saltamos los install scripts (--ignore-scripts) para evitar que
+	# prebuild-install/node-gyp intenten compilarlo (falla en CI sin make ni red).
+	BUNDLE_ONLY=1 npm ci --production --ignore-scripts # > /dev/null
 	if [ $? -ne 0 ]; then
 		abort "NPM install failed."
 	fi
+
+	# Con --ignore-scripts sqlite3 no genera build/Release, así que dejamos un
+	# binario por defecto (linux x64). En zip_file() se reemplaza por el de cada
+	# plataforma; el zip genérico conserva este.
+	mkdir -p node_modules/sqlite3/build/Release
+	cp -R "$CURRENT_PATH/tools/sqlite3/linux/napi-v6-linux-x64/node_sqlite3.node" node_modules/sqlite3/build/Release/
 
 	# remove stuff from main tarball
 	echo "Stripping unneeded stuff..."
