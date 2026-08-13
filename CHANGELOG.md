@@ -9,7 +9,7 @@
 
 - Feat: The agent now keeps a local copy of the device identification data sent to the panel during linking, for easier on-device diagnostics. This is best-effort and never blocks the linking flow. ([SoraKenji](https://github.com/SoraKenji))
 
-- Feat: Updated the bundled Windows Prey lock binary to version 2.0.4. ([SoraKenji](https://github.com/SoraKenji))
+- Feat: Updated the bundled Windows Prey lock binary to version 2.0.5. ([SoraKenji](https://github.com/SoraKenji))
 
 - Fix: Corrected the field used to identify the user during MDM enrollment. ([SoraKenji](https://github.com/SoraKenji))
 
