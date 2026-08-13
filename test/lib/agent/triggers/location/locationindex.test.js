@@ -935,6 +935,22 @@ describe('restartForceInterval - scheduling behavior', () => {
     expect(locationModule.__get__('forceIntervalId')).to.be.null;
     expect(locationModule.__get__('forceTimeoutId')).to.be.null;
   });
+
+  it('does not flood forceLocation on the end_at minute', () => {
+    // Regression: at the inclusive end_at minute (15:00), msUntilWindowEnd is 0.
+    // Without the floor, the window-end timeout fires on the next tick, scheduleNextWindow
+    // sees the schedule still active and re-enters scheduleForceInWindow — recursing every
+    // tick and calling forceLocation hundreds of times for the whole minute.
+    clock.setSystemTime(new Date('2025-01-08T15:00:00').getTime());
+    fakeConfig.getData.withArgs('control-panel.tracking_schedule').returns(SCHEDULE);
+    const forceSpy = sinon.spy();
+    locationModule.__set__('forceLocation', forceSpy);
+    locationModule.__get__('restartForceInterval')();
+    clock.tick(1000);
+    // With the fix: exactly one call and a >= 60s window-end timeout; no recursion.
+    expect(forceSpy.callCount).to.be.at.most(2);
+    expect(locationModule.__get__('forceTimeoutId')).to.not.be.null;
+  });
 });
 
 describe('getTimeComponents', () => {
