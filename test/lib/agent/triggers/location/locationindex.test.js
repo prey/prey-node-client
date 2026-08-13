@@ -431,6 +431,17 @@ describe('forceLocation - logging', () => {
     forceLocation();
     expect(fakeLogger.info.calledWith('Sending force location...')).to.be.true;
   });
+
+  it('throttles a second call fired within one second', () => {
+    // Defense-in-depth guard: rapid re-entry must be suppressed and warned once, not flooded.
+    fakeConfig.getData.withArgs('control-panel.location_aware').returns(true);
+    locationModule.__set__('writeStorage', (local, cb) => cb(false, false));
+    forceLocation();
+    forceLocation();
+    // Only the first call runs the check; the second is throttled.
+    expect(fakeLogger.info.withArgs('Force location check triggered').callCount).to.equal(1);
+    expect(fakeLogger.warn.calledWith('forceLocation throttled: invoked more than once per second')).to.be.true;
+  });
 });
 
 describe('isValidSchedule', () => {
@@ -934,6 +945,23 @@ describe('restartForceInterval - scheduling behavior', () => {
     locationModule.__get__('clearForceTimers')();
     expect(locationModule.__get__('forceIntervalId')).to.be.null;
     expect(locationModule.__get__('forceTimeoutId')).to.be.null;
+  });
+
+  it('stays bounded over a simulated 48h (marathon)', () => {
+    // Broad insurance: drive the scheduler across two full days and assert forceLocation is
+    // invoked a sane, bounded number of times. Any runaway re-scheduling would exceed sinon's
+    // fake-timer loopLimit and throw before the assertions run.
+    clock.setSystemTime(new Date('2025-01-08T08:00:00').getTime());
+    fakeConfig.getData.withArgs('control-panel.tracking_schedule').returns(SCHEDULE);
+    const forceSpy = sinon.spy();
+    locationModule.__set__('forceLocation', forceSpy);
+    locationModule.__get__('restartForceInterval')();
+    // Advance 48h in 1-minute steps so re-scheduling chains resolve deterministically.
+    for (let i = 0; i < 48 * 60; i += 1) clock.tick(60 * 1000);
+    // SCHEDULE is an 8h window (07:00-15:00), Mon-Fri; force interval clamps to 20 min →
+    // ~24 calls/day plus boundaries. Two days stays comfortably under 200.
+    expect(forceSpy.callCount).to.be.greaterThan(0);
+    expect(forceSpy.callCount).to.be.lessThan(200);
   });
 
   it('does not flood forceLocation on the end_at minute', () => {
