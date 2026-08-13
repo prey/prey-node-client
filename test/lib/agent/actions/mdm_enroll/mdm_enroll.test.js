@@ -29,7 +29,7 @@ describe('mdm_enroll', () => {
       mdmEnrollRewired.__set__('osName', 'mac');
 
       const opts = {
-        identifier: 'admin@contoso.com',
+        upn: 'admin@contoso.com',
         secret: 'SuperSecret',
         discovery_url: 'https://enrollment.contoso.com/Discovery.svc',
       };
@@ -45,7 +45,7 @@ describe('mdm_enroll', () => {
       mdmEnrollRewired.__set__('osName', 'linux');
 
       const opts = {
-        identifier: 'admin@contoso.com',
+        upn: 'admin@contoso.com',
         secret: 'SuperSecret',
         discovery_url: 'https://enrollment.contoso.com/Discovery.svc',
       };
@@ -57,18 +57,18 @@ describe('mdm_enroll', () => {
       });
     });
 
-    it('should return error when identifier is missing', (done) => {
+    it('should return error when upn is missing', (done) => {
       const opts = { secret: 'secret', discovery_url: 'https://example.com' };
 
       mdmEnrollRewired.start('test-id', opts, (err) => {
         expect(err).to.be.an.instanceOf(Error);
-        expect(err.message).to.include('identifier');
+        expect(err.message).to.include('upn');
         done();
       });
     });
 
     it('should return error when secret is missing', (done) => {
-      const opts = { identifier: 'admin@contoso.com', discovery_url: 'https://example.com' };
+      const opts = { upn: 'admin@contoso.com', discovery_url: 'https://example.com' };
 
       mdmEnrollRewired.start('test-id', opts, (err) => {
         expect(err).to.be.an.instanceOf(Error);
@@ -78,7 +78,7 @@ describe('mdm_enroll', () => {
     });
 
     it('should return error when discovery_url is missing', (done) => {
-      const opts = { identifier: 'admin@contoso.com', secret: 'secret' };
+      const opts = { upn: 'admin@contoso.com', secret: 'secret' };
 
       mdmEnrollRewired.start('test-id', opts, (err) => {
         expect(err).to.be.an.instanceOf(Error);
@@ -96,7 +96,7 @@ describe('mdm_enroll', () => {
 
     it('should POST to localhost:7739/action with correct payload', (done) => {
       const opts = {
-        identifier: 'admin@contoso.com',
+        upn: 'admin@contoso.com',
         secret: 'SuperSecret',
         discovery_url: 'https://enrollment.contoso.com/Discovery.svc',
       };
@@ -131,7 +131,7 @@ describe('mdm_enroll', () => {
 
     it('should emit end on successful response', (done) => {
       const opts = {
-        identifier: 'admin@contoso.com',
+        upn: 'admin@contoso.com',
         secret: 'SuperSecret',
         discovery_url: 'https://enrollment.contoso.com/Discovery.svc',
       };
@@ -154,7 +154,7 @@ describe('mdm_enroll', () => {
 
     it('should emit end with error on network failure', (done) => {
       const opts = {
-        identifier: 'admin@contoso.com',
+        upn: 'admin@contoso.com',
         secret: 'SuperSecret',
         discovery_url: 'https://enrollment.contoso.com/Discovery.svc',
       };
@@ -177,7 +177,7 @@ describe('mdm_enroll', () => {
 
     it('should emit end with error on non-2xx status code', (done) => {
       const opts = {
-        identifier: 'admin@contoso.com',
+        upn: 'admin@contoso.com',
         secret: 'SuperSecret',
         discovery_url: 'https://enrollment.contoso.com/Discovery.svc',
       };
@@ -198,9 +198,9 @@ describe('mdm_enroll', () => {
       });
     });
 
-    it('should map identifier to upn in the payload', (done) => {
+    it('should pass upn through to the payload', (done) => {
       const opts = {
-        identifier: 'user@example.com',
+        upn: 'user@example.com',
         secret: 'my-secret',
         discovery_url: 'https://mdm.example.com/discovery',
       };
@@ -222,7 +222,7 @@ describe('mdm_enroll', () => {
     it('should accept nested opts.opts form from the loader', (done) => {
       const opts = {
         opts: {
-          identifier: 'nested@contoso.com',
+          upn: 'nested@contoso.com',
           secret: 'nested-secret',
           discovery_url: 'https://nested.contoso.com/Discovery.svc',
         },
