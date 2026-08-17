@@ -19,6 +19,8 @@
 
 - Chore: Updated dependencies to address security advisories (including DoS and SSRF issues) reported by npm audit. ([SoraKenji](https://github.com/SoraKenji))
 
+- Chore: Updated wpxsvc to version 2.0.35. This helps to debug errors when performing mdm-enroll actions. ([SoraKenji](https://github.com/SoraKenji))
+
 ## [v1.13.39](https://github.com/prey/prey-node-client/tree/v1.13.39) (2026-07-28)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.38..v1.13.39)
 
