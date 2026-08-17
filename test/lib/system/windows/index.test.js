@@ -319,4 +319,153 @@ describe('lib/system/windows/index', () => {
       });
     });
   });
+
+  describe('run_as_admin', () => {
+    let windowsModule;
+    let needleStub;
+
+    const simulateResponse = (responseObj) => {
+      needleStub.post.callsFake((_url, _body, _opts, resCb) => {
+        resCb(null, { statusCode: 200 }, JSON.stringify(responseObj));
+      });
+    };
+
+    beforeEach(() => {
+      windowsModule = rewire('../../../../lib/system/windows/index');
+      needleStub = { post: sinon.stub(), get: sinon.stub() };
+      windowsModule.__set__('needle', needleStub);
+    });
+
+    afterEach(() => {
+      sinon.restore();
+    });
+
+    it('calls cb(null, out) on success response', (done) => {
+      simulateResponse({ error: false, output: { key: 'val' } });
+
+      windowsModule.run_as_admin('test-action', {}, (err, out) => {
+        expect(err).to.be.null;
+        expect(out).to.deep.equal({ key: 'val' });
+        done();
+      });
+    });
+
+    it('calls cb(Error, null) when error===true and output is null (plain action)', (done) => {
+      simulateResponse({ error: true, output: null });
+
+      windowsModule.run_as_admin('wipe', {}, (err, out) => {
+        expect(err).to.be.instanceOf(Error);
+        expect(out).to.be.null;
+        done();
+      });
+    });
+
+    it('cb is called exactly once on plain-action top-level error (no double call)', (done) => {
+      simulateResponse({ error: true, output: null });
+
+      const spy = sinon.spy();
+      windowsModule.run_as_admin('wipe', {}, spy);
+
+      setImmediate(() => {
+        sinon.assert.calledOnce(spy);
+        done();
+      });
+    });
+
+    it('uses message from output as Error.message when available', (done) => {
+      simulateResponse({ error: true, output: { message: 'disk not found' } });
+
+      windowsModule.run_as_admin('wipe', {}, (err) => {
+        expect(err).to.be.instanceOf(Error);
+        expect(err.message).to.equal('disk not found');
+        done();
+      });
+    });
+
+    it('calls cb(null, out) when error===true but output already has inner error (struct action — delegates to action handler)', (done) => {
+      const innerOut = { error: true, code: 1, message: 'drive not found' };
+      simulateResponse({ error: true, output: innerOut });
+
+      windowsModule.run_as_admin('full-wipe', {}, (err, out) => {
+        expect(err).to.be.null;
+        expect(out).to.deep.equal(innerOut);
+        done();
+      });
+    });
+
+    it('calls cb(null, out) when error===true but output is array with inner disk error (encrypt/decrypt)', (done) => {
+      const innerOut = [{ disk: 'C:', error: true, code: 2, message: 'bitlocker failed' }];
+      simulateResponse({ error: true, output: innerOut });
+
+      windowsModule.run_as_admin('encrypt', {}, (err, out) => {
+        expect(err).to.be.null;
+        expect(out).to.deep.equal(innerOut);
+        done();
+      });
+    });
+
+    it('calls cb(Error) on network error', (done) => {
+      const netErr = new Error('ECONNREFUSED');
+      needleStub.post.callsFake((_url, _body, _opts, resCb) => {
+        resCb(netErr, null, null);
+      });
+
+      windowsModule.run_as_admin('wipe', {}, (err) => {
+        expect(err).to.equal(netErr);
+        done();
+      });
+    });
+  });
+
+  describe('get_as_admin', () => {
+    let windowsModule;
+    let needleStub;
+
+    const simulateResponse = (responseObj) => {
+      needleStub.post.callsFake((_url, _body, _opts, resCb) => {
+        resCb(null, { statusCode: 200 }, JSON.stringify(responseObj));
+      });
+    };
+
+    beforeEach(() => {
+      windowsModule = rewire('../../../../lib/system/windows/index');
+      needleStub = { post: sinon.stub(), get: sinon.stub() };
+      windowsModule.__set__('needle', needleStub);
+    });
+
+    afterEach(() => {
+      sinon.restore();
+    });
+
+    it('calls cb(null, out) on success', (done) => {
+      simulateResponse({ error: false, output: { tpm: true } });
+
+      windowsModule.get_as_admin('tpmModule', (err, out) => {
+        expect(err).to.be.null;
+        expect(out).to.deep.equal({ tpm: true });
+        done();
+      });
+    });
+
+    it('calls cb(Error) when error===true and output is null (provider failure)', (done) => {
+      simulateResponse({ error: true, output: null });
+
+      windowsModule.get_as_admin('tpmModule', (err) => {
+        expect(err).to.be.instanceOf(Error);
+        done();
+      });
+    });
+
+    it('calls cb(Error) on network error', (done) => {
+      const netErr = new Error('ECONNREFUSED');
+      needleStub.post.callsFake((_url, _body, _opts, resCb) => {
+        resCb(netErr, null, null);
+      });
+
+      windowsModule.get_as_admin('tpmModule', (err) => {
+        expect(err).to.equal(netErr);
+        done();
+      });
+    });
+  });
 });
