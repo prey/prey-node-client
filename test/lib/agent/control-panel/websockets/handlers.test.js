@@ -455,6 +455,54 @@ describe('Handlers Module', () => {
       expect(sanitizeForLog(42)).to.equal(42);
       expect(sanitizeForLog(null)).to.equal(null);
     });
+
+    it('should mask secret in a plain object', () => {
+      const result = sanitizeForLog({ secret: 'SuperSecret' });
+      expect(result.secret).to.equal('****');
+    });
+
+    it('should mask discovery_url in a plain object', () => {
+      const result = sanitizeForLog({ discovery_url: 'https://enrollment.contoso.com/Discovery.svc' });
+      expect(result.discovery_url).to.equal('****');
+    });
+
+    it('should mask keys that contain a sensitive substring', () => {
+      const result = sanitizeForLog({ client_secret: 'x', mdm_secret: 'y', admin_password: 'z' });
+      expect(result.client_secret).to.equal('****');
+      expect(result.mdm_secret).to.equal('****');
+      expect(result.admin_password).to.equal('****');
+    });
+
+    it('should match sensitive keys case-insensitively', () => {
+      const result = sanitizeForLog({ Secret: 'x', PASSWORD: 'y', Discovery_URL: 'z' });
+      expect(result.Secret).to.equal('****');
+      expect(result.PASSWORD).to.equal('****');
+      expect(result.Discovery_URL).to.equal('****');
+    });
+
+    it('should mask secret and discovery_url in a nested mdm_enroll command', () => {
+      const data = [{
+        body: {
+          command: 'start',
+          target: 'mdm_enroll',
+          options: {
+            upn: 'admin@contoso.com',
+            secret: 'SuperSecret',
+            discovery_url: 'https://enrollment.contoso.com/Discovery.svc',
+          },
+        },
+      }];
+      const result = sanitizeForLog(data);
+      const { options } = result[0].body;
+      expect(options.secret).to.equal('****');
+      expect(options.discovery_url).to.equal('****');
+      expect(options.upn).to.equal('admin@contoso.com');
+    });
+
+    it('should leave non-sensitive keys unchanged', () => {
+      const result = sanitizeForLog({ discovery: 'ok', url: 'https://example.com', user: 'alice' });
+      expect(result).to.deep.equal({ discovery: 'ok', url: 'https://example.com', user: 'alice' });
+    });
   });
 
   describe('Sensitive field masking in log output', () => {
