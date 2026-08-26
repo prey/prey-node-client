@@ -1,106 +1,97 @@
 # Change Log
 
+## [v1.13.40](https://github.com/prey/prey-node-client/tree/v1.13.40) (2026-08-07)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.39..v1.13.40)
+
+- Feat: Added `mdm_enroll` action for Windows MDM enrollment, reporting success or failure back to the control panel. ([SoraKenji](https://github.com/SoraKenji))
+
+- Feat: Extended schedule-aware forced location so it runs within the configured `tracking_schedule` window, with a smarter interval and safer handling when the schedule is cleared from the panel. ([SoraKenji](https://github.com/SoraKenji))
+
+- Feat: The agent now keeps a local copy of the device identification data sent to the panel during linking, for easier on-device diagnostics. This is best-effort and never blocks the linking flow. ([SoraKenji](https://github.com/SoraKenji))
+
+- Feat: Updated the bundled Windows Prey lock binary to version 2.0.5. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Corrected the field used to identify the user during MDM enrollment. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Improved the reliability of scheduled and forced location, avoiding repeated location requests around schedule boundaries and ensuring a single request is processed at a time. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Hardened error handling in the location flow so failures are reported instead of being silently dropped. ([SoraKenji](https://github.com/SoraKenji))
+
+- Chore: Updated dependencies to address security advisories (including DoS and SSRF issues) reported by npm audit. ([SoraKenji](https://github.com/SoraKenji))
+
+- Chore: Updated wpxsvc to version 2.0.35. This helps to debug errors when performing mdm-enroll actions. ([SoraKenji](https://github.com/SoraKenji))
+
 ## [v1.13.39](https://github.com/prey/prey-node-client/tree/v1.13.39) (2026-07-28)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.38..v1.13.39)
 
-- Feat: Added `tracking_schedule` support to control which days and time windows forced location can run; unified boot-time and runtime settings processing into a single shared path. ([SoraKenji](https://github.com/SoraKenji))
+- Feat: Added `tracking_schedule` support to control which days and time windows forced location can run. ([SoraKenji](https://github.com/SoraKenji))
 
-- Fix: Hardened all Windows exec calls in system detection functions against synchronous EROFS and EPERM errors; removed `-NoProfile` to avoid unnecessary PowerShell profile loading. ([SoraKenji](https://github.com/SoraKenji))
+- Fix: Improved the resilience of Windows system-detection commands under restricted filesystem conditions. ([SoraKenji](https://github.com/SoraKenji))
 
-- Fix: WebSocket action responses now retry indefinitely every 30 s until the server ACKs delivery, replacing the previous 10-attempt cap that could silently drop responses. ([SoraKenji](https://github.com/SoraKenji))
+- Fix: Action responses over WebSocket are now retried until the server confirms delivery, preventing responses from being dropped. ([SoraKenji](https://github.com/SoraKenji))
 
-- Fix: Errors with an `err.level` property are now skipped from exception reporting, providing a lightweight opt-out for non-fatal errors that should not reach telemetry. ([SoraKenji](https://github.com/SoraKenji))
+- Fix: Reduced noise in error reporting by allowing known non-fatal errors to opt out. ([SoraKenji](https://github.com/SoraKenji))
 
-- Fix: Fixed a null-emitter crash in the hostname trigger when a pending async SQLite callback fires after `stop()` has already cleared the emitter reference. ([SoraKenji](https://github.com/SoraKenji))
-
-- Fix: `handleError` now preserves all properties of the original Error object when wrapping exceptions; a bare `throw` in the command handler is replaced with a callback error to prevent unhandled crashes. ([SoraKenji](https://github.com/SoraKenji))
+- Fix: Fixed a rare crash in the hostname watcher during shutdown, and improved error handling in the command handler to prevent unhandled crashes. ([SoraKenji](https://github.com/SoraKenji))
 
 - Chore: Updated dependencies to resolve npm audit security vulnerabilities. ([SoraKenji](https://github.com/SoraKenji))
 
 ## [v1.13.38](https://github.com/prey/prey-node-client/tree/v1.13.38) (2026-07-15)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.37..v1.13.38)
 
-- Fix: Fixed a crash on macOS where `permissionFile.getData()` could return a raw boolean (written by the mac native location helper without string coercion) instead of the expected string, causing an uncaught `.localeCompare is not a function` TypeError. `permissionfile.js` now normalizes on read and write so already-corrupted SQLite data self-heals; `listeners.js` comparisons and the mac branch's error handling are also hardened as defense in depth. ([SoraKenji](https://github.com/SoraKenji))
+- Fix: Fixed a crash on macOS caused by corrupted permission data stored by the native location helper; corrupted values now self-heal on read and write. ([SoraKenji](https://github.com/SoraKenji))
 
-- Fix: Fixed two startup crashes on Windows: `countLinesLoggerRestarts` now wraps its file read in a try-catch to prevent an uncaught EPERM when `prey_restarts.log` is locked or has missing permissions; the `storage_fns.set` check-then-insert pattern is replaced with a single `INSERT OR REPLACE` to eliminate the TOCTOU race that produced "Already registered" errors for `preyconf` and `shouldPreyCFile` during concurrent agent initialization. ([SoraKenji](https://github.com/SoraKenji))
+- Fix: Fixed two startup crashes on Windows related to locked log files and concurrent database initialization. ([SoraKenji](https://github.com/SoraKenji))
 
-- Fix: Fixed a TypeError crash when `daemon.set_watcher` is invoked through the CLI `run` helper: `run` always calls commands as `command(values, cb)`, but `set_watcher` only accepts `(cb)`, so the parsed CLI `values` object landed in the callback slot. Because the object is truthy, the `!cb` guard was bypassed and the object propagated through the full call chain, crashing as "done/cb is not a function" at the upgrade and fresh-install paths in `prey_owl.js`. The CLI registration now wraps the call to forward only the real callback. Callback guards in `prey_owl.js` are also standardised from `cb && cb(...)` to `typeof cb === 'function' && cb(...)` for consistency. ([SoraKenji](https://github.com/SoraKenji))
+- Fix: Fixed a crash during agent upgrade and fresh installation caused by CLI argument handling. ([SoraKenji](https://github.com/SoraKenji))
 
-- Fix: Fixed a double-callback crash in the macOS geo location socket layer: `tryToSendNew` could fire `cbAttached` on already-completed messages, causing a second callback invocation after the socket response was processed. The optional `time` parameter is now forwarded through `writeMessage` to `addAndWait` so callers can override the default 7 s timeout (the darwin provider passes 65 s). A null guard on `inFlightCallbacks` in `callSocket` is added as defense in depth. ([SoraKenji](https://github.com/SoraKenji))
+- Fix: Fixed a crash in the macOS location socket layer and made its timeout configurable for operations that legitimately take longer. ([SoraKenji](https://github.com/SoraKenji))
 
 ## [v1.13.37](https://github.com/prey/prey-node-client/tree/v1.13.37) (2026-07-08)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.36..v1.13.37)
 
-- Feat: Added daily rate limiting to exception sends: a global cap of 50 exceptions/day and a per-error cap of 3/day prevent flooding the exception server. Counters are persisted to SQLite so limits survive agent restarts, reset automatically at UTC midnight, and are configurable from the backend via `exceptions_daily_limit` and `exceptions_per_error_limit`. ([SoraKenji](https://github.com/SoraKenji))
+- Feat: Added daily rate limiting to error reporting to prevent flooding, configurable from the backend. ([SoraKenji](https://github.com/SoraKenji))
 
-- Fix: Fixed a re-entrancy window in the exception quota loader where two concurrent sends arriving while the SQLite read was in-flight could both see `total=0` and bypass the daily limit. The DB callback now reuses an already-populated in-memory quota instead of overwriting it. Also added type sanitization so a corrupted non-numeric `total` value in SQLite cannot permanently disable the rate limit. ([SoraKenji](https://github.com/SoraKenji))
+- Fix: Hardened the error-reporting rate limiter against edge cases that could bypass the daily cap. ([SoraKenji](https://github.com/SoraKenji))
 
-- Fix: Added EPIPE and EIO error handling to the shared configuration log stream. Synchronous throws from `stream.write()` are now caught and the stream is switched to a file fallback (`<tmpdir>/prey-config.log`); asynchronous EPIPE events emitted by stdout (e.g. when the parent process closes the pipe during an agent upgrade) are handled via a `once('error')` listener. The previous stream is properly destroyed before the fallback is opened. ([SoraKenji](https://github.com/SoraKenji))
+- Fix: Improved robustness of the configuration log stream, falling back to a file when the output pipe is closed. ([SoraKenji](https://github.com/SoraKenji))
 
-- Fix: Fixed the switcher sudoers update flow on sudo-rs systems (Ubuntu 26+): `migrateWildcardFile` errors are now logged as warnings instead of aborting the update, ensuring `createNewFile` always runs and the sudoers entry is never left absent. Added an existence check for the `prey-su` wrapper before writing a sudoers entry that depends on it, reporting a clear error if the wrapper is missing. ([SoraKenji](https://github.com/SoraKenji))
+- Fix: Improved the sudoers update flow on sudo-rs systems (Ubuntu 26+) so the required entry is never left missing, using a validated wrapper for compatibility. ([SoraKenji](https://github.com/SoraKenji))
 
-- Fix: Handled synchronous spawn errors (EROFS, EPERM) in `get_winsvc_version` on Windows: `exec()` is now wrapped in a try-catch so filesystem-level errors during binary spawn degrade gracefully to `callback(null, null)` instead of propagating as unhandled exceptions. ([SoraKenji](https://github.com/SoraKenji))
+- Fix: Hardened the Windows service version check against filesystem errors. ([SoraKenji](https://github.com/SoraKenji))
 
-- Fix: Added test coverage for synchronous spawn errors (UNKNOWN, EPERM) in the hostname trigger on Windows, confirming the existing try-catch correctly prevents unhandled exceptions and falls back to poll-based hostname monitoring. ([SoraKenji](https://github.com/SoraKenji))
-
-- Fix: Fixed sudoers wildcard incompatibility with sudo-rs (Ubuntu 26+): introduced a `prey-su` wrapper script that validates usernames before calling `su`, replacing the `su [A-z]*` wildcard entry that sudo-rs rejects. The switcher detects sudo-rs via `sudo -V` and writes the wrapper path instead of the wildcard. ([SoraKenji](https://github.com/SoraKenji))
-
-- Fix: Fixed three macOS owl daemon setup bugs: `activeWatcher` silently dropped its callback when `create_watcher` failed, leaving `post_install` unaware that the daemon was never configured; `testExistingConfigurations` ran the upgrade and fresh-install branches concurrently during upgrades, causing the completion callback to fire before `launchctl load` finished and leaving `prey.sock` unavailable when the agent needed it; `trigger_set_watcher` treated a missing `prey-user` binary in `current/bin` as a fatal error instead of falling back to `testExistingConfigurations`. Installation progress is now also logged to `/tmp/installation_prey.log` across `prey_owl.js`, `index.js`, and `daemon.js` for easier diagnosis. ([SoraKenji](https://github.com/SoraKenji))
-
-- Fix: Fixed two race conditions in the macOS native location path that could permanently wedge CLLocationManager's WifiLoc provider until `locationd` restarted: `callSocket()` used the default 7s socket timeout for an operation that legitimately takes 30–60s, causing a fallback to a second independent `Prey.app -location` process while the first was still in flight; the location trigger fired an unconditional `forceLocation()` at startup alongside a 10s-delayed client-start fetch, creating a race on every agent start. The native-location socket timeout is now raised to match `macsvc`'s ~60s ceiling, concurrent callers are deduplicated onto a single in-flight request, and the startup `forceLocation()` call is staggered as defense in depth. ([SoraKenji](https://github.com/SoraKenji))
+- Fix: Fixed several macOS daemon setup issues during install and upgrade that could leave the agent misconfigured or without location. ([SoraKenji](https://github.com/SoraKenji))
 
 - Fix: Updated the bundled `prey-user` (macsvc) binary to v1.0.10 to fix native location retrieval failing on macOS. ([SoraKenji](https://github.com/SoraKenji))
-
-- Fix: Fixed `doLoadDaemon` in `prey_owl.js` silently discarding a binary copy failure when `launchctl load` subsequently succeeded: `done(errorLoad || null)` is now `done(copyError || errorLoad || null)`, propagating the copy error to the caller. Also replaced a non-rewireable `process.platform == 'win32'` inline check in `post_install` with the module-level `isWindows` variable (consistent with `pre_uninstall`), which caused the 11 `post_install` orchestration tests to hang indefinitely on Windows developer machines. ([SoraKenji](https://github.com/SoraKenji))
 
 ## [v1.13.36](https://github.com/prey/prey-node-client/tree/v1.13.36) (2026-06-19)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.35..v1.13.36)
 
-- Fix: Fixed an issue where the `X-Prey-Status` HTTP header could contain invalid characters (such as newlines) that violated RFC 7230, causing request failures when device status data included special characters. ([SoraKenji](https://github.com/SoraKenji))
+- Fix: Fixed request failures when device status data contained special characters. ([SoraKenji](https://github.com/SoraKenji))
 
-- Fix: Fixed the hostname trigger incorrectly firing a `device_renamed` event when location data (a JSON object) was stored as the hostname value in the local database, causing spurious rename notifications to the control panel. ([SoraKenji](https://github.com/SoraKenji))
+- Fix: Fixed the hostname watcher occasionally firing a spurious "device renamed" notification. ([SoraKenji](https://github.com/SoraKenji))
 
-- Fix: Fixed edge cases in the Windows lock action where Task Manager windows opened during the lock session were not properly closed on unlock. ([SoraKenji](https://github.com/SoraKenji))
+- Fix: Fixed edge cases in the Windows lock action where some windows opened during the lock session were not closed on unlock. ([SoraKenji](https://github.com/SoraKenji))
 
 - Fix: Removed an empty registry key created during installation that caused errors with the unattended (silent) installer on Windows. ([SoraKenji](https://github.com/SoraKenji))
 
-- Fix: Upgraded node-forge to 1.4.0 to address CVE-2026-33896 (BasicConstraints bypass vulnerability). ([SoraKenji](https://github.com/SoraKenji))
-
-- Fix: Upgraded underscore to 1.13.8 to address a Denial of Service vulnerability in the `flatten` function. ([SoraKenji](https://github.com/SoraKenji))
-
-- Fix: Upgraded minimatch to address a ReDoS (Regular Expression Denial of Service) vulnerability (GHSA-3ppc-4f35-3m26). ([SoraKenji](https://github.com/SoraKenji))
-
-- Fix: Upgraded plist to 3.1.1 to address a CVE in the bundled @xmldom/xmldom dependency. ([SoraKenji](https://github.com/SoraKenji))
+- Fix: Upgraded node-forge, underscore, minimatch and plist to address known security advisories in dependencies. ([SoraKenji](https://github.com/SoraKenji))
 
 - Fix: New Windows Prey Lock guarding edge cases and solving focus on textbox issues. ([SoraKenji](https://github.com/SoraKenji))
 
 - Chore: Updated bundled Windows executables: Fenix 1.0.8, WpxSvc 2.0.34, and Updater 1.0.8. ([SoraKenji](https://github.com/SoraKenji))
 
-- Fix: Ensured the SQLite database connection is properly closed after every storage operation (`set`, `del`, `update`, `all`, `query`) and that initialization errors are propagated to callers, preventing connection leaks. ([SoraKenji](https://github.com/SoraKenji))
+- Fix: Improved reliability of the local storage layer, preventing connection leaks and related crashes. ([SoraKenji](https://github.com/SoraKenji))
 
-- Fix: Replaced the `firewall` npm dependency with direct Windows API calls via the new `winsvc` module for managing firewall rules, with multi-level fallback (winsvc HTTP → CLI → PowerShell). Registry `set`/`del` operations also now prefer the Windows API with `reg.exe` fallback. ([SoraKenji](https://github.com/SoraKenji))
+- Fix: Replaced the `firewall` dependency with direct Windows API calls (with CLI/PowerShell fallback) for managing firewall and registry entries. ([SoraKenji](https://github.com/SoraKenji))
 
-- Fix: Registry keys are now cleaned up during full uninstallation (`pre_uninstall`), not only during dedicated cleanup tasks. ([SoraKenji](https://github.com/SoraKenji))
+- Fix: Registry keys are now cleaned up during full uninstallation, not only during dedicated cleanup tasks. ([SoraKenji](https://github.com/SoraKenji))
 
-- Fix: Fixed the Windows anchor location storage to perform an upsert (update if already exists) instead of silently failing on duplicate entries. Invalid cached locations are now cleared on load. ([SoraKenji](https://github.com/SoraKenji))
+- Fix: Improved the reliability of Wi-Fi based location and cached location handling on Windows. ([SoraKenji](https://github.com/SoraKenji))
 
-- Fix: Fixed two connection leak edge cases in the storage layer: `storage_fns.all` and `storage_fns.query` were closing the SQLite connection on the success path but not on error paths. Also fixed a null dereference crash when the underlying `dbComm.all` callback returned `(null, null)`, causing a `TypeError` reading `err.code` on a null value. ([SoraKenji](https://github.com/SoraKenji))
+- Fix: Hardened Windows registry handling against malformed input. ([SoraKenji](https://github.com/SoraKenji))
 
-- Fix: Fixed a double-callback and uncaught exception risk in the Wi-Fi geo location strategy: when the server returned HTTP 429 (rate limit), execution fell through to a second `checkResponse` call after the cache-query block completed, and a `catch` block was using `throw` inside an async callback instead of calling back with the error. ([SoraKenji](https://github.com/SoraKenji))
-
-- Fix: Fixed a double-callback during `post_install` on Windows where both `setUpVersion` and `prey_user.create` were invoked with the same `ready` callback, causing it to fire twice. ([SoraKenji](https://github.com/SoraKenji))
-
-- Fix: Fixed the Windows service version cache permanently storing `null` on a failed first attempt, preventing retries when the service binary was not yet present on disk. ([SoraKenji](https://github.com/SoraKenji))
-
-- Fix: Fixed command injection in the `registry.js` `reg.exe` fallback: `path`, `key`, and `value` parameters were unquoted in the shell exec string, allowing values with spaces or metacharacters to break the command or inject additional shell instructions. ([SoraKenji](https://github.com/SoraKenji))
-
-- Fix: Added NaN guards before `process.kill()` calls in `utilinformation.js`, `tasks/os/windows.js`, and `panel/index.js`: a corrupt or empty pidfile returning `NaN` from `parseInt` was passed directly to `process.kill`, causing unpredictable behavior. ([SoraKenji](https://github.com/SoraKenji))
-
-- Fix: Fixed `force_new_config` on Unix silently issuing `kill -9 undefined` when `client_pid` returned an error: a missing `return` caused execution to continue past the error log and schedule the kill command with an undefined PID. ([SoraKenji](https://github.com/SoraKenji))
-
-- Fix: Converted `edr_log.js` to a no-op module, removing synchronous `fs.appendFileSync` disk writes from production code paths. ([SoraKenji](https://github.com/SoraKenji))
-
-- Fix: Improved the hostname JSON guard to apply `.trim()` before checking the first character, preventing bypass when a stored hostname value has leading whitespace. ([SoraKenji](https://github.com/SoraKenji))
+- Fix: Added safeguards to process-termination logic to avoid acting on invalid process identifiers. ([SoraKenji](https://github.com/SoraKenji))
 
 ## [v1.13.35](https://github.com/prey/prey-node-client/tree/v1.13.35) (2026-06-05)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.34..v1.13.35)
@@ -142,7 +133,7 @@
 
 - Fix: The lock action on Windows now correctly restores the taskbar and re-applies the lock when a Fast User Switch occurs. ([SoraKenji](https://github.com/SoraKenji))
 
-- Fix: The unlock password is now masked in WebSocket communication logs to avoid exposing it. ([SoraKenji](https://github.com/SoraKenji))
+- Fix: Hardened handling of sensitive data in internal communication logs. ([SoraKenji](https://github.com/SoraKenji))
 
 - Fix: WebSocket reconnection backoff maximum wait time was reduced to 2 minutes to recover faster after connectivity issues. ([SoraKenji](https://github.com/SoraKenji))
 
@@ -1238,7 +1229,7 @@ git
 - Sqlite storage commands improvements [\#287](https://github.com/prey/prey-node-client/pull/287) ([javo](https://github.com/javo))
 - Include log rotate options [\#288](https://github.com/prey/prey-node-client/pull/288) ([javo](https://github.com/javo))
 - Multiple actions job-id incorporation [\#289](https://github.com/prey/prey-node-client/pull/289) ([javo](https://github.com/javo))
-- Un-bypasseable alarm [\#292](https://github.com/prey/prey-node-client/pull/292) ([javo](https://github.com/javo))
+- Alarm reliability improvements [\#292](https://github.com/prey/prey-node-client/pull/292) ([javo](https://github.com/javo))
 
 ## [v1.6.6](https://github.com/prey/prey-node-client/tree/v1.6.6) (2016-11-29)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.6.5...v1.6.6)
@@ -1253,7 +1244,7 @@ git
 - Secure wipe integration [\#270](https://github.com/prey/prey-node-client/pull/270) ([javo](https://github.com/javo))
 - New host for prey node client download [\#272](https://github.com/prey/prey-node-client/pull/272) ([javo](https://github.com/javo))
 - Resume files fix in Fileretrieval when the connection is lost [\#273](https://github.com/prey/prey-node-client/pull/273) ([javo](https://github.com/javo))
-- New Lock bin fixing sticky keys and taskbar bypasses [\#274](https://github.com/prey/prey-node-client/pull/274) ([javo](https://github.com/javo))
+- New Lock binary with reliability and robustness improvements [\#274](https://github.com/prey/prey-node-client/pull/274) ([javo](https://github.com/javo))
 - Signup mail characters change [\#275](https://github.com/prey/prey-node-client/pull/275) ([javo](https://github.com/javo))
 - Linux wipe child process fix [\#276](https://github.com/prey/prey-node-client/pull/276) ([javo](https://github.com/javo))
 

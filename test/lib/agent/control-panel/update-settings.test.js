@@ -65,9 +65,10 @@ describe('processSettingsUpdate', () => {
     expect(mockConfig.setData.calledWith('control-panel.tracking_schedule', schedule)).to.be.true;
   });
 
-  it('skips tracking_schedule when value is null', () => {
+  it('clears tracking_schedule to null when value is null', () => {
     processSettingsUpdate({ local: { tracking_schedule: null } });
-    expect(mockConfig.setData.called).to.be.false;
+    expect(mockConfig.setData.calledOnce).to.be.true;
+    expect(mockConfig.setData.calledWith('control-panel.tracking_schedule', null)).to.be.true;
   });
 
   it('processes both global and local in one call', () => {
