@@ -35,7 +35,12 @@ describe('Windows uninstall hooks', () => {
     deleteNodeServiceStub = sinon.stub();
     logStub = sinon.stub();
 
-    windowsHooks.__set__('exec', execStub);
+    // exec is now called as exec(cmd, opts, cb). Normalize to (cmd, cb) so existing
+    // stubs and getCalls().args[0] assertions keep working unchanged.
+    windowsHooks.__set__('exec', (cmd, opts, cb) => {
+      const done = typeof opts === 'function' ? opts : cb;
+      return execStub(cmd, done);
+    });
     windowsHooks.__set__('fs', {
       readFile: readFileStub,
       existsSync: existsSyncStub,
@@ -173,6 +178,96 @@ describe('Windows uninstall hooks', () => {
         expect(commands).to.not.include('taskkill /f /im wpxsvc.exe');
         done();
       });
+    });
+  });
+
+  it('tolerates a synchronous spawn throw (EROFS) while removing the firewall rule', (done) => {
+    // remove throws synchronously (best-effort) but add succeeds -> post_activate OK
+    execStub.callsFake((cmd, cb) => {
+      if (cmd.includes('Remove-NetFirewallRule')) throw new Error('spawn EROFS');
+      cb(null, '', '');
+    });
+
+    windowsHooks.post_activate((err) => {
+      expect(err == null).to.equal(true);
+      const commands = execStub.getCalls().map((c) => c.args[0]);
+      expect(commands.some((cmd) => cmd.includes('New-NetFirewallRule'))).to.equal(true);
+      done();
+    });
+  });
+
+  it('completes post_activate without error when adding the firewall rule fails (EROFS)', (done) => {
+    // add throws synchronously on its only (PowerShell) attempt -> best-effort:
+    // the failure is logged and activation still succeeds.
+    execStub.callsFake((cmd, cb) => {
+      if (cmd.includes('New-NetFirewallRule')) throw new Error('spawn EROFS');
+      cb(null, '', '');
+    });
+
+    windowsHooks.post_activate((err) => {
+      expect(err == null).to.equal(true);
+      const commands = execStub.getCalls().map((c) => c.args[0]);
+      expect(commands.some((cmd) => cmd.includes('New-NetFirewallRule'))).to.equal(true);
+      const logs = logStub.getCalls().map((c) => c.args[0]);
+      expect(logs.some((msg) => /continuing anyway/.test(msg))).to.equal(true);
+      done();
+    });
+  });
+
+  it('does not propagate an error from post_activate when the firewall rule is added', (done) => {
+    execStub.callsFake((cmd, cb) => cb(null, '', ''));
+
+    windowsHooks.post_activate((err) => {
+      expect(err == null).to.equal(true);
+      done();
+    });
+  });
+
+  it('spawns firewall commands with a safe cwd (Windows Temp)', (done) => {
+    const optsSpy = sinon.stub();
+    windowsHooks.__set__('exec', (cmd, opts, cb) => {
+      const done2 = typeof opts === 'function' ? opts : cb;
+      optsSpy(cmd, typeof opts === 'function' ? undefined : opts);
+      return done2(null, '', '');
+    });
+
+    windowsHooks.post_activate(() => {
+      const safeCwd = windowsHooks.__get__('SAFE_CWD');
+      const fwCalls = optsSpy.getCalls().filter((c) => /NetFirewallRule/.test(c.args[0]));
+      expect(fwCalls.length).to.be.greaterThan(0);
+      fwCalls.forEach((c) => {
+        expect(c.args[1]).to.be.an('object');
+        expect(c.args[1].cwd).to.equal(safeCwd);
+      });
+      expect(safeCwd.endsWith('Temp')).to.equal(true);
+      done();
+    });
+  });
+
+  it('completes post_activate without error when winsvc, CLI and PowerShell all fail', (done) => {
+    const httpActionStub = sinon.stub().callsFake((action, opts, cb) => cb(new Error('timeout')));
+    windowsHooks.__set__('winsvc', {
+      get_bin: () => String.raw`C:\Windows\Prey\current\lib\system\windows\bin\wpxsvc.exe`,
+      supports: sinon.stub().callsFake((v, cb) => cb(true)),
+      http_action: httpActionStub,
+    });
+    execStub.callsFake((cmd, cb) => {
+      if (cmd.includes('New-NetFirewallRule')) throw new Error('spawn EROFS');
+      if (cmd.includes('-firewall=add')) cb(new Error('Access denied'));
+      else cb(null, '', '');
+    });
+
+    windowsHooks.post_activate((err) => {
+      expect(err == null).to.equal(true);
+      // all three fallbacks were attempted before giving up
+      expect(httpActionStub.getCalls().some((c) => c.args[0] === 'firewall-rule'
+        && c.args[1].operation === 'add')).to.equal(true);
+      const commands = execStub.getCalls().map((c) => c.args[0]);
+      expect(commands.some((cmd) => cmd.includes('-firewall=add'))).to.equal(true);
+      expect(commands.some((cmd) => cmd.includes('New-NetFirewallRule'))).to.equal(true);
+      const logs = logStub.getCalls().map((c) => c.args[0]);
+      expect(logs.some((msg) => /continuing anyway/.test(msg))).to.equal(true);
+      done();
     });
   });
 
