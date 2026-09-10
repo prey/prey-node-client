@@ -16,6 +16,7 @@ describe('lock action', () => {
     const ch = new EventEmitter();
     ch.kill = sinon.stub();
     ch.stdout = new EventEmitter();
+    ch.stderr = new EventEmitter();
     ch.impersonating = username || null;
     ch.pid = 12345;
     return ch;
@@ -53,6 +54,62 @@ describe('lock action', () => {
   afterEach(() => {
     clock.restore();
     sinon.restore();
+  });
+
+  // ─── linux — gtk binary selection ──────────────────────────────────────────
+
+  // lock_binary_path() runs at module load, so this exercises the resolution
+  // through the module itself, not just helpers.gtkSuffix in isolation.
+  describe('linux — gtk binary selection', () => {
+    let originalRelease;
+
+    function resolveFor(release) {
+      const common = lockRewired.__get__('common');
+      common.os_release = release;
+      lockRewired.__set__('lock_binary', lockRewired.__get__('lock_binary_path')());
+      return lockRewired.__get__('lock_binary');
+    }
+
+    beforeEach(() => {
+      lockRewired.__set__('is_win', false);
+      lockRewired.__set__('is_mac', false);
+      lockRewired.__set__('is_linux', true);
+      // lock_binary_path() joins on os_name, which is derived from the real
+      // platform — without this the path lands under lock/mac/ on a dev mac.
+      lockRewired.__set__('os_name', 'linux');
+      originalRelease = lockRewired.__get__('common').os_release;
+    });
+
+    afterEach(() => {
+      lockRewired.__get__('common').os_release = originalRelease;
+    });
+
+    it('resolves prey-lock-gtk4 from 24.04 on', () => {
+      ['24.04', '24.10', '25.04'].forEach((release) => {
+        expect(resolveFor(release), `os_release=${release}`)
+          .to.match(/linux\/prey-lock-gtk4$/);
+      });
+    });
+
+    it('resolves prey-lock-gtk3 below 24.04', () => {
+      ['20.04', '22.04'].forEach((release) => {
+        expect(resolveFor(release), `os_release=${release}`)
+          .to.match(/linux\/prey-lock-gtk3$/);
+      });
+    });
+
+    // These sort above '24.04' as strings ('9' > '2'), so the old comparison
+    // handed them the gtk4 binary.
+    it('resolves prey-lock-gtk3 for releases that sort above 24.04 as strings', () => {
+      ['9.10', '8'].forEach((release) => {
+        expect(resolveFor(release), `os_release=${release}`)
+          .to.match(/linux\/prey-lock-gtk3$/);
+      });
+    });
+
+    it('resolves prey-lock-gtk3 when lsb_release left os_release undefined', () => {
+      expect(resolveFor(undefined)).to.match(/linux\/prey-lock-gtk3$/);
+    });
   });
 
   // ─── start — basic ─────────────────────────────────────────────────────────
@@ -380,6 +437,409 @@ describe('lock action', () => {
           done();
         });
         primaryChild.emit('exit', 66);
+      });
+    });
+  });
+
+  // ─── macOS — Prey.app + LockIPC ────────────────────────────────────────────
+  //
+  // Prey.app replaced prey-actions.app as the mac lock binary. It reports
+  // failed attempts and accepts an unlock command over a unix socket instead
+  // of printing to stdout, so the whole IPC lifecycle lives here.
+
+  describe('macOS — Prey.app', () => {
+    let ipcServerMock;
+    let handles;
+
+    function makeFakeIpc(sockPath) {
+      const h = new EventEmitter();
+      h.path = sockPath;
+      h.connected = true;
+      h.send = sinon.stub();
+      h.close = sinon.stub().callsFake(() => { h.connected = false; });
+      return h;
+    }
+
+    function rebuildBinaryPath() {
+      lockRewired.__set__('lock_binary', lockRewired.__get__('lock_binary_path')());
+    }
+
+    function spawnedArgs(call) {
+      return (call || systemMock.spawn_as_logged_user.firstCall).args[1];
+    }
+
+    beforeEach(() => {
+      lockRewired.__set__('is_win', false);
+      lockRewired.__set__('is_mac', true);
+      lockRewired.__set__('is_linux', false);
+      lockRewired.__set__('use_legacy_app', false);
+      rebuildBinaryPath();
+
+      handles = [];
+      ipcServerMock = {
+        sweep: sinon.stub(),
+        createServer: sinon.stub().callsFake((cb) => {
+          const h = makeFakeIpc(`/tmp/prey-lock-fake${handles.length}/l.sock`);
+          handles.push(h);
+          cb(null, h);
+        }),
+      };
+      lockRewired.__set__('ipc_server', ipcServerMock);
+    });
+
+    // ─── binary selection ───────────────────────────────────────────────────
+
+    describe('binary selection', () => {
+      it('uses Prey.app', () => {
+        expect(lockRewired.__get__('lock_binary'))
+          .to.match(/utils\/Prey\.app\/Contents\/MacOS\/Prey$/);
+      });
+
+      it('uses Prey.app regardless of os_release', () => {
+        const common = lockRewired.__get__('common');
+        const original = common.os_release;
+
+        ['10.15', '11.0', '15.4', undefined].forEach((release) => {
+          common.os_release = release;
+          rebuildBinaryPath();
+          expect(lockRewired.__get__('lock_binary'), `os_release=${release}`)
+            .to.match(/utils\/Prey\.app\/Contents\/MacOS\/Prey$/);
+        });
+
+        common.os_release = original;
+      });
+
+      it('falls back to prey-actions.app when PREY_LOCK_LEGACY_APP is set', () => {
+        lockRewired.__set__('use_legacy_app', true);
+        rebuildBinaryPath();
+        expect(lockRewired.__get__('lock_binary'))
+          .to.match(/utils\/prey-actions\.app\/Contents\/MacOS\/prey-actions$/);
+      });
+
+      it('keeps the legacy stdout contract and opens no socket in legacy mode', (done) => {
+        lockRewired.__set__('use_legacy_app', true);
+        rebuildBinaryPath();
+
+        const fakeChild = makeFakeChild('claudio');
+        systemMock.spawn_as_logged_user.callsFake((cmd, args, opts, cb) => {
+          resolveSpawnCallback(opts, cb)(null, fakeChild);
+        });
+
+        lockRewired.start('test-id', { unlock_pass: 'secret' }, (err, emitter) => {
+          expect(ipcServerMock.createServer.called).to.be.false;
+          expect(spawnedArgs()).to.not.include('-socket');
+
+          emitter.on('failed_unlock_attempt', () => done());
+          fakeChild.stdout.emit('data', 'Invalid password');
+        });
+      });
+    });
+
+    // ─── argv ───────────────────────────────────────────────────────────────
+
+    describe('argv', () => {
+      beforeEach(() => {
+        systemMock.spawn_as_logged_user.callsFake((cmd, args, opts, cb) => {
+          resolveSpawnCallback(opts, cb)(null, makeFakeChild('claudio'));
+        });
+      });
+
+      it('passes -socket before the message', (done) => {
+        lockRewired.start('test-id', { unlock_pass: 'secret', lock_message: 'hello' }, () => {
+          const args = spawnedArgs();
+          expect(args).to.have.lengthOf(5);
+          expect(args[0]).to.equal('-lock');
+          expect(args[1]).to.match(/^[0-9a-f]{32}$/);
+          expect(args[2]).to.equal('-socket');
+          expect(args[3]).to.equal(handles[0].path);
+          expect(args[4]).to.equal('hello');
+          done();
+        });
+      });
+
+      it('hashes the password as md5(base64(password))', (done) => {
+        const expected = require('crypto').createHash('md5')
+          .update(Buffer.from('preyrocks').toString('base64'))
+          .digest('hex');
+
+        lockRewired.start('test-id', { unlock_pass: 'preyrocks' }, () => {
+          expect(spawnedArgs()[1]).to.equal(expected);
+          done();
+        });
+      });
+
+      it('falls back to the default password when none is given', (done) => {
+        const expected = require('crypto').createHash('md5')
+          .update(Buffer.from(lockRewired.__get__('default_pass')).toString('base64'))
+          .digest('hex');
+
+        lockRewired.start('test-id', {}, () => {
+          expect(spawnedArgs()[1]).to.equal(expected);
+          done();
+        });
+      });
+
+      it('still sends a trailing empty message when none is given', (done) => {
+        lockRewired.start('test-id', { unlock_pass: 'secret' }, () => {
+          const args = spawnedArgs();
+          expect(args).to.have.lengthOf(5);
+          expect(args[4]).to.equal('');
+          done();
+        });
+      });
+    });
+
+    // ─── socket lifecycle ───────────────────────────────────────────────────
+
+    describe('socket lifecycle', () => {
+      it('is listening before the app is spawned', (done) => {
+        systemMock.spawn_as_logged_user.callsFake((cmd, args, opts, cb) => {
+          resolveSpawnCallback(opts, cb)(null, makeFakeChild('claudio'));
+        });
+
+        lockRewired.start('test-id', { unlock_pass: 'secret' }, () => {
+          sinon.assert.callOrder(ipcServerMock.createServer, systemMock.spawn_as_logged_user);
+          done();
+        });
+      });
+
+      it('sweeps stale sockets on start', (done) => {
+        systemMock.spawn_as_logged_user.callsFake((cmd, args, opts, cb) => {
+          resolveSpawnCallback(opts, cb)(null, makeFakeChild('claudio'));
+        });
+
+        lockRewired.start('test-id', { unlock_pass: 'secret' }, () => {
+          expect(ipcServerMock.sweep.calledOnce).to.be.true;
+          done();
+        });
+      });
+
+      it('tears the socket down between NO_LOGGED_USER retries', (done) => {
+        let attempts = 0;
+        systemMock.spawn_as_logged_user.callsFake((cmd, args, opts, cb) => {
+          const callback = resolveSpawnCallback(opts, cb);
+          attempts += 1;
+          if (attempts < 2) {
+            const err = new Error('no logged user');
+            err.code = 'NO_LOGGED_USER';
+            return callback(err);
+          }
+          return callback(null, makeFakeChild('claudio'));
+        });
+
+        lockRewired.start('test-id', { unlock_pass: 'secret' }, () => {
+          // one server per attempt, and the first one was closed before waiting
+          expect(ipcServerMock.createServer.callCount).to.equal(2);
+          expect(handles[0].close.calledOnce).to.be.true;
+          expect(handles[0].path).to.not.equal(handles[1].path);
+          done();
+        });
+
+        clock.tick(5000);
+      });
+
+      it('locks without a socket when the server cannot be created', (done) => {
+        ipcServerMock.createServer.callsFake((cb) => cb(new Error('EACCES')));
+        systemMock.spawn_as_logged_user.callsFake((cmd, args, opts, cb) => {
+          resolveSpawnCallback(opts, cb)(null, makeFakeChild('claudio'));
+        });
+
+        lockRewired.start('test-id', { unlock_pass: 'secret' }, (err, emitter) => {
+          expect(err).to.be.null;
+          expect(emitter).to.be.an.instanceOf(EventEmitter);
+          expect(spawnedArgs()).to.not.include('-socket');
+          done();
+        });
+      });
+
+      it('closes the socket when the lock exits', (done) => {
+        const fakeChild = makeFakeChild('claudio');
+        systemMock.spawn_as_logged_user.callsFake((cmd, args, opts, cb) => {
+          resolveSpawnCallback(opts, cb)(null, fakeChild);
+        });
+
+        lockRewired.start('test-id', { unlock_pass: 'secret' }, (err, emitter) => {
+          emitter.on('end', () => {
+            expect(handles[0].close.calledOnce).to.be.true;
+            expect(lockRewired.__get__('ipc')).to.be.null;
+            done();
+          });
+          fakeChild.emit('exit', 66);
+        });
+      });
+    });
+
+    // ─── events ─────────────────────────────────────────────────────────────
+
+    describe('IPC events', () => {
+      let fakeChild;
+
+      beforeEach(() => {
+        fakeChild = makeFakeChild('claudio');
+        systemMock.spawn_as_logged_user.callsFake((cmd, args, opts, cb) => {
+          resolveSpawnCallback(opts, cb)(null, fakeChild);
+        });
+      });
+
+      it('maps failed_unlock_attempt onto the action emitter', (done) => {
+        lockRewired.start('test-id', { unlock_pass: 'secret' }, (err, emitter) => {
+          emitter.on('failed_unlock_attempt', () => done());
+          handles[0].emit('event', { event: 'failed_unlock_attempt' });
+        });
+      });
+
+      it('does not end the action on unlock_success alone', (done) => {
+        lockRewired.start('test-id', { unlock_pass: 'secret' }, (err, emitter) => {
+          let ended = false;
+          emitter.on('end', () => { ended = true; });
+
+          handles[0].emit('event', { event: 'unlock_success' });
+
+          // end belongs to exit 66; reacting to both would double-fire it
+          expect(ended).to.be.false;
+          done();
+        });
+      });
+
+      it('ignores status and unknown events', (done) => {
+        lockRewired.start('test-id', { unlock_pass: 'secret' }, (err, emitter) => {
+          let fired = false;
+          emitter.on('failed_unlock_attempt', () => { fired = true; });
+
+          expect(() => {
+            handles[0].emit('event', { event: 'status', locked: true });
+            handles[0].emit('event', { event: 'who_knows' });
+          }).to.not.throw();
+
+          expect(fired).to.be.false;
+          done();
+        });
+      });
+    });
+
+    // ─── stop ───────────────────────────────────────────────────────────────
+
+    describe('stop', () => {
+      let fakeChild;
+
+      beforeEach(() => {
+        fakeChild = makeFakeChild('claudio');
+        systemMock.spawn_as_logged_user.callsFake((cmd, args, opts, cb) => {
+          resolveSpawnCallback(opts, cb)(null, fakeChild);
+        });
+      });
+
+      it('asks Prey.app to unlock instead of killing it', (done) => {
+        lockRewired.start('test-id', { unlock_pass: 'secret' }, () => {
+          lockRewired.stop();
+          expect(handles[0].send.calledOnceWithExactly({ cmd: 'unlock' })).to.be.true;
+          expect(fakeChild.kill.called).to.be.false;
+          done();
+        });
+      });
+
+      it('kills the lock when the unlock command goes unanswered', (done) => {
+        lockRewired.start('test-id', { unlock_pass: 'secret' }, () => {
+          lockRewired.stop();
+          clock.tick(3000);
+          expect(fakeChild.kill.calledOnce).to.be.true;
+          done();
+        });
+      });
+
+      it('does not kill the lock when it exits before the timeout', (done) => {
+        lockRewired.start('test-id', { unlock_pass: 'secret' }, (err, emitter) => {
+          emitter.on('end', () => {
+            clock.tick(3000);
+            expect(fakeChild.kill.called).to.be.false;
+            done();
+          });
+          lockRewired.stop();
+          fakeChild.emit('exit', 66);
+        });
+      });
+
+      it('kills directly when the socket is already gone', (done) => {
+        lockRewired.start('test-id', { unlock_pass: 'secret' }, () => {
+          handles[0].connected = false;
+          lockRewired.stop();
+          expect(handles[0].send.called).to.be.false;
+          expect(fakeChild.kill.calledOnce).to.be.true;
+          done();
+        });
+      });
+
+      // setTouchPadState is Windows-only; on mac it hands cp.spawn an object
+      // where a string is expected and throws synchronously.
+      it('never touches the touchpad on mac', (done) => {
+        lockRewired.start('test-id', { unlock_pass: 'secret' }, () => {
+          handles[0].connected = false;
+          expect(() => lockRewired.stop()).to.not.throw();
+          expect(systemMock.spawn_as_admin_user.called).to.be.false;
+          done();
+        });
+      });
+    });
+
+    // ─── anti-tamper relaunch ───────────────────────────────────────────────
+
+    describe('relaunch', () => {
+      it('recreates the socket with a fresh path when the lock is killed', (done) => {
+        const first = makeFakeChild('claudio');
+        const second = makeFakeChild('claudio');
+        let spawns = 0;
+
+        systemMock.spawn_as_logged_user.callsFake((cmd, args, opts, cb) => {
+          spawns += 1;
+          resolveSpawnCallback(opts, cb)(null, spawns === 1 ? first : second);
+        });
+
+        lockRewired.start('test-id', { unlock_pass: 'secret' }, () => {
+          first.emit('exit', null);
+
+          expect(spawns).to.equal(2);
+          expect(ipcServerMock.createServer.callCount).to.equal(2);
+          expect(handles[0].close.calledOnce).to.be.true;
+          expect(spawnedArgs(systemMock.spawn_as_logged_user.secondCall)[3])
+            .to.equal(handles[1].path);
+          expect(handles[1].path).to.not.equal(handles[0].path);
+          done();
+        });
+      });
+
+      it('routes events from the relaunched lock to the original emitter', (done) => {
+        const first = makeFakeChild('claudio');
+        const second = makeFakeChild('claudio');
+        let spawns = 0;
+
+        systemMock.spawn_as_logged_user.callsFake((cmd, args, opts, cb) => {
+          spawns += 1;
+          resolveSpawnCallback(opts, cb)(null, spawns === 1 ? first : second);
+        });
+
+        lockRewired.start('test-id', { unlock_pass: 'secret' }, (err, emitter) => {
+          emitter.on('failed_unlock_attempt', () => done());
+          first.emit('exit', null);
+          handles[1].emit('event', { event: 'failed_unlock_attempt' });
+        });
+      });
+
+      [66, 67, 127].forEach((code) => {
+        it(`ends the action on exit ${code} without relaunching`, (done) => {
+          const fakeChild = makeFakeChild('claudio');
+          systemMock.spawn_as_logged_user.callsFake((cmd, args, opts, cb) => {
+            resolveSpawnCallback(opts, cb)(null, fakeChild);
+          });
+
+          lockRewired.start('test-id', { unlock_pass: 'secret' }, (err, emitter) => {
+            emitter.on('end', () => {
+              expect(systemMock.spawn_as_logged_user.calledOnce).to.be.true;
+              expect(handles[0].close.calledOnce).to.be.true;
+              done();
+            });
+            fakeChild.emit('exit', code);
+          });
+        });
       });
     });
   });
