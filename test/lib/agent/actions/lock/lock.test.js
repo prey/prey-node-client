@@ -7,6 +7,11 @@ const { EventEmitter } = require('events');
 
 const { expect } = chai;
 
+// path.join uses `\` on Windows; these assertions expect POSIX `/` separators.
+const onWin = process.platform === 'win32';
+const describePosix = onWin ? describe.skip : describe;
+const itPosix = onWin ? it.skip : it;
+
 describe('lock action', () => {
   let lockRewired;
   let systemMock;
@@ -60,7 +65,7 @@ describe('lock action', () => {
 
   // lock_binary_path() runs at module load, so this exercises the resolution
   // through the module itself, not just helpers.gtkSuffix in isolation.
-  describe('linux — gtk binary selection', () => {
+  describePosix('linux — gtk binary selection', () => {
     let originalRelease;
 
     function resolveFor(release) {
@@ -238,6 +243,23 @@ describe('lock action', () => {
       lockRewired.start('test-id', { unlock_pass: 'secret' }, () => {
         clock.tick(5000);
         expect(fakeChild.kill.calledOnce).to.be.true;
+        done();
+      });
+    });
+
+    it('polls get_logged_user with bypassCache=true (always fresh during lock)', (done) => {
+      const fakeChild = makeFakeChild('primaryuser');
+      systemMock.spawn_as_logged_user.callsFake((cmd, args, opts, cb) => {
+        resolveSpawnCallback(opts, cb)(null, fakeChild);
+      });
+      systemMock.get_logged_user.callsFake((cb) => cb(null, 'primaryuser'));
+
+      lockRewired.start('test-id', { unlock_pass: 'secret' }, () => {
+        clock.tick(5000);
+        expect(systemMock.get_logged_user.called).to.be.true;
+        // Second argument (bypassCache) must be true so the 5s poll never serves
+        // a stale cached user and can detect fast user-switches immediately.
+        expect(systemMock.get_logged_user.lastCall.args[1]).to.equal(true);
         done();
       });
     });
@@ -490,12 +512,12 @@ describe('lock action', () => {
     // ─── binary selection ───────────────────────────────────────────────────
 
     describe('binary selection', () => {
-      it('uses Prey.app', () => {
+      itPosix('uses Prey.app', () => {
         expect(lockRewired.__get__('lock_binary'))
           .to.match(/utils\/Prey\.app\/Contents\/MacOS\/Prey$/);
       });
 
-      it('uses Prey.app regardless of os_release', () => {
+      itPosix('uses Prey.app regardless of os_release', () => {
         const common = lockRewired.__get__('common');
         const original = common.os_release;
 
@@ -509,7 +531,7 @@ describe('lock action', () => {
         common.os_release = original;
       });
 
-      it('falls back to prey-actions.app when PREY_LOCK_LEGACY_APP is set', () => {
+      itPosix('falls back to prey-actions.app when PREY_LOCK_LEGACY_APP is set', () => {
         lockRewired.__set__('use_legacy_app', true);
         rebuildBinaryPath();
         expect(lockRewired.__get__('lock_binary'))
