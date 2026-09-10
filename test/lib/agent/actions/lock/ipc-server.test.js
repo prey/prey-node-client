@@ -9,7 +9,10 @@ const { expect } = chai;
 
 const ipcServer = require('../../../../../lib/agent/actions/lock/mac/ipc-server');
 
-describe('lock ipc-server', () => {
+// Unix domain sockets and /tmp are POSIX-only; these run on CI (Linux/Mac).
+const describeUnix = process.platform === 'win32' ? describe.skip : describe;
+
+describeUnix('lock ipc-server', () => {
   let handle;
 
   afterEach(() => {
