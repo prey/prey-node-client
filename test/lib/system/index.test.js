@@ -3,29 +3,42 @@
 const { expect } = require('chai');
 const sinon = require('sinon');
 
-// eslint-disable-next-line import/no-dynamic-require
-const system = require('../../../lib/system');
+const SYSTEM_PATH = require.resolve('../../../lib/system');
 
 describe('lib/system/index get_logged_user', () => {
   let clock;
+  let system;
   let originalFind;
   let findStub;
 
   before(() => {
     clock = sinon.useFakeTimers();
-    originalFind = system.find_logged_user;
   });
 
   after(() => {
     clock.restore();
-    system.find_logged_user = originalFind;
   });
 
   beforeEach(() => {
-    // Advance past the 4s TTL so no cache leaks in from a previous test.
-    clock.tick(10000);
+    // get_logged_user holds its TTL cache and single-flight queue in module
+    // scope, and other suites leave real lookups pending in that queue (a
+    // queued caller is never called back, which reads here as a timeout).
+    // Reload the module so every test starts with an empty cache and queue,
+    // and take the exports fresh: other suites reload lib/system too, so a
+    // reference captured earlier can point at a stale platform object.
+    delete require.cache[SYSTEM_PATH];
+    // eslint-disable-next-line global-require, import/no-dynamic-require
+    system = require('../../../lib/system');
+
+    originalFind = system.find_logged_user;
     findStub = sinon.stub();
     system.find_logged_user = findStub;
+  });
+
+  afterEach(() => {
+    // find_logged_user lives on the shared platform module, so leaving the
+    // stub in place would leak into every suite that runs after this one.
+    system.find_logged_user = originalFind;
   });
 
   it('serves a second call from cache within the TTL (find runs once)', (done) => {
