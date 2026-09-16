@@ -1,5 +1,24 @@
 # Change Log
 
+## [v1.13.41](https://github.com/prey/prey-node-client/tree/v1.13.41) (2026-09-15)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.40..v1.13.41)
+
+- Feat: Added a macOS lock IPC server so the agent can drive the bundled Prey app to lock the device, improving lock reliability on macOS. ([SoraKenji](https://github.com/SoraKenji))
+
+- Feat: Added a GNOME Shell extension–based lock for Linux desktops, improving lock reliability, and refreshed the bundled GTK lock helpers. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Reduced the number of PowerShell processes the agent spawns on Windows, avoiding Windows Defender CPU spikes. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Ensured the log retrieval action always signals completion, so the command queue is released and subsequent actions are not blocked. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Prevented a Windows upgrade crash (EROFS) and ensured a complete rollback that restores the current version when an upgrade fails. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Hardened macOS hardware collection so `get_firmware_info` no longer crashes when the device model name is missing. ([SoraKenji](https://github.com/SoraKenji))
+
+- Chore: Updated the bundled `prey-user` helper to 1.0.11 to improve network information reporting. ([SoraKenji](https://github.com/SoraKenji))
+
+- Chore: Updated wpxsvc to version 2.0.36. ([SoraKenji](https://github.com/SoraKenji))
+
 ## [v1.13.40](https://github.com/prey/prey-node-client/tree/v1.13.40) (2026-08-07)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.39..v1.13.40)
 
