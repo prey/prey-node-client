@@ -1,0 +1,69 @@
+/* All colors live here (never set Clutter.Color / Cogl.Color from JS — that type
+ * moved between GNOME 46 and 50). Keeps extension.js version-agnostic. */
+
+.prey-lock-overlay {
+    background-color: #0a0a0a;
+}
+
+.prey-lock-pane {
+    background-color: #0a0a0a;
+}
+
+.prey-lock-box {
+    spacing: 22px;
+    padding: 48px;
+}
+
+/* Transparent hexagon-only icon (native 81x92). Text lives in the labels below,
+ * so the asset carries no baked-in background — it blends over any pane color.
+ * background-size: contain preserves the ratio — never stretch. */
+.prey-lock-logo {
+    background-image: url("assets/lock-icon.png");
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    width: 85px;
+    height: 96px;
+    margin-bottom: 6px;
+}
+
+.prey-lock-message {
+    color: #c8c8c8;
+    font-size: 14px;
+    text-align: center;
+    max-width: 520px;
+}
+
+.prey-lock-instruction {
+    color: #f2f2f2;
+    font-size: 17px;
+    font-weight: 600;
+    text-align: center;
+    margin-top: 4px;
+}
+
+.prey-lock-entry {
+    min-width: 340px;
+    font-size: 15px;
+    color: #ffffff;
+    padding: 11px 16px;
+    border-radius: 10px;
+    background-color: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.prey-lock-entry:focus {
+    background-color: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(120, 175, 255, 0.85);
+}
+
+.prey-lock-entry StLabel.hint-text {
+    color: rgba(255, 255, 255, 0.45);
+}
+
+.prey-lock-error {
+    color: #ff6b6b;
+    font-weight: bold;
+    font-size: 13px;
+    min-height: 18px;
+}

@@ -1,0 +1,9 @@
+{
+  "uuid": "preylock@preyproject.com",
+  "name": "Prey Lock",
+  "description": "Compositor-privileged lock surface for Prey. On GNOME Wayland (where ext-session-lock-v1 is withheld from unprivileged clients) this extension provides the inescapable, multi-monitor lock UI that the prey-lock-gtk4 binary drives over D-Bus. Not meant to be used standalone.",
+  "shell-version": ["45", "46", "47", "48", "49", "50"],
+  "session-modes": ["user", "unlock-dialog"],
+  "version": 3,
+  "url": "https://preyproject.com"
+}
