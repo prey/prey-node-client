@@ -20,7 +20,7 @@ describe('lib/agent/providers/indicators/index get_battery_status', () => {
 
   it('invokes the callback exactly once and arms the circuit breaker on "No Instance(s) Available."', (done) => {
     const err = new Error('No Instance(s) Available.');
-    osFunctionsStub.get_battery_status.callsFake((cb) => cb(err));
+    osFunctionsStub.get_battery_status.callsFake((opts, cb) => cb(err));
 
     const callback = sinon.stub();
 
@@ -38,7 +38,7 @@ describe('lib/agent/providers/indicators/index get_battery_status', () => {
 
   it('passes through a normal error without arming the circuit breaker', (done) => {
     const err = new Error('some other failure');
-    osFunctionsStub.get_battery_status.callsFake((cb) => cb(err));
+    osFunctionsStub.get_battery_status.callsFake((opts, cb) => cb(err));
 
     const callback = sinon.stub();
 
@@ -54,7 +54,7 @@ describe('lib/agent/providers/indicators/index get_battery_status', () => {
 
   it('calls back once with data on success', (done) => {
     const data = { percentage_remaining: 80, state: 'discharging' };
-    osFunctionsStub.get_battery_status.callsFake((cb) => cb(null, data));
+    osFunctionsStub.get_battery_status.callsFake((opts, cb) => cb(null, data));
 
     const callback = sinon.stub();
 
@@ -81,6 +81,40 @@ describe('lib/agent/providers/indicators/index get_battery_status', () => {
       // The underlying os function must not be touched when the breaker is open.
       expect(osFunctionsStub.get_battery_status.called).to.equal(false);
       done();
+    });
+  });
+
+  // Adapter contract: providers.get calls this getter as (options, cb) whenever
+  // options are present. The getter must treat the first arg as options (not the
+  // callback) and forward it to the platform getter, otherwise the options object
+  // gets invoked as a function ("callback is not a function") — the exact crash the
+  // power trigger hit passing { bypassCache: true }.
+  describe('when called with the (options, cb) form', () => {
+    it('fires the callback once with data and does not treat options as the callback', (done) => {
+      const data = { percentage_remaining: 55, state: 'charging' };
+      osFunctionsStub.get_battery_status.callsFake((opts, cb) => cb(null, data));
+
+      const callback = sinon.stub();
+
+      expect(() => mod.get_battery_status({ bypassCache: true }, callback)).to.not.throw();
+
+      setImmediate(() => {
+        expect(callback.callCount).to.equal(1);
+        expect(callback.firstCall.args[0]).to.be.null;
+        expect(callback.firstCall.args[1]).to.deep.equal(data);
+        done();
+      });
+    });
+
+    it('forwards the options (incl. bypassCache) to the platform getter', (done) => {
+      osFunctionsStub.get_battery_status.callsFake((opts, cb) => cb(null, {}));
+
+      mod.get_battery_status({ bypassCache: true }, () => {
+        expect(osFunctionsStub.get_battery_status.callCount).to.equal(1);
+        expect(osFunctionsStub.get_battery_status.firstCall.args[0]).to.deep.equal({ bypassCache: true });
+        expect(osFunctionsStub.get_battery_status.firstCall.args[1]).to.be.a('function');
+        done();
+      });
     });
   });
 });

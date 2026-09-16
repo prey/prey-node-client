@@ -52,4 +52,17 @@ describe('lib/agent/triggers/power passes bypassCache through providers.get', ()
       done();
     });
   });
+
+  it('does not crash when battery status comes back undefined', (done) => {
+    // Circuit-breaker / no-battery paths can call back with no data. A non-seed
+    // read then dereferences current.state and used to throw a TypeError.
+    providersStub.get.callsFake((name, opts, cb) => cb(null, undefined));
+
+    mod.start({}, () => {
+      power.emit('state_changed', {});
+      // clock.tick runs the 2s timer synchronously, surfacing any throw here.
+      expect(() => clock.tick(2000)).to.not.throw();
+      done();
+    });
+  });
 });
