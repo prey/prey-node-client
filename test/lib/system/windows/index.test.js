@@ -390,6 +390,21 @@ describe('lib/system/windows/index', () => {
         done();
       });
     });
+
+    // Regression: with { json: true }, needle auto-parses the JSON response and
+    // hands back an already-parsed OBJECT (not a string). Calling JSON.parse on
+    // it previously threw "Unable to parse action data" (OWCA-635).
+    it('calls cb(null, out) when needle delivers an already-parsed object body', (done) => {
+      needleStub.post.callsFake((_url, _body, _opts, resCb) => {
+        resCb(null, { statusCode: 200 }, { error: false, output: { key: 'val' } });
+      });
+
+      windowsModule.run_as_admin('test-action', {}, (err, out) => {
+        expect(err).to.be.null;
+        expect(out).to.deep.equal({ key: 'val' });
+        done();
+      });
+    });
   });
 
   describe('get_as_admin', () => {
@@ -439,6 +454,33 @@ describe('lib/system/windows/index', () => {
 
       windowsModule.get_as_admin('tpmModule', (err) => {
         expect(err).to.equal(netErr);
+        done();
+      });
+    });
+
+    // Regression: with { json: true }, needle auto-parses the JSON response and
+    // hands back an already-parsed OBJECT (not a string). Calling JSON.parse on
+    // it previously threw "Unable to parse provider data" (OWCA-635).
+    it('calls cb(null, out) when needle delivers an already-parsed object body', (done) => {
+      needleStub.post.callsFake((_url, _body, _opts, resCb) => {
+        resCb(null, { statusCode: 200 }, { error: false, output: { tpm: true } });
+      });
+
+      windowsModule.get_as_admin('tpmModule', (err, out) => {
+        expect(err).to.be.null;
+        expect(out).to.deep.equal({ tpm: true });
+        done();
+      });
+    });
+
+    it('calls cb(Error) when body is an unparseable string', (done) => {
+      needleStub.post.callsFake((_url, _body, _opts, resCb) => {
+        resCb(null, { statusCode: 200 }, 'not-json<<<');
+      });
+
+      windowsModule.get_as_admin('tpmModule', (err) => {
+        expect(err).to.be.instanceOf(Error);
+        expect(err.message).to.equal('Unable to parse provider data');
         done();
       });
     });
