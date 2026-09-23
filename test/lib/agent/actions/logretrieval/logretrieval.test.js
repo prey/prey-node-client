@@ -531,7 +531,14 @@ describe('logretrieval', () => {
   });
 
   describe('done() function', () => {
-    it('should emit end event with id and error when em is initialized', (done) => {
+    const registerCall = (id, emitter) => {
+      logretrievalRewired.__set__(
+        'activeCalls',
+        new Map([[id, { emitter, finished: false, safetyTimeout: null }]]),
+      );
+    };
+
+    it('should emit end event with id and error for an active call', (done) => {
       doneStub.restore(); // Use real done function
 
       const mockEmitter = new EventEmitter();
@@ -542,7 +549,7 @@ describe('logretrieval', () => {
         done();
       });
 
-      logretrievalRewired.__set__('em', mockEmitter);
+      registerCall('test-id', mockEmitter);
 
       const testError = new Error('Test error');
       logretrievalRewired.done('test-id', testError);
@@ -550,7 +557,7 @@ describe('logretrieval', () => {
       doneStub = sinon.stub(logretrievalRewired, 'done'); // Restore stub
     });
 
-    it('should emit end event without error when em is initialized', (done) => {
+    it('should emit end event without error for an active call', (done) => {
       doneStub.restore(); // Use real done function
 
       const mockEmitter = new EventEmitter();
@@ -560,11 +567,24 @@ describe('logretrieval', () => {
         done();
       });
 
-      logretrievalRewired.__set__('em', mockEmitter);
+      registerCall('test-id', mockEmitter);
 
       logretrievalRewired.done('test-id', null);
 
       doneStub = sinon.stub(logretrievalRewired, 'done'); // Restore stub
+    });
+
+    it('should be a no-op when there is no active call for the id', () => {
+      doneStub.restore();
+
+      const mockEmitter = new EventEmitter();
+      let emitted = false;
+      mockEmitter.on('end', () => { emitted = true; });
+      // No registerCall(): the id is unknown.
+      logretrievalRewired.done('missing-id', null);
+
+      expect(emitted).to.be.false;
+      doneStub = sinon.stub(logretrievalRewired, 'done');
     });
   });
 
@@ -715,6 +735,152 @@ describe('logretrieval', () => {
 
       logretrievalRewired.start('concurrent-1', {}, checkDone);
       logretrievalRewired.start('concurrent-2', {}, checkDone);
+    });
+  });
+
+  describe('lifecycle guarantees (end always emitted)', () => {
+    it('should complete (call done) even when dbToJson returns an empty object', (testDone) => {
+      // Regression: Promise.all used to hang forever on an empty {} because no
+      // resolve() was called, so done() (and thus 'end') never fired.
+      doneStub.callsFake(() => testDone());
+      getDataDbKeyStub.callsFake((_method, cb) => cb(null, '{"x":1}'));
+      databaseMock.dbToJson.resolves({});
+      collectFilesStub.callsFake((_outputFile, cb) => cb(null, 1024));
+      writeFileStub.callsFake((_filePath, _txt, _flag, cb) => cb(null));
+      uploadZipStub.callsFake((_filePath, _bytes, cb) => cb(null));
+
+      logretrievalRewired.start('empty-db-id', {}, () => {});
+    });
+
+    it('should route to done when a later stage throws in an async fs.writeFile callback', (testDone) => {
+      // Reproduces production timing: fs.writeFile invokes its callback on a later
+      // libuv tick, outside the promise chain. A synchronous throw there is NOT
+      // caught by .catch(); the guard() wrapper must route it to done() instead of
+      // letting it become an uncaughtException that restarts the agent.
+      doneStub.callsFake((_id, err) => {
+        expect(err).to.be.instanceOf(Error);
+        testDone();
+      });
+      getDataDbKeyStub.callsFake((_method, cb) => cb(null, '{"x":1}'));
+      writeFileStub.callsFake((_filePath, _txt, _flag, cb) => setImmediate(() => cb(null)));
+      collectFilesStub.callsFake(() => {
+        throw new Error('collect boom');
+      });
+
+      logretrievalRewired.start('throw-id', {}, () => {});
+    });
+
+    it('should force done via the safety timeout if the chain hangs', () => {
+      doneStub.restore();
+      // Capture the safety timeout callback (module-scoped setTimeout) so we can
+      // fire it deterministically.
+      let timeoutFn = null;
+      const revertSetTimeout = logretrievalRewired.__set__('setTimeout', (fn) => {
+        timeoutFn = fn;
+        return { unref: () => {} };
+      });
+      // Never resolve the internal promises -> Promise.all never settles.
+      getDataDbKeyStub.callsFake(() => {});
+      databaseMock.dbToJson.returns(new Promise(() => {}));
+
+      let cbFired = false;
+      let ended = null;
+      logretrievalRewired.start('hang-id', {}, (_err, emitter) => {
+        cbFired = true;
+        emitter.once('end', (endId, endErr) => {
+          ended = { endId, endErr };
+        });
+      });
+
+      revertSetTimeout();
+      expect(timeoutFn, 'start() should schedule a safety timeout').to.be.a('function');
+      timeoutFn();
+
+      expect(cbFired, 'cb should be delivered by the safety timeout').to.be.true;
+      expect(ended, 'end should be emitted by the safety timeout').to.not.be.null;
+      expect(ended.endId).to.equal('hang-id');
+      expect(ended.endErr).to.be.instanceOf(Error);
+
+      doneStub = sinon.stub(logretrievalRewired, 'done');
+    });
+
+    it('done() should emit end only once even if called twice (idempotent)', () => {
+      doneStub.restore();
+      const mockEmitter = new EventEmitter();
+      let count = 0;
+      mockEmitter.on('end', () => {
+        count += 1;
+      });
+      logretrievalRewired.__set__(
+        'activeCalls',
+        new Map([['id-1', { emitter: mockEmitter, finished: false, safetyTimeout: null }]]),
+      );
+
+      logretrievalRewired.done('id-1', null);
+      logretrievalRewired.done('id-1', null);
+
+      expect(count).to.equal(1);
+      doneStub = sinon.stub(logretrievalRewired, 'done');
+    });
+
+    it('should keep overlapping start() calls isolated (per-call state)', () => {
+      doneStub.restore();
+      getDataDbKeyStub.callsFake((_method, cb) => cb(null, '{"x":1}'));
+      databaseMock.dbToJson.resolves({ commands: [] });
+      writeFileStub.callsFake((_filePath, _txt, _flag, cb) => cb(null));
+      // Async collectFiles mirrors production timing so the emitter is delivered
+      // (ensureCb) before done() emits 'end'.
+      collectFilesStub.callsFake((_outputFile, cb) => setImmediate(() => cb(null, 1024)));
+      uploadZipStub.callsFake((_filePath, _bytes, cb) => cb(null));
+
+      const ended = [];
+      return new Promise((resolve) => {
+        const track = (_err, emitter) => {
+          emitter.once('end', (endId) => {
+            ended.push(endId);
+            if (ended.length === 2) resolve();
+          });
+        };
+        logretrievalRewired.start('call-A', {}, track);
+        logretrievalRewired.start('call-B', {}, track);
+      }).then(() => {
+        expect(ended).to.have.members(['call-A', 'call-B']);
+        expect(ended).to.have.length(2);
+        doneStub = sinon.stub(logretrievalRewired, 'done');
+      });
+    });
+
+    it('collectFiles should finish even if archive.append throws', (testDone) => {
+      collectFilesStub.restore();
+
+      const existsSyncStub = sinon.stub(fs, 'existsSync').returns(true);
+      const createReadStreamStub = sinon.stub(fs, 'createReadStream').callsFake(() => {
+        const rs = new EventEmitter();
+        rs.destroy = sinon.stub();
+        setTimeout(() => rs.emit('close'), 1);
+        return rs;
+      });
+      const createWriteStreamStub = sinon.stub(fs, 'createWriteStream').returns(new EventEmitter());
+
+      const mockArchive = new EventEmitter();
+      mockArchive.pipe = sinon.stub().returns(mockArchive);
+      mockArchive.append = sinon.stub().throws(new Error('append boom'));
+      mockArchive.pointer = () => 0;
+      mockArchive.finalize = sinon.stub().callsFake(() => {
+        setTimeout(() => {
+          const output = createWriteStreamStub.firstCall.returnValue;
+          output.emit('close');
+        }, 1);
+      });
+      archiverMock.returns(mockArchive);
+
+      logretrievalRewired.collectFiles('/tmp/test.zip', (err, bytes) => {
+        expect(bytes).to.equal(0);
+        existsSyncStub.restore();
+        createReadStreamStub.restore();
+        createWriteStreamStub.restore();
+        testDone();
+      });
     });
   });
 });
