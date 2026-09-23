@@ -45,7 +45,7 @@ describe('lib/system/windows/index', () => {
       });
     });
 
-    it('calls callback with error when first exec fails via callback', (done) => {
+    it('calls callback with error when exec fails via callback', (done) => {
       execStub.callsFake((cmd, opts, cb) => cb(new Error('exec failed')));
 
       windowsModule.find_logged_user((err) => {
@@ -54,7 +54,7 @@ describe('lib/system/windows/index', () => {
       });
     });
 
-    it('calls callback with error when first exec returns empty stdout', (done) => {
+    it('calls callback with error when exec returns empty stdout', (done) => {
       execStub.callsFake((cmd, opts, cb) => cb(null, ''));
 
       windowsModule.find_logged_user((err) => {
@@ -63,8 +63,64 @@ describe('lib/system/windows/index', () => {
       });
     });
 
-    it('returns username on Windows < 10 without running session checks', (done) => {
+    it('returns username on Windows < 10 with a single exec (no lock detection)', (done) => {
       commonMock.helpers.is_greater_or_equal.returns(false);
+      execStub.callsFake((cmd, opts, cb) => cb(null, 'DOMAIN\\testuser'));
+
+      windowsModule.find_logged_user((err, user) => {
+        expect(err).to.be.null;
+        expect(user).to.equal('testuser');
+        expect(execStub.calledOnce).to.be.true;
+        done();
+      });
+    });
+
+    it('returns username on Windows 10+ when not locked (PREY_LOCKED=0)', (done) => {
+      execStub.callsFake((cmd, opts, cb) => cb(null, 'PREY_USER=DOMAIN\\testuser|PREY_LOCKED=0\r\n'));
+
+      windowsModule.find_logged_user((err, user) => {
+        expect(err).to.be.null;
+        expect(user).to.equal('testuser');
+        done();
+      });
+    });
+
+    it('spawns exactly ONE powershell process on Windows 10+ (was three)', (done) => {
+      execStub.callsFake((cmd, opts, cb) => cb(null, 'PREY_USER=DOMAIN\\testuser|PREY_LOCKED=0'));
+
+      windowsModule.find_logged_user((err, user) => {
+        expect(err).to.be.null;
+        expect(user).to.equal('testuser');
+        expect(execStub.calledOnce).to.be.true;
+        done();
+      });
+    });
+
+    it('calls callback with error when system is on Windows Lock Screen (PREY_LOCKED=1)', (done) => {
+      execStub.callsFake((cmd, opts, cb) => cb(null, 'PREY_USER=DOMAIN\\testuser|PREY_LOCKED=1'));
+
+      windowsModule.find_logged_user((err) => {
+        expect(err).to.be.instanceOf(Error);
+        expect(err.message).to.include('Lock Screen');
+        done();
+      });
+    });
+
+    it('lock screen error message contains no embedded newlines', (done) => {
+      execStub.callsFake((cmd, opts, cb) => cb(null, 'PREY_USER=DOMAIN\\testuser|PREY_LOCKED=1\r\n'));
+
+      windowsModule.find_logged_user((err) => {
+        expect(err).to.be.instanceOf(Error);
+        expect(err.message).to.not.include('\r');
+        expect(err.message).to.not.include('\n');
+        expect(err.message).to.include('Lock Screen');
+        done();
+      });
+    });
+
+    it('fails open to a plain username parse on unexpected output format', (done) => {
+      // If the single-line PREY_USER/PREY_LOCKED format ever drifts, fall back
+      // to treating stdout as the raw UserName.
       execStub.callsFake((cmd, opts, cb) => cb(null, 'DOMAIN\\testuser'));
 
       windowsModule.find_logged_user((err, user) => {
@@ -74,120 +130,39 @@ describe('lib/system/windows/index', () => {
       });
     });
 
-    it('falls back to username when second exec throws synchronously', (done) => {
-      execStub.onFirstCall().callsFake((cmd, opts, cb) => cb(null, 'DOMAIN\\testuser'));
-      execStub.onSecondCall().throws(new Error('spawn EROFS'));
-
-      windowsModule.find_logged_user((err, user) => {
-        expect(err).to.be.null;
-        expect(user).to.equal('testuser');
-        done();
-      });
-    });
-
-    it('falls back to username when second exec fails via callback', (done) => {
-      execStub.onFirstCall().callsFake((cmd, opts, cb) => cb(null, 'DOMAIN\\testuser'));
-      execStub.onSecondCall().callsFake((cmd, opts, cb) => cb(new Error('exec failed')));
-
-      windowsModule.find_logged_user((err, user) => {
-        expect(err).to.be.null;
-        expect(user).to.equal('testuser');
-        done();
-      });
-    });
-
-    it('falls back to username when third exec throws synchronously', (done) => {
-      execStub.onFirstCall().callsFake((cmd, opts, cb) => cb(null, 'DOMAIN\\testuser'));
-      execStub.onSecondCall().callsFake((cmd, opts, cb) => cb(null, '1'));
-      execStub.onThirdCall().throws(new Error('spawn EROFS'));
-
-      windowsModule.find_logged_user((err, user) => {
-        expect(err).to.be.null;
-        expect(user).to.equal('testuser');
-        done();
-      });
-    });
-
-    it('falls back to username when third exec fails via callback', (done) => {
-      execStub.onFirstCall().callsFake((cmd, opts, cb) => cb(null, 'DOMAIN\\testuser'));
-      execStub.onSecondCall().callsFake((cmd, opts, cb) => cb(null, '1'));
-      execStub.onThirdCall().callsFake((cmd, opts, cb) => cb(new Error('exec failed')));
-
-      windowsModule.find_logged_user((err, user) => {
-        expect(err).to.be.null;
-        expect(user).to.equal('testuser');
-        done();
-      });
-    });
-
-    it('returns username when no lock screen is detected', (done) => {
-      execStub.onFirstCall().callsFake((cmd, opts, cb) => cb(null, 'DOMAIN\\testuser'));
-      execStub.onSecondCall().callsFake((cmd, opts, cb) => cb(null, '1'));
-      execStub.onThirdCall().callsFake((cmd, opts, cb) => cb(null, '2')); // different session ID
-
-      windowsModule.find_logged_user((err, user) => {
-        expect(err).to.be.null;
-        expect(user).to.equal('testuser');
-        done();
-      });
-    });
-
-    it('calls callback with error when system is on Windows Lock Screen', (done) => {
-      execStub.onFirstCall().callsFake((cmd, opts, cb) => cb(null, 'DOMAIN\\testuser'));
-      execStub.onSecondCall().callsFake((cmd, opts, cb) => cb(null, '1'));
-      execStub.onThirdCall().callsFake((cmd, opts, cb) => cb(null, '1')); // same session ID = locked
+    it('errors when the resolved username is empty (PREY_USER=)', (done) => {
+      execStub.callsFake((cmd, opts, cb) => cb(null, 'PREY_USER=|PREY_LOCKED=0'));
 
       windowsModule.find_logged_user((err) => {
         expect(err).to.be.instanceOf(Error);
-        expect(err.message).to.include('Lock Screen');
+        expect(err.message).to.equal('No logged user found.');
         done();
       });
     });
 
-    it('sanitizes username with apostrophe before PowerShell interpolation', (done) => {
-      execStub.onFirstCall().callsFake((cmd, opts, cb) => cb(null, "DOMAIN\\O'Brien\r\n"));
-      execStub.onSecondCall().callsFake((cmd, opts, cb) => {
-        expect(cmd).to.not.include("'O'Brien'");
-        expect(cmd).to.include('O_Brien');
-        cb(null, '1');
-      });
-      execStub.onThirdCall().callsFake((cmd, opts, cb) => cb(null, '2'));
-
-      windowsModule.find_logged_user((err, _user) => {
-        expect(err).to.be.null;
-        done();
-      });
-    });
-
-    it('includes -NoProfile in all powershell exec calls', (done) => {
-      const commands = [];
+    it('does not interpolate the username into the command and sanitizes it', (done) => {
+      // The username is derived inside PowerShell now, so the JS-built command
+      // must not embed the raw username (no injection surface). O'Brien -> O_Brien.
       execStub.callsFake((cmd, opts, cb) => {
-        commands.push(cmd);
-        if (commands.length === 1) cb(null, 'DOMAIN\\testuser\r\n');
-        else if (commands.length === 2) cb(null, '1');
-        else cb(null, '2');
+        expect(cmd).to.not.include("O'Brien");
+        cb(null, "PREY_USER=DOMAIN\\O'Brien|PREY_LOCKED=0");
       });
 
-      windowsModule.find_logged_user(() => {
-        commands.filter((c) => c.startsWith('powershell')).forEach((c) => {
-          expect(c).to.include('-NoProfile');
-        });
+      windowsModule.find_logged_user((err, user) => {
+        expect(err).to.be.null;
+        expect(user).to.equal('O_Brien');
+        expect(execStub.calledOnce).to.be.true;
         done();
       });
     });
 
-    it('lock screen error message contains no embedded newlines', (done) => {
-      execStub.onFirstCall().callsFake((cmd, opts, cb) => cb(null, 'DOMAIN\\testuser\r\n'));
-      execStub.onSecondCall().callsFake((cmd, opts, cb) => cb(null, '1'));
-      execStub.onThirdCall().callsFake((cmd, opts, cb) => cb(null, '1'));
-
-      windowsModule.find_logged_user((err) => {
-        expect(err).to.be.instanceOf(Error);
-        expect(err.message).to.not.include('\r');
-        expect(err.message).to.not.include('\n');
-        expect(err.message).to.include('Lock Screen');
-        done();
+    it('includes -NoProfile in the powershell exec call', (done) => {
+      execStub.callsFake((cmd, opts, cb) => {
+        expect(cmd).to.include('-NoProfile');
+        cb(null, 'PREY_USER=DOMAIN\\testuser|PREY_LOCKED=0');
       });
+
+      windowsModule.find_logged_user(() => done());
     });
   });
 
