@@ -1,8 +1,10 @@
 /* eslint-disable no-unused-expressions */
 /* eslint-disable no-undef */
+/* eslint-disable no-underscore-dangle */
 const { expect } = require('chai');
 const sinon = require('sinon');
 const rewire = require('rewire');
+const { EventEmitter } = require('events');
 
 describe('Connection Module', () => {
   let connectionRewired;
@@ -228,6 +230,69 @@ describe('Connection Module', () => {
     it('should use ws protocol for http', () => {
       connectionRewired.create(makeConfig({ protocol: 'http' }), {}, mockLogger);
       expect(MockWebSocket.firstCall.args[0]).to.match(/^ws:\/\//);
+    });
+  });
+
+  // ==================== OWCA-632: terminate() on CONNECTING socket ====================
+  // ws aborts a CONNECTING handshake by emitting an 'error' event
+  // ("WebSocket was closed before the connection was established") followed by
+  // 'close'. terminateSocket() must keep an 'error' listener so this does not
+  // become an unhandled 'error' event that crashes the process.
+  describe('OWCA-632: CONNECTING socket abort should not crash', () => {
+    const CONNECTING = 0;
+    const ABORT_MESSAGE = 'WebSocket was closed before the connection was established';
+
+    // Build an EventEmitter-backed socket whose terminate() replicates ws's
+    // handshake-abort behaviour: emit 'error' (unhandled → throws) then 'close'.
+    const makeConnectingSocket = () => {
+      const socket = new EventEmitter();
+      socket.readyState = CONNECTING;
+      socket.send = sinon.stub();
+      socket.ping = sinon.stub();
+      socket.pong = sinon.stub();
+      socket.terminate = function terminate() {
+        this.emit('error', new Error(ABORT_MESSAGE));
+        this.emit('close');
+      };
+      return socket;
+    };
+
+    it('Test A: terminateAndWait() should not throw when terminate() aborts a CONNECTING handshake', () => {
+      const socket = makeConnectingSocket();
+      connectionRewired.__set__('ws', socket);
+
+      expect(() => connectionRewired.terminateAndWait(50, () => {})).to.not.throw();
+    });
+
+    it('Test B: an error listener must be registered before terminate() is called', () => {
+      const socket = makeConnectingSocket();
+      let errorListenersAtTerminate = -1;
+      socket.terminate = function terminate() {
+        errorListenersAtTerminate = this.listenerCount('error');
+      };
+      connectionRewired.__set__('ws', socket);
+
+      connectionRewired.terminateAndWait(50, () => {});
+
+      expect(errorListenersAtTerminate).to.be.greaterThan(0);
+    });
+
+    it('Test C: callback still fires on close after the abort error', (done) => {
+      const socket = makeConnectingSocket();
+      connectionRewired.__set__('ws', socket);
+
+      connectionRewired.terminateAndWait(100, (closedByEvent) => {
+        expect(closedByEvent).to.be.true;
+        done();
+      });
+    });
+
+    it('Test D: terminate() (timeoutMs=0) should not throw on a CONNECTING socket', () => {
+      const socket = makeConnectingSocket();
+      connectionRewired.__set__('ws', socket);
+
+      expect(() => connectionRewired.terminate()).to.not.throw();
+      expect(connectionRewired.isConnected()).to.be.false;
     });
   });
 });
