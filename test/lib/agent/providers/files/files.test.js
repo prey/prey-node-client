@@ -144,6 +144,9 @@ describe('Files_Provider get_tree', () => {
     getLoggedUserStub.callsFake((cb) => cb(noUser));
     filesProvider.get_tree(opts, (err) => {
       expect(err.message).to.equal('No active session for file retrieval');
+      // Expected/controlled condition: opted out of exceptions via err.level so
+      // it does not consume the quota (still logged to prey.log).
+      expect(err.level).to.equal('not fatal');
       expect(runAsUserStub.called).to.be.false;
       done();
     });
