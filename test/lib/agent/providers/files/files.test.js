@@ -114,6 +114,29 @@ describe('Files_Provider get_tree', () => {
     });
   });
 
+  // Contract: these errors must reach exceptions.send (no err.level opt-out) so
+  // we can monitor the fix in production. A future version may set err.level to
+  // silence the expected conditions — that change should update this test on
+  // purpose, not slip through silently. See exceptions.js err.level opt-out.
+  it('returns parse-failure errors WITHOUT err.level (kept sent to exceptions)', (done) => {
+    runAsUserStub.callsFake((o, cb) => cb(null, `${START}garbage{${END}`, ''));
+    filesProvider.get_tree(opts, (err) => {
+      expect(err.message).to.equal('Unable to parse files data');
+      expect(err.level).to.be.undefined;
+      done();
+    });
+  });
+
+  it('returns "Cannot read folder" WITHOUT err.level (kept sent to exceptions)', (done) => {
+    const payload = JSON.stringify({ error: 'EACCES', path: 'C:\\x' });
+    runAsUserStub.callsFake((o, cb) => cb(null, `${START}${payload}${END}`, ''));
+    filesProvider.get_tree(opts, (err) => {
+      expect(err.message).to.equal('Cannot read folder: EACCES');
+      expect(err.level).to.be.undefined;
+      done();
+    });
+  });
+
   (isWindows ? it : it.skip)('fails fast when there is no logged user (locked session)', (done) => {
     const noUser = new Error('No logged user detected.');
     // @ts-ignore — attaching a runtime error code
