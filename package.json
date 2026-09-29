@@ -43,7 +43,8 @@
     "js-yaml": ">=5.2.2",
     "linkify-it": ">=5.0.1",
     "markdown-it": ">=14.1.2",
-    "adm-zip": ">=0.6.0",
+    "adm-zip": ">=0.6.1",
+    "@xmldom/xmldom": "^0.9.12",
     "uuid": "^11.1.1"
   },
   "dependencies": {
@@ -72,7 +73,7 @@
     "os-triggers": "https://github.com/prey/os-triggers",
     "petit": "https://github.com/prey/node-logger.git",
     "plist": "^3.1.1",
-    "qs": "^6.14.2",
+    "qs": "^6.16.0",
     "remover": "0.1.2",
     "reply": "^0.3.1",
     "rimraf": "3.0.2",
