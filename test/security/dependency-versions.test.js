@@ -14,11 +14,15 @@ const semver = require('semver');
  * - adm-zip        >= 0.6.1   (buffer over-allocation DoS; moves out of the
  *   symlink-traversal affected range <=0.6.0)
  * - qs             >= 6.16.0  (comma arrayLimit bypass, isBuffer TypeError DoS)
+ * - ip-address     >= 10.5.1  (SSRF guard bypasses: NAT64 local-use range
+ *   64:ff9b:1::/48 unclassified, and isLinkLocal() matching fe80::/64 instead
+ *   of fe80::/10)
  */
 const MINIMUMS = {
   '@xmldom/xmldom': '0.9.12',
   'adm-zip': '0.6.1',
   qs: '6.16.0',
+  'ip-address': '10.5.1',
 };
 
 describe('security: patched dependency versions', () => {
