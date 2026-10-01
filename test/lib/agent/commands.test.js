@@ -44,4 +44,41 @@ describe('commands', () => {
       expect(err.message).to.include('Unknown command');
     });
   });
+
+  describe('perform: missing/recover routing', () => {
+    let deviceStateStub;
+    let reportsStub;
+    let storageStub;
+
+    beforeEach(() => {
+      deviceStateStub = { setMissing: sinon.stub().callsFake((m, cb) => cb && cb()) };
+      reportsStub = {
+        get: sinon.stub(),
+        cancel: sinon.stub(),
+        running: sinon.stub().returns([]),
+      };
+      storageStub = { do: sinon.stub().callsFake((op, opts, cb) => cb && cb(null, [])) };
+      commandsModule.__set__('deviceState', deviceStateStub);
+      commandsModule.__set__('reports', reportsStub);
+      commandsModule.__set__('storage', storageStub);
+    });
+
+    it('start/missing routes through deviceState.setMissing(true) and starts the stolen report', () => {
+      commandsModule.perform({ command: 'start', target: 'missing', options: {} });
+
+      expect(deviceStateStub.setMissing.calledOnce).to.be.true;
+      expect(deviceStateStub.setMissing.firstCall.args[0]).to.equal(true);
+      // command was rewritten to report/stolen
+      expect(reportsStub.get.calledWith('stolen')).to.be.true;
+    });
+
+    it('start/recover routes through deviceState.setMissing(false) and cancels the stolen report', () => {
+      commandsModule.perform({ command: 'start', target: 'recover', options: {} });
+
+      expect(deviceStateStub.setMissing.calledOnce).to.be.true;
+      expect(deviceStateStub.setMissing.firstCall.args[0]).to.equal(false);
+      // command was rewritten to cancel/stolen
+      expect(reportsStub.cancel.calledWith('stolen')).to.be.true;
+    });
+  });
 });
