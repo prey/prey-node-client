@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 const { expect } = require('chai');
 
 const {
@@ -12,6 +13,10 @@ describe('network-errors helper', () => {
       ['ECONNRESET', 'ECONNABORTED', 'EIO'].forEach((code) => {
         expect(CONNECTION_ERROR_CODES).to.include(code);
       });
+    });
+
+    it('includes EADDRNOTAVAIL (OWCA-648)', () => {
+      expect(CONNECTION_ERROR_CODES).to.include('EADDRNOTAVAIL');
     });
   });
 
@@ -39,6 +44,12 @@ describe('network-errors helper', () => {
       err.code = 'ENETDOWN';
       expect(isConnectionError(err)).to.equal(true);
     });
+
+    it('returns true for EADDRNOTAVAIL (OWCA-648)', () => {
+      const err = new Error('boom');
+      err.code = 'EADDRNOTAVAIL';
+      expect(isConnectionError(err)).to.equal(true);
+    });
   });
 
   describe('isConnectionError - by message form (no code set)', () => {
@@ -57,6 +68,10 @@ describe('network-errors helper', () => {
 
     it('returns true for the pre-existing "read ENETDOWN" case', () => {
       expect(isConnectionError(new Error('read ENETDOWN'))).to.equal(true);
+    });
+
+    it('returns true for "read EADDRNOTAVAIL" (OWCA-648)', () => {
+      expect(isConnectionError(new Error('read EADDRNOTAVAIL'))).to.equal(true);
     });
   });
 
