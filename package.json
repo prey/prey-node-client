@@ -44,6 +44,8 @@
     "linkify-it": ">=5.0.1",
     "markdown-it": ">=14.3.1",
     "moment": ">=2.31.0",
+    "chokidar": "^4.0.3",
+    "http-cache-semantics": ">=4.3.0",
     "adm-zip": ">=0.6.1",
     "@xmldom/xmldom": "^0.9.12",
     "uuid": "^11.1.1"
