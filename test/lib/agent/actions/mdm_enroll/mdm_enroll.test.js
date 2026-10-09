@@ -250,6 +250,52 @@ describe('mdm_enroll', () => {
         expect(payload.opts.discovery_url).to.equal('https://nested.contoso.com/Discovery.svc');
       });
     });
+
+    it('should parse a JSON string response body', (done) => {
+      const opts = {
+        upn: 'admin@contoso.com',
+        secret: 'SuperSecret',
+        discovery_url: 'https://enrollment.contoso.com/Discovery.svc',
+      };
+
+      needleMock.post.callsFake((url, data, options, cb) => {
+        cb(null, { statusCode: 200, body: '{"enrolled": true}' });
+      });
+
+      mdmEnrollRewired.start('test-id', opts, (err, emitter) => {
+        expect(err).to.be.null;
+
+        emitter.on('end', (id, error, out) => {
+          expect(id).to.equal('test-id');
+          expect(error).to.be.null;
+          expect(out).to.deep.equal({ enrolled: true });
+          done();
+        });
+      });
+    });
+
+    it('should fall back to an empty object on an unparseable string body', (done) => {
+      const opts = {
+        upn: 'admin@contoso.com',
+        secret: 'SuperSecret',
+        discovery_url: 'https://enrollment.contoso.com/Discovery.svc',
+      };
+
+      needleMock.post.callsFake((url, data, options, cb) => {
+        cb(null, { statusCode: 200, body: 'not-json' });
+      });
+
+      mdmEnrollRewired.start('test-id', opts, (err, emitter) => {
+        expect(err).to.be.null;
+
+        emitter.on('end', (id, error, out) => {
+          expect(id).to.equal('test-id');
+          expect(error).to.be.null;
+          expect(out).to.deep.equal({});
+          done();
+        });
+      });
+    });
   });
 
   describe('stop', () => {
