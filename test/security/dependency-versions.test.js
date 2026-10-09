@@ -25,7 +25,12 @@ const installedVersion = (pkg) => {
  * - ip-address     >= 10.5.1  (SSRF guard bypasses: NAT64 local-use range
  *   64:ff9b:1::/48 unclassified, and isLinkLocal() matching fe80::/64 instead
  *   of fe80::/10)
- * - brace-expansion >= 5.0.10 (parseCommaParts native-stack-exhaustion DoS)
+ * - brace-expansion >= 2.1.5  (parseCommaParts native-stack-exhaustion DoS,
+ *   GHSA-6j4f-fj2g-mc7p; patched on the 2.x line from 2.1.5. Must stay on 2.x
+ *   (< 4.0): brace-expansion 4.x/5.x ship an ESM/CJS build that exports
+ *   { expand } instead of a callable module.exports, which breaks minimatch 3.x
+ *   — pulled in by eslint-plugin-import/eslint core — with "expand is not a
+ *   function", crashing `eslint .` before it lints anything)
  * - markdown-it    >= 14.3.1  (two quadratic linkify DoS paths)
  * - js-yaml        >= 5.4.1   (merge-key empty-mapping CPU DoS budget bypass)
  * - moment         >= 2.31.0  (path traversal in moment.locale() with non-string
@@ -41,7 +46,7 @@ const MINIMUMS = {
   '@xmldom/xmldom': '0.9.12',
   qs: '6.16.0',
   'ip-address': '10.5.1',
-  'brace-expansion': '5.0.10',
+  'brace-expansion': '2.1.5',
   'markdown-it': '14.3.1',
   'js-yaml': '5.4.1',
   moment: '2.31.0',
