@@ -313,4 +313,43 @@ describe('storage_fns', () => {
       });
     });
   });
+
+  // ─── device_state ─────────────────────────────────────────────────────────
+  describe('device_state type', () => {
+    it('is an allowed type: lazily CREATEs the table and UPSERTs the row', (done) => {
+      storage.storage_fns.set(
+        {
+          type: 'device_state',
+          id: 'current',
+          data: {
+            missing: 1, confirmed: 0, time: 123, retries: 0,
+          },
+        },
+        (err) => {
+          expect(err).to.be.null;
+          // run call #1 = CREATE TABLE IF NOT EXISTS, call #2 = INSERT OR REPLACE
+          expect(dbInstance.run.callCount).to.equal(2);
+          expect(dbInstance.run.firstCall.args[0]).to.match(/^CREATE TABLE IF NOT EXISTS device_state/);
+          expect(dbInstance.run.secondCall.args[0]).to.match(/^INSERT OR REPLACE INTO device_state/);
+          done();
+        },
+      );
+    });
+
+    it('reads rows via all', (done) => {
+      storage.storage_fns.all({ type: 'device_state' }, (err, rows) => {
+        expect(err).to.be.null;
+        expect(rows).to.be.an('array');
+        done();
+      });
+    });
+
+    it('deletes the row', (done) => {
+      storage.storage_fns.del({ type: 'device_state', id: 'current' }, (err) => {
+        expect(err).to.be.null;
+        expect(dbInstance.run.secondCall.args[0]).to.match(/DELETE FROM device_state/);
+        done();
+      });
+    });
+  });
 });
