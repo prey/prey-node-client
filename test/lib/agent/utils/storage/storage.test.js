@@ -352,4 +352,69 @@ describe('storage_fns', () => {
       });
     });
   });
+
+  // ─── locations ────────────────────────────────────────────────────────────
+  describe('locations type', () => {
+    it('is an allowed type: CREATEs the table and UPSERTs a numeric row', (done) => {
+      storage.storage_fns.set(
+        {
+          type: 'locations',
+          id: 'loc-1',
+          data: {
+            lat: 10.5,
+            lng: -20.25,
+            accuracy: 42,
+            method: 'native',
+            source: 'gps',
+            recorded_at: '2024-01-01T00:00:00.000Z',
+            sent: 1,
+            send_type: 'force',
+            delta: 15,
+          },
+        },
+        (err) => {
+          expect(err).to.be.null;
+          expect(dbInstance.run.firstCall.args[0]).to.match(/^CREATE TABLE IF NOT EXISTS locations/);
+          const sql = dbInstance.run.secondCall.args[0];
+          expect(sql).to.match(/^INSERT OR REPLACE INTO locations/);
+          // Numeric columns are not quoted; text columns are.
+          expect(sql).to.include('10.5, -20.25, 42');
+          expect(sql).to.include("'native'");
+          expect(sql).to.include("'2024-01-01T00:00:00.000Z'");
+          done();
+        },
+      );
+    });
+
+    it('emits NULL for absent numeric fields (accuracy/delta)', (done) => {
+      storage.storage_fns.set(
+        {
+          type: 'locations',
+          id: 'loc-2',
+          data: {
+            lat: 1,
+            lng: 2,
+            method: 'geoip',
+            recorded_at: '2024-01-01T00:00:00.000Z',
+          },
+        },
+        (err) => {
+          expect(err).to.be.null;
+          const sql = dbInstance.run.secondCall.args[0];
+          // accuracy and delta are undefined → SQL NULL keyword, not quoted empty string.
+          expect(sql).to.include('1, 2, NULL,');
+          expect(sql).to.match(/, NULL\)$/);
+          done();
+        },
+      );
+    });
+
+    it('reads rows via all', (done) => {
+      storage.storage_fns.all({ type: 'locations' }, (err, rows) => {
+        expect(err).to.be.null;
+        expect(rows).to.be.an('array');
+        done();
+      });
+    });
+  });
 });

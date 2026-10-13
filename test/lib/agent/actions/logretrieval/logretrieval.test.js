@@ -1,5 +1,6 @@
 /* eslint-disable no-unused-expressions */
 /* eslint-disable no-undef */
+/* eslint-disable no-underscore-dangle */
 const chai = require('chai');
 const sinon = require('sinon');
 const rewire = require('rewire');
@@ -19,6 +20,7 @@ describe('logretrieval', () => {
   let doneStub;
   let utilStorageMock;
   let databaseMock;
+  let locationstoreMock;
   let keysMock;
   let needleMock;
   let archiverMock;
@@ -33,6 +35,11 @@ describe('logretrieval', () => {
     // Create mock for database
     databaseMock = {
       dbToJson: sinon.stub(),
+    };
+
+    // Create mock for locationstore (avoid real SQLite access in getLocations)
+    locationstoreMock = {
+      getLocations: sinon.stub().callsFake((cb) => cb(null, [])),
     };
 
     // Create mock for keys
@@ -55,6 +62,7 @@ describe('logretrieval', () => {
     logretrievalRewired = rewire('../../../../../lib/agent/actions/logretrieval');
     logretrievalRewired.__set__('utilStorage', utilStorageMock);
     logretrievalRewired.__set__('database', databaseMock);
+    logretrievalRewired.__set__('locationstore', locationstoreMock);
     logretrievalRewired.__set__('keys', keysMock);
     logretrievalRewired.__set__('needle', needleMock);
     logretrievalRewired.__set__('archiver', archiverMock);
@@ -204,8 +212,28 @@ describe('logretrieval', () => {
       });
 
       logretrievalRewired.start('id', {}, () => {
-        // Should write empty strings
-        expect(writeFileStub.calledTwice).to.be.true;
+        // Writes hardware, wifi and location data files (all empty here).
+        expect(writeFileStub.calledThrice).to.be.true;
+        done();
+      });
+    });
+
+    it('writes location_data.json from locationstore.getLocations', (done) => {
+      doneStub.callsFake(() => {});
+      getDataDbKeyStub.callsFake((_method, cb) => cb(null, null));
+      const rows = [{
+        id: 'a', lat: 1, lng: 2, recorded_at: '2024-01-01T00:00:00.000Z',
+      }];
+      locationstoreMock.getLocations.callsFake((cb) => cb(null, rows));
+      collectFilesStub.callsFake((_outputFile, cb) => cb(null, 1024));
+      writeFileStub.callsFake((_filePath, _txt, _flag, cb) => cb(null));
+      uploadZipStub.callsFake((_filePath, _bytes, cb) => cb(null));
+
+      logretrievalRewired.start('id', {}, () => {
+        const locCalls = writeFileStub.getCalls()
+          .filter((call) => call.args[0].includes('location_data.json'));
+        expect(locCalls).to.have.length(1);
+        expect(JSON.parse(locCalls[0].args[1])).to.deep.equal(rows);
         done();
       });
     });

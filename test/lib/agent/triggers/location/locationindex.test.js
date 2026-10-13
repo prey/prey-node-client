@@ -746,6 +746,88 @@ describe('forceLocation - last_force_datetime only written after HTTP 200', () =
   });
 });
 
+describe('location audit - records accepted locations and marks them sent', () => {
+  // Exercises the real triggerEvent → sendLocation → postIt chain, verifying the
+  // location audit log is written on accept and flagged sent on a 200 response.
+  let locationModule;
+  let fakeConfig;
+  let fakeGeo;
+  let fakeLocationstore;
+  let forceLocation;
+
+  beforeEach(() => {
+    locationModule = rewire('../../../../../lib/agent/triggers/location');
+
+    fakeConfig = {
+      getData: sinon.stub().returns(null),
+      setData: sinon.stub(),
+      onDataChange: sinon.stub(),
+      offDataChange: sinon.stub(),
+    };
+    fakeConfig.getData.withArgs('control-panel.location_aware').returns(true);
+
+    fakeGeo = {
+      fetch_location: sinon.stub().callsFake((cb) => cb(null, {
+        lat: -33.45, lng: -70.65, method: 'wifi', accuracy: 50,
+      })),
+    };
+
+    fakeLocationstore = { recordLocation: sinon.stub(), markSent: sinon.stub() };
+
+    locationModule.__set__('config', fakeConfig);
+    locationModule.__set__('geo', fakeGeo);
+    locationModule.__set__('emitter', {});
+    locationModule.__set__('storage', { do: sinon.stub().callsFake((op, q, cb) => cb(null)) });
+    locationModule.__set__('locationstore', fakeLocationstore);
+    locationModule.__set__('exceptions', { send: sinon.stub() });
+    locationModule.__set__('logger', {
+      info: sinon.stub(),
+      warn: sinon.stub(),
+      debug: sinon.stub(),
+      error: sinon.stub(),
+      notice: sinon.stub(),
+    });
+    locationModule.__set__('writeStorage', (local, cb) => cb(true, true));
+
+    forceLocation = locationModule.__get__('forceLocation');
+  });
+
+  afterEach(() => sinon.restore());
+
+  it('records the accepted location and marks it sent on HTTP 200', () => {
+    locationModule.__set__('devices', {
+      post_location: sinon.stub().callsFake((data, cb) => cb(null, true)),
+      get: { status: sinon.stub() },
+    });
+
+    forceLocation();
+
+    expect(fakeLocationstore.recordLocation.calledOnce).to.be.true;
+    const [loc, meta] = fakeLocationstore.recordLocation.firstCall.args;
+    // callFetchLocation stringifies lat/lng before triggerEvent; locationstore
+    // coerces them back to numbers when persisting.
+    expect(loc).to.include({ lat: '-33.45', lng: '-70.65', method: 'wifi' });
+    expect(meta.send_type).to.equal('force');
+    expect(meta.id).to.be.a('string');
+    // Confirmed 200 → the same row id is marked sent.
+    expect(fakeLocationstore.markSent.calledOnce).to.be.true;
+    expect(fakeLocationstore.markSent.firstCall.args[0]).to.equal(meta.id);
+    expect(fakeLocationstore.markSent.firstCall.args[1]).to.equal('force');
+  });
+
+  it('records the location but does not mark it sent when the post fails', () => {
+    locationModule.__set__('devices', {
+      post_location: sinon.stub().callsFake((data, cb) => cb(new Error('HTTP 500'))),
+      get: { status: sinon.stub() },
+    });
+
+    forceLocation();
+
+    expect(fakeLocationstore.recordLocation.calledOnce).to.be.true;
+    expect(fakeLocationstore.markSent.called).to.be.false;
+  });
+});
+
 describe('calculateWindowDurationMinutes', () => {
   it('returns correct duration for a non-overnight window (09:00–17:00)', () => {
     const result = locationIndex.calculateWindowDurationMinutes({ start_at: '09:00', end_at: '17:00' });
