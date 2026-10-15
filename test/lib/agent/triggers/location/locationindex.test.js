@@ -826,6 +826,32 @@ describe('location audit - records accepted locations and marks them sent', () =
     expect(fakeLocationstore.recordLocation.calledOnce).to.be.true;
     expect(fakeLocationstore.markSent.called).to.be.false;
   });
+
+  it('persists position_source locally but strips it from the server payload', () => {
+    // A native fix carries position_source; it must reach the audit DB but never the panel.
+    fakeGeo.fetch_location = sinon.stub().callsFake((cb) => cb(null, {
+      lat: -33.45, lng: -70.65, method: 'native', accuracy: 50, position_source: 'gps',
+    }));
+
+    const postLocation = sinon.stub().callsFake((data, cb) => cb(null, true));
+    locationModule.__set__('devices', {
+      post_location: postLocation,
+      get: { status: sinon.stub() },
+    });
+
+    forceLocation();
+
+    // (a) The audit record keeps position_source (persisted to the `source` column).
+    expect(fakeLocationstore.recordLocation.calledOnce).to.be.true;
+    const [recordedLoc] = fakeLocationstore.recordLocation.firstCall.args;
+    expect(recordedLoc.position_source).to.equal('gps');
+
+    // (b) The payload POSTed to the control panel has no position_source key.
+    expect(postLocation.calledOnce).to.be.true;
+    const [payload] = postLocation.firstCall.args;
+    expect(payload.location).to.not.have.property('position_source');
+    expect(payload.location).to.include({ lat: '-33.45', lng: '-70.65', method: 'native' });
+  });
 });
 
 describe('calculateWindowDurationMinutes', () => {
