@@ -52,6 +52,10 @@ describe('Geo Strategies - PUT verified location behavior', () => {
 
   beforeEach(() => {
     strategies = rewire('../../../../../lib/agent/providers/geo/strategies');
+    // Orchestration tests assert on lat/lng/accuracy/method only; neutralize the
+    // recorded_at stamp here so timestamp noise doesn't break deep-equals. The
+    // stamping integration is covered separately below.
+    strategies.__set__('stampLocation', (loc) => loc);
 
     needleStub = {
       post: sinon.stub(),
@@ -256,6 +260,10 @@ describe('Geo Strategies - win32LocationFetch', () => {
 
   beforeEach(() => {
     strategies = rewire('../../../../../lib/agent/providers/geo/strategies');
+    // Orchestration tests assert on lat/lng/accuracy/method only; neutralize the
+    // recorded_at stamp here so timestamp noise doesn't break deep-equals. The
+    // stamping integration is covered separately below.
+    strategies.__set__('stampLocation', (loc) => loc);
 
     storageStub = { do: sinon.stub() };
     loggerStub = { debug: sinon.stub(), info: sinon.stub(), error: sinon.stub() };
@@ -536,6 +544,10 @@ describe('Geo Strategies - Recovery Mechanism (Option 6)', () => {
 
   beforeEach(() => {
     strategies = rewire('../../../../../lib/agent/providers/geo/strategies');
+    // Orchestration tests assert on lat/lng/accuracy/method only; neutralize the
+    // recorded_at stamp here so timestamp noise doesn't break deep-equals. The
+    // stamping integration is covered separately below.
+    strategies.__set__('stampLocation', (loc) => loc);
 
     storageStub = { do: sinon.stub() };
     loggerStub = { debug: sinon.stub(), info: sinon.stub(), error: sinon.stub() };
@@ -1102,6 +1114,10 @@ describe('Geo Strategies - Anchor Eligibility & Quality Separation', () => {
 
   beforeEach(() => {
     strategies = rewire('../../../../../lib/agent/providers/geo/strategies');
+    // Orchestration tests assert on lat/lng/accuracy/method only; neutralize the
+    // recorded_at stamp here so timestamp noise doesn't break deep-equals. The
+    // stamping integration is covered separately below.
+    strategies.__set__('stampLocation', (loc) => loc);
 
     storageStub = { do: sinon.stub() };
     loggerStub = { debug: sinon.stub(), info: sinon.stub(), error: sinon.stub() };
@@ -1360,6 +1376,10 @@ describe('Geo Strategies - disabled_methods', () => {
 
   beforeEach(() => {
     strategies = rewire('../../../../../lib/agent/providers/geo/strategies');
+    // Orchestration tests assert on lat/lng/accuracy/method only; neutralize the
+    // recorded_at stamp here so timestamp noise doesn't break deep-equals. The
+    // stamping integration is covered separately below.
+    strategies.__set__('stampLocation', (loc) => loc);
 
     storageStub = { do: sinon.stub() };
     loggerStub = { debug: sinon.stub(), info: sinon.stub(), error: sinon.stub() };
@@ -1546,6 +1566,10 @@ describe('Geo Strategies - no-anchor WiFi-first mode', () => {
 
   beforeEach(() => {
     strategies = rewire('../../../../../lib/agent/providers/geo/strategies');
+    // Orchestration tests assert on lat/lng/accuracy/method only; neutralize the
+    // recorded_at stamp here so timestamp noise doesn't break deep-equals. The
+    // stamping integration is covered separately below.
+    strategies.__set__('stampLocation', (loc) => loc);
 
     storageStub = { do: sinon.stub() };
     loggerStub = { debug: sinon.stub(), info: sinon.stub(), error: sinon.stub() };
@@ -1644,5 +1668,86 @@ describe('Geo Strategies - no-anchor WiFi-first mode', () => {
       expect(strategies.__get__('win32AnchorLocation')).to.deep.equal(goodWifi);
       done();
     });
+  });
+});
+
+describe('Geo Strategies - recorded_at stamping of functional records', () => {
+  const santiago = {
+    lat: -33.4569, lng: -70.6483, accuracy: 30, method: 'wifi',
+  };
+
+  let strategies;
+  let storageStub;
+  let wifiStub;
+  let capturedHistorySave;
+  let capturedTrustedSave;
+  let capturedWifiSave;
+
+  beforeEach(() => {
+    strategies = rewire('../../../../../lib/agent/providers/geo/strategies');
+    // NOTE: real stampLocation left in place here on purpose — this block verifies
+    // that persisted functional records carry recorded_at.
+    storageStub = { do: sinon.stub() };
+    wifiStub = sinon.stub();
+    capturedHistorySave = null;
+    capturedTrustedSave = null;
+    capturedWifiSave = null;
+
+    storageStub.do.callsFake((operation, payload, cb) => {
+      if (operation === 'query') return cb(null, []);
+      if (operation === 'set' && payload.id === 'location_history_win32') {
+        capturedHistorySave = JSON.parse(payload.data.value);
+      }
+      if (operation === 'set' && payload.id === 'last_trusted_location') {
+        capturedTrustedSave = JSON.parse(payload.data.value);
+      }
+      if ((operation === 'set' || operation === 'update') && payload.id === 'last_wifi_location') {
+        capturedWifiSave = JSON.parse(operation === 'set' ? payload.data.value : payload.values);
+      }
+      return cb(null);
+    });
+
+    strategies.__set__('storage', storageStub);
+    strategies.__set__('logger', { debug: sinon.stub(), info: sinon.stub(), error: sinon.stub() });
+    strategies.__set__('platform', {
+      get_location: sinon.stub(),
+      getLastPositionSource: sinon.stub().returns('unknown'),
+    });
+    strategies.__set__('wifi', wifiStub);
+    strategies.__set__('saveDataWifi', sinon.stub());
+    strategies.__set__('keys', { get: sinon.stub().returns({ device: 'd', api: 'k' }) });
+    strategies.__set__('config', {
+      getData: sinon.stub().callsFake((k) => (k === 'control-panel.host' ? 'panel.prey.example' : null)),
+    });
+  });
+
+  afterEach(() => {
+    sinon.restore();
+  });
+
+  it('stamps location_history_win32 and last_trusted_location entries with recorded_at', (done) => {
+    const goodWifi = { ...santiago, accuracy: 50, method: 'wifi' };
+    wifiStub.callsFake((cb) => cb(null, goodWifi));
+
+    strategies.win32LocationFetch((err) => {
+      expect(err).to.be.null;
+      expect(capturedHistorySave).to.be.an('array').with.lengthOf(1);
+      expect(capturedHistorySave[0]).to.include({ lat: goodWifi.lat, lng: goodWifi.lng });
+      expect(capturedHistorySave[0].recorded_at).to.be.a('string');
+      expect(new Date(capturedHistorySave[0].recorded_at).toISOString())
+        .to.equal(capturedHistorySave[0].recorded_at);
+      // accuracy 50 ≤ 300 → promoted to anchor, also stamped
+      expect(capturedTrustedSave).to.not.be.null;
+      expect(capturedTrustedSave.recorded_at).to.be.a('string');
+      done();
+    });
+  });
+
+  it('stamps last_wifi_location via saveLastWifiLocation', () => {
+    const saveLastWifiLocation = strategies.__get__('saveLastWifiLocation');
+    saveLastWifiLocation(santiago);
+    expect(capturedWifiSave).to.not.be.null;
+    expect(capturedWifiSave).to.include({ lat: santiago.lat, lng: santiago.lng });
+    expect(capturedWifiSave.recorded_at).to.be.a('string');
   });
 });

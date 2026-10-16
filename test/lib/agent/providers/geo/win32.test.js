@@ -46,14 +46,15 @@ describe('Geo Win32 Native Geolocation', () => {
 
       win32Geo.get_location((err, result) => {
         expect(err).to.be.null;
-        expect(result).to.deep.equal(locationData);
+        // position_source is attached (null here, as the input omits it) as a local-only audit field.
+        expect(result).to.deep.equal({ ...locationData, position_source: null });
         expect(systemStub.get_as_admin_user.calledOnce).to.be.true;
         expect(systemStub.get_as_admin_user.calledWith('geoloc')).to.be.true;
         done();
       });
     });
 
-    it('should return location data when position_source is missing', (done) => {
+    it('should return location data with position_source null when it is missing', (done) => {
       const locationData = {
         lat: 37.7749,
         lng: -122.4194,
@@ -67,7 +68,35 @@ describe('Geo Win32 Native Geolocation', () => {
 
       win32Geo.get_location((err, result) => {
         expect(err).to.be.null;
-        expect(result).to.deep.equal(locationData);
+        expect(result).to.deep.equal({ ...locationData, position_source: null });
+        expect(result.position_source).to.be.null;
+        done();
+      });
+    });
+
+    it('should attach the normalized position_source for a valid native fix', (done) => {
+      systemStub.get_as_admin_user.callsFake((provider, cb) => {
+        cb(null, {
+          lat: 37.7749,
+          lng: -122.4194,
+          accuracy: 10.5,
+          method: 'native',
+          position_source: ' GPS ',
+          source: 'winrt',
+        });
+      });
+
+      win32Geo.get_location((err, result) => {
+        expect(err).to.be.null;
+        // Normalized (trimmed + lowercased) so the audit DB stores a consistent value.
+        expect(result.position_source).to.equal('gps');
+        expect(result).to.deep.equal({
+          lat: 37.7749,
+          lng: -122.4194,
+          accuracy: 10.5,
+          method: 'native',
+          position_source: 'gps',
+        });
         done();
       });
     });
@@ -221,7 +250,7 @@ describe('Geo Win32 Native Geolocation', () => {
 
       win32Geo.get_location((err, result) => {
         expect(err).to.be.null;
-        expect(result).to.deep.equal(locationData);
+        expect(result).to.deep.equal({ ...locationData, position_source: null });
         done();
       });
     });
