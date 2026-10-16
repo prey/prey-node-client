@@ -86,6 +86,26 @@ describe('migrate backends', () => {
       });
     });
 
+    it('calls back once, deferred, even when the callback throws', () => {
+      // get_prey_user_version calls back inside a try and calls back again from its catch.
+      backend.__set__('getPreyUserVersion', (cb) => {
+        try {
+          cb(null, '1.1.0');
+        } catch (e) {
+          cb(e);
+        }
+      });
+      const deferred = [];
+      backend.__set__('setImmediate', (fn) => deferred.push(fn));
+      const cb = sinon.stub().throws(new Error('downstream'));
+      backend.checkService(cb);
+      expect(cb.called).to.equal(false);
+      expect(deferred.length).to.equal(1);
+      expect(() => deferred[0]()).to.throw('downstream');
+      expect(cb.calledOnce).to.equal(true);
+      expect(cb.firstCall.args[0]).to.equal(null);
+    });
+
     it('treats an unreadable macsvc version as too old', (done) => {
       backend.__set__('getPreyUserVersion', (cb) => cb(new Error('missing')));
       backend.checkService((token) => {
@@ -94,12 +114,12 @@ describe('migrate backends', () => {
       });
     });
 
-    it('submits on its own connection with 240 s and unwraps output.result', (done) => {
+    it('submits on its own connection with 270 s and unwraps output.result', (done) => {
       socket.request.callsFake((name, ms, cb) => cb(null, {
         name: 'migrate', function: 'migrate', success: true, output: { result: { error: false, operation: { id: 'a', phase: 'admitted' } } },
       }));
       backend.submit((err, result) => {
-        expect(socket.request.firstCall.args.slice(0, 2)).to.deep.equal(['migrate-migrate', 240000]);
+        expect(socket.request.firstCall.args.slice(0, 2)).to.deep.equal(['migrate-migrate', 270000]);
         expect(result.operation.id).to.equal('a');
         done();
       });
@@ -108,7 +128,7 @@ describe('migrate backends', () => {
     it('rejects an unsuccessful envelope from status', (done) => {
       socket.request.callsFake((name, ms, cb) => cb(null, { name: 'migrate', function: 'status', success: false, output: { error: 'x' } }));
       backend.status((err) => {
-        expect(socket.request.firstCall.args.slice(0, 2)).to.deep.equal(['migrate-status', 60000]);
+        expect(socket.request.firstCall.args.slice(0, 2)).to.deep.equal(['migrate-status', 90000]);
         expect(err.message).to.equal('service_error');
         done();
       });
