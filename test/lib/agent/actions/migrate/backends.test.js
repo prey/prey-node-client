@@ -132,7 +132,9 @@ describe('migrate backends', () => {
     });
 
     it('rejects an unsuccessful envelope from status', (done) => {
-      socket.request.callsFake((name, ms, cb) => cb(null, { name: 'migrate', function: 'status', success: false, output: { error: 'x' } }));
+      socket.request.callsFake((name, ms, cb) => cb(null, {
+        name: 'migrate', function: 'status', success: false, output: { error: 'x' },
+      }));
       backend.status((err) => {
         expect(socket.request.firstCall.args.slice(0, 2)).to.deep.equal(['migrate-status', 90000]);
         expect(err.message).to.equal('service_error');
