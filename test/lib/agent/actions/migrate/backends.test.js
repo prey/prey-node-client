@@ -3,6 +3,7 @@
 const { expect } = require('chai');
 const sinon = require('sinon');
 const rewire = require('rewire');
+const { join } = require('path');
 
 describe('migrate backends', () => {
   afterEach(() => sinon.restore());
@@ -56,7 +57,12 @@ describe('migrate backends', () => {
     it('detects goprey by its remsvc service', (done) => {
       const execFile = sinon.stub().callsFake((bin, args, opts, cb) => cb(null));
       backend.__set__('execFile', execFile);
+      const systemRoot = process.env.SystemRoot;
+      process.env.SystemRoot = String.raw`D:\Win`;
       backend.gopreyInstalled((installed) => {
+        if (systemRoot === undefined) delete process.env.SystemRoot;
+        else process.env.SystemRoot = systemRoot;
+        expect(execFile.firstCall.args[0]).to.equal(join(String.raw`D:\Win`, 'System32', 'sc.exe'));
         expect(execFile.firstCall.args[1]).to.deep.equal(['query', 'remsvc']);
         expect(installed).to.equal(true);
         done();
