@@ -81,7 +81,10 @@ describe('Network provider getters — sync throw guard', () => {
       expect(received.level).to.equal('not fatal');
     });
 
-    it('get_active_network_interface delivers a controlled error instead of throwing', () => {
+    it('get_active_network_interface delivers a controlled error instead of throwing', function () {
+      // On macOS >= 10.15 the provider bypasses network.get_active_interface and runs
+      // the async netstat helper in ./mac, so the stubbed getter is never reached.
+      if (process.platform === 'darwin' && require('../../../../../lib/common').os_release >= '10.15') this.skip();
       let received;
       const invoke = () => provider.get_active_network_interface((err) => { received = err; });
       expect(invoke).to.not.throw();
