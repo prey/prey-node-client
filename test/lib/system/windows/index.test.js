@@ -1,4 +1,9 @@
-'use strict';
+/* eslint-disable no-unused-expressions */
+/* eslint-disable no-undef */
+/* eslint-disable no-underscore-dangle */
+/* eslint-disable no-unused-vars */
+/* eslint-disable prefer-rest-params */
+/* eslint-disable func-names */
 
 const { expect } = require('chai');
 const sinon = require('sinon');
@@ -164,6 +169,16 @@ describe('lib/system/windows/index', () => {
 
       windowsModule.find_logged_user(() => done());
     });
+
+    it('spawns from the Windows Temp dir (writable during upgrade)', () => {
+      execStub.callsFake((cmd, opts, cb) => cb(null, 'PREY_USER=DOMAIN\\testuser|PREY_LOCKED=0'));
+
+      windowsModule.find_logged_user(() => {});
+
+      const opts = execStub.firstCall.args[1];
+      expect(opts.cwd).to.be.a('string');
+      expect(opts.cwd.toLowerCase()).to.include('temp');
+    });
   });
 
   describe('process_running', () => {
@@ -206,6 +221,16 @@ describe('lib/system/windows/index', () => {
         done();
       });
     });
+
+    it('spawns from the Windows Temp dir (writable during upgrade)', () => {
+      execStub.callsFake((cmd, opts, cb) => cb(null, ''));
+
+      windowsModule.process_running('notepad.exe', () => {});
+
+      const opts = execStub.firstCall.args[1];
+      expect(opts.cwd).to.be.a('string');
+      expect(opts.cwd.toLowerCase()).to.include('temp');
+    });
   });
 
   describe('get_lang', () => {
@@ -247,6 +272,16 @@ describe('lib/system/windows/index', () => {
         expect(lang).to.equal('en');
         done();
       });
+    });
+
+    it('spawns from the Windows Temp dir (writable during upgrade)', () => {
+      execStub.callsFake((cmd, opts, cb) => cb(null, 'Installlanguage    0409'));
+
+      windowsModule.get_lang(() => {});
+
+      const opts = execStub.firstCall.args[1];
+      expect(opts.cwd).to.be.a('string');
+      expect(opts.cwd.toLowerCase()).to.include('temp');
     });
   });
 
@@ -292,6 +327,16 @@ describe('lib/system/windows/index', () => {
         expect(err).to.equal(spawnErr);
         done();
       });
+    });
+
+    it('spawns from the Windows Temp dir (writable during upgrade)', () => {
+      execStub.callsFake((cmd, opts, cb) => cb(null, 'MY-PC\r\n'));
+
+      windowsModule.get_current_hostname(() => {});
+
+      const opts = execStub.firstCall.args[1];
+      expect(opts.cwd).to.be.a('string');
+      expect(opts.cwd.toLowerCase()).to.include('temp');
     });
   });
 
@@ -369,7 +414,9 @@ describe('lib/system/windows/index', () => {
     });
 
     it('calls cb(null, out) when error===true but output is array with inner disk error (encrypt/decrypt)', (done) => {
-      const innerOut = [{ disk: 'C:', error: true, code: 2, message: 'bitlocker failed' }];
+      const innerOut = [{
+        disk: 'C:', error: true, code: 2, message: 'bitlocker failed',
+      }];
       simulateResponse({ error: true, output: innerOut });
 
       windowsModule.run_as_admin('encrypt', {}, (err, out) => {
@@ -483,6 +530,93 @@ describe('lib/system/windows/index', () => {
         expect(err.message).to.equal('Unable to parse provider data');
         done();
       });
+    });
+  });
+
+  describe('scan_networks', () => {
+    let windowsModule;
+    let spawnStub;
+    let fakeChild;
+
+    beforeEach(() => {
+      fakeChild = { on: sinon.stub() };
+      spawnStub = sinon.stub().returns(fakeChild);
+      windowsModule = rewire('../../../../lib/system/windows/index');
+      windowsModule.__set__('spawn', spawnStub);
+    });
+
+    afterEach(() => {
+      sinon.restore();
+    });
+
+    it('passes a cwd option to spawn', () => {
+      windowsModule.scan_networks(() => {});
+
+      expect(spawnStub.calledOnce).to.be.true;
+      const opts = spawnStub.firstCall.args[2];
+      expect(opts).to.be.an('object');
+      expect(opts.cwd).to.be.a('string').and.not.be.empty;
+    });
+
+    it('calls cb when the child emits an async "error" event', (done) => {
+      fakeChild.on.withArgs('error').callsFake((_evt, handler) => handler(new Error('spawn UNKNOWN')));
+
+      windowsModule.scan_networks(() => done());
+    });
+
+    it('does not throw and calls cb when spawn throws synchronously (spawn UNKNOWN)', (done) => {
+      windowsModule.__set__('spawn', () => { throw new Error('spawn UNKNOWN'); });
+
+      expect(() => {
+        windowsModule.scan_networks(() => done());
+      }).to.not.throw();
+    });
+
+    it('calls cb on child "exit"', (done) => {
+      fakeChild.on.withArgs('exit').callsFake((_evt, handler) => handler());
+
+      windowsModule.scan_networks(() => done());
+    });
+  });
+
+  describe('get_winsvc_version', () => {
+    let windowsModule;
+    let execStub;
+    let originalModuleLoad;
+    let commonMock;
+
+    beforeEach(() => {
+      execStub = sinon.stub();
+      commonMock = {
+        helpers: { is_greater_or_equal: sinon.stub().returns(true) },
+        os_release: '10.0.0',
+      };
+
+      // Intercept the lazy require('../../agent/common') inside get_winsvc_version
+      originalModuleLoad = Module._load;
+      Module._load = function (request, ...args) {
+        if (request === '../../agent/common') return commonMock;
+        return originalModuleLoad.apply(this, arguments);
+      };
+
+      windowsModule = rewire('../../../../lib/system/windows/index');
+      // Force the windows gate deterministically regardless of the host OS.
+      windowsModule.__set__('osName', 'windows');
+      windowsModule.__set__('exec', execStub);
+    });
+
+    afterEach(() => {
+      Module._load = originalModuleLoad;
+      sinon.restore();
+    });
+
+    it('passes a cwd option to exec', () => {
+      windowsModule.get_winsvc_version(() => {});
+
+      expect(execStub.calledOnce).to.be.true;
+      const opts = execStub.firstCall.args[1];
+      expect(opts).to.be.an('object');
+      expect(opts.cwd).to.be.a('string').and.not.be.empty;
     });
   });
 });
