@@ -78,6 +78,12 @@ describe('socket.request', () => {
     expect(err.message).to.equal('invalid_response');
   });
 
+  it('rejects a null response line', async () => {
+    await use((conn) => conn.end('null\n'));
+    const err = await new Promise((resolve) => { socket.request('migrate-status', 2000, resolve); });
+    expect(err.message).to.equal('invalid_response');
+  });
+
   it('refuses a socket not owned by prey', async () => {
     await use(() => {});
     socket.__set__('getOwnerShip', (cb) => cb(null, ['srw-rw----', '1', 'root']));
