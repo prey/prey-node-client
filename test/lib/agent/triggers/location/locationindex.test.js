@@ -4,6 +4,7 @@
 const { expect } = require('chai');
 const sinon = require('sinon');
 const rewire = require('rewire');
+const { EventEmitter } = require('events');
 const storage = require('../../../../../lib/agent/utils/storage');
 const config = require('../../../../../lib/utils/configfile');
 const locationIndex = require('../../../../../lib/agent/triggers/location');
@@ -1157,5 +1158,255 @@ describe('fetchLocation force callback on error', () => {
       expect(err.message).to.equal('Unable to get location');
       done();
     });
+  });
+});
+
+describe('forceLocation - connectivity gate', () => {
+  let locationModule;
+  let fakeLogger;
+  let fakeConfig;
+  let forceLocation;
+
+  beforeEach(() => {
+    locationModule = rewire('../../../../../lib/agent/triggers/location');
+    fakeLogger = {
+      info: sinon.stub(),
+      warn: sinon.stub(),
+      debug: sinon.stub(),
+      error: sinon.stub(),
+      notice: sinon.stub(),
+    };
+    fakeConfig = {
+      getData: sinon.stub().returns(null),
+      setData: sinon.stub(),
+      onDataChange: sinon.stub(),
+      offDataChange: sinon.stub(),
+    };
+    // No schedule + location_aware=true lets forceLocation reach the writeStorage gate.
+    fakeConfig.getData.withArgs('control-panel.location_aware').returns(true);
+    locationModule.__set__('logger', fakeLogger);
+    locationModule.__set__('config', fakeConfig);
+    forceLocation = locationModule.__get__('forceLocation');
+  });
+
+  it('skips fetchLocation and marks pending when offline', () => {
+    locationModule.__set__('writeStorage', (local, cb) => cb(true, false));
+    const fetchSpy = sinon.stub();
+    locationModule.__set__('fetchLocation', fetchSpy);
+    locationModule.__set__('isOnline', false);
+
+    forceLocation();
+
+    expect(fetchSpy.called).to.be.false;
+    expect(locationModule.__get__('forcePending')).to.be.true;
+    expect(fakeLogger.info.calledWith('Force location deferred: offline, will retry when connectivity is restored')).to.be.true;
+  });
+
+  it('attempts fetchLocation when online', () => {
+    locationModule.__set__('writeStorage', (local, cb) => cb(true, false));
+    const fetchSpy = sinon.stub();
+    locationModule.__set__('fetchLocation', fetchSpy);
+    locationModule.__set__('isOnline', true);
+
+    forceLocation();
+
+    expect(fetchSpy.called).to.be.true;
+  });
+
+  it('attempts fetchLocation on cold start (connectivity unknown)', () => {
+    // isOnline defaults to null in a freshly rewired module.
+    locationModule.__set__('writeStorage', (local, cb) => cb(true, false));
+    const fetchSpy = sinon.stub();
+    locationModule.__set__('fetchLocation', fetchSpy);
+
+    forceLocation();
+
+    expect(fetchSpy.called).to.be.true;
+  });
+
+  it('clears pending on a confirmed successful send', () => {
+    locationModule.__set__('writeStorage', (local, cb) => cb(true, false));
+    locationModule.__set__('fetchLocation', (type, cb) => cb(null));
+    locationModule.__set__('storage', { do: (op, query, cb) => cb(null) });
+    locationModule.__set__('isOnline', true);
+    locationModule.__set__('forcePending', true);
+
+    forceLocation();
+
+    expect(locationModule.__get__('forcePending')).to.be.false;
+  });
+
+  it('keeps pending and does not persist when fetchLocation errors', () => {
+    locationModule.__set__('writeStorage', (local, cb) => cb(true, false));
+    locationModule.__set__('fetchLocation', (type, cb) => cb(new Error('offline mid-send')));
+    const storageSpy = sinon.stub();
+    locationModule.__set__('storage', { do: storageSpy });
+    locationModule.__set__('isOnline', true);
+
+    forceLocation();
+
+    expect(locationModule.__get__('forcePending')).to.be.true;
+    expect(storageSpy.called).to.be.false;
+  });
+
+  it('clears pending and skips fetchLocation when already sent today', () => {
+    locationModule.__set__('writeStorage', (local, cb) => cb(false, false));
+    const fetchSpy = sinon.stub();
+    locationModule.__set__('fetchLocation', fetchSpy);
+    locationModule.__set__('forcePending', true);
+
+    forceLocation();
+
+    expect(locationModule.__get__('forcePending')).to.be.false;
+    expect(fetchSpy.called).to.be.false;
+  });
+});
+
+describe('connectivity handlers - handleConnected / handleDisconnected', () => {
+  let locationModule;
+  let fakeConfig;
+
+  beforeEach(() => {
+    locationModule = rewire('../../../../../lib/agent/triggers/location');
+    fakeConfig = {
+      getData: sinon.stub().returns(null),
+      onDataChange: sinon.stub(),
+      offDataChange: sinon.stub(),
+    };
+    fakeConfig.getData.withArgs('control-panel.location_aware').returns(true);
+    locationModule.__set__('config', fakeConfig);
+    locationModule.__set__('logger', {
+      info: sinon.stub(),
+      warn: sinon.stub(),
+      debug: sinon.stub(),
+      error: sinon.stub(),
+      notice: sinon.stub(),
+    });
+  });
+
+  it('handleDisconnected caches isOnline=false', () => {
+    locationModule.__get__('handleDisconnected')();
+    expect(locationModule.__get__('isOnline')).to.be.false;
+  });
+
+  it('handleConnected caches isOnline=true', () => {
+    locationModule.__set__('forcePending', false);
+    locationModule.__get__('handleConnected')();
+    expect(locationModule.__get__('isOnline')).to.be.true;
+  });
+
+  it('handleConnected triggers a send when a force send is pending', () => {
+    const forceSpy = sinon.stub();
+    locationModule.__set__('forceLocation', forceSpy);
+    locationModule.__set__('forcePending', true);
+
+    locationModule.__get__('handleConnected')();
+
+    expect(forceSpy.calledOnce).to.be.true;
+  });
+
+  it('handleConnected does not trigger a send when nothing is pending', () => {
+    const forceSpy = sinon.stub();
+    locationModule.__set__('forceLocation', forceSpy);
+    locationModule.__set__('forcePending', false);
+
+    locationModule.__get__('handleConnected')();
+
+    expect(forceSpy.called).to.be.false;
+  });
+
+  it('preserves pending when connectivity returns outside the schedule window', () => {
+    // Real forceLocation runs; the schedule has no enabled days so it is always out of window.
+    const fetchSpy = sinon.stub();
+    locationModule.__set__('fetchLocation', fetchSpy);
+    locationModule.__set__('forcePending', true);
+    locationModule.__set__('isOnline', true);
+    fakeConfig.getData.withArgs('control-panel.tracking_schedule').returns({
+      start_at: '09:00',
+      end_at: '17:00',
+      sunday: false,
+      monday: false,
+      tuesday: false,
+      wednesday: false,
+      thursday: false,
+      friday: false,
+      saturday: false,
+    });
+
+    locationModule.__get__('handleConnected')();
+
+    expect(fetchSpy.called).to.be.false;
+    expect(locationModule.__get__('forcePending')).to.be.true;
+  });
+});
+
+describe('connectivity listener lifecycle', () => {
+  let locationModule;
+  let fakeConfig;
+  let fakeHooks;
+  let clock;
+
+  beforeEach(() => {
+    clock = sinon.useFakeTimers(); // prevent real start() timers from firing
+    locationModule = rewire('../../../../../lib/agent/triggers/location');
+    fakeConfig = {
+      getData: sinon.stub().returns(null),
+      onDataChange: sinon.stub(),
+      offDataChange: sinon.stub(),
+    };
+    fakeHooks = { on: sinon.stub(), remove: sinon.stub(), trigger: sinon.stub() };
+    locationModule.__set__('config', fakeConfig);
+    locationModule.__set__('hooks', fakeHooks);
+    locationModule.__set__('logger', {
+      info: sinon.stub(),
+      warn: sinon.stub(),
+      debug: sinon.stub(),
+      error: sinon.stub(),
+      notice: sinon.stub(),
+    });
+  });
+
+  afterEach(() => {
+    locationModule.__get__('clearForceTimers')();
+    if (clock) { clock.restore(); clock = null; }
+  });
+
+  it('registers connected and disconnected handlers on start', () => {
+    locationModule.start({}, () => {});
+    expect(fakeHooks.on.calledWith('connected', sinon.match.func)).to.be.true;
+    expect(fakeHooks.on.calledWith('disconnected', sinon.match.func)).to.be.true;
+  });
+
+  it('removes connected and disconnected handlers on stop', () => {
+    locationModule.stop();
+    expect(fakeHooks.remove.calledWith('connected', sinon.match.func)).to.be.true;
+    expect(fakeHooks.remove.calledWith('disconnected', sinon.match.func)).to.be.true;
+  });
+
+  it('resets isOnline and forcePending on stop', () => {
+    locationModule.__set__('isOnline', false);
+    locationModule.__set__('forcePending', true);
+    locationModule.stop();
+    expect(locationModule.__get__('isOnline')).to.be.null;
+    expect(locationModule.__get__('forcePending')).to.be.false;
+  });
+
+  it('keeps exactly one connected listener across start/stop/start', () => {
+    const emitter = new EventEmitter();
+    const realHooks = emitter;
+    realHooks.trigger = emitter.emit.bind(emitter);
+    realHooks.remove = (event, fn) => {
+      if (fn) emitter.removeListener(event, fn);
+      else if (event) emitter.removeAllListeners(event);
+    };
+    locationModule.__set__('hooks', realHooks);
+
+    locationModule.start({}, () => {});
+    locationModule.stop();
+    locationModule.start({}, () => {});
+
+    expect(emitter.listenerCount('connected')).to.equal(1);
+    expect(emitter.listenerCount('disconnected')).to.equal(1);
+    locationModule.stop();
   });
 });
