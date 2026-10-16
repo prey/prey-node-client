@@ -177,4 +177,27 @@ describe('migrate action', () => {
     await clock.tickAsync(60000);
     expect(backend.status.callCount).to.equal(before);
   });
+
+  it('ignores a callback from a stopped run once a new run has started', async () => {
+    let releaseFirst;
+    backend.submit.onFirstCall().callsFake((cb) => { releaseFirst = cb; });
+    migrate.start('cmd-1', {}, (err, emitter) => emitter.once('end', () => {}));
+    await clock.tickAsync(0);
+    migrate.stop();
+    const second = new Promise((resolve) => {
+      migrate.start('cmd-2', {}, (err, emitter) => emitter.once('end', (id, endErr, out) => resolve({ id, endErr, out })));
+    });
+    let ended = false;
+    second.then(() => { ended = true; });
+    await clock.tickAsync(0);
+    // The stale submit now resolves with a terminal operation.
+    releaseFirst(null, { error: false, message: '', operation: op('succeeded') });
+    await clock.tickAsync(0);
+    expect(ended).to.equal(false);
+    // Second run admitted, so one poll chain: one status call per interval.
+    await clock.tickAsync(30000);
+    expect(backend.status.callCount).to.equal(3);
+    migrate.stop();
+    await second;
+  });
 });
