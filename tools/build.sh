@@ -109,6 +109,7 @@ zip_file() {
 		if [ "$ARCH" == "x64" ]; then
 			cp -R "$CURRENT_PATH/tools/sqlite3/windows/napi-v6-win32-unknown-x64/node_sqlite3.node" "$FOLDER/node_modules/sqlite3/build/Release/"
 		fi
+		cp "$CURRENT_PATH/tools/prey-recovery/windows/$ARCH/prey-recovery.exe" "$FOLDER/lib/system/windows/bin/prey-recovery.exe"
 		zip -9 -r "$ZIP" "$FOLDER" -x \*.sh \*linux/* \*mac/* \*darwin/* 1>/dev/null
 
 	elif [ "$OS" = 'mac' ]; then
@@ -119,7 +120,10 @@ zip_file() {
 		if [ "$ARCH" == "arm64" ]; then
 			cp -R "$CURRENT_PATH/tools/sqlite3/mac/napi-v6-darwin-unknown-arm64/node_sqlite3.node" "$FOLDER/node_modules/sqlite3/build/Release/"
 		fi
+		cp "$CURRENT_PATH/tools/prey-recovery/mac/$ARCH/prey-recovery" "$FOLDER/bin/prey-recovery"
+		chmod 0755 "$FOLDER/bin/prey-recovery"
 		zip -9 -r "$ZIP" "$FOLDER" -x \*.cmd \*.exe \*.dll \*windows/* \*linux/* 1>/dev/null
+		rm -f "$FOLDER/bin/prey-recovery"
 	elif [ "$OS" = 'linux' ]; then
 		rm -rf "$FOLDER/node_modules/sqlite3/build/Release/node_sqlite3.node"
 		cp -R "$CURRENT_PATH/tools/sqlite3/linux/napi-v6-linux-x64/node_sqlite3.node" "$FOLDER/node_modules/sqlite3/build/Release/"

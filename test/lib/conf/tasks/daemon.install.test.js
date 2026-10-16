@@ -112,6 +112,8 @@ describe('daemon', () => {
 
       systemStub = { get_os_version: sinon.stub().callsFake((cb) => cb(null, '10.0.0')) };
       daemon.__set__('system', systemStub);
+      daemon.__set__('recovery_bin', String.raw`C:\Windows\Prey\current\lib\system\windows\bin\prey-recovery.exe`);
+      daemon.__set__('recovery_run_path', String.raw`C:\Windows\Prey\prey-recovery.exe`);
     });
 
     it('calls fs.copyFile before satan.ensure_created', (done) => {
@@ -121,8 +123,24 @@ describe('daemon', () => {
 
       daemon.install((err) => {
         expect(err).to.equal(null);
-        expect(order[0]).to.equal('copyFile');
-        expect(order[1]).to.equal('ensure_created');
+        expect(order).to.deep.equal(['copyFile', 'copyFile', 'ensure_created']);
+        done();
+      });
+    });
+
+    it('copies prey-recovery.exe next to wpxsvc.exe', (done) => {
+      daemon.install((err) => {
+        expect(err).to.equal(null);
+        expect(fsStub.copyFile.secondCall.args[1]).to.equal(String.raw`C:\Windows\Prey\prey-recovery.exe`);
+        done();
+      });
+    });
+
+    it('does not fail the service install when prey-recovery.exe cannot be copied', (done) => {
+      fsStub.copyFile.onSecondCall().callsFake((src, dst, cb) => cb(new Error('ENOENT')));
+      daemon.install((err) => {
+        expect(err).to.equal(null);
+        expect(satanObj.ensure_created.calledOnce).to.be.true;
         done();
       });
     });
