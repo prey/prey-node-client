@@ -1,5 +1,30 @@
 # Change Log
 
+## [v1.13.42](https://github.com/prey/prey-node-client/tree/v1.13.42) (<YYYY-MM-DD>)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.41..v1.13.42)
+
+- Feat: On managed Windows installs, the agent now keeps its configuration, database and log next to the agent at a custom install location, and added a `prey config migrate_files` command to safely copy existing data from the legacy location (originals are preserved as backups). Standard installs are unaffected. ([SoraKenji](https://github.com/SoraKenji))
+
+- Feat: Added coherent, timestamped location storage: every accepted location is now recorded in a local audit table with the date it was obtained, and a dedicated `location_data.json` is included in log retrieval so installations can be reviewed with a clear location timeline. ([SoraKenji](https://github.com/SoraKenji))
+
+- Feat: Improved schedule-aware forced location with a smarter interval and safer handling around the configured tracking schedule. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Forced location is now gated on connectivity, avoiding failed location attempts while the device is offline. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Hardened Windows data collection by forcing a safe working directory for provider processes, preventing crashes (EROFS) under restricted filesystem conditions. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Improved resilience to transient network and socket errors (connection, TLS read, write and WebSocket abort errors), which are now handled gracefully instead of crashing or being over-reported. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Device state changes that fail while the device is offline are now persisted and retried once connectivity is restored, so no state update is lost. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: The HTTP user agent is now always set, avoiding requests with an undefined user-agent header. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Hardened file retrieval parsing and stopped counting the expected "No active session" case against the error-reporting quota. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Hardened configuration handling by guarding settings updates against missing values and tolerating a closed output pipe (EPIPE) when printing synced output. ([SoraKenji](https://github.com/SoraKenji))
+
+- Chore: Updated dependencies to address multiple security advisories reported by npm audit (including axios, ip-address SSRF, xmldom, adm-zip, qs, brace-expansion, markdown-it, js-yaml, moment and http-cache-semantics), and removed the vulnerable sonarqube-scanner / node-forge chain. ([SoraKenji](https://github.com/SoraKenji))
+
 ## [v1.13.41](https://github.com/prey/prey-node-client/tree/v1.13.41) (2026-09-15)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.40..v1.13.41)
 
