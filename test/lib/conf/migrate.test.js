@@ -58,6 +58,7 @@ describe('conf/migrate', () => {
       backupDatabase: sinon.stub().callsFake((db, dest, cb) => cb({ handle: true })),
       stepDatabase: sinon.stub().callsFake((handle, cb) => cb(null)),
       closeDatabase: sinon.stub().callsFake((handle, db, cb) => cb(null)),
+      verifyDatabase: sinon.stub().callsFake((p, cb) => cb(null)),
     };
     migrate.__set__('database', databaseFake);
   });
@@ -69,7 +70,7 @@ describe('conf/migrate', () => {
     else process.env.WINDIR = originalWindir;
   });
 
-  it('copies present data files to the install dir and backs up originals', (done) => {
+  it('copies present data files to the install dir (copy-only, originals untouched)', (done) => {
     migrate.files({}, (err, msg) => {
       expect(err).to.be.null;
       // commands.db goes through the sqlite backup API.
@@ -77,12 +78,26 @@ describe('conf/migrate', () => {
       expect(databaseFake.createDatabase.firstCall.args[0]).to.equal(path.join(legacyDir, 'commands.db'));
       // prey.conf, prey.log and the one present rotated log are plain copies (3).
       expect(fsFake.copyFile.callCount).to.equal(3);
-      // Originals (4 total) renamed to .bak; prey_restarts.log / prey.log.2.gz were absent.
-      expect(fsFake.rename.callCount).to.equal(4);
-      fsFake.rename.getCalls().forEach((c) => {
-        expect(c.args[1]).to.match(/\.bak$/);
-      });
+      // Copy-only: originals are NEVER renamed/removed, so a downgrade still finds them.
+      expect(fsFake.rename.called).to.be.false;
+      // The copied DB is verified before success.
+      expect(databaseFake.verifyDatabase.calledOnce).to.be.true;
+      expect(databaseFake.verifyDatabase.firstCall.args[0]).to.equal(path.join(installDir, 'commands.db'));
       expect(msg).to.contain('Migrated 4');
+      done();
+    });
+  });
+
+  it('fails and removes the copied DB when post-copy verification fails', (done) => {
+    databaseFake.verifyDatabase.callsFake((p, cb) => cb(new Error('integrity_check failed: corrupt')));
+    migrate.files({}, (err) => {
+      expect(err).to.be.an('error');
+      expect(err.message).to.match(/integrity_check/);
+      // The invalid copy is removed so it is not adopted on the next boot.
+      const rmCall = fsFake.rm.getCalls().find((c) => c.args[0] === path.join(installDir, 'commands.db'));
+      expect(rmCall, 'expected the copied DB to be removed').to.not.be.undefined;
+      // Originals untouched.
+      expect(fsFake.rename.called).to.be.false;
       done();
     });
   });

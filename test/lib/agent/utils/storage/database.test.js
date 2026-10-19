@@ -8,6 +8,7 @@ const {
   stepDatabase,
   closeDatabase,
   deleteDatabase,
+  verifyDatabase,
 } = require('../../../../../lib/agent/utils/storage/database');
 
 describe('Database Module', () => {
@@ -60,6 +61,48 @@ describe('Database Module', () => {
       });
     });
   }); */
+
+  describe('verifyDatabase', () => {
+    it('calls back with null when integrity_check is ok', (done) => {
+      const fakeDb = {
+        get: sinon.stub().callsFake((sql, c) => c(null, { integrity_check: 'ok' })),
+        close: sinon.stub().callsFake((c) => c && c()),
+      };
+      dbConstructorStub.callsFake((p, cb) => { process.nextTick(() => cb(null)); return fakeDb; });
+
+      verifyDatabase('ok.db', (err) => {
+        expect(err).to.be.null;
+        expect(fakeDb.get.calledWith('PRAGMA integrity_check')).to.be.true;
+        expect(fakeDb.close.called).to.be.true;
+        done();
+      });
+    });
+
+    it('calls back with an error when integrity_check is not ok', (done) => {
+      const fakeDb = {
+        get: sinon.stub().callsFake((sql, c) => c(null, { integrity_check: 'malformed' })),
+        close: sinon.stub().callsFake((c) => c && c()),
+      };
+      dbConstructorStub.callsFake((p, cb) => { process.nextTick(() => cb(null)); return fakeDb; });
+
+      verifyDatabase('bad.db', (err) => {
+        expect(err).to.be.an('error');
+        expect(err.message).to.match(/integrity_check/);
+        expect(fakeDb.close.called).to.be.true;
+        done();
+      });
+    });
+
+    it('propagates an open error', (done) => {
+      const openErr = new Error('cannot open');
+      dbConstructorStub.callsFake((p, cb) => { process.nextTick(() => cb(openErr)); return {}; });
+
+      verifyDatabase('missing.db', (err) => {
+        expect(err).to.equal(openErr);
+        done();
+      });
+    });
+  });
 
   describe('backupDatabase', () => {
     it('should call the callback with the backup instance', () => {
