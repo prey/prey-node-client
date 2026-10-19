@@ -2,6 +2,7 @@
 /* eslint-disable no-undef */
 const rewire = require('rewire');
 const sinon = require('sinon');
+const path = require('path');
 const { expect } = require('chai');
 
 const SQLITE_ACCESS_ERR = 'Access denied to commands database, must run agent as prey user';
@@ -10,11 +11,14 @@ describe('storage_fns', () => {
   let storage;
   let dbInstance;
 
-  // Builds a sqlite3 mock. openErr simulates a failed db.open callback.
-  const makeSqlite3 = (openErr = null) => ({
+  // Builds a sqlite3 mock. openErr simulates a failed db.open callback; userVersion
+  // is what `PRAGMA user_version` reports.
+  const makeSqlite3 = (openErr = null, userVersion = 0) => ({
     Database: function FakeDB(path, cb) {
       this.run = sinon.stub().callsFake((sql, c) => c && c(null));
       this.all = sinon.stub().callsFake((sql, c) => c && c(null, []));
+      this.get = sinon.stub().callsFake((sql, c) => c && c(null, { user_version: userVersion }));
+      this.configure = sinon.stub();
       this.close = sinon.stub().callsFake((c) => c && c());
       dbInstance = this;
       // Async to ensure dbComm assignment completes before the callback fires.
@@ -415,6 +419,56 @@ describe('storage_fns', () => {
         expect(rows).to.be.an('array');
         done();
       });
+    });
+  });
+
+  // ─── dbPath (unified resolver) ───────────────────────────────────────────────
+  describe('dbPath', () => {
+    it('returns commands.db under the resolved directory', () => {
+      // dbExists is stubbed to '/fake' in beforeEach.
+      expect(storage.dbPath()).to.equal(path.join('/fake', 'commands.db'));
+    });
+  });
+
+  // ─── migrateSchema (F5) ──────────────────────────────────────────────────────
+  describe('migrateSchema', () => {
+    it('reads user_version, stamps the current version and closes (baseline)', (done) => {
+      storage.migrateSchema((err) => {
+        expect(err).to.be.null;
+        // user_version was read...
+        expect(dbInstance.get.calledWith('PRAGMA user_version')).to.be.true;
+        // ...and stamped to the current schema version.
+        const stamp = dbInstance.run.getCalls().find((c) => /PRAGMA user_version = \d+/.test(c.args[0]));
+        expect(stamp, 'expected a user_version stamp').to.not.be.undefined;
+        expect(dbInstance.close.called).to.be.true;
+        done();
+      });
+    });
+
+    it('sets a busy timeout on the connection', (done) => {
+      storage.migrateSchema(() => {
+        expect(dbInstance.configure.calledWith('busyTimeout')).to.be.true;
+        done();
+      });
+    });
+
+    it('propagates an open error', (done) => {
+      const openErr = Object.assign(new Error('cannot open'), { code: 'SQLITE_CANTOPEN' });
+      storage.__set__('sqlite3', makeSqlite3(openErr));
+      storage.migrateSchema((err) => {
+        expect(err).to.be.an('error');
+        done();
+      });
+    });
+
+    it('propagates a user_version read error and closes', (done) => {
+      storage.migrateSchema((err) => {
+        expect(err).to.be.an('error');
+        expect(dbInstance.close.called).to.be.true;
+        done();
+      });
+      // Force the PRAGMA read to fail for this run.
+      dbInstance.get.callsFake((sql, c) => c(new Error('read failed')));
     });
   });
 });
