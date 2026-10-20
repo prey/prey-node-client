@@ -127,6 +127,7 @@ describe('secure', () => {
 
       secure.__set__('osName', 'linux');
       secure.__set__('cp', { spawn: spawnStub, exec: sinon.stub() });
+      secure.__set__('exec', sinon.stub());
       secure.__set__('logger', loggerStub);
       secure.__set__('config', {
         getData: (key) => ({

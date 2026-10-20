@@ -435,11 +435,13 @@ describe('Switcher Module', () => {
     });
 
     it('only appends when /etc/sudoers already exists', () => {
-      expect(INCLUDEDIR_CMD.startsWith('if [ -f "/etc/sudoers" ] && ')).to.be.true;
+      const includedirCommand = switcherRewired.__get__('includedirCommand');
+      expect(includedirCommand().startsWith('if [ -f "/etc/sudoers" ] && ')).to.be.true;
     });
 
     it('ignores the vendor file, which sudo does not read once /etc/sudoers exists', () => {
-      expect(INCLUDEDIR_CMD).to.not.include('/usr/etc/sudoers');
+      const includedirCommand = switcherRewired.__get__('includedirCommand');
+      expect(includedirCommand()).to.not.include('/usr/etc/sudoers');
     });
 
     describe('run through a real shell', () => {

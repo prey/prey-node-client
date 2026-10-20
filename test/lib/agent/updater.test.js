@@ -85,15 +85,9 @@ describe('updater', () => {
     });
 
     describe('versioned install (paths.versions set)', () => {
-      let clock;
-
       beforeEach(() => {
-        clock = sinon.useFakeTimers();
+        updater.__set__('setTimeout', sinon.stub());
         paths.versions = '/usr/lib/prey/versions';
-      });
-
-      afterEach(() => {
-        clock.restore();
       });
 
       it('still checks for a new version', (done) => {

@@ -106,6 +106,7 @@ describe('tasks.pre_uninstall orchestration', () => {
     daemon.__set__('service_managed_by_package', () => true);
     tasks.__set__('daemon', daemon);
     tasks.__set__('isWindows', false);
+    tasks.__set__('is_mac', false);
 
     tasks.pre_uninstall({ '-u': true, positional: ['true'] }, (err) => {
       expect(err).to.not.exist;

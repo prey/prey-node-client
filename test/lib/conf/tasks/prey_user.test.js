@@ -77,6 +77,13 @@ describe('prey_user', () => {
         });
       });
 
+      it('creates the log file without truncating it', (done) => {
+        preyUser.setup_permissions(() => {
+          expect(fsStub.appendFile.calledWith('/var/log/prey/prey.log', '')).to.be.true;
+          done();
+        });
+      });
+
       it('never hands the root-owned package dir to the prey user', (done) => {
         preyUser.setup_permissions(() => {
           expect(chownedPaths()).to.not.include('/opt/prey');
