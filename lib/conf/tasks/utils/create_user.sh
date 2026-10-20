@@ -93,7 +93,11 @@ create_user() {
   if [ "$(uname)" == "Linux" ]; then
 
     local groups="video audio plugdev netdev"
-    useradd -r -M -U -G ${ADMIN_GROUP} -s $SHELL $USER_NAME
+    if getent group "${ADMIN_GROUP}" > /dev/null 2>&1; then
+      useradd -r -M -U -G "${ADMIN_GROUP}" -s "$SHELL" "$USER_NAME"
+    else
+      useradd -r -M -U -s "$SHELL" "$USER_NAME"
+    fi
 
     for group in $groups; do
       usermod -a -G $group $USER_NAME 2> /dev/null || true
@@ -142,6 +146,12 @@ remove_old_files() {
   fi
 }
 
+ensure_sudoers_includedir() {
+  [ -f /etc/sudoers ] || return 0
+  grep -qE '^[#@]includedir[[:space:]]+(/private)?/etc/sudoers\.d' /etc/sudoers /usr/etc/sudoers 2> /dev/null && return 0
+  echo "#includedir /etc/sudoers.d" >> /etc/sudoers
+}
+
 grant_privileges() {
   # On sudo-rs systems: if existing sudoers file has incompatible wildcard entries,
   # remove it now (runs as root via installer, no sudo needed) so it gets recreated below.
@@ -167,7 +177,7 @@ grant_privileges() {
   [ ! -d /etc/sudoers.d ] && mkdir /etc/sudoers.d
 
   # make sure sudo is including files in /etc/sudoers.d in its configuration
-  grep -q "^#includedir.*/etc/sudoers.d" /etc/sudoers || echo "#includedir /etc/sudoers.d" >> /etc/sudoers
+  ensure_sudoers_includedir
 
   ( umask 226 && echo "${SUDOERS_LINE}" > "$SUDOERS_FILE" )
 

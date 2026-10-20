@@ -1,10 +1,18 @@
 /* eslint-disable no-unused-expressions */
 /* eslint-disable no-undef */
+/* eslint-disable no-underscore-dangle */
 const { expect } = require('chai');
 const sinon = require('sinon');
 const rewire = require('rewire');
 const fs = require('fs');
+const os = require('os');
+const { join: joinPath } = require('path');
 const { exec } = require('child_process');
+
+const INCLUDEDIR_CMD = 'if [ -f "/etc/sudoers" ] && '
+  + '! grep -qE \'^[#@]includedir[[:space:]]+(/private)?/etc/sudoers\\.d\' '
+  + '"/etc/sudoers" "/usr/etc/sudoers" 2>/dev/null; '
+  + 'then echo "#includedir /etc/sudoers.d" >> "/etc/sudoers"; fi';
 
 describe('Switcher Module', () => {
   let switcherRewired;
@@ -182,7 +190,7 @@ describe('Switcher Module', () => {
         cb(null);
       });
 
-      execStub.withArgs(sinon.match(/grep -q/)).callsFake((cmd, opts, cb) => {
+      execStub.withArgs(INCLUDEDIR_CMD).callsFake((cmd, opts, cb) => {
         cb(null); // grep succeeds (includedir already exists)
       });
 
@@ -225,7 +233,7 @@ describe('Switcher Module', () => {
         cb(null);
       });
 
-      execStub.withArgs(sinon.match(/grep -q/)).callsFake((cmd, opts, cb) => {
+      execStub.withArgs(INCLUDEDIR_CMD).callsFake((cmd, opts, cb) => {
         cb(null);
       });
 
@@ -273,7 +281,7 @@ describe('Switcher Module', () => {
         cb(null);
       });
 
-      execStub.withArgs(sinon.match(/grep -q/)).callsFake((cmd, opts, cb) => {
+      execStub.withArgs(INCLUDEDIR_CMD).callsFake((cmd, opts, cb) => {
         cb(null);
       });
 
@@ -299,7 +307,7 @@ describe('Switcher Module', () => {
       execStub.withArgs('mkdir -p /etc/sudoers.d').callsFake((cmd, opts, cb) => {
         cb(null);
       });
-      execStub.withArgs(sinon.match(/grep -q/)).callsFake((cmd, opts, cb) => {
+      execStub.withArgs(INCLUDEDIR_CMD).callsFake((cmd, opts, cb) => {
         cb(null);
       });
       execStub.withArgs(sinon.match(/umask.*echo/)).callsFake((cmd, opts, cb) => {
@@ -328,7 +336,7 @@ describe('Switcher Module', () => {
       execStub.withArgs('mkdir -p /etc/sudoers.d').callsFake((cmd, opts, cb) => {
         cb(null);
       });
-      execStub.withArgs(sinon.match(/grep -q/)).callsFake((cmd, opts, cb) => {
+      execStub.withArgs(INCLUDEDIR_CMD).callsFake((cmd, opts, cb) => {
         cb(null);
       });
       execStub.withArgs(sinon.match(/umask.*echo/)).callsFake((cmd, opts, cb) => {
@@ -355,7 +363,7 @@ describe('Switcher Module', () => {
       execStub.withArgs('mkdir -p /etc/sudoers.d').callsFake((cmd, opts, cb) => {
         cb(null);
       });
-      execStub.withArgs(sinon.match(/grep -q/)).callsFake((cmd, opts, cb) => {
+      execStub.withArgs(INCLUDEDIR_CMD).callsFake((cmd, opts, cb) => {
         cb(null);
       });
       execStub.withArgs(sinon.match(/umask.*echo/)).callsFake((cmd, opts, cb) => {
@@ -383,7 +391,7 @@ describe('Switcher Module', () => {
         cb(null);
       });
 
-      execStub.withArgs(sinon.match(/grep -q/)).callsFake((cmd, opts, cb) => {
+      execStub.withArgs(INCLUDEDIR_CMD).callsFake((cmd, opts, cb) => {
         cb(new Error('grep failed')); // grep fails but shouldn't stop execution
       });
 
@@ -397,6 +405,118 @@ describe('Switcher Module', () => {
         expect(created).to.be.true;
         expect(sharedLogStub.calledWith(sinon.match(/Warning/))).to.be.true;
         done();
+      });
+    });
+
+    it('should ensure the includedir directive before writing the sudoers file', (done) => {
+      fsAccessStub.callsFake((filePath, mode, cb) => cb(new Error('ENOENT')));
+      execStub.withArgs('mkdir -p /etc/sudoers.d').callsFake((cmd, opts, cb) => cb(null));
+      execStub.withArgs(INCLUDEDIR_CMD).callsFake((cmd, opts, cb) => cb(null));
+      execStub.withArgs(sinon.match(/umask.*echo/)).callsFake((cmd, opts, cb) => cb(null));
+
+      const createNewFile = switcherRewired.__get__('createNewFile');
+      createNewFile([], (err) => {
+        expect(err).to.be.null;
+        const commands = execStub.args.map((call) => call[0]);
+        const includeIdx = commands.indexOf(INCLUDEDIR_CMD);
+        const writeIdx = commands.findIndex((cmd) => /umask 226/.test(cmd));
+        expect(includeIdx).to.be.greaterThan(-1);
+        expect(writeIdx).to.be.greaterThan(includeIdx);
+        expect(commands.some((cmd) => /\|\| echo .*>> \/etc\/sudoers/.test(cmd))).to.be.false;
+        done();
+      });
+    });
+  });
+
+  describe('includedirCommand', () => {
+    it('defaults to /etc/sudoers and the /usr/etc vendor file', () => {
+      const includedirCommand = switcherRewired.__get__('includedirCommand');
+      expect(includedirCommand()).to.equal(INCLUDEDIR_CMD);
+    });
+
+    it('only appends when /etc/sudoers already exists', () => {
+      expect(INCLUDEDIR_CMD.startsWith('if [ -f "/etc/sudoers" ] && ')).to.be.true;
+    });
+
+    describe('run through a real shell', () => {
+      let tmpDir;
+      let sudoers;
+      let vendor;
+      let run;
+
+      before(function skipOnWindows() {
+        if (process.platform === 'win32') this.skip();
+      });
+
+      beforeEach(() => {
+        tmpDir = fs.mkdtempSync(joinPath(os.tmpdir(), 'prey-sudoers-'));
+        sudoers = joinPath(tmpDir, 'etc-sudoers');
+        vendor = joinPath(tmpDir, 'usr-etc-sudoers');
+        const includedirCommand = switcherRewired.__get__('includedirCommand');
+        run = (cb) => exec(includedirCommand(sudoers, vendor), { timeout: 10000 }, cb);
+      });
+
+      afterEach(() => {
+        fs.rmSync(tmpDir, { recursive: true, force: true });
+      });
+
+      it('does not create /etc/sudoers when it does not exist (openSUSE Tumbleweed)', (done) => {
+        fs.writeFileSync(vendor, '@includedir /etc/sudoers.d\n');
+        run((err) => {
+          expect(err).to.be.null;
+          expect(fs.existsSync(sudoers)).to.be.false;
+          done();
+        });
+      });
+
+      it('does not create /etc/sudoers even when no sudoers file exists at all', (done) => {
+        run((err) => {
+          expect(err).to.be.null;
+          expect(fs.existsSync(sudoers)).to.be.false;
+          done();
+        });
+      });
+
+      it('leaves a sudoers file with @includedir untouched', (done) => {
+        const content = 'Defaults env_reset\n@includedir /etc/sudoers.d\n';
+        fs.writeFileSync(sudoers, content);
+        run((err) => {
+          expect(err).to.be.null;
+          expect(fs.readFileSync(sudoers, 'utf8')).to.equal(content);
+          done();
+        });
+      });
+
+      it('leaves a sudoers file with #includedir untouched', (done) => {
+        const content = '#includedir /etc/sudoers.d\n';
+        fs.writeFileSync(sudoers, content);
+        run((err) => {
+          expect(err).to.be.null;
+          expect(fs.readFileSync(sudoers, 'utf8')).to.equal(content);
+          done();
+        });
+      });
+
+      it('leaves /etc/sudoers untouched when the vendor file has @includedir', (done) => {
+        const content = 'Defaults env_reset\n';
+        fs.writeFileSync(sudoers, content);
+        fs.writeFileSync(vendor, '@includedir /etc/sudoers.d\n');
+        run((err) => {
+          expect(err).to.be.null;
+          expect(fs.readFileSync(sudoers, 'utf8')).to.equal(content);
+          done();
+        });
+      });
+
+      it('appends #includedir to an existing sudoers file that lacks it', (done) => {
+        fs.writeFileSync(sudoers, 'Defaults env_reset\n## Read drop-in files from /etc/sudoers.d\n');
+        run((err) => {
+          expect(err).to.be.null;
+          const lines = fs.readFileSync(sudoers, 'utf8').trim().split('\n');
+          expect(lines[lines.length - 1]).to.equal('#includedir /etc/sudoers.d');
+          expect(lines.filter((l) => l.includes('includedir'))).to.have.lengthOf(1);
+          done();
+        });
       });
     });
   });
