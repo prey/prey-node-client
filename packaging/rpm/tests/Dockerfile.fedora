@@ -1,0 +1,42 @@
+FROM fedora:43
+
+ENV container=docker
+
+RUN dnf -y --setopt=install_weak_deps=False install \
+        systemd sudo procps-ng util-linux which file findutils diffutils curl \
+    && dnf clean all
+
+RUN systemctl mask \
+        systemd-remount-fs.service \
+        dev-hugepages.mount \
+        sys-fs-fuse-connections.mount \
+        systemd-udev-trigger.service \
+        systemd-udevd.service \
+        systemd-udevd-control.socket \
+        systemd-udevd-kernel.socket \
+        systemd-firstboot.service \
+        systemd-homed.service \
+        getty.target \
+        console-getty.service \
+    && systemctl mask \
+        systemd-sysctl.service \
+        systemd-binfmt.service \
+        proc-sys-fs-binfmt_misc.automount \
+        proc-sys-fs-binfmt_misc.mount \
+        systemd-modules-load.service \
+        systemd-vconsole-setup.service \
+        systemd-timesyncd.service \
+        chronyd.service \
+        NetworkManager.service \
+        NetworkManager-wait-online.service \
+        ModemManager.service \
+        wpa_supplicant.service \
+    && systemctl set-default multi-user.target
+
+RUN printf '%s\n' '#!/bin/sh' \
+      '[ -w /sys/fs/cgroup ] || mount -o remount,rw /sys/fs/cgroup || exit 1' \
+      'exec /usr/lib/systemd/systemd "$@"' > /usr/local/sbin/container-init \
+    && chmod 0755 /usr/local/sbin/container-init
+
+STOPSIGNAL SIGRTMIN+3
+CMD ["/usr/local/sbin/container-init"]
