@@ -37,6 +37,7 @@ Environment knobs:
 | `REBUILD=1` | Rebuild the image with `--pull --no-cache` |
 | `SERVICE_WAIT=60` | Seconds to wait for prey-agent to come up |
 | `SETTLE=20` | Extra seconds of agent runtime before its logs are grepped (use ≥130 to cover one "Not configured" exit/restart cycle) |
+| `TW_MIRROR=https://download.opensuse.org` | Base URL for the Tumbleweed repos (e.g. a direct mirror when the redirector is slow). `repo-non-oss` and `repo-openh264` are disabled, prey needs neither |
 | `EXPECTED_NODE=v22.23.0` | Expected node version |
 
 Package install commands, exactly as a user would run them:

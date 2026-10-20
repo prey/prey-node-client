@@ -189,7 +189,7 @@ esac
 
 case "$DISTRO" in
   fedora) EGRESS_URL=https://mirrors.fedoraproject.org/ ;;
-  tumbleweed) EGRESS_URL=https://download.opensuse.org/ ;;
+  tumbleweed) EGRESS_URL="${TW_MIRROR:-https://download.opensuse.org}/" ;;
 esac
 need_proxy=0
 if [ "$PROXY" = "1" ]; then
@@ -230,6 +230,10 @@ info baseline "visudo -c before install: $(tr '\n' ' ' <<<"$VISUDO_BASELINE")"
 cx_ok 'getent passwd prey' && warn baseline "user prey already exists before install"
 cx 'useradd -m -s /bin/bash preytester' >/dev/null 2>&1 # regular user for the impersonation test
 
+if [ "$DISTRO" = tumbleweed ]; then
+  cx "sed -i 's#^baseurl=http://download.opensuse.org#baseurl=${TW_MIRROR:-https://download.opensuse.org}#' /etc/zypp/repos.d/*.repo" >/dev/null 2>&1
+  cx 'zypper -q mr -d repo-non-oss repo-openh264' >/dev/null 2>&1
+fi
 log "Installing $RPM_FILE"
 INSTALL_LOG="$RESULTS_DIR/install.log"
 DNF_EXTRA=""
