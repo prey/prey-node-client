@@ -187,9 +187,9 @@ EOF
   fi
   step "rpmbuild (container $BUILDER_IMAGE)"
   mapfile -t defs < <(rpmbuild_defs /rpmbuild)
-  "$DOCKER" run --rm --network none --user "$(id -u):$(id -g)" \
+  "$DOCKER" run --rm --network none --security-opt label=disable --user "$(id -u):$(id -g)" \
     -e HOME=/tmp -e SOURCE_DATE_EPOCH="$SDE" \
-    -v "$TOPDIR:/rpmbuild:z" "$BUILDER_IMAGE" \
+    -v "$TOPDIR:/rpmbuild" "$BUILDER_IMAGE" \
     rpmbuild -bb "${defs[@]}" /rpmbuild/SPECS/prey.spec
 fi
 
@@ -204,7 +204,7 @@ rpmq() { # rpm query, on the host or in the builder container
   if command -v rpm >/dev/null 2>&1; then
     rpm "$@"
   else
-    "$DOCKER" run --rm --network none -v "$DIST:/dist:z" "$BUILDER_IMAGE" \
+    "$DOCKER" run --rm --network none --security-opt label=disable -v "$DIST:/dist" "$BUILDER_IMAGE" \
       rpm "${@/#"$DIST"//dist}"
   fi
 }
