@@ -1,0 +1,5 @@
+#!/bin/sh
+[ -n "${DISPLAY:-}" ] || exit 0
+command -v xhost >/dev/null 2>&1 || exit 0
+xhost +SI:localuser:prey +SI:localuser:"$(id -un)" >/dev/null 2>&1 || :
+exit 0

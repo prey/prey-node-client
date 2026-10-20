@@ -1,0 +1,2 @@
+Defaults:prey env_keep += "DISPLAY XAUTHORITY WAYLAND_DISPLAY XDG_RUNTIME_DIR DBUS_SESSION_BUS_ADDRESS"
+prey ALL=(ALL) NOPASSWD: /usr/bin/nmcli, /usr/sbin/iwlist, /usr/bin/iwlist, /usr/sbin/dmidecode, /usr/bin/dmidecode, /usr/bin/su [A-z]*, !/usr/bin/su root*, !/usr/bin/su -*

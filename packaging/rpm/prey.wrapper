@@ -1,0 +1,15 @@
+#!/bin/sh
+P=/opt/prey/bin/prey
+[ "$(id -u)" -ne 0 ] && exec "$P" "$@"
+if [ "${1:-}" != config ]; then
+  for r in /usr/sbin/runuser /usr/bin/runuser; do
+    [ -x "$r" ] && exec "$r" -u prey -- "$P" "$@"
+  done
+  echo "prey: runuser not found" >&2
+  exit 1
+fi
+trap ':' INT TERM
+"$P" "$@"
+rc=$?
+[ -d /etc/prey ] && chown -R -h prey:prey /etc/prey 2>/dev/null
+exit $rc

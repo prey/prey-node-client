@@ -1,0 +1,3 @@
+f /var/log/prey.log 0640 prey prey -
+x /tmp/prey.pid
+x /tmp/prey

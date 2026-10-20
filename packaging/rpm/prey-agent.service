@@ -1,0 +1,19 @@
+[Unit]
+Description=Prey anti-theft agent
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+User=prey
+Group=prey
+WorkingDirectory=/opt/prey
+ExecStart=/opt/prey/bin/prey
+Environment=TERM=dumb USER=prey
+Restart=always
+RestartSec=15
+KillMode=process
+KillSignal=SIGQUIT
+TimeoutStopSec=20
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=Prey X access
+Comment=Allow the Prey anti-theft agent to reach this session's X display
+Exec=/usr/libexec/prey/prey-xhost
+NoDisplay=true
+X-GNOME-Autostart-enabled=true
