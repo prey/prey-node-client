@@ -7,6 +7,7 @@ import urllib.parse
 
 USAGE = 'usage: egress-proxy.py <bind-address> <client-address> [port]'
 TIMEOUT = 30
+CONNECT_TIMEOUT = 10
 ALLOWED_PORTS = (80, 443)
 
 
@@ -40,10 +41,16 @@ async def open_public(host, port):
     if port not in ALLOWED_PORTS:
         raise PermissionError(f'port {port} not allowed')
     infos = await asyncio.get_running_loop().getaddrinfo(host, port, type=socket.SOCK_STREAM)
-    addresses = [info[4][0] for info in infos]
+    addresses = sorted({info[4][0] for info in infos}, key=lambda a: ':' in a)
     if not addresses or not all(ipaddress.ip_address(a).is_global for a in addresses):
         raise PermissionError(f'{host} does not resolve to public addresses only')
-    return await asyncio.wait_for(asyncio.open_connection(addresses[0], port), TIMEOUT)
+    error = None
+    for address in addresses:
+        try:
+            return await asyncio.wait_for(asyncio.open_connection(address, port), CONNECT_TIMEOUT)
+        except Exception as exc:
+            error = exc
+    raise error
 
 
 def make_handler(client):

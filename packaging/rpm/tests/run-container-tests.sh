@@ -242,6 +242,10 @@ if [ "$rc" -ne 0 ] && [ "$DISTRO" = fedora ] && grep -qiE 'signature|gpg|NOKEY|n
   pm_install "/rpms/$RPM_FILE" >"$INSTALL_LOG" 2>&1
   rc=$?
 fi
+if [ "$rc" -eq 106 ] && [ "$DISTRO" = tumbleweed ] && cx_ok 'rpm -q prey'; then
+  warn install "zypper skipped repositories it could not refresh (rc=106); the package itself installed"
+  rc=0
+fi
 if [ "$rc" -ne 0 ] || ! cx_ok 'rpm -q prey'; then
   fail install "package install failed (rc=$rc)"
   tail -n 60 "$INSTALL_LOG" | indent
@@ -428,6 +432,7 @@ if [ -n "$RPM_UP" ]; then
     pm_install "/rpms-up/$RPM_UP_FILE" >"$UPGRADE_LOG" 2>&1
   fi
   rc=$?
+  [ "$rc" -eq 106 ] && [ "$DISTRO" = tumbleweed ] && rc=0
   now="$(cx "rpm -q --qf '%{NEVRA}' prey")"
   if [ "$rc" -eq 0 ] && [ "$now" = "$NEVRA_UP" ]; then pass h1 "upgraded $NEVRA_CUR -> $now"
   else fail h1 "upgrade failed (rc=$rc, installed: $now)"; tail -n 40 "$UPGRADE_LOG" | indent; fi
