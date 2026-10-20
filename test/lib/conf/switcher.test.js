@@ -11,7 +11,7 @@ const { exec } = require('child_process');
 
 const INCLUDEDIR_CMD = 'if [ -f "/etc/sudoers" ] && '
   + '! grep -qE \'^[#@]includedir[[:space:]]+(/private)?/etc/sudoers\\.d\' '
-  + '"/etc/sudoers" "/usr/etc/sudoers" 2>/dev/null; '
+  + '"/etc/sudoers" 2>/dev/null; '
   + 'then echo "#includedir /etc/sudoers.d" >> "/etc/sudoers"; fi';
 
 describe('Switcher Module', () => {
@@ -429,7 +429,7 @@ describe('Switcher Module', () => {
   });
 
   describe('includedirCommand', () => {
-    it('defaults to /etc/sudoers and the /usr/etc vendor file', () => {
+    it('defaults to /etc/sudoers', () => {
       const includedirCommand = switcherRewired.__get__('includedirCommand');
       expect(includedirCommand()).to.equal(INCLUDEDIR_CMD);
     });
@@ -438,10 +438,13 @@ describe('Switcher Module', () => {
       expect(INCLUDEDIR_CMD.startsWith('if [ -f "/etc/sudoers" ] && ')).to.be.true;
     });
 
+    it('ignores the vendor file, which sudo does not read once /etc/sudoers exists', () => {
+      expect(INCLUDEDIR_CMD).to.not.include('/usr/etc/sudoers');
+    });
+
     describe('run through a real shell', () => {
       let tmpDir;
       let sudoers;
-      let vendor;
       let run;
 
       before(function skipOnWindows() {
@@ -451,9 +454,8 @@ describe('Switcher Module', () => {
       beforeEach(() => {
         tmpDir = fs.mkdtempSync(joinPath(os.tmpdir(), 'prey-sudoers-'));
         sudoers = joinPath(tmpDir, 'etc-sudoers');
-        vendor = joinPath(tmpDir, 'usr-etc-sudoers');
         const includedirCommand = switcherRewired.__get__('includedirCommand');
-        run = (cb) => exec(includedirCommand(sudoers, vendor), { timeout: 10000 }, cb);
+        run = (cb) => exec(includedirCommand(sudoers), { timeout: 10000 }, cb);
       });
 
       afterEach(() => {
@@ -461,15 +463,6 @@ describe('Switcher Module', () => {
       });
 
       it('does not create /etc/sudoers when it does not exist (openSUSE Tumbleweed)', (done) => {
-        fs.writeFileSync(vendor, '@includedir /etc/sudoers.d\n');
-        run((err) => {
-          expect(err).to.be.null;
-          expect(fs.existsSync(sudoers)).to.be.false;
-          done();
-        });
-      });
-
-      it('does not create /etc/sudoers even when no sudoers file exists at all', (done) => {
         run((err) => {
           expect(err).to.be.null;
           expect(fs.existsSync(sudoers)).to.be.false;
@@ -490,17 +483,6 @@ describe('Switcher Module', () => {
       it('leaves a sudoers file with #includedir untouched', (done) => {
         const content = '#includedir /etc/sudoers.d\n';
         fs.writeFileSync(sudoers, content);
-        run((err) => {
-          expect(err).to.be.null;
-          expect(fs.readFileSync(sudoers, 'utf8')).to.equal(content);
-          done();
-        });
-      });
-
-      it('leaves /etc/sudoers untouched when the vendor file has @includedir', (done) => {
-        const content = 'Defaults env_reset\n';
-        fs.writeFileSync(sudoers, content);
-        fs.writeFileSync(vendor, '@includedir /etc/sudoers.d\n');
         run((err) => {
           expect(err).to.be.null;
           expect(fs.readFileSync(sudoers, 'utf8')).to.equal(content);

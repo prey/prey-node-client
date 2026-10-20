@@ -148,7 +148,7 @@ remove_old_files() {
 
 ensure_sudoers_includedir() {
   [ -f /etc/sudoers ] || return 0
-  grep -qE '^[#@]includedir[[:space:]]+(/private)?/etc/sudoers\.d' /etc/sudoers /usr/etc/sudoers 2> /dev/null && return 0
+  grep -qE '^[#@]includedir[[:space:]]+(/private)?/etc/sudoers\.d' /etc/sudoers 2> /dev/null && return 0
   echo "#includedir /etc/sudoers.d" >> /etc/sudoers
 }
 
