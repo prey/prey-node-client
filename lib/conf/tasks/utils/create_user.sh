@@ -19,7 +19,11 @@ sudo -V 2>&1 | grep -qi "sudo-rs" && SUDO_RS=true || SUDO_RS=false
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PREY_ROOT="$(cd "$SCRIPT_DIR/../../../.." && pwd)"      # /usr/local/lib/prey/versions/x.y.z
 PREY_INSTALL="$(cd "$PREY_ROOT/../.." && pwd)"          # /usr/local/lib/prey
-PREY_SU_WRAPPER="$PREY_INSTALL/current/lib/system/linux/prey-su"
+if [ "$(basename "$(dirname "$PREY_ROOT")")" = "versions" ]; then
+  PREY_SU_WRAPPER="$PREY_INSTALL/current/lib/system/linux/prey-su"
+else
+  PREY_SU_WRAPPER="$PREY_ROOT/lib/system/linux/prey-su"
+fi
 
 # With SUDOERS_FILE user will be able to run commands as other users except root
 if [ "$SUDO_RS" = "true" ]; then
