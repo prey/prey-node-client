@@ -61,8 +61,9 @@ Package install commands, exactly as a user would run them:
 | d1–d6 | `/opt/prey/bin/node --version` matches. `/usr/bin/prey` is a regular file. No `/opt/prey/current` or `versions`. No Mach-O/PE32 files. Everything under `/opt/prey` is root:root and nothing is world-writable (root runs `/opt/prey/bin/prey` from `%preun`) |
 | e1 | `ldd` of the gtk4 lock/config helpers. A missing lib is only a WARN (weak deps) |
 | e2, e3 | `ldd` of `node_sqlite3.node` and `node` is clean, and node really `require()`s sqlite3 as prey |
-| f1–f6 | Unit is enabled, has been started, `User=prey`, and the main process was seen running as prey. Journal and prey.log contain no `UNCAUGHT`, `ERR_INVALID_ARG_TYPE`, `Cannot find module` or `EACCES`. An unlinked agent logging "Not configured" and restarting is expected |
-| g1–g3 | As prey: `prey -N`, `/usr/bin/prey --version`, and `prey config check` all run without a crash, exec failure or timeout. g1 is only a WARN when `-N` doesn't print the version: that's broken upstream, because cli.js reads `program.nodeVersion` but commander 9 keeps options in `opts()` |
+| f1–f6 | Unit is enabled, has been started, `User=prey`, and the main process was seen running as prey. Journal and prey.log contain no `UNCAUGHT`, `ERR_INVALID_ARG_TYPE`, `Cannot find module` or `EACCES`, except upstream's designed `UNCAUGHT EXCEPTION: Not configured. Stopping.` exit of an unlinked agent (counted in f6) |
+| g1–g3 | As prey: `prey -N`, `/usr/bin/prey --version`, and `prey config check` all run without a crash, exec failure or timeout. g1 is only a WARN when `-N` doesn't print the version: that's broken upstream, because cli.js reads `program.nodeVersion` but commander 9 keeps options in `opts()`. Since `-N` is ignored, g1 only runs while the service agent is active and is bounded by `timeout 20`, so it cannot leave a stray agent |
+| j1–j7 | **Regression guard**: an accidental `prey config hooks post_install` as root keeps prey-agent enabled and active, creates no `/etc/systemd/system/prey-agent.service`, leaves `/opt/prey` root-owned and `/etc/sudoers` unchanged, and does not truncate `/var/log/prey.log` |
 | h0–h10 | Upgrade (see below) |
 | i1–i6 | Erase (see below) |
 

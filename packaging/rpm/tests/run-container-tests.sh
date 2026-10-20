@@ -377,6 +377,29 @@ if [ "$rc" -lt 124 ] && ! grep -qE "$CRASH_RE" <<<"$out" && grep -qi 'check' <<<
 else fail g3 "prey config check crashed/timed out (rc=$rc)"; fi
 echo "$out" | tail -n 8 | indent
 
+log "j. accidental 'prey config hooks post_install' as root"
+J_SUDOERS="$(sudoers_state)"
+J_LOG_LINES="$(cx 'wc -l < /var/log/prey.log')"
+out="$(cx 'timeout 180 /opt/prey/bin/prey config hooks post_install 2>&1; echo "rc=$?"')"
+rc="$(tail -n1 <<<"$out" | sed 's/rc=//')"
+if [ "$rc" = 0 ]; then pass j1 "post_install exited 0"; else warn j1 "post_install rc=$rc"; echo "$out" | tail -n 8 | indent; fi
+st="$(cx 'systemctl is-enabled prey-agent 2>&1')"
+if [ "$st" = enabled ]; then pass j2 "prey-agent still enabled"; else fail j2 "prey-agent is '$st' after post_install"; fi
+st="$(cx 'systemctl show -p ActiveState --value prey-agent')"
+case "$st" in
+  active|activating) pass j3 "prey-agent still $st" ;;
+  *) fail j3 "prey-agent is '$st' after post_install" ;;
+esac
+if cx_ok 'test -e /etc/systemd/system/prey-agent.service'; then fail j4 "post_install created /etc/systemd/system/prey-agent.service"
+else pass j4 "no competing unit in /etc/systemd/system"; fi
+n="$(cx 'find /opt/prey ! -user root | wc -l')"
+if [ "$n" = 0 ]; then pass j5 "/opt/prey still entirely root-owned"; else fail j5 "$n paths under /opt/prey not owned by root"; fi
+st="$(sudoers_state)"
+if [ "$st" = "$J_SUDOERS" ]; then pass j6 "/etc/sudoers unchanged ($st)"; else fail j6 "/etc/sudoers changed: $J_SUDOERS -> $st"; fi
+n="$(cx 'wc -l < /var/log/prey.log')"
+if [ "$n" -ge "$J_LOG_LINES" ]; then pass j7 "/var/log/prey.log not truncated ($J_LOG_LINES -> $n lines)"
+else fail j7 "/var/log/prey.log truncated ($J_LOG_LINES -> $n lines)"; fi
+
 if [ -n "$RPM_UP" ]; then
   log "h. upgrade to $RPM_UP_FILE"
   MARK="prey-rpm-test-$$-$RANDOM"
