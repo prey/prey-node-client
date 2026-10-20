@@ -40,7 +40,7 @@ describe('prey_user', () => {
 
     fsStub = {
       mkdir: sinon.stub().callsFake((dir, cb) => cb(null)),
-      writeFile: sinon.stub().callsFake((file, data, cb) => cb(null)),
+      appendFile: sinon.stub().callsFake((file, data, cb) => cb(null)),
       readlinkSync: sinon.stub().throws(Object.assign(new Error('EINVAL'), { code: 'EINVAL' })),
       existsSync: sinon.stub().returns(true),
       unlinkSync: sinon.stub(),
