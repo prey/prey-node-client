@@ -165,6 +165,7 @@ if [ -d /run/systemd/system ]; then
   systemctl daemon-reload >/dev/null 2>&1 || :
 fi
 if [ "$1" -eq 0 ]; then
+  rm -f /etc/sudoers.d/51_prey_switcher.rpm-invalid
   echo "prey: kept /etc/prey (device identity) and user 'prey'. Purge: rm -rf /etc/prey && userdel prey"
 fi
 exit 0
