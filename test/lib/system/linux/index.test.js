@@ -17,10 +17,12 @@ const missingGroup = () => Object.assign(new Error('Command failed: getent group
  * @returns {sinon.SinonStub}
  */
 const getentStub = (groups) => sinon.stub().callsFake((cmd, opts, cb) => {
-  const match = /^getent group (\S+)$/.exec(cmd);
+  const match = /^getent group ([\w ]+)$/.exec(cmd);
   if (!match) return cb(new Error(`unexpected command: ${cmd}`));
-  if (!Object.prototype.hasOwnProperty.call(groups, match[1])) return cb(missingGroup(), '');
-  return cb(null, groups[match[1]]);
+  const names = match[1].split(' ');
+  const known = (name) => Object.prototype.hasOwnProperty.call(groups, name);
+  const out = names.filter(known).map((name) => groups[name]).join('');
+  return cb(names.every(known) ? null : missingGroup(), out);
 });
 
 describe('lib/system/linux find_admin_user', () => {
@@ -47,15 +49,38 @@ describe('lib/system/linux find_admin_user', () => {
     sinon.restore();
   });
 
-  it('queries adm, wheel and sudo (in that order) with getent', (done) => {
+  it('queries sudo, wheel and adm (in that order) with a single getent', (done) => {
     setup({}, null, 'jdoe');
     linux.find_admin_user(() => {
       const exec = linux.__get__('exec');
-      expect(exec.args.map((call) => call[0])).to.deep.equal([
-        'getent group adm',
-        'getent group wheel',
-        'getent group sudo',
-      ]);
+      expect(exec.args.map((call) => call[0])).to.deep.equal(['getent group sudo wheel adm']);
+      done();
+    });
+  });
+
+  it('never picks the prey service user, which create_user.sh adds to adm', (done) => {
+    setup({ adm: 'adm:x:4:prey\n', wheel: 'wheel:x:10:alice\n' }, new Error("Couldn't find logged user."));
+    linux.find_admin_user((err, user) => {
+      expect(err).to.be.null;
+      expect(user).to.equal('alice');
+      done();
+    });
+  });
+
+  it('falls back to the logged user when adm only holds the prey user', (done) => {
+    setup({ adm: 'adm:x:4:prey\n' }, null, 'bob');
+    linux.find_admin_user((err, user) => {
+      expect(err).to.be.null;
+      expect(user).to.equal('bob');
+      done();
+    });
+  });
+
+  it('prefers sudo and wheel members over adm members', (done) => {
+    setup({ adm: 'adm:x:4:alice\n', sudo: 'sudo:x:27:bob\n' }, null, 'carol');
+    linux.find_admin_user((err, user) => {
+      expect(err).to.be.null;
+      expect(user).to.equal('bob');
       done();
     });
   });
