@@ -141,3 +141,41 @@ sudo rm -rf /etc/prey && sudo userdel prey
   filtradas; só `bin/node` (glibc/libstdc++) e os shebangs geram `Requires`. Ferramentas
   opcionais (GTK4/WebKitGTK, `dmidecode`, `NetworkManager`, `scrot`, `xhost`, ...) são
   `Recommends`, resolvidas pelo nome de arquivo/soname nas duas distros.
+
+## Solução de problemas
+
+- **O agente reinicia a cada ~2,5 min.** É o esperado enquanto o dispositivo não está
+  vinculado: o upstream encerra com `UNCAUGHT EXCEPTION: Not configured. Stopping.`
+  (`lib/agent/control-panel/index.js`, `wait_for_config`) e o systemd o reinicia. Esse
+  erro tem `level` definido, então não é enviado como relatório de crash. Vincule o
+  dispositivo para parar o ciclo.
+- **Serviço parado/desabilitado.** `sudo systemctl enable --now prey-agent`.
+- **`prey -N` (e `-a -r -p -l -D`) não fazem nada.** Bug do upstream: o commander 9
+  guarda as opções em `program.opts()`, mas `lib/agent/cli.js` lê `program.<opção>`.
+  Sem um agente rodando, `prey -N` sobe um agente completo fora do systemd.
+
+## Notas para um PR upstream
+
+As correções em `lib/` deste branch são independentes do RPM e valem para qualquer
+instalação estática ou distro não-Debian:
+
+- `updater.check_for_update` sem diretório `versions` (crash com `ERR_INVALID_ARG_TYPE`).
+- `find_admin_user`: parsing do `getent`, grupos `adm`/`wheel`/`sudo`, callback duplo.
+- `create_user.sh`/`switcher.js`: nunca criar `/etc/sudoers`; `-G adm` só se o grupo existir.
+- `setup_permissions`/`config activate`: não dar chown/chmod no diretório de instalação estático.
+- `secure.open_config`: passar o ambiente da sessão via `env(1)` (o `env_reset` do sudo o descarta).
+- `daemon.install`/`remove`: não mexer num serviço empacotado pela distro.
+- `prey_user.touch`: não truncar o log.
+
+Antes de abrir o PR: rebasear em `develop`, trocar `Refs: local-rpm-packaging` por uma
+issue real e separar o empacotamento (`packaging/rpm/`) num PR à parte.
+
+Bugs do upstream encontrados mas não corrigidos aqui:
+
+- `satan` (prey/node-daemon), `lib/linux/backends/systemd.js`: `reload_all(cb)` é chamado
+  como `reload_all(key, cb)`, o callback se perde e `ensure_created`/`ensure_destroyed`
+  nunca retornam depois de recarregar units.
+- `lib/agent/cli.js`: chamar `program.storeOptionsAsProperties()` (commander 9) para as
+  opções `-N -a -r -p -l -D` voltarem a funcionar.
+- Sugestão de refactor: os caminhos relativos profundos (`../../../../lib/...`) dos testes e
+  de `lib/` poderiam usar *subpath imports* do Node (`"imports": {"#lib/*": "./lib/*.js"}`).

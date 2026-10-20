@@ -149,6 +149,7 @@ collect_logs() {
 }
 
 BAD_LOG_RE='UNCAUGHT|ERR_INVALID_ARG_TYPE|Cannot find module|EACCES'
+EXPECTED_EXIT_RE='UNCAUGHT EXCEPTION: Not configured\. Stopping\.'
 
 log "Building image $IMAGE ($DISTRO)"
 build_args=(--network host -t "$IMAGE" -f "$HERE/Dockerfile.$DISTRO")
@@ -351,17 +352,22 @@ else fail f4 "main process never observed running as prey (seen user: '${SVC_SEE
 cx 'ps -o user,pid,etime,args -u prey 2>/dev/null' | indent
 sleep "$SETTLE"
 collect_logs install
-bad="$(cat "$RESULTS_DIR/journal-prey-agent.install.log" "$RESULTS_DIR/prey.log.install" | grep -E "$BAD_LOG_RE" | head -n 20)"
-if [ -z "$bad" ]; then pass f5 "no $BAD_LOG_RE in journal / prey.log"; else fail f5 "crash signatures in agent logs:"; echo "$bad" | indent; fi
-info f6 "'Not configured' occurrences: $(grep -c 'Not configured' "$RESULTS_DIR/prey.log.install" "$RESULTS_DIR/journal-prey-agent.install.log" | tr '\n' ' '); restarts: $(cx 'systemctl show -p NRestarts --value prey-agent')"
+bad="$(cat "$RESULTS_DIR/journal-prey-agent.install.log" "$RESULTS_DIR/prey.log.install" | grep -E "$BAD_LOG_RE" | grep -vE "$EXPECTED_EXIT_RE" | head -n 20)"
+if [ -z "$bad" ]; then pass f5 "no $BAD_LOG_RE in journal / prey.log (besides the unlinked-device exit)"; else fail f5 "crash signatures in agent logs:"; echo "$bad" | indent; fi
+info f6 "'Not configured' occurrences: $(grep -c 'Not configured' "$RESULTS_DIR/prey.log.install" "$RESULTS_DIR/journal-prey-agent.install.log" | tr '\n' ' '); unlinked-device exits: $(grep -chE "$EXPECTED_EXIT_RE" "$RESULTS_DIR/prey.log.install"); restarts: $(cx 'systemctl show -p NRestarts --value prey-agent')"
 echo "  last prey.log lines:"; tail -n 8 "$RESULTS_DIR/prey.log.install" | indent
 
 log "g. CLI as user prey"
 CRASH_RE='UNCAUGHT|TypeError|ReferenceError|SyntaxError|ERR_[A-Z_]{4,}|Cannot find module|EACCES|Segmentation fault|core dumped|failed to execute|Permission denied|No such file or directory|command not found'
-out="$(cx 'cd / && runuser -u prey -- /opt/prey/bin/prey -N 2>&1')"
-if [ "$out" = "$EXPECTED_NODE" ]; then pass g1 "prey -N -> $out"
-elif grep -qE "$CRASH_RE" <<<"$out"; then fail g1 "prey -N crashed: $out"
-else warn g1 "prey -N did not print the node version (upstream: lib/agent/cli.js reads program.nodeVersion, but commander 9 keeps options in program.opts()); output: $(head -n 2 <<<"$out" | tr '\n' ' ')"; fi
+if ! cx_ok 'systemctl is-active --quiet prey-agent'; then
+  warn g1 "skipped prey -N: prey-agent not active right now (restart window), it would start a stray agent"
+else
+  out="$(cx 'cd / && timeout 20 runuser -u prey -- /opt/prey/bin/prey -N 2>&1')"; rc=$?
+  if [ "$out" = "$EXPECTED_NODE" ]; then pass g1 "prey -N -> $out"
+  elif [ "$rc" -eq 124 ]; then warn g1 "prey -N did not return within 20 s (started an agent; killed by timeout)"
+  elif grep -qE "$CRASH_RE" <<<"$out"; then fail g1 "prey -N crashed: $out"
+  else warn g1 "prey -N did not print the node version (upstream: lib/agent/cli.js reads program.nodeVersion, but commander 9 keeps options in program.opts()); output: $(head -n 2 <<<"$out" | tr '\n' ' ')"; fi
+fi
 pkgver="$(cx "rpm -q --qf '%{VERSION}' prey")"
 out="$(cx 'cd / && runuser -u prey -- /usr/bin/prey --version 2>&1')"
 if grep -qF "$pkgver" <<<"$out"; then pass g2 "/usr/bin/prey --version -> $out"; else fail g2 "/usr/bin/prey --version -> '$out' (expected $pkgver)"; fi
@@ -437,8 +443,8 @@ if [ -n "$RPM_UP" ]; then
   if [ "$SUDOERS_AFTER" = "$SUDOERS_BEFORE" ]; then pass h9 "/etc/sudoers unchanged after upgrade ($SUDOERS_AFTER)"; else fail h9 "/etc/sudoers changed by upgrade: $SUDOERS_BEFORE -> $SUDOERS_AFTER"; fi
   sleep "$SETTLE"
   collect_logs upgrade
-  bad="$(cx "journalctl -u prey-agent --since @$TS --no-pager -o cat" | grep -E "$BAD_LOG_RE" | head -n 20)"
-  if [ -z "$bad" ]; then pass h10 "no $BAD_LOG_RE in agent journal after upgrade"; else fail h10 "crash signatures after upgrade:"; echo "$bad" | indent; fi
+  bad="$(cx "journalctl -u prey-agent --since @$TS --no-pager -o cat" | grep -E "$BAD_LOG_RE" | grep -vE "$EXPECTED_EXIT_RE" | head -n 20)"
+  if [ -z "$bad" ]; then pass h10 "no $BAD_LOG_RE in agent journal after upgrade (besides the unlinked-device exit)"; else fail h10 "crash signatures after upgrade:"; echo "$bad" | indent; fi
 fi
 
 log "i. erase"
