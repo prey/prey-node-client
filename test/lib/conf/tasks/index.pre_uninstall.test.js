@@ -94,4 +94,24 @@ describe('tasks.pre_uninstall orchestration', () => {
       done();
     });
   });
+
+  it('leaves a distro-packaged service alone (real daemon.remove run by async.series)', (done) => {
+    const satanStub = { ensure_destroyed: sinon.stub().callsFake((key, cb) => cb(null)) };
+    Module._load = function (request, ...args) {
+      if (request === 'satan') return satanStub;
+      if (request === 'firewall') return { remove_rule: () => {} };
+      return originalModuleLoad.apply(this, arguments);
+    };
+    const daemon = rewire('../../../../lib/conf/tasks/daemon');
+    daemon.__set__('service_managed_by_package', () => true);
+    tasks.__set__('daemon', daemon);
+    tasks.__set__('isWindows', false);
+
+    tasks.pre_uninstall({ '-u': true, positional: ['true'] }, (err) => {
+      expect(err).to.not.exist;
+      expect(satanStub.ensure_destroyed.called).to.equal(false);
+      expect(preUninstallStub.calledOnce).to.equal(true);
+      done();
+    });
+  });
 });

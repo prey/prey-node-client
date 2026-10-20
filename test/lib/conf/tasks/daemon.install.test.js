@@ -35,6 +35,66 @@ describe('daemon', () => {
 
     // Default to non-Windows so the mac/linux path runs
     daemon.__set__('is_windows', false);
+    daemon.__set__('service_managed_by_package', () => false);
+  });
+
+  describe('service managed by a distro package', () => {
+    let sharedStub;
+
+    beforeEach(() => {
+      daemon.__set__('service_managed_by_package', () => true);
+      sharedStub = { log: sinon.stub() };
+      daemon.__set__('shared', sharedStub);
+    });
+
+    it('install leaves the packaged unit alone and calls back without error', (done) => {
+      daemon.install((err) => {
+        expect(err).to.equal(null);
+        expect(satanObj.ensure_created.called).to.be.false;
+        expect(satanObj.start.called).to.be.false;
+        expect(sharedStub.log.calledOnce).to.be.true;
+        done();
+      });
+    });
+
+    it('remove leaves the packaged unit alone and calls back without error', (done) => {
+      daemon.remove((err) => {
+        expect(err).to.equal(null);
+        expect(satanObj.ensure_destroyed.called).to.be.false;
+        done();
+      });
+    });
+  });
+
+  describe('service_managed_by_package', () => {
+    let check;
+    let pathsStub;
+    let existsStub;
+
+    beforeEach(() => {
+      daemon = rewire('../../../../lib/conf/tasks/daemon');
+      check = daemon.__get__('service_managed_by_package');
+      pathsStub = { versions: undefined };
+      existsStub = sinon.stub().returns(true);
+      daemon.__set__('paths', pathsStub);
+      daemon.__set__('fs', { existsSync: existsStub, appendFileSync: sinon.stub() });
+    });
+
+    it('is true on a static Linux install with the packaged unit', function () {
+      if (process.platform !== 'linux') this.skip();
+      expect(check()).to.be.true;
+      expect(existsStub.calledWith('/usr/lib/systemd/system/prey-agent.service')).to.be.true;
+    });
+
+    it('is false on a versioned install, whatever unit exists', () => {
+      pathsStub.versions = '/usr/lib/prey/versions';
+      expect(check()).to.be.false;
+    });
+
+    it('is false when the packaged unit is not there', () => {
+      existsStub.returns(false);
+      expect(check()).to.be.false;
+    });
   });
 
   afterEach(() => {
