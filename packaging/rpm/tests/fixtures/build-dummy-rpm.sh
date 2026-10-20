@@ -5,8 +5,8 @@ out="${1:?usage: $0 <outdir>}"
 mkdir -p "$out"
 out="$(cd "$out" && pwd)"
 
-docker run --rm --network host \
-  -v "$here:/src:ro,z" -v "$out:/out:z" fedora:43 bash -euc '
+docker run --rm --network host --security-opt label=disable \
+  -v "$here:/src:ro" -v "$out:/out" fedora:43 bash -euc '
     dnf -y -q --setopt=install_weak_deps=False install rpm-build patchelf >/dev/null 2>&1
     for r in 1 2; do
       rpmbuild -bb --define "_topdir /tmp/rb" --define "dummy_release $r" /src/prey-dummy.spec >/tmp/rb.log 2>&1 \

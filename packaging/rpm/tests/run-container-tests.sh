@@ -69,7 +69,7 @@ cx_ok() { cx "$1" >/dev/null 2>&1; }
 cleanup() {
   local rc=$?
   if [ -n "$PROXY_PID" ]; then kill "$PROXY_PID" 2>/dev/null; wait "$PROXY_PID" 2>/dev/null; fi
-  if docker inspect "$CNAME" >/dev/null 2>&1; then
+  if [ "${CREATED:-0}" = 1 ] && docker inspect "$CNAME" >/dev/null 2>&1; then
     if [ "$KEEP" = "1" ]; then
       echo "KEEP=1: container left running: docker exec -it $CNAME bash   (remove: docker rm -f $CNAME)"
       [ -n "$PROXY_PID" ] && echo "       (note: the egress proxy was stopped, the container has no package-repo access now)"
@@ -160,8 +160,8 @@ docker build -q "${build_args[@]}" "$HERE" >"$RESULTS_DIR/image-build.log" 2>&1 
 log "Starting container $CNAME (results: $RESULTS_DIR)"
 run_args=(-d -t --name "$CNAME" --hostname "prey-$DISTRO"
   --cgroupns=private --tmpfs /run --tmpfs /run/lock
-  -v "$RPM_DIR:/rpms:ro,z")
-[ -n "$RPM_UP" ] && run_args+=(-v "$RPM_UP_DIR:/rpms-up:ro,z")
+  -v "$RPM_DIR:/rpms:ro")
+[ -n "$RPM_UP" ] && run_args+=(-v "$RPM_UP_DIR:/rpms-up:ro")
 if [ "$PRIVILEGED" = "1" ]; then
   run_args+=(--privileged)
 else
@@ -169,6 +169,7 @@ else
 fi
 printf 'docker run %s %s\n' "${run_args[*]}" "$IMAGE" >"$RESULTS_DIR/docker-run.txt"
 docker run "${run_args[@]}" "$IMAGE" >/dev/null || die "docker run failed"
+CREATED=1
 
 state=""
 for _ in $(seq 1 90); do
@@ -199,7 +200,9 @@ fi
 if [ "$need_proxy" = "1" ]; then
   GW="$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.Gateway}}{{end}}' "$CNAME")"
   [ -n "$GW" ] || die "cannot determine docker bridge gateway"
-  python3 "$HERE/egress-proxy.py" "$GW" >"$RESULTS_DIR/proxy.out" 2>"$RESULTS_DIR/proxy.log" &
+  CIP="$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' "$CNAME")"
+  [ -n "$CIP" ] || die "cannot determine the container address"
+  python3 -I "$HERE/egress-proxy.py" "$GW" "$CIP" >"$RESULTS_DIR/proxy.out" 2>"$RESULTS_DIR/proxy.log" &
   PROXY_PID=$!
   for _ in $(seq 1 50); do grep -q LISTENING "$RESULTS_DIR/proxy.out" 2>/dev/null && break; sleep 0.1; done
   PROXY_URL="$(awk '/LISTENING/ {print "http://" $2 ":" $3}' "$RESULTS_DIR/proxy.out")"
@@ -211,7 +214,7 @@ if [ "$need_proxy" = "1" ]; then
           printf 'PROXY_ENABLED=\"yes\"\nHTTP_PROXY=\"%s\"\nHTTPS_PROXY=\"%s\"\n' '$PROXY_URL' '$PROXY_URL' >> /etc/sysconfig/proxy" ;;
   esac
   if cx_ok "curl -sS -m 15 -o /dev/null -x $PROXY_URL $EGRESS_URL"; then
-    info net "bridge has no direct egress; package managers use host proxy $PROXY_URL (bound to the docker gateway only)"
+    info net "bridge has no direct egress; package managers use host proxy $PROXY_URL (only for $CIP, ports 80/443, public addresses)"
   else
     die "no egress even through proxy $PROXY_URL"
   fi
@@ -379,7 +382,8 @@ echo "$out" | tail -n 8 | indent
 
 log "j. accidental 'prey config hooks post_install' as root"
 J_SUDOERS="$(sudoers_state)"
-J_LOG_LINES="$(cx 'wc -l < /var/log/prey.log')"
+J_MARK="prey-rpm-test-marker-$$"
+cx "echo $J_MARK >> /var/log/prey.log"
 out="$(cx 'timeout 180 /opt/prey/bin/prey config hooks post_install 2>&1; echo "rc=$?"')"
 rc="$(tail -n1 <<<"$out" | sed 's/rc=//')"
 if [ "$rc" = 0 ]; then pass j1 "post_install exited 0"; else warn j1 "post_install rc=$rc"; echo "$out" | tail -n 8 | indent; fi
@@ -396,9 +400,8 @@ n="$(cx 'find /opt/prey ! -user root | wc -l')"
 if [ "$n" = 0 ]; then pass j5 "/opt/prey still entirely root-owned"; else fail j5 "$n paths under /opt/prey not owned by root"; fi
 st="$(sudoers_state)"
 if [ "$st" = "$J_SUDOERS" ]; then pass j6 "/etc/sudoers unchanged ($st)"; else fail j6 "/etc/sudoers changed: $J_SUDOERS -> $st"; fi
-n="$(cx 'wc -l < /var/log/prey.log')"
-if [ "$n" -ge "$J_LOG_LINES" ]; then pass j7 "/var/log/prey.log not truncated ($J_LOG_LINES -> $n lines)"
-else fail j7 "/var/log/prey.log truncated ($J_LOG_LINES -> $n lines)"; fi
+if cx_ok "grep -qF $J_MARK /var/log/prey.log"; then pass j7 "/var/log/prey.log not truncated (marker line kept)"
+else fail j7 "/var/log/prey.log truncated (marker line gone)"; fi
 
 if [ -n "$RPM_UP" ]; then
   log "h. upgrade to $RPM_UP_FILE"
@@ -455,9 +458,9 @@ if [ -n "$RPM_UP" ]; then
   wait_for_agent
   INV_AFTER="$(cx 'systemctl show -p InvocationID --value prey-agent')"
   stopping="$(cx "journalctl -u prey-agent --since @$TS --no-pager -o cat | grep -cE '^Stopping|Stopping prey-agent'")"
-  if [ "$INV_AFTER" != "$INV_BEFORE" ] && [ "$SVC_SEEN_USER" = prey ]; then
+  if [ "$INV_AFTER" != "$INV_BEFORE" ] && [ "$stopping" -gt 0 ] && [ "$SVC_SEEN_USER" = prey ]; then
     pass h7 "prey-agent restarted (new InvocationID; explicit 'Stopping' entries since upgrade: $stopping) and running as prey"
-  else fail h7 "prey-agent not restarted/running after upgrade (InvocationID $INV_BEFORE -> $INV_AFTER, user '${SVC_SEEN_USER}', $SVC_STATE)"; fi
+  else fail h7 "prey-agent not restarted/running after upgrade (InvocationID $INV_BEFORE -> $INV_AFTER, 'Stopping' entries: $stopping, user '${SVC_SEEN_USER}', $SVC_STATE)"; fi
   ver="$(cx 'rpm -V prey 2>&1')"
   badv="$(grep -vE '^\S+\s+c\s|/var/log/prey\.log$' <<<"$ver" | grep -v '^$' || true)"
   if [ -z "$badv" ]; then pass h8 "rpm -V prey clean (allowed: $(grep -cE '\S' <<<"$ver") config/ghost deviations)"
@@ -471,6 +474,10 @@ if [ -n "$RPM_UP" ]; then
 fi
 
 log "i. erase"
+out="$(cx 'timeout 60 /opt/prey/bin/prey config hooks pre_uninstall 2>&1; echo "rc=$?"')"
+rc="$(tail -n1 <<<"$out" | sed 's/rc=//')"
+if [ "$rc" -lt 124 ] && ! grep -qE "$CRASH_RE" <<<"$out"; then pass i0 "prey config hooks pre_uninstall (run by %preun) completes (rc=$rc)"
+else fail i0 "prey config hooks pre_uninstall crashed/timed out (rc=$rc)"; echo "$out" | tail -n 8 | indent; fi
 ERASE_LOG="$RESULTS_DIR/erase.log"
 cx 'rpm -e prey' >"$ERASE_LOG" 2>&1
 rc=$?

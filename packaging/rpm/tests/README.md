@@ -96,7 +96,7 @@ The image entrypoint (`/usr/local/sbin/container-init`) remounts the cgroup2 fs 
 
 Both images mask units that could touch host-global state or the container's network (sysctl, binfmt, modules-load, time sync, NetworkManager, ModemManager, wpa_supplicant).
 
-If the docker bridge has no egress, the script starts `egress-proxy.py` bound to the bridge gateway (e.g. `172.17.0.1`, not reachable from the LAN) and points dnf/zypper at it. A bridge can lack egress when, for example, the host has `net.ipv4.ip_forward=0`. Image builds use `--network host`, because build steps don't run systemd. The agent itself gets no proxy, so it may log connection errors. That's fine.
+If the docker bridge has no egress, the script starts `egress-proxy.py` bound to the bridge gateway (e.g. `172.17.0.1`) and points dnf/zypper at it. The proxy only serves the test container's address, only ports 80/443, and only targets that resolve to public addresses. A bridge can lack egress when, for example, the host has `net.ipv4.ip_forward=0`. Image builds use `--network host`, because build steps don't run systemd. The agent itself gets no proxy, so it may log connection errors. That's fine.
 
 ## test-create-user.sh
 
