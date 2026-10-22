@@ -1389,6 +1389,72 @@ describe('forceLocation - connectivity gate', () => {
     }
   });
 
+  it('stop() cancels an in-flight probe: a late "connected" answer sends nothing', () => {
+    locationModule.__set__('writeStorage', (local, cb) => cb(true, false));
+    const fetchSpy = sinon.stub();
+    locationModule.__set__('fetchLocation', fetchSpy);
+    let answerProbe;
+    locationModule.__set__('networkProvider', { get_connection_status: (cb) => { answerProbe = cb; } });
+    locationModule.__set__('hooks', { on: sinon.stub(), remove: sinon.stub() });
+    locationModule.__set__('isOnline', false);
+
+    forceLocation();
+    expect(locationModule.__get__('probing')).to.be.true;
+
+    locationModule.stop();
+    answerProbe('connected');
+
+    expect(fetchSpy.called).to.be.false;
+    expect(locationModule.__get__('isOnline')).to.be.null;
+    expect(locationModule.__get__('probing')).to.be.false;
+    expect(locationModule.__get__('cancelProbe')).to.be.null;
+  });
+
+  it('stop() clears the probe timeout so it never fires afterwards', () => {
+    locationModule.__set__('writeStorage', (local, cb) => cb(true, false));
+    locationModule.__set__('fetchLocation', sinon.stub());
+    locationModule.__set__('networkProvider', { get_connection_status: sinon.stub() });
+    locationModule.__set__('hooks', { on: sinon.stub(), remove: sinon.stub() });
+    locationModule.__set__('isOnline', false);
+    const clock = sinon.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+    locationModule.__set__({ setTimeout, clearTimeout });
+    try {
+      forceLocation();
+      locationModule.stop();
+      fakeLogger.info.resetHistory();
+      clock.tick(locationModule.__get__('CONNECTIVITY_PROBE_TIMEOUT_MS'));
+
+      expect(fakeLogger.info.calledWith('Connectivity probe timed out')).to.be.false;
+      expect(clock.countTimers()).to.equal(0);
+    } finally {
+      clock.restore();
+    }
+  });
+
+  it('a probe started after stop()/restart is independent of the cancelled one', () => {
+    locationModule.__set__('writeStorage', (local, cb) => cb(true, false));
+    const fetchSpy = sinon.stub();
+    locationModule.__set__('fetchLocation', fetchSpy);
+    const answers = [];
+    locationModule.__set__('networkProvider', { get_connection_status: (cb) => { answers.push(cb); } });
+    locationModule.__set__('hooks', { on: sinon.stub(), remove: sinon.stub() });
+    locationModule.__set__('isOnline', false);
+
+    forceLocation();
+    locationModule.stop();
+    locationModule.__set__('isOnline', false);
+    locationModule.__set__('lastForceRun', 0);
+    forceLocation();
+    expect(answers).to.have.lengthOf(2);
+
+    answers[0]('connected'); // late answer of the cancelled probe: ignored
+    expect(fetchSpy.called).to.be.false;
+    expect(locationModule.__get__('probing')).to.be.true;
+
+    answers[1]('connected');
+    expect(fetchSpy.calledOnce).to.be.true;
+  });
+
   it('treats a throwing probe as offline without crashing', () => {
     locationModule.__set__('writeStorage', (local, cb) => cb(true, false));
     const fetchSpy = sinon.stub();
