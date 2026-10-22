@@ -1297,17 +1297,111 @@ describe('forceLocation - connectivity gate', () => {
     forceLocation = locationModule.__get__('forceLocation');
   });
 
-  it('skips fetchLocation and marks pending when offline', () => {
+  it('skips fetchLocation and marks pending when offline (probe confirms offline)', () => {
     locationModule.__set__('writeStorage', (local, cb) => cb(true, false));
     const fetchSpy = sinon.stub();
     locationModule.__set__('fetchLocation', fetchSpy);
+    locationModule.__set__('networkProvider', { get_connection_status: (cb) => cb('disconnected') });
     locationModule.__set__('isOnline', false);
 
     forceLocation();
 
     expect(fetchSpy.called).to.be.false;
     expect(locationModule.__get__('forcePending')).to.be.true;
+    expect(locationModule.__get__('isOnline')).to.be.false;
+    expect(locationModule.__get__('probing')).to.be.false;
     expect(fakeLogger.info.calledWith('Force location deferred: offline, will retry when connectivity is restored')).to.be.true;
+  });
+
+  it('sends when the cached state is offline but the probe finds the device online', () => {
+    // Regression: websockets onPong emits 'disconnected' after a 30+ min gap (sleep/reboot)
+    // while the device is online, and no 'connected' follows. The stale flag must not block.
+    locationModule.__set__('writeStorage', (local, cb) => cb(true, false));
+    const fetchSpy = sinon.stub();
+    locationModule.__set__('fetchLocation', fetchSpy);
+    const probe = sinon.stub().callsFake((cb) => cb('connected'));
+    locationModule.__set__('networkProvider', { get_connection_status: probe });
+    locationModule.__set__('isOnline', false);
+
+    forceLocation();
+
+    expect(probe.calledOnce).to.be.true;
+    expect(fetchSpy.calledOnce).to.be.true;
+    expect(fetchSpy.firstCall.args[0]).to.equal('force');
+    expect(locationModule.__get__('isOnline')).to.be.true;
+  });
+
+  it('does not probe when the cached state is online', () => {
+    locationModule.__set__('writeStorage', (local, cb) => cb(true, false));
+    locationModule.__set__('fetchLocation', sinon.stub());
+    const probe = sinon.stub();
+    locationModule.__set__('networkProvider', { get_connection_status: probe });
+    locationModule.__set__('isOnline', true);
+
+    forceLocation();
+
+    expect(probe.called).to.be.false;
+  });
+
+  it('never stacks probes: a tick while a probe is in flight defers without probing again', () => {
+    locationModule.__set__('writeStorage', (local, cb) => cb(true, false));
+    const fetchSpy = sinon.stub();
+    locationModule.__set__('fetchLocation', fetchSpy);
+    const probe = sinon.stub(); // never answers: probe stays in flight
+    locationModule.__set__('networkProvider', { get_connection_status: probe });
+    locationModule.__set__('isOnline', false);
+    // rewire captures timer globals at load time: inject the fake ones explicitly.
+    const clock = sinon.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+    locationModule.__set__({ setTimeout, clearTimeout });
+    try {
+      forceLocation();
+      expect(locationModule.__get__('probing')).to.be.true;
+      locationModule.__set__('lastForceRun', 0); // bypass MIN_FORCE_SPACING_MS for the second tick
+      forceLocation();
+
+      expect(probe.calledOnce).to.be.true;
+      expect(fetchSpy.called).to.be.false;
+      expect(locationModule.__get__('forcePending')).to.be.true;
+    } finally {
+      clock.restore();
+    }
+  });
+
+  it('a hung probe times out, defers, and releases the probing flag', () => {
+    locationModule.__set__('writeStorage', (local, cb) => cb(true, false));
+    const fetchSpy = sinon.stub();
+    locationModule.__set__('fetchLocation', fetchSpy);
+    locationModule.__set__('networkProvider', { get_connection_status: sinon.stub() });
+    locationModule.__set__('isOnline', false);
+    // rewire captures timer globals at load time: inject the fake ones explicitly.
+    const clock = sinon.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+    locationModule.__set__({ setTimeout, clearTimeout });
+    try {
+      forceLocation();
+      expect(locationModule.__get__('probing')).to.be.true;
+      clock.tick(locationModule.__get__('CONNECTIVITY_PROBE_TIMEOUT_MS'));
+
+      expect(locationModule.__get__('probing')).to.be.false;
+      expect(locationModule.__get__('forcePending')).to.be.true;
+      expect(fetchSpy.called).to.be.false;
+    } finally {
+      clock.restore();
+    }
+  });
+
+  it('treats a throwing probe as offline without crashing', () => {
+    locationModule.__set__('writeStorage', (local, cb) => cb(true, false));
+    const fetchSpy = sinon.stub();
+    locationModule.__set__('fetchLocation', fetchSpy);
+    locationModule.__set__('networkProvider', {
+      get_connection_status: () => { throw new Error('boom'); },
+    });
+    locationModule.__set__('isOnline', false);
+
+    expect(() => forceLocation()).to.not.throw();
+    expect(fetchSpy.called).to.be.false;
+    expect(locationModule.__get__('forcePending')).to.be.true;
+    expect(locationModule.__get__('probing')).to.be.false;
   });
 
   it('attempts fetchLocation when online', () => {
