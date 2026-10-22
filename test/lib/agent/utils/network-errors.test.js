@@ -3,6 +3,7 @@ const { expect } = require('chai');
 
 const {
   isConnectionError,
+  isInterfaceEnumerationError,
   collectCodes,
   CONNECTION_ERROR_CODES,
 } = require('../../../../lib/agent/utils/network-errors');
@@ -130,6 +131,35 @@ describe('network-errors helper', () => {
     it('returns an empty array for non-Error input', () => {
       expect(collectCodes(null)).to.deep.equal([]);
       expect(collectCodes('x')).to.deep.equal([]);
+    });
+  });
+
+  describe('isInterfaceEnumerationError', () => {
+    const systemError = (message) => {
+      const err = new Error(message);
+      err.code = 'ERR_SYSTEM_ERROR';
+      return err;
+    };
+
+    it('matches the os.networkInterfaces() failure (OWCA-633)', () => {
+      expect(isInterfaceEnumerationError(
+        systemError('A system error occurred: uv_interface_addresses returned Unknown system error 2'),
+      )).to.equal(true);
+    });
+
+    it('does not match other ERR_SYSTEM_ERROR failures', () => {
+      expect(isInterfaceEnumerationError(systemError('A system error occurred: uv_os_homedir returned ENOENT')))
+        .to.equal(false);
+    });
+
+    it('does not match the message without the ERR_SYSTEM_ERROR code', () => {
+      expect(isInterfaceEnumerationError(new Error('uv_interface_addresses returned Unknown system error 2')))
+        .to.equal(false);
+    });
+
+    it('is safe on non-Error input', () => {
+      expect(isInterfaceEnumerationError(null)).to.equal(false);
+      expect(isInterfaceEnumerationError('uv_interface_addresses')).to.equal(false);
     });
   });
 });

@@ -421,5 +421,56 @@ describe('Status Trigger', () => {
     it('should not throw when called without a prior start', () => {
       expect(() => statusModule.stop()).to.not.throw();
     });
+
+    it('removes only its own listeners (by reference), never every listener of the event', (done) => {
+      statusModule.start({}, () => {
+        statusModule.stop();
+        ['connected', 'disconnected', 'network_state_changed'].forEach((event) => {
+          expect(hooksStub.remove.calledWith(event, sinon.match.func)).to.be.true;
+          // hooks.remove(event) with no function wipes other modules' listeners.
+          expect(hooksStub.remove.getCalls().some((c) => c.args[0] === event && c.args.length < 2))
+            .to.be.false;
+        });
+        done();
+      });
+    });
+
+    it('keeps other modules\' connected/disconnected listeners on a real emitter', (done) => {
+      const { EventEmitter } = require('events');
+      const emitter = new EventEmitter();
+      emitter.remove = (event, fn) => {
+        if (fn) emitter.removeListener(event, fn);
+        else if (event) emitter.removeAllListeners(event);
+      };
+      statusModule.__set__('hooks', emitter);
+      const foreign = () => {};
+      emitter.on('connected', foreign);
+      emitter.on('disconnected', foreign);
+
+      statusModule.start({}, () => {
+        statusModule.stop();
+        expect(emitter.listeners('connected')).to.deep.equal([foreign]);
+        expect(emitter.listeners('disconnected')).to.deep.equal([foreign]);
+        done();
+      });
+    });
+  });
+
+  describe('repeated connected events', () => {
+    it('does not stack status intervals', (done) => {
+      clock = sinon.useFakeTimers();
+      statusModule.__set__({ setInterval, clearInterval });
+      const statusInfo = sinon.stub(statusModule, 'status_info');
+      statusModule.start({}, () => {
+        const connected = hooksStub.on.getCalls().find((c) => c.args[0] === 'connected').args[1];
+        connected();
+        connected();
+        connected();
+        clock.tick(3 * 60 * 1000);
+        expect(statusInfo.callCount).to.equal(1);
+        statusModule.stop();
+        done();
+      });
+    });
   });
 });

@@ -51,7 +51,11 @@ describe('commands', () => {
     let storageStub;
 
     beforeEach(() => {
-      deviceStateStub = { setMissing: sinon.stub().callsFake((m, cb) => cb && cb()) };
+      deviceStateStub = {
+        setMissing: sinon.stub().callsFake((m, cb) => cb && cb()),
+        isMissingPending: sinon.stub().returns(false),
+        clear: sinon.stub().callsFake((cb) => cb && cb()),
+      };
       reportsStub = {
         get: sinon.stub(),
         cancel: sinon.stub(),
@@ -79,6 +83,32 @@ describe('commands', () => {
       expect(deviceStateStub.setMissing.firstCall.args[0]).to.equal(false);
       // command was rewritten to cancel/stolen
       expect(reportsStub.cancel.calledWith('stolen')).to.be.true;
+      // The recover intent it just recorded must not be cleared.
+      expect(deviceStateStub.clear.called).to.be.false;
+    });
+
+    it('cancel/stolen from the panel discards a pending missing intent', () => {
+      deviceStateStub.isMissingPending.returns(true);
+      commandsModule.perform({ command: 'cancel', target: 'stolen', options: {} });
+
+      expect(reportsStub.cancel.calledWith('stolen')).to.be.true;
+      expect(deviceStateStub.clear.calledOnce).to.be.true;
+    });
+
+    it('cancel/stolen does not clear anything when no missing intent is pending', () => {
+      deviceStateStub.isMissingPending.returns(false);
+      commandsModule.perform({ command: 'cancel', target: 'stolen', options: {} });
+
+      expect(deviceStateStub.clear.called).to.be.false;
+    });
+
+    it('start/missing while a stolen report runs keeps the missing intent it just set', () => {
+      reportsStub.running.returns([{ name: 'stolen' }]);
+      deviceStateStub.isMissingPending.returns(true);
+      commandsModule.perform({ command: 'start', target: 'missing', options: {} });
+
+      expect(deviceStateStub.setMissing.firstCall.args[0]).to.equal(true);
+      expect(deviceStateStub.clear.called).to.be.false;
     });
   });
 });
