@@ -300,6 +300,89 @@ describe('device-state', function () {
     });
   });
 
+  describe('read-only DB: a stale row never overrides a newer memory-only intent', () => {
+    // Reads work, writes and deletes fail (read-only DB). A stale missing=1 row is left over.
+    const readOnlyStorage = () => {
+      const original = storageStub.do;
+      storageStub.do = sinon.stub().callsFake((op, opts, cb) => {
+        if (op === 'set' || op === 'del' || op === 'update') return cb && cb(new Error('SQLITE_READONLY'));
+        return original(op, opts, cb);
+      });
+    };
+
+    beforeEach(() => {
+      store.current = {
+        id: 'current', missing: 1, confirmed: 0, time: Date.now() - 60000, retries: 0,
+      };
+      readOnlyStorage();
+    });
+
+    it('flush delivers the newer recover (false), not the stale missing row (true)', (done) => {
+      postMissingStub.onFirstCall().callsFake((missing, cb) => cb(errWithCode('ENETDOWN')));
+      postMissingStub.onSecondCall().callsFake((missing, cb) => cb(null));
+      deviceState.setMissing(false, () => {
+        deviceState.flush(() => {
+          expect(postMissingStub.callCount).to.equal(2);
+          expect(postMissingStub.getCalls().map((c) => c.args[0])).to.deep.equal([false, false]);
+          done();
+        });
+      });
+    });
+
+    it('after the recover is delivered, later flushes never send the undeletable stale row', (done) => {
+      postMissingStub.callsFake((missing, cb) => cb(null));
+      deviceState.setMissing(false, () => {
+        expect(store.current, 'row could not be deleted').to.exist;
+        deviceState.flush(() => {
+          deviceState.flush(() => {
+            expect(postMissingStub.callCount).to.equal(1);
+            expect(postMissingStub.firstCall.args[0]).to.equal(false);
+            expect(deviceState.isMissingPending()).to.be.false;
+            done();
+          });
+        });
+      });
+    });
+
+    it('while the memory-only recover keeps failing, the stale row is not sent either', (done) => {
+      postMissingStub.callsFake((missing, cb) => cb(errWithCode('ENETDOWN')));
+      deviceState.setMissing(false, () => {
+        deviceState.flush(() => {
+          deviceState.flush(() => {
+            expect(postMissingStub.getCalls().every((c) => c.args[0] === false)).to.be.true;
+            done();
+          });
+        });
+      });
+    });
+
+    it('loadFromStorage keeps the memory-only intent instead of hydrating the stale row', (done) => {
+      postMissingStub.callsFake((missing, cb) => cb(errWithCode('ENETDOWN')));
+      deviceState.setMissing(false, () => {
+        deviceState.loadFromStorage((err, missingPending) => {
+          expect(err).to.be.null;
+          expect(missingPending).to.be.false;
+          expect(postMissingStub.getCalls().every((c) => c.args[0] === false)).to.be.true;
+          done();
+        });
+      });
+    });
+
+    it('a newer row written after the memory-only intent is still delivered', (done) => {
+      postMissingStub.callsFake((missing, cb) => cb(null));
+      deviceState.setMissing(false, () => {
+        // DB becomes writable again and a newer missing intent is persisted.
+        store.current = {
+          id: 'current', missing: 1, confirmed: 0, time: Date.now() + 1000, retries: 0,
+        };
+        deviceState.flush(() => {
+          expect(postMissingStub.lastCall.args[0]).to.equal(true);
+          done();
+        });
+      });
+    });
+  });
+
   describe('isMissingPending', () => {
     it('is false initially', () => {
       expect(deviceState.isMissingPending()).to.be.false;
