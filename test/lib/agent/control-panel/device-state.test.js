@@ -4,7 +4,7 @@ const rewire = require('rewire');
 const sinon = require('sinon');
 const { expect } = require('chai');
 
-const MAX_RESPONSE_AGE = 365 * 24 * 60 * 60 * 1000;
+const MAX_INTENT_AGE_MS = 7 * 24 * 60 * 60 * 1000;
 
 const errWithCode = (code) => {
   const e = new Error(code);
@@ -34,6 +34,12 @@ describe('device-state', function () {
           delete store[opts.id];
           return cb && cb(null);
         }
+        if (op === 'update') {
+          if (store[opts.id]) {
+            opts.columns.forEach((col, i) => { store[opts.id][col] = opts.values[i]; });
+          }
+          return cb && cb(null);
+        }
         return cb && cb(null);
       }),
     };
@@ -45,7 +51,6 @@ describe('device-state', function () {
     postMissingStub = sinon.stub();
     deviceState.__set__('storage', storageStub);
     deviceState.__set__('api', { devices: { post_missing: postMissingStub } });
-    deviceState.__set__('constants', { MAX_RESPONSE_AGE });
     deviceState.__set__('logger', {
       info: sinon.stub(), warn: sinon.stub(), debug: sinon.stub(), error: sinon.stub(),
     });
@@ -55,7 +60,7 @@ describe('device-state', function () {
 
   describe('setMissing', () => {
     it('persists the intent and posts missing=true', (done) => {
-      postMissingStub.callsFake((missing, cb) => cb(errWithCode('NETWORK_DOWN')));
+      postMissingStub.callsFake((missing, cb) => cb(errWithCode('ENETDOWN')));
       deviceState.setMissing(true, () => {
         expect(postMissingStub.calledOnceWith(true)).to.be.true;
         expect(store.current).to.exist;
@@ -66,7 +71,7 @@ describe('device-state', function () {
     });
 
     it('keeps the row pending when delivery fails (offline)', (done) => {
-      postMissingStub.callsFake((missing, cb) => cb(errWithCode('NETWORK_DOWN')));
+      postMissingStub.callsFake((missing, cb) => cb(errWithCode('ENETDOWN')));
       deviceState.setMissing(true, () => {
         expect(store.current).to.exist;
         expect(deviceState.isMissingPending()).to.be.true;
@@ -102,7 +107,7 @@ describe('device-state', function () {
     });
 
     it('a recover intent (missing=false) is not "missing pending"', (done) => {
-      postMissingStub.callsFake((missing, cb) => cb(errWithCode('NETWORK_DOWN')));
+      postMissingStub.callsFake((missing, cb) => cb(errWithCode('ENETDOWN')));
       deviceState.setMissing(false, () => {
         expect(store.current).to.exist;
         expect(store.current.missing).to.equal(0);
@@ -112,7 +117,7 @@ describe('device-state', function () {
     });
 
     it('recover supersedes an earlier missing (single row, latest wins)', (done) => {
-      postMissingStub.callsFake((missing, cb) => cb(errWithCode('NETWORK_DOWN')));
+      postMissingStub.callsFake((missing, cb) => cb(errWithCode('ENETDOWN')));
       deviceState.setMissing(true, () => {
         deviceState.setMissing(false, () => {
           expect(Object.keys(store)).to.have.lengthOf(1);
@@ -133,9 +138,9 @@ describe('device-state', function () {
       });
     });
 
-    it('discards an intent older than MAX_RESPONSE_AGE', (done) => {
+    it('discards an intent older than 7 days', (done) => {
       store.current = {
-        id: 'current', missing: 1, confirmed: 0, time: Date.now() - (MAX_RESPONSE_AGE + 1000), retries: 0,
+        id: 'current', missing: 1, confirmed: 0, time: Date.now() - (MAX_INTENT_AGE_MS + 1000), retries: 0,
       };
       deviceState.flush(() => {
         expect(store.current).to.not.exist;
@@ -152,6 +157,114 @@ describe('device-state', function () {
       deviceState.flush(() => {
         expect(postMissingStub.calledOnceWith(true)).to.be.true;
         expect(store.current).to.not.exist;
+        done();
+      });
+    });
+  });
+
+  describe('bounded retries', () => {
+    it('keeps an intent younger than 7 days', (done) => {
+      store.current = {
+        id: 'current', missing: 1, confirmed: 0, time: Date.now() - (MAX_INTENT_AGE_MS - 60000), retries: 0,
+      };
+      postMissingStub.callsFake((missing, cb) => cb(errWithCode('ENETDOWN')));
+      deviceState.flush(() => {
+        expect(postMissingStub.calledOnce).to.be.true;
+        expect(store.current).to.exist;
+        done();
+      });
+    });
+
+    it('a network error does not count as a rejection', (done) => {
+      store.current = {
+        id: 'current', missing: 1, confirmed: 0, time: Date.now(), retries: 0,
+      };
+      postMissingStub.callsFake((missing, cb) => cb(errWithCode('ECONNREFUSED')));
+      deviceState.flush(() => {
+        expect(store.current.retries).to.equal(0);
+        done();
+      });
+    });
+
+    it('MISSING_KEY does not count as a rejection', (done) => {
+      store.current = {
+        id: 'current', missing: 1, confirmed: 0, time: Date.now(), retries: 0,
+      };
+      postMissingStub.callsFake((missing, cb) => cb(errWithCode('MISSING_KEY')));
+      deviceState.flush(() => {
+        expect(store.current.retries).to.equal(0);
+        done();
+      });
+    });
+
+    it('a panel rejection (UNKNOWN_RESPONSE) increments retries and keeps the row', (done) => {
+      store.current = {
+        id: 'current', missing: 1, confirmed: 0, time: Date.now(), retries: 3,
+      };
+      postMissingStub.callsFake((missing, cb) => cb(errWithCode('UNKNOWN_RESPONSE')));
+      deviceState.flush((err) => {
+        expect(err).to.be.an('error');
+        expect(store.current).to.exist;
+        expect(store.current.retries).to.equal(4);
+        done();
+      });
+    });
+
+    it('discards the intent on the 10th rejection', (done) => {
+      store.current = {
+        id: 'current', missing: 1, confirmed: 0, time: Date.now(), retries: 9,
+      };
+      postMissingStub.callsFake((missing, cb) => cb(new Error('Invalid option for missing action')));
+      deviceState.flush(() => {
+        expect(store.current).to.not.exist;
+        expect(deviceState.isMissingPending()).to.be.false;
+        done();
+      });
+    });
+  });
+
+  describe('persist failure (read-only / locked DB)', () => {
+    const failingSet = () => {
+      const original = storageStub.do;
+      storageStub.do = sinon.stub().callsFake((op, opts, cb) => {
+        if (op === 'set') return cb(new Error('SQLITE_READONLY'));
+        return original(op, opts, cb);
+      });
+    };
+
+    it('still posts the state to the panel when the row cannot be written', (done) => {
+      failingSet();
+      postMissingStub.callsFake((missing, cb) => cb(null));
+      deviceState.setMissing(true, (err) => {
+        expect(err).to.be.undefined;
+        expect(postMissingStub.calledOnceWith(true)).to.be.true;
+        expect(deviceState.isMissingPending()).to.be.false;
+        done();
+      });
+    });
+
+    it('keeps the intent in memory and retries it on the next flush if delivery fails', (done) => {
+      failingSet();
+      postMissingStub.onFirstCall().callsFake((missing, cb) => cb(errWithCode('ENETDOWN')));
+      postMissingStub.onSecondCall().callsFake((missing, cb) => cb(null));
+      deviceState.setMissing(true, () => {
+        expect(deviceState.isMissingPending()).to.be.true;
+        deviceState.flush(() => {
+          expect(postMissingStub.calledTwice).to.be.true;
+          expect(postMissingStub.secondCall.args[0]).to.equal(true);
+          expect(deviceState.isMissingPending()).to.be.false;
+          done();
+        });
+      });
+    });
+
+    it('drops a memory-only intent older than 7 days', (done) => {
+      deviceState.__set__('pendingMissing', {
+        missing: true, confirmed: false, time: Date.now() - (MAX_INTENT_AGE_MS + 1000), retries: 0, memoryOnly: true,
+      });
+      deviceState.flush(() => {
+        expect(postMissingStub.called).to.be.false;
+        expect(deviceState.isMissingPending()).to.be.false;
         done();
       });
     });
@@ -176,7 +289,7 @@ describe('device-state', function () {
       store.current = {
         id: 'current', missing: 1, confirmed: 0, time: Date.now(), retries: 0,
       };
-      postMissingStub.callsFake((missing, cb) => cb(errWithCode('NETWORK_DOWN')));
+      postMissingStub.callsFake((missing, cb) => cb(errWithCode('ENETDOWN')));
       deviceState.loadFromStorage((err, missingPending) => {
         expect(missingPending).to.be.true;
         expect(postMissingStub.calledWith(true)).to.be.true;
