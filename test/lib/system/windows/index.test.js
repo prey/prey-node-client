@@ -50,20 +50,21 @@ describe('lib/system/windows/index', () => {
       });
     });
 
-    it('calls callback with error when exec fails via callback', (done) => {
+    it('reports an undetermined user (not "no user") when exec fails via callback', (done) => {
       execStub.callsFake((cmd, opts, cb) => cb(new Error('exec failed')));
 
       windowsModule.find_logged_user((err) => {
-        expect(err.message).to.equal('No logged user found.');
+        // A failed/timed-out lookup does not prove nobody is logged in.
+        expect(err.message).to.equal('Unable to determine logged user.');
         done();
       });
     });
 
-    it('calls callback with error when exec returns empty stdout', (done) => {
+    it('reports an undetermined user (not "no user") when exec returns empty stdout', (done) => {
       execStub.callsFake((cmd, opts, cb) => cb(null, ''));
 
       windowsModule.find_logged_user((err) => {
-        expect(err.message).to.equal('No logged user found.');
+        expect(err.message).to.equal('Unable to determine logged user.');
         done();
       });
     });
