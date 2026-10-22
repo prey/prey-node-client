@@ -197,15 +197,45 @@ describe('device-state', function () {
       });
     });
 
-    it('a panel rejection (UNKNOWN_RESPONSE) increments retries and keeps the row', (done) => {
+    const httpError = (statusCode) => Object.assign(errWithCode('UNKNOWN_RESPONSE'), { statusCode });
+
+    [422, 404].forEach((status) => {
+      it(`a panel rejection (HTTP ${status}) increments retries and keeps the row`, (done) => {
+        store.current = {
+          id: 'current', missing: 1, confirmed: 0, time: Date.now(), retries: 3,
+        };
+        postMissingStub.callsFake((missing, cb) => cb(httpError(status)));
+        deviceState.flush((err) => {
+          expect(err).to.be.an('error');
+          expect(store.current).to.exist;
+          expect(store.current.retries).to.equal(4);
+          done();
+        });
+      });
+    });
+
+    [500, 502, 503, 504].forEach((status) => {
+      it(`a server error (HTTP ${status}) is transient: retries unchanged, row kept`, (done) => {
+        store.current = {
+          id: 'current', missing: 1, confirmed: 0, time: Date.now(), retries: 9,
+        };
+        postMissingStub.callsFake((missing, cb) => cb(httpError(status)));
+        deviceState.flush(() => {
+          // One more rejection would discard it; a 5xx must not count.
+          expect(store.current).to.exist;
+          expect(store.current.retries).to.equal(9);
+          done();
+        });
+      });
+    });
+
+    it('an error without an HTTP status is transient', (done) => {
       store.current = {
-        id: 'current', missing: 1, confirmed: 0, time: Date.now(), retries: 3,
+        id: 'current', missing: 1, confirmed: 0, time: Date.now(), retries: 0,
       };
-      postMissingStub.callsFake((missing, cb) => cb(errWithCode('UNKNOWN_RESPONSE')));
-      deviceState.flush((err) => {
-        expect(err).to.be.an('error');
-        expect(store.current).to.exist;
-        expect(store.current.retries).to.equal(4);
+      postMissingStub.callsFake((missing, cb) => cb(new Error('socket hang up')));
+      deviceState.flush(() => {
+        expect(store.current.retries).to.equal(0);
         done();
       });
     });
