@@ -195,3 +195,45 @@ describe('Hardware_Provider', () => {
     });
   });
 });
+
+describe('Hardware_Provider - network interface getters (OWCA-633)', () => {
+  const rewire = require('rewire');
+  const throwSystemError = () => {
+    const err = new Error('A system error occurred: uv_interface_addresses returned Unknown system error 2');
+    err.code = 'ERR_SYSTEM_ERROR';
+    throw err;
+  };
+  let hardware;
+
+  beforeEach(() => {
+    hardware = rewire('../../../../../lib/agent/providers/hardware');
+    hardware.__set__('network', { get_interfaces_list: throwSystemError });
+  });
+
+  it('get_network_interfaces_list turns a throw into a not-fatal callback error', (done) => {
+    expect(() => hardware.get_network_interfaces_list((err, list) => {
+      expect(err).to.be.an('error');
+      expect(err.level).to.equal('not fatal');
+      expect(list).to.be.undefined;
+      done();
+    })).to.not.throw();
+  });
+
+  it('get_first_mac_address turns a throw into a not-fatal callback error', (done) => {
+    hardware.get_first_mac_address((err) => {
+      expect(err).to.be.an('error');
+      expect(err.level).to.equal('not fatal');
+      done();
+    });
+  });
+
+  it('get_network_interfaces_list forwards the list on success', (done) => {
+    const list = [{ name: 'Ethernet', mac_address: 'aa:bb:cc:dd:ee:ff' }];
+    hardware.__set__('network', { get_interfaces_list: (cb) => cb(null, list) });
+    hardware.get_network_interfaces_list((err, result) => {
+      expect(err).to.be.null;
+      expect(result).to.equal(list);
+      done();
+    });
+  });
+});

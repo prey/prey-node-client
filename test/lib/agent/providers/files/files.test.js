@@ -137,8 +137,9 @@ describe('Files_Provider get_tree', () => {
     });
   });
 
-  (isWindows ? it : it.skip)('fails fast when there is no logged user (locked session)', (done) => {
-    const noUser = new Error('No logged user detected.');
+  (isWindows ? it : it.skip)('fails fast when there is no logged user', (done) => {
+    // Shape produced by system.get_logged_user when find_logged_user confirms no user.
+    const noUser = new Error('No logged user detected. No logged user found.');
     // @ts-ignore — attaching a runtime error code
     noUser.code = 'NO_LOGGED_USER';
     getLoggedUserStub.callsFake((cb) => cb(noUser));
@@ -148,6 +149,33 @@ describe('Files_Provider get_tree', () => {
       // it does not consume the quota (still logged to prey.log).
       expect(err.level).to.equal('not fatal');
       expect(runAsUserStub.called).to.be.false;
+      done();
+    });
+  });
+
+  (isWindows ? it : it.skip)('still runs the tree when the screen is locked', (done) => {
+    const locked = new Error('No logged user detected. DOMAIN\tester - System on Windows Lock Screen state.');
+    // @ts-ignore — attaching a runtime error code
+    locked.code = 'NO_LOGGED_USER';
+    getLoggedUserStub.callsFake((cb) => cb(locked));
+    runAsUserStub.callsFake((o, cb) => cb(null, `${START}[]${END}`, ''));
+    filesProvider.get_tree(opts, (err, data) => {
+      expect(err).to.be.null;
+      expect(runAsUserStub.calledOnce).to.be.true;
+      expect(data).to.equal('[]');
+      done();
+    });
+  });
+
+  (isWindows ? it : it.skip)('still runs the tree when the logged-user lookup fails', (done) => {
+    const unknown = new Error('No logged user detected. Unable to determine logged user.');
+    // @ts-ignore — attaching a runtime error code
+    unknown.code = 'NO_LOGGED_USER';
+    getLoggedUserStub.callsFake((cb) => cb(unknown));
+    runAsUserStub.callsFake((o, cb) => cb(null, `${START}[]${END}`, ''));
+    filesProvider.get_tree(opts, (err) => {
+      expect(err).to.be.null;
+      expect(runAsUserStub.calledOnce).to.be.true;
       done();
     });
   });

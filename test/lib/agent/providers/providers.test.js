@@ -29,6 +29,32 @@ describe('Providers', () => {
     sinon.restore();
   });
 
+  describe('get: network_interfaces_list through the loader (OWCA-633)', () => {
+    it('delivers a not-fatal error and does not report it when os.networkInterfaces() throws', (done) => {
+      // eslint-disable-next-line global-require
+      const rewire = require('rewire');
+      const hardware = rewire('../../../../lib/agent/providers/hardware');
+      hardware.__set__('network', {
+        get_interfaces_list: () => {
+          const err = new Error('A system error occurred: uv_interface_addresses returned Unknown system error 2');
+          err.code = 'ERR_SYSTEM_ERROR';
+          throw err;
+        },
+      });
+      sinon.stub(providers, 'map').callsFake((cb) => {
+        cb(null, { network_interfaces_list: hardware.get_network_interfaces_list });
+      });
+
+      providers.get('network_interfaces_list', (err) => {
+        expect(err).to.be.an('error');
+        expect(err.level).to.equal('not fatal');
+        // The getter handled it: the loader's catch (which reports to exceptions) is not hit.
+        expect(exceptionsSendStub.called).to.be.false;
+        done();
+      });
+    });
+  });
+
   describe('get', () => {
     describe('when provider throws an exception', () => {
       it('should catch the error and not crash the process', (done) => {

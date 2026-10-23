@@ -19,6 +19,9 @@ describe('conf/migrate', () => {
   const installDir = path.join('custom', 'Prey');
 
   const presentFiles = ['commands.db', 'prey.conf', 'prey.log', 'prey.log.1.gz'];
+  // Files already present in the install dir (target). Empty by default (clean target).
+  let targetFiles;
+  let pidfileFake;
 
   const forceWindows = () => {
     Object.defineProperty(process, 'platform', { value: 'win32', configurable: true });
@@ -39,7 +42,9 @@ describe('conf/migrate', () => {
     fsFake = {
       existsSync: sinon.stub().callsFake((p) => {
         if (p === legacyDir) return true;
-        return presentFiles.includes(path.basename(p));
+        if (path.dirname(p) === legacyDir) return presentFiles.includes(path.basename(p));
+        if (path.dirname(p) === installDir) return targetFiles.includes(path.basename(p));
+        return false;
       }),
       readdirSync: sinon.stub().returns([
         'commands.db', 'prey.conf', 'prey.log', 'prey_restarts.log',
@@ -58,8 +63,14 @@ describe('conf/migrate', () => {
       backupDatabase: sinon.stub().callsFake((db, dest, cb) => cb({ handle: true })),
       stepDatabase: sinon.stub().callsFake((handle, cb) => cb(null)),
       closeDatabase: sinon.stub().callsFake((handle, db, cb) => cb(null)),
+      verifyDatabase: sinon.stub().callsFake((p, cb) => cb(null)),
     };
     migrate.__set__('database', databaseFake);
+
+    targetFiles = [];
+    // Agent not running by default: no pidfile.
+    pidfileFake = { read: sinon.stub().callsFake((file, cb) => cb(new Error('ENOENT'))) };
+    migrate.__set__('pidfile', pidfileFake);
   });
 
   afterEach(() => {
@@ -69,7 +80,7 @@ describe('conf/migrate', () => {
     else process.env.WINDIR = originalWindir;
   });
 
-  it('copies present data files to the install dir and backs up originals', (done) => {
+  it('copies present data files to the install dir (copy-only, originals untouched)', (done) => {
     migrate.files({}, (err, msg) => {
       expect(err).to.be.null;
       // commands.db goes through the sqlite backup API.
@@ -77,12 +88,26 @@ describe('conf/migrate', () => {
       expect(databaseFake.createDatabase.firstCall.args[0]).to.equal(path.join(legacyDir, 'commands.db'));
       // prey.conf, prey.log and the one present rotated log are plain copies (3).
       expect(fsFake.copyFile.callCount).to.equal(3);
-      // Originals (4 total) renamed to .bak; prey_restarts.log / prey.log.2.gz were absent.
-      expect(fsFake.rename.callCount).to.equal(4);
-      fsFake.rename.getCalls().forEach((c) => {
-        expect(c.args[1]).to.match(/\.bak$/);
-      });
+      // Copy-only: originals are NEVER renamed/removed, so a downgrade still finds them.
+      expect(fsFake.rename.called).to.be.false;
+      // The copied DB is verified before success.
+      expect(databaseFake.verifyDatabase.calledOnce).to.be.true;
+      expect(databaseFake.verifyDatabase.firstCall.args[0]).to.equal(path.join(installDir, 'commands.db'));
       expect(msg).to.contain('Migrated 4');
+      done();
+    });
+  });
+
+  it('fails and removes the copied DB when post-copy verification fails', (done) => {
+    databaseFake.verifyDatabase.callsFake((p, cb) => cb(new Error('integrity_check failed: corrupt')));
+    migrate.files({}, (err) => {
+      expect(err).to.be.an('error');
+      expect(err.message).to.match(/integrity_check/);
+      // The invalid copy is removed so it is not adopted on the next boot.
+      const rmCall = fsFake.rm.getCalls().find((c) => c.args[0] === path.join(installDir, 'commands.db'));
+      expect(rmCall, 'expected the copied DB to be removed').to.not.be.undefined;
+      // Originals untouched.
+      expect(fsFake.rename.called).to.be.false;
       done();
     });
   });
@@ -127,6 +152,137 @@ describe('conf/migrate', () => {
       expect(fsFake.rename.called).to.be.false;
       done();
     });
+  });
+
+  it('copies commands.db last, after every other file', (done) => {
+    const order = [];
+    fsFake.copyFile.callsFake((src, dest, cb) => { order.push(path.basename(dest)); cb(null); });
+    databaseFake.createDatabase.callsFake((p, cb) => {
+      order.push('commands.db');
+      cb(null, { close: (c) => typeof c === 'function' && c() });
+    });
+    migrate.files({}, (err) => {
+      expect(err).to.be.null;
+      expect(order[order.length - 1]).to.equal('commands.db');
+      expect(order.indexOf('prey.conf')).to.be.lessThan(order.indexOf('commands.db'));
+      done();
+    });
+  });
+
+  it('a failed plain copy leaves no commands.db in the target and cleans up what it copied', (done) => {
+    fsFake.copyFile.callsFake((src, dest, cb) => {
+      if (path.basename(dest) === 'prey.log') return cb(new Error('EBUSY: prey.log is locked'));
+      return cb(null);
+    });
+    migrate.files({}, (err) => {
+      expect(err).to.be.an('error');
+      expect(err.message).to.match(/EBUSY/);
+      // The DB is never copied, so the agent cannot anchor to a half-migrated install dir.
+      expect(databaseFake.createDatabase.called).to.be.false;
+      const removed = fsFake.rm.getCalls().map((c) => c.args[0]);
+      expect(removed).to.include(path.join(installDir, 'prey.conf'));
+      expect(removed).to.include(path.join(installDir, 'prey.log'));
+      // Originals untouched.
+      expect(removed.some((p) => path.dirname(p) === legacyDir)).to.be.false;
+      done();
+    });
+  });
+
+  it('a failed DB copy removes every file it wrote, including the partial DB', (done) => {
+    databaseFake.stepDatabase.callsFake((h, cb) => cb(new Error('SQLITE_FULL')));
+    migrate.files({}, (err) => {
+      expect(err).to.be.an('error');
+      const removed = fsFake.rm.getCalls().map((c) => c.args[0]);
+      ['prey.conf', 'prey.log', 'prey.log.1.gz', 'commands.db'].forEach((f) => {
+        expect(removed).to.include(path.join(installDir, f));
+      });
+      done();
+    });
+  });
+
+  it('refuses while the agent is running, without copying anything', (done) => {
+    pidfileFake.read.callsFake((file, cb) => cb(null, { pid: 1234 }));
+    migrate.files({}, (err) => {
+      expect(err).to.be.an('error');
+      expect(err.message).to.match(/agent is running/);
+      expect(fsFake.mkdir.called).to.be.false;
+      expect(fsFake.copyFile.called).to.be.false;
+      expect(databaseFake.createDatabase.called).to.be.false;
+      done();
+    });
+  });
+
+  it('proceeds when the pidfile points to a dead process', (done) => {
+    pidfileFake.read.callsFake((file, cb) => cb(Object.assign(new Error('kill ESRCH'), { code: 'ESRCH' })));
+    migrate.files({}, (err, msg) => {
+      expect(err).to.be.null;
+      expect(msg).to.contain('Migrated');
+      done();
+    });
+  });
+
+  ['commands.db', 'prey.conf'].forEach((existing) => {
+    it(`refuses when the target already has ${existing} (would overwrite live data)`, (done) => {
+      targetFiles = [existing];
+      migrate.files({}, (err) => {
+        expect(err).to.be.an('error');
+        expect(err.message).to.contain(existing);
+        expect(err.message).to.match(/--force/);
+        expect(fsFake.copyFile.called).to.be.false;
+        expect(databaseFake.createDatabase.called).to.be.false;
+        done();
+      });
+    });
+  });
+
+  it('with -f, moves existing target files aside instead of overwriting them', (done) => {
+    targetFiles = ['commands.db', 'prey.conf'];
+    migrate.files({ '-f': true }, (err, msg) => {
+      expect(err).to.be.null;
+      expect(msg).to.contain('Migrated');
+      const renames = fsFake.rename.getCalls().map((c) => [c.args[0], c.args[1]]);
+      expect(renames).to.deep.include([
+        path.join(installDir, 'prey.conf'), path.join(installDir, 'prey.conf.pre-migrate'),
+      ]);
+      expect(renames).to.deep.include([
+        path.join(installDir, 'commands.db'), path.join(installDir, 'commands.db.pre-migrate'),
+      ]);
+      done();
+    });
+  });
+
+  it('with -f, a failure restores the moved-aside target files', (done) => {
+    targetFiles = ['prey.conf'];
+    databaseFake.verifyDatabase.callsFake((p, cb) => cb(new Error('integrity_check failed')));
+    migrate.files({ '-f': true }, (err) => {
+      expect(err).to.be.an('error');
+      const renames = fsFake.rename.getCalls().map((c) => [c.args[0], c.args[1]]);
+      expect(renames).to.deep.include([
+        path.join(installDir, 'prey.conf.pre-migrate'), path.join(installDir, 'prey.conf'),
+      ]);
+      done();
+    });
+  });
+
+  it('-f/--force reaches migrate.files through the Operetta CLI parser (adapter path)', (done) => {
+    // eslint-disable-next-line global-require
+    const { Operetta } = require('../../../lib/conf/utils/operetta');
+    targetFiles = ['prey.conf'];
+    // Mirrors lib/conf/cli.js: a 'migrate_files' command that registers the flag and
+    // hands the parsed values to migrate.files through run() (scope.start -> command).
+    const cli = new Operetta(['migrate_files', '--force'], 'config');
+    cli.command('migrate_files', 'migrate', (cmd) => {
+      cmd.options(['-f', '--force'], 'force');
+      cmd.start((values) => {
+        migrate.files(values, (err, msg) => {
+          expect(values['-f']).to.equal(true);
+          expect(err).to.be.null;
+          expect(msg).to.contain('Migrated');
+          done();
+        });
+      });
+    });
+    cli.start();
   });
 
   it('works when invoked through the CLI run() adapter shape (values, cb)', (done) => {

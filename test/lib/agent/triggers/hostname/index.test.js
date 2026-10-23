@@ -248,8 +248,11 @@ describe('Hostname Trigger', () => {
       hostnameRewired.start({}, () => {
         hostnameRewired.stop();
         expect(triggersStub.unwatch.calledWith('hostname')).to.be.true;
-        expect(hooksStub.remove.calledWith('connected')).to.be.true;
-        expect(hooksStub.remove.calledWith('disconnected')).to.be.true;
+        // Removed by reference: hooks.remove(event) without a function would also wipe
+        // every other module's 'connected'/'disconnected' listeners.
+        expect(hooksStub.remove.calledWith('connected', sinon.match.func)).to.be.true;
+        expect(hooksStub.remove.calledWith('disconnected', sinon.match.func)).to.be.true;
+        expect(hooksStub.remove.getCalls().some((c) => c.args.length < 2)).to.be.false;
         done();
       });
 
