@@ -117,3 +117,43 @@ describe('lib/system/index get_logged_user', () => {
     });
   });
 });
+
+// OWCA-639: system.user_agent must always be a valid string, even when the
+// platform's get_os_version fails (e.g. a Linux box without `lsb_release`).
+// Otherwise every HTTP call site that injects it as a header crashes with
+// ERR_HTTP_INVALID_HEADER_VALUE.
+describe('lib/system/index user_agent initialization (OWCA-639)', () => {
+  const osName = process.platform.replace('darwin', 'mac').replace('win32', 'windows');
+  // The platform module is the same singleton that lib/system mutates.
+  // eslint-disable-next-line global-require, import/no-dynamic-require
+  const platform = require(`../../../lib/system/${osName}`);
+  let getOsVersionStub;
+
+  const reloadSystem = () => {
+    delete require.cache[SYSTEM_PATH];
+    // eslint-disable-next-line global-require, import/no-dynamic-require
+    return require('../../../lib/system');
+  };
+
+  afterEach(() => {
+    if (getOsVersionStub) getOsVersionStub.restore();
+    getOsVersionStub = null;
+    // Rebuild the real cached singleton so downstream test files are unaffected.
+    reloadSystem();
+  });
+
+  it('sets a valid user_agent even when get_os_version returns an error', () => {
+    getOsVersionStub = sinon.stub(platform, 'get_os_version')
+      .callsFake((cb) => cb(new Error('Unable to determine OS version.')));
+
+    // Clear any user_agent set by a previous (real) load so we truly exercise
+    // the error path rather than reading a stale value.
+    delete platform.user_agent;
+
+    const system = reloadSystem();
+
+    // eslint-disable-next-line no-unused-expressions
+    expect(system.user_agent).to.be.a('string').and.not.be.empty;
+    expect(system.user_agent).to.match(/^Prey\//);
+  });
+});

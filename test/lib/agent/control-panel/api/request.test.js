@@ -98,6 +98,38 @@ describe('request Module', () => {
       });
     });
 
+    it('should treat ECONNABORTED as a temporary error (OWCA-646)', (done) => {
+      const err = new Error('');
+      err.code = 'ECONNABORTED';
+
+      needleRequestStub.callsFake((method, url, data, opts, cb) => {
+        cb(err, null, null);
+      });
+
+      request.defaults.retry_timeout = 1;
+      request.send(1, 'GET', '/mock-path', null, {}, (error) => {
+        expect(error.message).to.equal('ECONNABORTED - Please try again in a minute.');
+        request.defaults.retry_timeout = 3000;
+        done();
+      });
+    });
+
+    it('should treat EIO as a temporary error (OWCA-645)', (done) => {
+      const err = new Error('');
+      err.code = 'EIO';
+
+      needleRequestStub.callsFake((method, url, data, opts, cb) => {
+        cb(err, null, null);
+      });
+
+      request.defaults.retry_timeout = 1;
+      request.send(1, 'GET', '/mock-path', null, {}, (error) => {
+        expect(error.message).to.equal('EIO - Please try again in a minute.');
+        request.defaults.retry_timeout = 3000;
+        done();
+      });
+    });
+
     it('should retry the request without proxy when network is down', () => {
         const cb = sinon.spy();
         const options = { proxy: 'http://mock-proxy.com', timeout: 5000 };

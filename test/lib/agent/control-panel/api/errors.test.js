@@ -72,6 +72,11 @@ describe('Errors Module', () => {
       expect(err.message).to.equal('Unexpected error (500)');
       expect(err.code).to.equal('UNKNOWN_RESPONSE');
     });
+
+    it('should expose the HTTP status as statusCode', () => {
+      expect(errors.unknown({ body: 'Bad gateway', statusCode: 502 }).statusCode).to.equal(502);
+      expect(errors.unknown({ body: { error: 'x' }, statusCode: 422 }).statusCode).to.equal(422);
+    });
   });
 
   describe('validation function', () => {

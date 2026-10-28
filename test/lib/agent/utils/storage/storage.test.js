@@ -2,6 +2,7 @@
 /* eslint-disable no-undef */
 const rewire = require('rewire');
 const sinon = require('sinon');
+const path = require('path');
 const { expect } = require('chai');
 
 const SQLITE_ACCESS_ERR = 'Access denied to commands database, must run agent as prey user';
@@ -10,11 +11,14 @@ describe('storage_fns', () => {
   let storage;
   let dbInstance;
 
-  // Builds a sqlite3 mock. openErr simulates a failed db.open callback.
-  const makeSqlite3 = (openErr = null) => ({
+  // Builds a sqlite3 mock. openErr simulates a failed db.open callback; userVersion
+  // is what `PRAGMA user_version` reports.
+  const makeSqlite3 = (openErr = null, userVersion = 0) => ({
     Database: function FakeDB(path, cb) {
       this.run = sinon.stub().callsFake((sql, c) => c && c(null));
       this.all = sinon.stub().callsFake((sql, c) => c && c(null, []));
+      this.get = sinon.stub().callsFake((sql, c) => c && c(null, { user_version: userVersion }));
+      this.configure = sinon.stub();
       this.close = sinon.stub().callsFake((c) => c && c());
       dbInstance = this;
       // Async to ensure dbComm assignment completes before the callback fires.
@@ -311,6 +315,160 @@ describe('storage_fns', () => {
         expect(err).to.be.an('error');
         done();
       });
+    });
+  });
+
+  // ─── device_state ─────────────────────────────────────────────────────────
+  describe('device_state type', () => {
+    it('is an allowed type: lazily CREATEs the table and UPSERTs the row', (done) => {
+      storage.storage_fns.set(
+        {
+          type: 'device_state',
+          id: 'current',
+          data: {
+            missing: 1, confirmed: 0, time: 123, retries: 0,
+          },
+        },
+        (err) => {
+          expect(err).to.be.null;
+          // run call #1 = CREATE TABLE IF NOT EXISTS, call #2 = INSERT OR REPLACE
+          expect(dbInstance.run.callCount).to.equal(2);
+          expect(dbInstance.run.firstCall.args[0]).to.match(/^CREATE TABLE IF NOT EXISTS device_state/);
+          expect(dbInstance.run.secondCall.args[0]).to.match(/^INSERT OR REPLACE INTO device_state/);
+          done();
+        },
+      );
+    });
+
+    it('reads rows via all', (done) => {
+      storage.storage_fns.all({ type: 'device_state' }, (err, rows) => {
+        expect(err).to.be.null;
+        expect(rows).to.be.an('array');
+        done();
+      });
+    });
+
+    it('deletes the row', (done) => {
+      storage.storage_fns.del({ type: 'device_state', id: 'current' }, (err) => {
+        expect(err).to.be.null;
+        expect(dbInstance.run.secondCall.args[0]).to.match(/DELETE FROM device_state/);
+        done();
+      });
+    });
+  });
+
+  // ─── locations ────────────────────────────────────────────────────────────
+  describe('locations type', () => {
+    it('is an allowed type: CREATEs the table and UPSERTs a numeric row', (done) => {
+      storage.storage_fns.set(
+        {
+          type: 'locations',
+          id: 'loc-1',
+          data: {
+            lat: 10.5,
+            lng: -20.25,
+            accuracy: 42,
+            method: 'native',
+            source: 'gps',
+            recorded_at: '2024-01-01T00:00:00.000Z',
+            sent: 1,
+            send_type: 'force',
+            delta: 15,
+          },
+        },
+        (err) => {
+          expect(err).to.be.null;
+          expect(dbInstance.run.firstCall.args[0]).to.match(/^CREATE TABLE IF NOT EXISTS locations/);
+          const sql = dbInstance.run.secondCall.args[0];
+          expect(sql).to.match(/^INSERT OR REPLACE INTO locations/);
+          // Numeric columns are not quoted; text columns are.
+          expect(sql).to.include('10.5, -20.25, 42');
+          expect(sql).to.include("'native'");
+          expect(sql).to.include("'2024-01-01T00:00:00.000Z'");
+          done();
+        },
+      );
+    });
+
+    it('emits NULL for absent numeric fields (accuracy/delta)', (done) => {
+      storage.storage_fns.set(
+        {
+          type: 'locations',
+          id: 'loc-2',
+          data: {
+            lat: 1,
+            lng: 2,
+            method: 'geoip',
+            recorded_at: '2024-01-01T00:00:00.000Z',
+          },
+        },
+        (err) => {
+          expect(err).to.be.null;
+          const sql = dbInstance.run.secondCall.args[0];
+          // accuracy and delta are undefined → SQL NULL keyword, not quoted empty string.
+          expect(sql).to.include('1, 2, NULL,');
+          expect(sql).to.match(/, NULL\)$/);
+          done();
+        },
+      );
+    });
+
+    it('reads rows via all', (done) => {
+      storage.storage_fns.all({ type: 'locations' }, (err, rows) => {
+        expect(err).to.be.null;
+        expect(rows).to.be.an('array');
+        done();
+      });
+    });
+  });
+
+  // ─── dbPath (unified resolver) ───────────────────────────────────────────────
+  describe('dbPath', () => {
+    it('returns commands.db under the resolved directory', () => {
+      // dbExists is stubbed to '/fake' in beforeEach.
+      expect(storage.dbPath()).to.equal(path.join('/fake', 'commands.db'));
+    });
+  });
+
+  // ─── migrateSchema (F5) ──────────────────────────────────────────────────────
+  describe('migrateSchema', () => {
+    it('reads user_version, stamps the current version and closes (baseline)', (done) => {
+      storage.migrateSchema((err) => {
+        expect(err).to.be.null;
+        // user_version was read...
+        expect(dbInstance.get.calledWith('PRAGMA user_version')).to.be.true;
+        // ...and stamped to the current schema version.
+        const stamp = dbInstance.run.getCalls().find((c) => /PRAGMA user_version = \d+/.test(c.args[0]));
+        expect(stamp, 'expected a user_version stamp').to.not.be.undefined;
+        expect(dbInstance.close.called).to.be.true;
+        done();
+      });
+    });
+
+    it('sets a busy timeout on the connection', (done) => {
+      storage.migrateSchema(() => {
+        expect(dbInstance.configure.calledWith('busyTimeout')).to.be.true;
+        done();
+      });
+    });
+
+    it('propagates an open error', (done) => {
+      const openErr = Object.assign(new Error('cannot open'), { code: 'SQLITE_CANTOPEN' });
+      storage.__set__('sqlite3', makeSqlite3(openErr));
+      storage.migrateSchema((err) => {
+        expect(err).to.be.an('error');
+        done();
+      });
+    });
+
+    it('propagates a user_version read error and closes', (done) => {
+      storage.migrateSchema((err) => {
+        expect(err).to.be.an('error');
+        expect(dbInstance.close.called).to.be.true;
+        done();
+      });
+      // Force the PRAGMA read to fail for this run.
+      dbInstance.get.callsFake((sql, c) => c(new Error('read failed')));
     });
   });
 });

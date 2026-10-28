@@ -59,4 +59,43 @@ describe('conf/utils/run_synced', () => {
 
     child.emit('error', new Error('ENOENT'));
   });
+
+  it('does not crash when printing child stdout output triggers EPIPE', (done) => {
+    const child = makeFakeChild();
+    runSynced.__set__('spawn', () => child);
+
+    const epipe = new Error('write EPIPE');
+    epipe.code = 'EPIPE';
+    sinon.stub(console, 'log').throws(epipe);
+
+    runSynced('some_bin', [], {}, (err, code) => {
+      expect(err == null).to.equal(true);
+      expect(code).to.equal(0);
+      done();
+    });
+
+    // The reader end of stdout closed mid-run: console.log throws EPIPE
+    // synchronously. Emitting data must not propagate the throw.
+    expect(() => child.stdout.emit('data', Buffer.from('some output\n'))).to.not.throw();
+    child.emit('exit', 0);
+  });
+
+  it('does not crash when the exit-code log line triggers EPIPE', (done) => {
+    const child = makeFakeChild();
+    runSynced.__set__('spawn', () => child);
+
+    const epipe = new Error('write EPIPE');
+    epipe.code = 'EPIPE';
+    sinon.stub(console, 'log').throws(epipe);
+
+    runSynced('some_bin', [], {}, (err, code) => {
+      expect(err == null).to.equal(true);
+      expect(code).to.equal(3);
+      done();
+    });
+
+    // done() prints "Exited with code N" before invoking cb; that write must
+    // not crash the helper when stdout is broken.
+    expect(() => child.emit('exit', 3)).to.not.throw();
+  });
 });
