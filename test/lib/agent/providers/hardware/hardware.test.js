@@ -4,6 +4,7 @@ const os = require('node:os');
 const sinon = require('sinon');
 const { expect } = require('chai');
 const exp = require('../../../../../lib/agent/providers/hardware');
+const hooksModule = require('../../../../../lib/agent/hooks');
 const utilStorage = require('../../../../../lib/agent/utils/storage/utilstorage');
 
 describe('Hardware_Provider', () => {
@@ -234,6 +235,174 @@ describe('Hardware_Provider - network interface getters (OWCA-633)', () => {
       expect(err).to.be.null;
       expect(result).to.equal(list);
       done();
+    });
+  });
+});
+
+describe('Hardware_Provider - partial firmware reads', () => {
+  const hooks = hooksModule;
+  const completeFirmware = {
+    uuid: 'B4C3177B-E461-4741-AA01-DDC1FB3B561D',
+    serial_number: 'MBN0CV216329478',
+    model_name: 'VivoBook_ASUSLaptop X513EAN_K513EA',
+    vendor_name: 'ASUSTeK COMPUTER INC.',
+    bios_vendor: 'American Megatrends International, LLC.',
+    bios_version: 'X513EAN.307',
+    mb_vendor: 'ASUSTeK COMPUTER INC.',
+    mb_serial: 'MB46NBCV00UNCCMB',
+    mb_model: 'X513EAN',
+    mb_version: '1.0',
+    device_type: 'Laptop',
+  };
+  // What the agent stored on 2026-10-28 when the BIOS read came back empty.
+  const partialFirmware = {
+    uuid: completeFirmware.uuid,
+    serial_number: completeFirmware.serial_number,
+    model_name: completeFirmware.model_name,
+    vendor_name: completeFirmware.vendor_name,
+  };
+  const specsWith = (firmware) => ({
+    processor_info: { model: '11th Gen Intel(R) Core(TM) i7-1165G7 @ 2.80GHz', speed: 2803, cores: 8 },
+    winsvc_version: '2.0.35',
+    vendor_name: 'ASUSTeK COMPUTER INC.',
+    model_name: 'VivoBook_ASUSLaptop X513EAN_K513EA',
+    firmware_info: { ...firmware },
+  });
+  const savedBaseline = (stub) => JSON.parse(stub.lastCall.args[2]);
+  let getDataDbKeyStub;
+  let saveDataDbKeyStub;
+  let triggerStub;
+
+  // Serves `stored` as the 'hardware' key; 'hardware_changed' history already exists.
+  const storeHardware = (stored) => {
+    getDataDbKeyStub.callsFake((key, cb) => {
+      if (key === 'hardware') return cb(null, stored ? [{ value: JSON.stringify(stored) }] : []);
+      return cb(null, [{ value: JSON.stringify({ hardwareData: [] }) }]);
+    });
+  };
+
+  beforeEach(() => {
+    exp.diffCount = 0;
+    getDataDbKeyStub = sinon.stub(utilStorage, 'getDataDbKey');
+    saveDataDbKeyStub = sinon.stub(utilStorage, 'saveDataDbKey').callsFake((_t, _k, _v, cb) => cb(null));
+    sinon.stub(utilStorage, 'updateDataDbKey').callsFake((_t, _k, _c, _v, cb) => cb(null));
+    sinon.stub(utilStorage, 'deleteDbKey').callsFake((_k, cb) => cb(null));
+    triggerStub = sinon.stub(hooks, 'trigger');
+  });
+
+  afterEach(() => {
+    sinon.restore();
+  });
+
+  describe('fillFirmwareFromStored', () => {
+    it('fills fields the read missed from the stored snapshot of the same machine', (done) => {
+      storeHardware(specsWith(completeFirmware));
+      exp.fillFirmwareFromStored({ ...partialFirmware, mb_serial: null }, (filled) => {
+        expect(filled).to.deep.equal(completeFirmware);
+        done();
+      });
+    });
+
+    it('never overwrites a value that was actually read', (done) => {
+      storeHardware(specsWith(completeFirmware));
+      exp.fillFirmwareFromStored({ ...partialFirmware, mb_serial: 'NEWBOARD123' }, (filled) => {
+        expect(filled.mb_serial).to.equal('NEWBOARD123');
+        expect(filled.bios_vendor).to.equal(completeFirmware.bios_vendor);
+        done();
+      });
+    });
+
+    it('does not fill when the stored snapshot belongs to another uuid', (done) => {
+      storeHardware(specsWith({ ...completeFirmware, uuid: 'OTHER-UUID' }));
+      exp.fillFirmwareFromStored({ ...partialFirmware }, (filled) => {
+        expect(filled).to.deep.equal(partialFirmware);
+        done();
+      });
+    });
+
+    it('passes the read through when there is no stored snapshot or the DB fails', (done) => {
+      storeHardware(null);
+      exp.fillFirmwareFromStored({ ...partialFirmware }, (first) => {
+        expect(first).to.deep.equal(partialFirmware);
+        getDataDbKeyStub.callsFake((_key, cb) => cb(new Error('SQLITE_BUSY')));
+        exp.fillFirmwareFromStored({ ...partialFirmware }, (second) => {
+          expect(second).to.deep.equal(partialFirmware);
+          done();
+        });
+      });
+    });
+  });
+
+  describe('get_firmware_info', () => {
+    it('strips null values left after filling from the stored snapshot', (done) => {
+      // eslint-disable-next-line global-require
+      const rewire = require('rewire');
+      const hardware = rewire('../../../../../lib/agent/providers/hardware');
+      const read = { ...partialFirmware, mb_serial: null, vendor_name: null };
+      // eslint-disable-next-line no-underscore-dangle
+      hardware.__set__('osFunctions', { get_firmware_info: (cb) => cb(null, read) });
+      storeHardware(specsWith({ ...completeFirmware, vendor_name: '' }));
+
+      hardware.get_firmware_info((err, data) => {
+        expect(err).to.be.null;
+        expect(data.mb_serial).to.equal(completeFirmware.mb_serial);
+        expect(data).to.not.have.property('vendor_name');
+        done();
+      });
+    });
+  });
+
+  describe('compareField with missing values', () => {
+    it('a partial read against a complete baseline is not a change', () => {
+      exp.compareField(specsWith(partialFirmware), specsWith(completeFirmware));
+      expect(exp.diffCount).to.equal(0);
+    });
+
+    it('a complete read against a partial baseline is not a change', () => {
+      exp.compareField(specsWith(completeFirmware), specsWith(partialFirmware));
+      expect(exp.diffCount).to.equal(0);
+    });
+
+    it('placeholder values on either side are not a change', () => {
+      exp.compareField(specsWith({ ...completeFirmware, mb_serial: 'NA' }), specsWith(completeFirmware));
+      exp.compareField(specsWith(completeFirmware), specsWith({ ...completeFirmware, mb_serial: '' }));
+      expect(exp.diffCount).to.equal(0);
+    });
+
+    it('a different motherboard serial is still a change', () => {
+      exp.compareField(specsWith({ ...completeFirmware, mb_serial: 'NEWBOARD123' }), specsWith(completeFirmware));
+      expect(exp.diffCount).to.be.greaterThan(0);
+    });
+  });
+
+  describe('track_hardware_changes baseline', () => {
+    it('completes a partial baseline silently, without hardware_changed', () => {
+      storeHardware(specsWith(partialFirmware));
+      exp.track_hardware_changes(specsWith(completeFirmware));
+
+      expect(triggerStub.calledWith('hardware_changed')).to.be.false;
+      expect(saveDataDbKeyStub.called).to.be.true;
+      expect(savedBaseline(saveDataDbKeyStub).firmware_info).to.deep.equal(completeFirmware);
+    });
+
+    it('ignores a partial read against a complete baseline and keeps the baseline', () => {
+      storeHardware(specsWith(completeFirmware));
+      exp.track_hardware_changes(specsWith(partialFirmware));
+
+      expect(triggerStub.calledWith('hardware_changed')).to.be.false;
+      expect(saveDataDbKeyStub.called).to.be.false;
+    });
+
+    it('on a real change, stores the new values but keeps stored ones the read missed', () => {
+      storeHardware(specsWith(completeFirmware));
+      const current = specsWith({ ...completeFirmware, mb_serial: 'NEWBOARD123' });
+      delete current.firmware_info.bios_vendor;
+      exp.track_hardware_changes(current);
+
+      expect(triggerStub.calledWith('hardware_changed')).to.be.true;
+      const baseline = savedBaseline(saveDataDbKeyStub).firmware_info;
+      expect(baseline.mb_serial).to.equal('NEWBOARD123');
+      expect(baseline.bios_vendor).to.equal(completeFirmware.bios_vendor);
     });
   });
 });
