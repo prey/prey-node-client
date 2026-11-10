@@ -46,7 +46,7 @@ include:
   #######################################
   - project: 'deploy/ci-templates'
     file: 'javascript/job_build_zip_client.yml'
-    ref: master
+    ref: feat/node-remrecovery-fetch
   #######################################
   # Job Template for BUILD BINARIES     #
   #######################################
