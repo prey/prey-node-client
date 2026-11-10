@@ -1,6 +1,6 @@
 # Change Log
 
-## [v1.13.42](https://github.com/prey/prey-node-client/tree/v1.13.42) (<YYYY-MM-DD>)
+## [v1.13.42](https://github.com/prey/prey-node-client/tree/v1.13.42) (2026-10-22)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.41..v1.13.42)
 
 - Feat: On managed Windows installs, the agent now keeps its configuration, database and log next to the agent at a custom install location, and added a `prey config migrate_files` command to safely copy existing data from the legacy location (originals are preserved as backups). Standard installs are unaffected. ([SoraKenji](https://github.com/SoraKenji))
