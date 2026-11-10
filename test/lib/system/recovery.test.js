@@ -20,26 +20,26 @@ describe('system/recovery', () => {
 
   afterEach(() => sinon.restore());
 
-  it('is the installed copy next to wpxsvc.exe on Windows', () => {
+  it('is current/bin/remrecovery.exe on Windows', () => {
     recovery.__set__('platform', 'win32');
-    expect(recovery.recoveryPath()).to.match(/inst[\\/]prey-recovery\.exe$/);
+    expect(recovery.recoveryPath()).to.match(/inst[\\/]current[\\/]bin[\\/]remrecovery\.exe$/);
   });
 
-  it('is current/bin/prey-recovery on macOS', () => {
+  it('is current/bin/remrecovery on macOS', () => {
     recovery.__set__('platform', 'darwin');
-    expect(recovery.recoveryPath()).to.match(/inst[\\/]current[\\/]bin[\\/]prey-recovery$/);
+    expect(recovery.recoveryPath()).to.match(/inst[\\/]current[\\/]bin[\\/]remrecovery$/);
   });
 
-  it('does not exist on Linux', () => {
+  it('is current/bin/remrecovery on Linux', () => {
     recovery.__set__('platform', 'linux');
-    expect(recovery.recoveryPath()).to.equal(null);
-    expect(recovery.exists()).to.equal(false);
+    expect(recovery.recoveryPath()).to.match(/inst[\\/]current[\\/]bin[\\/]remrecovery$/);
+    expect(recovery.exists()).to.equal(true);
   });
 
-  it('reports the first line of `prey-recovery version`', (done) => {
+  it('reports the first line of `remrecovery version`', (done) => {
     recovery.__set__('platform', 'darwin');
     execFileStub.callsFake((bin, args, opts, cb) => cb(null, '1.2.3\n'));
-    recovery.get_prey_recovery_version((err, version) => {
+    recovery.get_remrecovery_version((err, version) => {
       expect(err).to.equal(null);
       expect(version).to.equal('1.2.3');
       expect(execFileStub.firstCall.args[1]).to.deep.equal(['version']);
@@ -50,11 +50,11 @@ describe('system/recovery', () => {
   it('reports null when the binary is missing or fails', (done) => {
     recovery.__set__('platform', 'darwin');
     fsStub.existsSync.returns(false);
-    recovery.get_prey_recovery_version((err, version) => {
+    recovery.get_remrecovery_version((err, version) => {
       expect(version).to.equal(null);
       fsStub.existsSync.returns(true);
       execFileStub.callsFake((bin, args, opts, cb) => cb(new Error('boom')));
-      recovery.get_prey_recovery_version((err2, version2) => {
+      recovery.get_remrecovery_version((err2, version2) => {
         expect(version2).to.equal(null);
         done();
       });
