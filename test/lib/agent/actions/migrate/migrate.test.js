@@ -42,6 +42,7 @@ describe('migrate action', () => {
     migrate = rewire('../../../../../lib/agent/actions/migrate');
     backend = fakeBackend();
     linked = true;
+    migrate.__set__('isLinux', () => false);
     migrate.__set__('backendFor', () => backend);
     migrate.__set__('recovery', { exists: () => true });
     logger = { info: sinon.stub(), warn: sinon.stub() };
@@ -325,5 +326,24 @@ describe('migrate action', () => {
     expect(backend.status.callCount).to.equal(5);
     migrate.stop();
     await second;
+  });
+
+  describe('start on linux', () => {
+    it('delegates to the linux backend when linked and recovery present', (done) => {
+      migrate.__set__('isLinux', () => true);
+      let called = false;
+      migrate.__set__('linuxBackend', () => ({
+        migrate: (cb) => { called = true; cb(null, { phase: 'launching' }); },
+      }));
+      migrate.start('id-linux', {}, (err, emitter) => {
+        expect(err).to.equal(null);
+        emitter.on('end', (id, e, out) => {
+          expect(called).to.equal(true);
+          expect(e).to.equal(null);
+          expect(out).to.deep.equal({ phase: 'launching' });
+          done();
+        });
+      });
+    });
   });
 });
