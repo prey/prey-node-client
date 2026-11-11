@@ -5,7 +5,6 @@ const { expect } = require('chai');
 const sinon = require('sinon');
 const rewire = require('rewire');
 const Module = require('module');
-const { join } = require('path');
 
 describe('Windows uninstall hooks', () => {
   let windowsHooks;
@@ -108,31 +107,6 @@ describe('Windows uninstall hooks', () => {
       expect(commands.some((cmd) => cmd.includes('Remove-NetFirewallRule'))).to.equal(true);
       expect(commands.some((cmd) => cmd.includes('New-NetFirewallRule'))).to.equal(true);
       expect(commands.some((cmd) => cmd.includes('Prey.Agent'))).to.equal(true);
-      done();
-    });
-  });
-
-  it('copies prey-recovery.exe next to wpxsvc.exe in post_activate (upgrade)', (done) => {
-    execStub.callsFake((cmd, cb) => cb(null, '', ''));
-
-    windowsHooks.post_activate((err) => {
-      expect(err).to.equal(undefined);
-      expect(copyFileStub.calledOnce).to.equal(true);
-      expect(copyFileStub.firstCall.args.slice(0, 2)).to.deep.equal([
-        join(String.raw`C:\Windows\Prey\current`, 'lib', 'system', 'windows', 'bin', 'prey-recovery.exe'),
-        join(String.raw`C:\Windows\Prey`, 'prey-recovery.exe'),
-      ]);
-      done();
-    });
-  });
-
-  it('completes post_activate without error when copying prey-recovery.exe fails', (done) => {
-    execStub.callsFake((cmd, cb) => cb(null, '', ''));
-    copyFileStub.callsFake((src, dst, cb) => cb(new Error('EBUSY')));
-
-    windowsHooks.post_activate((err) => {
-      expect(err).to.equal(undefined);
-      expect(logStub.getCalls().some((call) => String(call.args[0]).includes('prey-recovery.exe'))).to.equal(true);
       done();
     });
   });

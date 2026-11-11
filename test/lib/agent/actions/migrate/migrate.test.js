@@ -107,6 +107,49 @@ describe('migrate action', () => {
     expect(backend.submit.called).to.equal(false);
   });
 
+  it('gives up with migrate_stalled once the known-poll window is exhausted', async () => {
+    // Two known-id re-polls are allowed; the third would exceed the window.
+    migrate.__set__('MAX_KNOWN_POLLS', 2);
+    // The owner admits an operation that never leaves a non-terminal phase.
+    backend.submit.callsFake((cb) => cb(null, { error: false, operation: op('admitted') }));
+    backend.status.callsFake((cb) => cb(null, { ready: true, operation: op('admitted') }));
+    const done = run();
+    await clock.tickAsync(30000);
+    const { err } = await done;
+    expect(err.message).to.equal('migrate_stalled');
+  });
+
+  it('settles OK when a terminal phase arrives on the capping poll', async () => {
+    migrate.__set__('MAX_KNOWN_POLLS', 2);
+    backend.submit.callsFake((cb) => cb(null, { error: false, operation: op('admitted') }));
+    let polls = 0;
+    // The second poll is the one that would trip the cap; it returns succeeded,
+    // which must settle normally rather than report migrate_stalled.
+    backend.status.callsFake((cb) => {
+      polls += 1;
+      cb(null, { ready: true, operation: op(polls < 2 ? 'admitted' : 'succeeded') });
+    });
+    const done = run();
+    await clock.tickAsync(30000);
+    const { err, out } = await done;
+    expect(err).to.equal(null);
+    expect(out.phase).to.equal('succeeded');
+  });
+
+  it('treats a connection_closed submission as uncertain and polls', async () => {
+    backend.submit.callsFake((cb) => cb(new Error('connection_closed')));
+    let calls = 0;
+    backend.status.callsFake((cb) => {
+      calls += 1;
+      cb(null, calls < 2 ? { ready: true } : { ready: true, operation: op('launched') });
+    });
+    const done = run();
+    await clock.tickAsync(30000);
+    const { err, out } = await done;
+    expect(err).to.equal(null);
+    expect(out.phase).to.equal('launched');
+  });
+
   it('submits when the relaunch status check fails', async () => {
     backend.status.onFirstCall().callsFake((cb) => cb(new Error('timeout')));
     backend.submit.callsFake((cb) => cb(null, { error: false, existing: true, operation: op('succeeded') }));

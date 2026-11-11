@@ -130,5 +130,29 @@ describe('system/windows/winsvc', () => {
       const err = await new Promise((resolve) => winsvc.request_action('migrate', 100, resolve));
       expect(err.message).to.equal('timeout');
     });
+
+    it('times out even after headers arrive and the body then stalls', async () => {
+      // The global deadline must cover a response that starts then hangs, which
+      // req.setTimeout (socket inactivity only) could miss.
+      await listen((req, res) => { res.writeHead(200); res.write('{'); });
+      const err = await new Promise((resolve) => { winsvc.request_action('migrate', 150, resolve); });
+      expect(err.message).to.equal('timeout');
+    });
+
+    it('reports connection_closed exactly once when the connection drops mid-response', async () => {
+      await listen((req, res) => { res.writeHead(200); res.write('{'); setImmediate(() => req.socket.destroy()); });
+      let calls = 0;
+      let lastErr;
+      await new Promise((resolve) => {
+        winsvc.request_action('migrate', 2000, (err) => {
+          calls += 1;
+          lastErr = err;
+          if (calls === 1) setTimeout(resolve, 50);
+        });
+      });
+      expect(calls).to.equal(1);
+      expect(lastErr).to.be.an('error');
+      expect(lastErr.message).to.equal('connection_closed');
+    });
   });
 });
