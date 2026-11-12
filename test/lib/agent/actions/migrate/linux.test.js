@@ -232,7 +232,17 @@ describe('migrate/linux', () => {
       const payload = buildPayload(recPath, sha === undefined ? realSha : sha, resultFile);
       const payloadFile = path.join(dir, 'payload.sh');
       fs.writeFileSync(payloadFile, payload);
-      execFile('bash', [payloadFile], { timeout: 15000 }, () => {
+      // The payload targets Linux (GNU coreutils sha256sum). The BSD sha256sum
+      // shipped on macOS rejects --status, so outside Linux shim it with
+      // shasum, which accepts the same --check --status flags.
+      const env = { ...process.env };
+      if (process.platform !== 'linux') {
+        const shimDir = path.join(dir, 'shim');
+        fs.mkdirSync(shimDir);
+        fs.writeFileSync(path.join(shimDir, 'sha256sum'), '#!/bin/sh\nexec shasum -a 256 "$@"\n', { mode: 0o755 });
+        env.PATH = `${shimDir}${path.delimiter}${env.PATH}`;
+      }
+      execFile('bash', [payloadFile], { timeout: 15000, env }, () => {
         let out = null;
         try { out = fs.readFileSync(resultFile, 'utf8').trim(); } catch (e) { out = null; }
         fs.rmSync(dir, { recursive: true, force: true });
