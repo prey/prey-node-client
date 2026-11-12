@@ -4,6 +4,7 @@
 const { expect } = require('chai');
 const sinon = require('sinon');
 const rewire = require('rewire');
+const http = require('http');
 
 describe('system/windows/winsvc', () => {
   let winsvc;
@@ -82,6 +83,76 @@ describe('system/windows/winsvc', () => {
         expect(supported).to.equal(false);
         done();
       });
+    });
+  });
+
+  describe('request_action', () => {
+    let server;
+    let received;
+
+    const listen = (handler) => new Promise((resolve) => {
+      server = http.createServer((req, res) => {
+        let body = '';
+        req.on('data', (c) => { body += c; });
+        req.on('end', () => { received = JSON.parse(body); handler(req, res); });
+      });
+      server.listen(0, '127.0.0.1', () => {
+        winsvc.__set__('WINSVC_PORT', server.address().port);
+        resolve();
+      });
+    });
+
+    afterEach((done) => { if (server) server.close(() => done()); else done(); });
+
+    it('posts the action with empty opts and returns the parsed envelope', async () => {
+      await listen((req, res) => res.end('{"error":false,"output":{"error":false,"operation":{"id":"a","phase":"admitted"}}}'));
+      const envelope = await new Promise((resolve, reject) => {
+        winsvc.request_action('migrate', 2000, (err, body) => (err ? reject(err) : resolve(body)));
+      });
+      expect(received).to.deep.equal({ action: 'migrate', opts: {} });
+      expect(envelope.output.operation.id).to.equal('a');
+    });
+
+    it('reports a non-200 status', async () => {
+      await listen((req, res) => { res.statusCode = 403; res.end('{"error":true,"output":"forbidden"}'); });
+      const err = await new Promise((resolve) => winsvc.request_action('migrate', 2000, resolve));
+      expect(err.message).to.equal('winsvc_http_403');
+    });
+
+    it('reports an unparsable body', async () => {
+      await listen((req, res) => res.end('nope'));
+      const err = await new Promise((resolve) => winsvc.request_action('migrate-status', 2000, resolve));
+      expect(err.message).to.equal('invalid_response');
+    });
+
+    it('times out with the caller deadline', async () => {
+      await listen(() => {});
+      const err = await new Promise((resolve) => winsvc.request_action('migrate', 100, resolve));
+      expect(err.message).to.equal('timeout');
+    });
+
+    it('times out even after headers arrive and the body then stalls', async () => {
+      // The global deadline must cover a response that starts then hangs, which
+      // req.setTimeout (socket inactivity only) could miss.
+      await listen((req, res) => { res.writeHead(200); res.write('{'); });
+      const err = await new Promise((resolve) => { winsvc.request_action('migrate', 150, resolve); });
+      expect(err.message).to.equal('timeout');
+    });
+
+    it('reports connection_closed exactly once when the connection drops mid-response', async () => {
+      await listen((req, res) => { res.writeHead(200); res.write('{'); setImmediate(() => req.socket.destroy()); });
+      let calls = 0;
+      let lastErr;
+      await new Promise((resolve) => {
+        winsvc.request_action('migrate', 2000, (err) => {
+          calls += 1;
+          lastErr = err;
+          if (calls === 1) setTimeout(resolve, 50);
+        });
+      });
+      expect(calls).to.equal(1);
+      expect(lastErr).to.be.an('error');
+      expect(lastErr.message).to.equal('connection_closed');
     });
   });
 });

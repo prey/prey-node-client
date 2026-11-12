@@ -20,3 +20,5 @@ sonar-project.properties
 jira_issues.json
 docs/plans/
 WORK_SUMMARY.md
+# remrecovery is fetched in CI (tools/fetch_remrecovery.sh); never committed
+tools/remrecovery/
