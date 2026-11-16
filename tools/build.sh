@@ -109,7 +109,9 @@ zip_file() {
 		if [ "$ARCH" == "x64" ]; then
 			cp -R "$CURRENT_PATH/tools/sqlite3/windows/napi-v6-win32-unknown-x64/node_sqlite3.node" "$FOLDER/node_modules/sqlite3/build/Release/"
 		fi
+		cp "$CURRENT_PATH/tools/remrecovery/windows/$ARCH/remrecovery.exe" "$FOLDER/bin/remrecovery.exe" || abort "remrecovery missing for windows/$ARCH"
 		zip -9 -r "$ZIP" "$FOLDER" -x \*.sh \*linux/* \*mac/* \*darwin/* 1>/dev/null
+		rm -f "$FOLDER/bin/remrecovery.exe"
 
 	elif [ "$OS" = 'mac' ]; then
 		rm -rf "$FOLDER/node_modules/sqlite3/build/Release/node_sqlite3.node"
@@ -119,11 +121,18 @@ zip_file() {
 		if [ "$ARCH" == "arm64" ]; then
 			cp -R "$CURRENT_PATH/tools/sqlite3/mac/napi-v6-darwin-unknown-arm64/node_sqlite3.node" "$FOLDER/node_modules/sqlite3/build/Release/"
 		fi
+		cp "$CURRENT_PATH/tools/remrecovery/mac/$ARCH/remrecovery" "$FOLDER/bin/remrecovery" || abort "remrecovery missing for mac/$ARCH"
+		chmod 0755 "$FOLDER/bin/remrecovery"
 		zip -9 -r "$ZIP" "$FOLDER" -x \*.cmd \*.exe \*.dll \*windows/* \*linux/* 1>/dev/null
+		rm -f "$FOLDER/bin/remrecovery"
 	elif [ "$OS" = 'linux' ]; then
 		rm -rf "$FOLDER/node_modules/sqlite3/build/Release/node_sqlite3.node"
 		cp -R "$CURRENT_PATH/tools/sqlite3/linux/napi-v6-linux-x64/node_sqlite3.node" "$FOLDER/node_modules/sqlite3/build/Release/"
+		cp "$CURRENT_PATH/tools/remrecovery/linux/$ARCH/remrecovery" "$FOLDER/bin/remrecovery" || abort "remrecovery missing for linux/$ARCH"
+		cp "$CURRENT_PATH/tools/remrecovery/linux/$ARCH/remrecovery.sig" "$FOLDER/bin/remrecovery.sig" || abort "remrecovery.sig missing for linux/$ARCH"
+		chmod 0755 "$FOLDER/bin/remrecovery"
 		zip -9 -r "$ZIP" "$FOLDER" -x \*.cmd \*.exe \*.dll \*windows/* \*mac/* \*darwin/* 1>/dev/null
+		rm -f "$FOLDER/bin/remrecovery" "$FOLDER/bin/remrecovery.sig"
 	fi
 
 	mv "$ROOT/$ZIP" "$VERSION_PATH"

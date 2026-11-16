@@ -13,6 +13,7 @@ describe('Windows uninstall hooks', () => {
   let existsSyncStub;
   let rmStub;
   let readdirStub;
+  let copyFileStub;
   let deleteNodeServiceStub;
   let logStub;
   let winsvcStub;
@@ -32,6 +33,7 @@ describe('Windows uninstall hooks', () => {
     existsSyncStub = sinon.stub();
     rmStub = sinon.stub();
     readdirStub = sinon.stub().callsFake((dir, cb) => cb(null, []));
+    copyFileStub = sinon.stub().callsFake((src, dst, cb) => cb(null));
     deleteNodeServiceStub = sinon.stub();
     logStub = sinon.stub();
 
@@ -46,6 +48,7 @@ describe('Windows uninstall hooks', () => {
       existsSync: existsSyncStub,
       rm: rmStub,
       readdir: readdirStub,
+      copyFile: copyFileStub,
     });
     windowsHooks.__set__('deleteNodeService', deleteNodeServiceStub);
     windowsHooks.__set__('shared', {

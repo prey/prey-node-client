@@ -121,8 +121,7 @@ describe('daemon', () => {
 
       daemon.install((err) => {
         expect(err).to.equal(null);
-        expect(order[0]).to.equal('copyFile');
-        expect(order[1]).to.equal('ensure_created');
+        expect(order).to.deep.equal(['copyFile', 'ensure_created']);
         done();
       });
     });
