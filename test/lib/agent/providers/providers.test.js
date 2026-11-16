@@ -312,4 +312,62 @@ describe('Providers', () => {
       });
     });
   });
+
+  describe('remove_files (OWCA-681)', () => {
+    const fs = require('fs');
+
+    // Registers a temp file the same way a real provider result does.
+    const registerFile = (name, file, done) => {
+      sinon.stub(providers, 'map').callsFake((cb) => {
+        cb(null, { [name]: (cb2) => cb2(null, { file, content_type: 'image/jpeg' }) });
+      });
+      // The file is registered right after the callbacks fire, so wait a tick.
+      providers.get(name, () => {
+        providers.map.restore();
+        setImmediate(done);
+      });
+    };
+
+    it('calls back immediately when there are no files', (done) => {
+      const unlinkStub = sinon.stub(fs, 'unlink');
+
+      providers.remove_files((err) => {
+        expect(err).to.be.undefined;
+        expect(unlinkStub.called).to.be.false;
+        done();
+      });
+    });
+
+    it('removes the registered file paths and empties the list', (done) => {
+      const unlinkStub = sinon.stub(fs, 'unlink').callsFake((file, cb) => cb());
+
+      registerFile('screenshot', '/tmp/screenshot.jpg', () => {
+        providers.remove_files((err) => {
+          expect(err).to.be.undefined;
+          expect(unlinkStub.calledOnceWith('/tmp/screenshot.jpg')).to.be.true;
+
+          // A second call must not unlink anything: the list was emptied.
+          providers.remove_files(() => {
+            expect(unlinkStub.callCount).to.equal(1);
+            done();
+          });
+        });
+      });
+    });
+
+    it('ignores files that no longer exist', (done) => {
+      sinon.stub(fs, 'unlink').callsFake((file, cb) => {
+        const err = new Error('ENOENT');
+        err.code = 'ENOENT';
+        cb(err);
+      });
+
+      registerFile('picture', '/tmp/picture.jpg', () => {
+        providers.remove_files((err) => {
+          expect(err).to.be.undefined;
+          done();
+        });
+      });
+    });
+  });
 });
