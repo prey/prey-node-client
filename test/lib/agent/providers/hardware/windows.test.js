@@ -152,6 +152,51 @@ describe('Hardware Windows Provider', () => {
       });
     });
 
+    it('accepts a "Default string" board (blanked by systeminformation) when WMI answered', (done) => {
+      // systeminformation turns firmware filler into '' but still reads the memory array.
+      const boardStub = readerFrom([{
+        manufacturer: '', serial: '', model: '', version: '', memSlots: 2, memMax: null,
+      }]);
+      windowsProvider.__set__('bios', readerFrom([{ vendor: 'American Megatrends Inc.', version: '5.19' }]));
+      windowsProvider.__set__('baseboard', boardStub);
+
+      windowsProvider.get_firmware_info((err, data) => {
+        expect(err).to.be.null;
+        expect(boardStub.callCount).to.equal(1);
+        expect(data).to.not.have.any.keys('mb_vendor', 'mb_serial', 'mb_model', 'mb_version');
+        expect(data.device_type).to.equal('Laptop');
+        done();
+      });
+    });
+
+    it('retries when neither the board nor the memory array answered', (done) => {
+      const boardStub = readerFrom([{
+        manufacturer: '', serial: '', model: '', version: '', memSlots: null, memMax: null,
+      }]);
+      windowsProvider.__set__('bios', readerFrom([biosOk]));
+      windowsProvider.__set__('baseboard', boardStub);
+
+      windowsProvider.get_firmware_info((err, data) => {
+        expect(err).to.be.null;
+        expect(boardStub.callCount).to.equal(3);
+        expect(data).to.not.have.property('device_type');
+        done();
+      });
+    });
+
+    it('reports firmware filler strings as read', (done) => {
+      windowsProvider.__set__('system', readerFrom([{ ...sysOk, serial: 'To be filled by O.E.M.' }]));
+      windowsProvider.__set__('bios', readerFrom([{ vendor: 'Default string', version: '1.0' }]));
+      windowsProvider.__set__('baseboard', readerFrom([boardOk]));
+
+      windowsProvider.get_firmware_info((err, data) => {
+        expect(err).to.be.null;
+        expect(data.serial_number).to.equal('To be filled by O.E.M.');
+        expect(data.bios_vendor).to.equal('Default string');
+        done();
+      });
+    });
+
     it('returns an error when the system read has no uuid', (done) => {
       windowsProvider.__set__('system', readerFrom([{ uuid: '' }]));
 

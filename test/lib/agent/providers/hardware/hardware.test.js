@@ -312,6 +312,14 @@ describe('Hardware_Provider - partial firmware reads', () => {
       });
     });
 
+    it('keeps a firmware filler string that was read instead of the stored value', (done) => {
+      storeHardware(specsWith(completeFirmware));
+      exp.fillFirmwareFromStored({ ...completeFirmware, serial_number: 'To be filled by O.E.M.' }, (filled) => {
+        expect(filled.serial_number).to.equal('To be filled by O.E.M.');
+        done();
+      });
+    });
+
     it('does not fill when the stored snapshot belongs to another uuid', (done) => {
       storeHardware(specsWith({ ...completeFirmware, uuid: 'OTHER-UUID' }));
       exp.fillFirmwareFromStored({ ...partialFirmware }, (filled) => {
@@ -363,9 +371,25 @@ describe('Hardware_Provider - partial firmware reads', () => {
       expect(exp.diffCount).to.equal(0);
     });
 
-    it('placeholder values on either side are not a change', () => {
-      exp.compareField(specsWith({ ...completeFirmware, mb_serial: 'NA' }), specsWith(completeFirmware));
-      exp.compareField(specsWith(completeFirmware), specsWith({ ...completeFirmware, mb_serial: '' }));
+    it('missing values on either side are not a change', () => {
+      const complete = specsWith(completeFirmware);
+      exp.compareField(specsWith({ ...completeFirmware, mb_serial: '' }), complete);
+      exp.compareField(complete, specsWith({ ...completeFirmware, mb_serial: '-' }));
+      exp.compareField(complete, specsWith({ ...completeFirmware, mb_serial: null }));
+      expect(exp.diffCount).to.equal(0);
+    });
+
+    it('firmware filler strings are real values: a transition is a change', () => {
+      exp.compareField(specsWith(completeFirmware), specsWith({ ...completeFirmware, mb_serial: 'NA' }));
+      expect(exp.diffCount).to.equal(1);
+      const filler = specsWith({ ...completeFirmware, mb_serial: 'Default string' });
+      exp.compareField(filler, specsWith(completeFirmware));
+      expect(exp.diffCount).to.equal(2);
+    });
+
+    it('the same firmware filler on both sides is not a change', () => {
+      const filler = { ...completeFirmware, serial_number: 'To be filled by O.E.M.' };
+      exp.compareField(specsWith(filler), specsWith(filler));
       expect(exp.diffCount).to.equal(0);
     });
 
@@ -383,6 +407,14 @@ describe('Hardware_Provider - partial firmware reads', () => {
       expect(triggerStub.calledWith('hardware_changed')).to.be.false;
       expect(saveDataDbKeyStub.called).to.be.true;
       expect(savedBaseline(saveDataDbKeyStub).firmware_info).to.deep.equal(completeFirmware);
+    });
+
+    it('a firmware filler that replaces a real value is stored as the new baseline', () => {
+      storeHardware(specsWith(completeFirmware));
+      exp.track_hardware_changes(specsWith({ ...completeFirmware, mb_serial: 'Default string' }));
+
+      expect(triggerStub.calledWith('hardware_changed')).to.be.true;
+      expect(savedBaseline(saveDataDbKeyStub).firmware_info.mb_serial).to.equal('Default string');
     });
 
     it('ignores a partial read against a complete baseline and keeps the baseline', () => {
