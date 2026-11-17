@@ -55,6 +55,50 @@ describe('Providers', () => {
     });
   });
 
+  describe('get: firmware_info through the loader (partial read)', () => {
+    it('delivers the read completed with the stored values of the same machine', (done) => {
+      // eslint-disable-next-line global-require
+      const rewire = require('rewire');
+      // eslint-disable-next-line global-require
+      const utilStorage = require('../../../../lib/agent/utils/storage/utilstorage');
+      const hardware = rewire('../../../../lib/agent/providers/hardware');
+      const partial = { uuid: 'UUID-1', serial_number: 'SN1' };
+      const stored = { firmware_info: { ...partial, mb_serial: 'MB1', bios_vendor: 'AMI' } };
+      hardware.__set__('osFunctions', { get_firmware_info: (cb) => cb(null, { ...partial }) });
+      sinon.stub(utilStorage, 'getDataDbKey').callsFake((key, cb) => cb(null, [{ value: JSON.stringify(stored) }]));
+      sinon.stub(providers, 'map').callsFake((cb) => {
+        cb(null, { firmware_info: hardware.get_firmware_info });
+      });
+
+      providers.get('firmware_info', (err, result) => {
+        expect(err).to.be.null;
+        expect(result).to.deep.equal(stored.firmware_info);
+        done();
+      });
+    });
+
+    it('never delivers null values (the panel rejects them)', (done) => {
+      // eslint-disable-next-line global-require
+      const rewire = require('rewire');
+      // eslint-disable-next-line global-require
+      const utilStorage = require('../../../../lib/agent/utils/storage/utilstorage');
+      const hardware = rewire('../../../../lib/agent/providers/hardware');
+      hardware.__set__('osFunctions', {
+        get_firmware_info: (cb) => cb(null, { uuid: 'UUID-1', serial_number: null, mb_serial: null }),
+      });
+      sinon.stub(utilStorage, 'getDataDbKey').callsFake((key, cb) => cb(null, []));
+      sinon.stub(providers, 'map').callsFake((cb) => {
+        cb(null, { firmware_info: hardware.get_firmware_info });
+      });
+
+      providers.get('firmware_info', (err, result) => {
+        expect(err).to.be.null;
+        expect(result).to.deep.equal({ uuid: 'UUID-1' });
+        done();
+      });
+    });
+  });
+
   describe('get', () => {
     describe('when provider throws an exception', () => {
       it('should catch the error and not crash the process', (done) => {
