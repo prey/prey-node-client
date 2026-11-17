@@ -190,10 +190,28 @@ describe('lib/package - upgrade failure record', () => {
     });
   });
 
-  it('check_update_success clears the failure record', (done) => {
+  it('check_update_success clears the failure record once the failed version is running', (done) => {
     rows[pkg.UPGRADE_FAILURE_KEY] = JSON.stringify({ version: '1.13.42', at: Date.now() });
     pkg.check_update_success('1.13.42', '/versions', () => {
       expect(rows[pkg.UPGRADE_FAILURE_KEY]).to.equal(undefined);
+      done();
+    });
+  });
+
+  it('check_update_success keeps the failure record while still on the old version', (done) => {
+    // e.g. the version check failed (offline) on the boot after a failed activation
+    rows[pkg.UPGRADE_FAILURE_KEY] = JSON.stringify({ version: '1.13.42', at: Date.now() });
+    pkg.check_update_success('1.13.41', '/versions', () => {
+      expect(rows[pkg.UPGRADE_FAILURE_KEY]).to.not.equal(undefined);
+      done();
+    });
+  });
+
+  it('check_update_success still completes when reading the failure record errors out', (done) => {
+    storageDo.withArgs('query').callsFake((perform, opts, cb) => cb(new Error('db locked')));
+    pkg.check_update_success('1.13.42', '/versions', (err) => {
+      expect(err).to.equal(undefined);
+      expect(storageDo.calledWith('del')).to.equal(false);
       done();
     });
   });

@@ -91,6 +91,36 @@ describe('agent/updater - backoff after a failed activation', () => {
     });
   });
 
+  it('keeps the backoff when a version check fails in between (goes through check_update_success)', (done) => {
+    // real lib/package with an in-memory keys table, so the updater -> package path is exercised
+    const pkg = rewire('../../../lib/package');
+    const rows = {};
+    pkg.__set__('storage', {
+      do: (perform, opts, cb) => {
+        if (perform === 'set') { rows[opts.id] = opts.data.value; return cb(null); }
+        if (perform === 'query') return cb(null, rows[opts.data] !== undefined ? [{ id: opts.data, value: rows[opts.data] }] : []);
+        if (perform === 'del') { delete rows[opts.id]; return cb(null); }
+        if (perform === 'all') return cb(null, []);
+        return cb(null);
+      },
+    });
+    pkg.new_version_available = sinon.stub().callsFake((branch, current, cb) => cb(new Error('getaddrinfo ENOTFOUND')));
+    updater.__set__('common', { package: pkg, version: '1.13.41' });
+    rows[pkg.UPGRADE_FAILURE_KEY] = JSON.stringify({ version: '1.13.42', at: NOW - HOUR, message: 'Activation failed' });
+
+    updater.check_for_update(() => {
+      // network is back on the next check: the failed version must still be held back
+      pkg.new_version_available = sinon.stub().callsFake((branch, current, cb) => cb(null, '1.13.42', 'https://downloads'));
+      updater.check_enabled = true;
+      updater.check_for_update((err) => {
+        expect(err).to.be.an('error');
+        expect(err.message).to.contain('Skipping upgrade to 1.13.42');
+        expect(updateClient.called).to.equal(false);
+        done();
+      });
+    });
+  });
+
   it('upgrades when reading the failure record errors out', (done) => {
     fakePackage.get_upgrade_failure.callsFake((cb) => cb(new Error('db locked'), null));
 
