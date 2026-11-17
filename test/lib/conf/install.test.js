@@ -4,6 +4,9 @@
 const { expect } = require('chai');
 const sinon = require('sinon');
 const rewire = require('rewire');
+const fs = require('fs');
+const os = require('os');
+const path = require('path');
 
 describe('conf/install activate_new_version rollback', () => {
   let install;
@@ -11,6 +14,7 @@ describe('conf/install activate_new_version rollback', () => {
   let removeStub;
   let setCurrentStub;
   let logStub;
+  let saveFailureStub;
 
   const NEW_VERSION = '1.13.40';
   const PREVIOUS_VERSION = '1.13.39';
@@ -22,6 +26,7 @@ describe('conf/install activate_new_version rollback', () => {
     removeStub = sinon.stub().callsFake((v, cb) => cb());
     setCurrentStub = sinon.stub().callsFake((v, cb) => cb());
     logStub = sinon.stub();
+    saveFailureStub = sinon.stub().callsFake((data, cb) => cb(null));
 
     install.__set__('run_synced', runSyncedStub);
     install.__set__('shared', {
@@ -29,6 +34,7 @@ describe('conf/install activate_new_version rollback', () => {
       version_manager: { remove: removeStub, set_current: setCurrentStub },
     });
     install.__set__('common', { version: PREVIOUS_VERSION });
+    install.__set__('pkg', { save_upgrade_failure: saveFailureStub });
     install.__set__('paths', {
       versions: String.raw`C:\Windows\Prey\versions`,
       bin: 'prey',
@@ -95,6 +101,110 @@ describe('conf/install activate_new_version rollback', () => {
       expect(err == null).to.equal(true);
       expect(removeStub.called).to.equal(false);
       expect(setCurrentStub.called).to.equal(false);
+      done();
+    });
+  });
+
+  it('stores the activation failure so the agent can back off and report it', (done) => {
+    runSyncedStub.callsFake((bin, args, opts, cb) => cb(null, 1));
+
+    install.activate_new_version(NEW_VERSION, (err) => {
+      expect(err).to.be.an('error');
+      expect(saveFailureStub.calledOnce).to.equal(true);
+      const record = saveFailureStub.firstCall.args[0];
+      expect(record.version).to.equal(NEW_VERSION);
+      expect(record.from).to.equal(PREVIOUS_VERSION);
+      expect(record.code).to.equal(1);
+      expect(record.message).to.contain('exit code 1');
+      // stored after the rollback finished
+      expect(setCurrentStub.calledBefore(saveFailureStub)).to.equal(true);
+      done();
+    });
+  });
+
+  it('writes the activation failure to the agent log file', (done) => {
+    const logFile = path.join(os.tmpdir(), `prey-install-test-${process.pid}-${Date.now()}.log`);
+    install.__set__('paths', { versions: String.raw`C:\Windows\Prey\versions`, bin: 'prey', log_file: logFile });
+    runSyncedStub.callsFake((bin, args, opts, cb) => cb(null, 1));
+
+    install.activate_new_version(NEW_VERSION, () => {
+      const content = fs.readFileSync(logFile, 'utf8');
+      fs.unlinkSync(logFile);
+      expect(content).to.contain('[updater] Activation of 1.13.40 failed (exit code 1)');
+      done();
+    });
+  });
+
+  it('still reports the failure when storing it fails', (done) => {
+    saveFailureStub.callsFake((data, cb) => cb(new Error('db locked')));
+    runSyncedStub.callsFake((bin, args, opts, cb) => cb(null, 1));
+
+    install.activate_new_version(NEW_VERSION, (err) => {
+      expect(err).to.be.an('error');
+      expect(err.message).to.contain('exit code 1');
+      done();
+    });
+  });
+
+  it('does not store a failure on successful activation', (done) => {
+    runSyncedStub.callsFake((bin, args, opts, cb) => cb(null, 0));
+
+    install.activate_new_version(NEW_VERSION, () => {
+      expect(saveFailureStub.called).to.equal(false);
+      done();
+    });
+  });
+});
+
+// The agent runs `config upgrade <version>` -> install.remote(), whose `done` callback
+// detaches and then activates. Exercise that path, not activate_new_version directly.
+describe('conf/install remote() -> activation failure path', () => {
+  let install;
+  let saveFailureStub;
+  let fakeProcess;
+
+  beforeEach(() => {
+    install = rewire('../../../lib/conf/install');
+    saveFailureStub = sinon.stub().callsFake((data, cb) => cb(null));
+
+    fakeProcess = {
+      env: {},
+      platform: 'darwin',
+      stdout: { write: sinon.stub() },
+      stderr: { write: sinon.stub() },
+    };
+
+    install.__set__('process', fakeProcess);
+    install.__set__('setTimeout', (fn) => fn());
+    install.__set__('fs', { ...fs, openSync: sinon.stub().returns(99), appendFileSync: sinon.stub() });
+    install.__set__('system', { tempfile_path: (f) => f });
+    install.__set__('common', { version: '1.13.41' });
+    install.__set__('paths', { versions: '/usr/local/lib/prey/versions', bin: 'prey', log_file: '/var/log/prey.log' });
+    install.__set__('shared', {
+      log: sinon.stub(),
+      version_manager: {
+        remove: sinon.stub().callsFake((v, cb) => cb()),
+        set_current: sinon.stub().callsFake((v, cb) => cb()),
+      },
+    });
+    install.__set__('run_synced', (bin, args, opts, cb) => cb(null, 1));
+    install.__set__('pkg', {
+      get_version: (version, dest, cb) => cb(null, version),
+      save_upgrade_failure: saveFailureStub,
+    });
+  });
+
+  afterEach(() => sinon.restore());
+
+  it('records the failure when the post-detach activation fails', (done) => {
+    // remote() swaps process.stdout for a file descriptor after detaching
+    const stdoutWrite = fakeProcess.stdout.write;
+    install.remote({ version: '1.13.42' }, (err) => {
+      expect(err).to.be.an('error');
+      expect(stdoutWrite.calledWith('YOUARENOTMYFATHER')).to.equal(true);
+      expect(saveFailureStub.calledOnce).to.equal(true);
+      expect(saveFailureStub.firstCall.args[0].version).to.equal('1.13.42');
+      expect(saveFailureStub.firstCall.args[0].from).to.equal('1.13.41');
       done();
     });
   });
