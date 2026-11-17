@@ -86,7 +86,6 @@ build() {
 	pack mac x64
 	pack mac arm64
 
-	pack windows x86
 	pack windows x64
 
 	pack linux x64
@@ -103,9 +102,6 @@ zip_file() {
 	elif [ "$OS" = 'windows' ]; then
 		rm -rf "$FOLDER/node_modules/sqlite3/build/Release/node_sqlite3.node"
 
-		if [ "$ARCH" == "x86" ]; then
-			cp -R "$CURRENT_PATH/tools/sqlite3/windows/napi-v6-win32-unknown-ia32/node_sqlite3.node" "$FOLDER/node_modules/sqlite3/build/Release/"
-		fi
 		if [ "$ARCH" == "x64" ]; then
 			cp -R "$CURRENT_PATH/tools/sqlite3/windows/napi-v6-win32-unknown-x64/node_sqlite3.node" "$FOLDER/node_modules/sqlite3/build/Release/"
 		fi
@@ -139,6 +135,16 @@ zip_file() {
 	echo "$VERSION_PATH/$ZIP"
 }
 
+# Aborts unless $1 exists and is big enough to be a real Node binary
+# (a saved HTTP error page is only a few bytes).
+check_node_bin() {
+	local bin="$1"
+	[ -f "$bin" ] || abort "Node binary not found: $bin"
+	local size
+	size=$(wc -c <"$bin" | tr -d ' ')
+	[ "$size" -ge 1048576 ] || abort "Node binary looks invalid (${size} bytes): $bin"
+}
+
 pack() {
 	OS="$1"
 	ARCH="$2"
@@ -147,10 +153,12 @@ pack() {
 	[ "$OS" = "windows" ] && NODE_BIN="node.exe"
 
 	if [ "$OS" == "windows" ]; then
+		check_node_bin "$CURRENT_PATH/node/${NODE_AGENT_WINDOWS_VER}/${ARCH}/${NODE_BIN}"
 		cp "$CURRENT_PATH/node/${NODE_AGENT_WINDOWS_VER}/${ARCH}/${NODE_BIN}" "${ROOT}/${FOLDER}/bin"
 	fi
 
 	if [ "$OS" != "windows" ]; then
+		check_node_bin "$CURRENT_PATH/node/${NODE_AGENT_UNIX_VER}/${ARCH}/${NODE_BIN}"
 		cp "$CURRENT_PATH/node/${NODE_AGENT_UNIX_VER}/${ARCH}/${NODE_BIN}" "${ROOT}/${FOLDER}/bin"
 		mv "${ROOT}/${FOLDER}/bin/node.${OS}" "${ROOT}/${FOLDER}/bin/node"
 	fi

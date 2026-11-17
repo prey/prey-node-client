@@ -29,7 +29,7 @@ fetch_tar() {
 			echo "Error: URL ${url} returned 404 Not Found. Skipping download."
 		fi
 	fi
-	curl -L -o "$target_file" "$url"
+	curl -fL -o "$target_file" "$url"
 	[ $? -ne 0 ] && return 1
 	tar -zxf ${target_file} -C ${dest} 2>/dev/null
 	if [[ $? -ne 0 ]]; then
@@ -45,7 +45,7 @@ fetch_exe() {
 	local file="$2"
 	local dest="$3"
 	local url="${base_url}/release/v${version}/${file}"
-	curl "$url" -o node.exe
+	curl -fL "$url" -o node.exe || { rm -f node.exe; return 1; }
 	mv node.exe "${dest}"
 }
 
@@ -68,9 +68,7 @@ fetch_mac() {
 
 fetch_win() {
 	check_create_path "$1" "$2"
-	check_create_path "$1" "$3"
-	fetch_exe "$1" "win-x86/node.exe" "$2"
-	fetch_exe "$1" "win-x64/node.exe" "$3"
+	fetch_exe "$1" "win-x64/node.exe" "$2"
 }
 
 check_create_path() {
@@ -96,7 +94,6 @@ fetch() {
 	else
 		local version="$1"
 	fi
-	local path86="${node_path}/${version}/x86"
 	local path64="${node_path}/${version}/x64"
 	local patharm64="${node_path}/${version}/arm64"
 
@@ -107,7 +104,7 @@ fetch() {
 	elif [[ "$2" == "unix" ]]; then
 		fetch_unix "$version" "$path64" "$patharm64"
 	elif [[ "$2" == "win" ]]; then
-		fetch_win "$version" "$path86" "$path64"
+		fetch_win "$version" "$path64"
 	fi
 }
 

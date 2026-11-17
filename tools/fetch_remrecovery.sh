@@ -69,14 +69,12 @@ verify_sha() {
   echo "${want}  ${f}" | sha256sum --check --status || { echo "ERROR: sha256 mismatch for $name"; exit 1; }
 }
 
-rm -rf "$OUT"; mkdir -p "$OUT"/{windows/x86,windows/x64,mac/x64,mac/arm64,linux/x64}
+rm -rf "$OUT"; mkdir -p "$OUT"/{windows/x64,mac/x64,mac/arm64,linux/x64}
 
-# 2a) Windows: standalone binaries.
-for a in x86 x64; do
-  f="prey-recovery-${VERSION}-${a}.exe"
-  dl "$f" "$WORK/$f"; verify_sha "$WORK/$f"
-  cp "$WORK/$f" "$OUT/windows/$a/remrecovery.exe"
-done
+# 2a) Windows x64: standalone binary (x86 is no longer built).
+f="prey-recovery-${VERSION}-x64.exe"
+dl "$f" "$WORK/$f"; verify_sha "$WORK/$f"
+cp "$WORK/$f" "$OUT/windows/x64/remrecovery.exe"
 
 # 2b) macOS: inside the darwin zip (x64->amd64, arm64->arm64).
 for pair in "x64:amd64" "arm64:arm64"; do
