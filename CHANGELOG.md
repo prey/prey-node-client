@@ -1,5 +1,24 @@
 # Change Log
 
+## [v1.13.43](https://github.com/prey/prey-node-client/tree/v1.13.43) (2026-11-18)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.42..v1.13.43)
+
+- Feat: Added a cross-platform `migrate` action (Windows, macOS and Linux) that runs the bundled `remrecovery` tool through the platform service (wpxsvc, macsvc, or pkexec on Linux), resumes an operation already in progress after a relaunch, and includes the migration result in the panel response. ([SoraKenji](https://github.com/SoraKenji))
+
+- Feat: `remrecovery` is now provided by CI from its release assets and bundled into every per-platform package, replacing the binaries previously committed to the repository. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Stopped a macOS upgrade loop after a failed activation: the real activation error is now recorded and reported to the panel, the same failed version is retried only after a 3-hour backoff, and release packages are downloaded to a temporary `.part` file so an interrupted download is never reused. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Avoided false "hardware changed" alerts caused by partial firmware reads on Windows (e.g. "Motherboard changed NA -> ..."): BIOS and baseboard are read independently with retries, missing fields are filled from the stored baseline, and null firmware values are never sent. Firmware filler values such as "Default string" are now reported as read. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Windows screenshots are no longer stale: the previous capture is now removed correctly and an image is only sent when it was actually written during the current capture. ([SoraKenji](https://github.com/SoraKenji))
+
+- Chore: Bumped the bundled Node.js to 26.13.1 and dropped Windows x86 packaging, since Node no longer ships win-x86 binaries. The build now fails on bad Node downloads. ([SoraKenji](https://github.com/SoraKenji))
+
+- Chore: Updated wpxsvc to version 2.0.37 and the macOS `prey-user` helper to 1.1.0. ([SoraKenji](https://github.com/SoraKenji))
+
+- Chore: Updated dependencies to address security advisories (systeminformation 5.33.19, qs, ip-address, serialize-javascript and markdown-it). ([SoraKenji](https://github.com/SoraKenji))
+
 ## [v1.13.42](https://github.com/prey/prey-node-client/tree/v1.13.42) (2026-10-22)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.41..v1.13.42)
 
