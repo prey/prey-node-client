@@ -336,8 +336,14 @@ describe('prey_owl', () => {
       fsStub.stat.callsFake((p, cb) => cb(null, { mtime }));
     };
 
+    /** @param {number} offsetMs - "now" relative to the daemon start */
+    const nowAt = (offsetMs) => {
+      prey_owl.__set__('now', () => new Date(LSTART).getTime() + offsetMs);
+    };
+
     beforeEach(() => {
       compareVersionsDaemon = prey_owl.__get__('compareVersionsDaemon');
+      nowAt(60 * 60 * 1000); // daemon has been up for an hour
       psLine = `${LSTART}     ${prey_owl.__get__('installVersionsPath')}`;
       execStub.callsFake(makeExecFake([
         ['/bin/ps', (cb) => cb(null, `Fri Nov 20 18:50:00 2026     /usr/sbin/cron\n${psLine}\n`)],
@@ -370,6 +376,36 @@ describe('prey_owl', () => {
 
       compareVersionsDaemon('1.1.0', '1.1.0', () => {
         expect(spawnStub.called).to.be.false;
+        done();
+      });
+    });
+
+    it('does nothing when the binary mtime is in the future (clock moved back) — no restart loop', (done) => {
+      binaryChangedAt(25 * 60 * 60 * 1000); // a day after "now"
+
+      compareVersionsDaemon('1.1.0', '1.1.0', (err) => {
+        expect(err).to.equal('New version < old version');
+        expect(spawnStub.called).to.be.false;
+        done();
+      });
+    });
+
+    it('does not restart a daemon younger than the minimum uptime, even if stale', (done) => {
+      binaryChangedAt(10 * 1000);
+      nowAt(30 * 1000); // started 30 s ago, binary replaced 20 s ago
+
+      compareVersionsDaemon('1.1.0', '1.1.0', () => {
+        expect(spawnStub.called).to.be.false;
+        done();
+      });
+    });
+
+    it('restarts a stale daemon once it is past the minimum uptime', (done) => {
+      binaryChangedAt(10 * 1000);
+      nowAt(2 * 60 * 1000);
+
+      compareVersionsDaemon('1.1.0', '1.1.0', () => {
+        expect(spawnStub.calledOnce).to.be.true;
         done();
       });
     });
