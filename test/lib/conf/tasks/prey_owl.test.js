@@ -31,7 +31,9 @@ describe('prey_owl', () => {
   let execStub;
   let satanObj;
   let systemStub;
-  let waitForProcessToStopStub;
+  let fsStub;
+  let spawnStub;
+  let childStub;
   let originalModuleLoad;
 
   beforeEach(() => {
@@ -58,12 +60,18 @@ describe('prey_owl', () => {
     systemStub = { get_os_version: sinon.stub().callsFake((cb) => cb(null, '12.0.0')) };
     prey_owl.__set__('system', systemStub);
 
-    // Stub log_install's fs to avoid filesystem writes during tests
-    prey_owl.__set__('fs', { appendFileSync: sinon.stub() });
+    // Stub fs to avoid filesystem writes during tests (log_install, reload log fd, stat)
+    fsStub = {
+      appendFileSync: sinon.stub(),
+      openSync: sinon.stub().returns(42),
+      stat: sinon.stub().callsFake((p, cb) => cb(new Error('ENOENT'))),
+    };
+    prey_owl.__set__('fs', fsStub);
 
-    // Stub waitForProcessToStop so tests don't need to simulate pgrep
-    waitForProcessToStopStub = sinon.stub().callsFake((name, timeout, cb) => cb(null));
-    prey_owl.__set__('waitForProcessToStop', waitForProcessToStopStub);
+    // Detached reload helper: never spawn a real process
+    childStub = { on: sinon.stub(), unref: sinon.stub() };
+    spawnStub = sinon.stub().returns(childStub);
+    prey_owl.__set__('spawn', spawnStub);
   });
 
   afterEach(() => {
@@ -125,9 +133,10 @@ describe('prey_owl', () => {
   });
 
   // ─── testExistingConfigurations ─────────────────────────────────────────────
-  // Bug 2 fix: two exec branches used to run in parallel during upgrades; cb was
-  // called before launchctl load completed.  Also, a missing com.prey.owl.plist
-  // no longer aborts the upgrade (Bug 2b).
+  // The upgrade path used to run `launchctl unload/load` on a path without
+  // `.plist` (exit 0 despite failing), so the running daemon kept its old binary.
+  // Now it replaces the binary and restarts the daemon from a detached process.
+  // A missing com.prey.owl.plist does not abort the upgrade (Bug 2b).
   // ────────────────────────────────────────────────────────────────────────────
 
   describe('testExistingConfigurations', () => {
@@ -160,55 +169,72 @@ describe('prey_owl', () => {
       });
     });
 
-    it('serializes upgrade: launchctl unload runs before launchctl load (Bug 2 fix)', (done) => {
-      const order = [];
-
+    it('never runs launchctl unload/load in-process during an upgrade', (done) => {
+      const cmds = [];
       execStub.callsFake((cmd, optsOrCb, cb) => {
         const callback = resolveCb(optsOrCb, cb);
-        if (cmd.includes('new_owl.plist')) { order.push('check_plist'); return callback(null, 'exists'); }
-        if (cmd.includes('launchctl unload')) { order.push('unload'); return callback(null, ''); }
-        if (cmd.includes('launchctl') && !cmd.includes('unload')) { order.push('load'); return callback(null, ''); }
-        callback(null, '');
+        cmds.push(cmd);
+        if (cmd.includes('new_owl.plist')) return callback(null, 'exists');
+        return callback(null, '');
       });
 
       testExistingConfigurations(() => {
-        const unloadIdx = order.indexOf('unload');
-        const loadIdx = order.indexOf('load');
-        expect(unloadIdx).to.be.greaterThan(-1, 'launchctl unload must be called');
-        expect(loadIdx).to.be.greaterThan(-1, 'launchctl load must be called');
-        expect(loadIdx).to.be.greaterThan(unloadIdx, 'load must come strictly after unload');
+        expect(cmds.filter((c) => c.includes('launchctl'))).to.have.length(0);
         done();
       });
     });
 
-    it('calls cb only after launchctl load completes, not before (Bug 2 critical check)', (done) => {
-      let loadCompleted = false;
-
+    it('copies the binary first and only then schedules the detached daemon restart', (done) => {
+      const order = [];
       execStub.callsFake((cmd, optsOrCb, cb) => {
         const callback = resolveCb(optsOrCb, cb);
         if (cmd.includes('new_owl.plist')) return callback(null, 'exists');
-        if (cmd.includes('launchctl') && !cmd.includes('unload')) {
-          // Simulate async work before calling cb
-          setImmediate(() => { loadCompleted = true; callback(null, ''); });
-          return;
-        }
-        callback(null, '');
+        if (cmd.startsWith('/bin/cp')) order.push('copy');
+        return callback(null, '');
       });
+      spawnStub.callsFake(() => { order.push('spawn'); return childStub; });
 
-      testExistingConfigurations(() => {
-        expect(loadCompleted).to.be.true;
+      testExistingConfigurations((err) => {
+        expect(err).to.equal(null);
+        expect(order).to.deep.equal(['copy', 'spawn']);
         done();
       });
     });
 
-    it('waitForProcessToStop is called during upgrade to wait for prey-user to exit', (done) => {
+    it('restarts the daemon via a detached kickstart, with bootstrap of the .plist as fallback', (done) => {
       execStub.callsFake(makeExecFake([
         ['new_owl.plist', (cb) => cb(null, 'exists')],
       ]));
 
       testExistingConfigurations(() => {
-        expect(waitForProcessToStopStub.calledOnce).to.be.true;
-        expect(waitForProcessToStopStub.args[0][0]).to.equal('prey-user');
+        expect(spawnStub.calledOnce).to.be.true;
+        const [bin, args, opts] = spawnStub.args[0];
+        expect(bin).to.equal('/bin/sh');
+        expect(args[0]).to.equal('-c');
+        expect(args[1]).to.include('launchctl kickstart -k system/com.prey.new_owl');
+        expect(args[1]).to.include(
+          'launchctl bootstrap system /Library/LaunchDaemons/com.prey.new_owl.plist',
+        );
+        expect(args[1]).to.match(/^sleep \d+;/);
+        expect(opts.detached).to.be.true;
+        expect(opts.stdio).to.deep.equal(['ignore', 42, 42]);
+        expect(childStub.unref.calledOnce).to.be.true;
+        done();
+      });
+    });
+
+    it('calls cb(err) and does NOT restart the daemon when the copy fails', (done) => {
+      const copyError = new Error('cp: permission denied');
+      execStub.callsFake((cmd, optsOrCb, cb) => {
+        const callback = resolveCb(optsOrCb, cb);
+        if (cmd.includes('new_owl.plist')) return callback(null, 'exists');
+        if (cmd.startsWith('/bin/cp')) return callback(copyError, '');
+        return callback(null, '');
+      });
+
+      testExistingConfigurations((err) => {
+        expect(err).to.equal(copyError);
+        expect(spawnStub.called).to.be.false;
         done();
       });
     });
@@ -258,6 +284,207 @@ describe('prey_owl', () => {
 
       testExistingConfigurations(() => {
         expect(deleteCmds).to.have.length(0);
+        done();
+      });
+    });
+  });
+
+  // ─── scheduleDaemonReload ───────────────────────────────────────────────────
+
+  describe('scheduleDaemonReload', () => {
+    let scheduleDaemonReload;
+
+    beforeEach(() => {
+      scheduleDaemonReload = prey_owl.__get__('scheduleDaemonReload');
+    });
+
+    it('still spawns the reload with stdio ignored when the install log cannot be opened', () => {
+      fsStub.openSync.throws(new Error('EACCES'));
+
+      expect(() => scheduleDaemonReload('test')).to.not.throw();
+      expect(spawnStub.calledOnce).to.be.true;
+      expect(spawnStub.args[0][2].stdio).to.equal('ignore');
+    });
+
+    it('does not throw when spawn itself throws', () => {
+      spawnStub.throws(new Error('EAGAIN'));
+
+      expect(() => scheduleDaemonReload('test')).to.not.throw();
+    });
+
+    it('listens for spawn errors so an async failure cannot crash the process', () => {
+      scheduleDaemonReload('test');
+
+      expect(childStub.on.calledWith('error')).to.be.true;
+    });
+  });
+
+  // ─── compareVersionsDaemon: daemon left on its previous binary ──────────────
+  // An upgrade that replaced versions/prey-user without restarting the daemon
+  // leaves it on the old binary forever, because every later tick sees equal
+  // versions. The equal-version path now restarts a daemon older than its binary.
+  // ────────────────────────────────────────────────────────────────────────────
+
+  describe('compareVersionsDaemon (stale daemon)', () => {
+    const LSTART = 'Fri Nov 20 18:51:14 2026';
+    let compareVersionsDaemon;
+    let psLine;
+
+    /** @param {number} offsetMs - binary mtime relative to the daemon start */
+    const binaryChangedAt = (offsetMs) => {
+      const mtime = new Date(new Date(LSTART).getTime() + offsetMs);
+      fsStub.stat.callsFake((p, cb) => cb(null, { mtime }));
+    };
+
+    /** @param {number} offsetMs - "now" relative to the daemon start */
+    const nowAt = (offsetMs) => {
+      prey_owl.__set__('now', () => new Date(LSTART).getTime() + offsetMs);
+    };
+
+    beforeEach(() => {
+      compareVersionsDaemon = prey_owl.__get__('compareVersionsDaemon');
+      nowAt(60 * 60 * 1000); // daemon has been up for an hour
+      psLine = `${LSTART}     ${prey_owl.__get__('installVersionsPath')}`;
+      execStub.callsFake(makeExecFake([
+        ['/bin/ps', (cb) => cb(null, `Fri Nov 20 18:50:00 2026     /usr/sbin/cron\n${psLine}\n`)],
+      ]));
+    });
+
+    it('restarts the daemon when it started before its binary was replaced', (done) => {
+      binaryChangedAt(3 * 60 * 1000);
+
+      compareVersionsDaemon('1.1.0', '1.1.0', (err) => {
+        expect(err).to.equal('New version < old version');
+        expect(spawnStub.calledOnce).to.be.true;
+        expect(spawnStub.args[0][1][1]).to.include('kickstart -k system/com.prey.new_owl');
+        done();
+      });
+    });
+
+    it('does nothing when the daemon started after its binary changed', (done) => {
+      binaryChangedAt(-60 * 1000);
+
+      compareVersionsDaemon('1.1.0', '1.1.0', (err) => {
+        expect(err).to.equal('New version < old version');
+        expect(spawnStub.called).to.be.false;
+        done();
+      });
+    });
+
+    it('does nothing when the binary changed within the margin of the daemon start', (done) => {
+      binaryChangedAt(2000);
+
+      compareVersionsDaemon('1.1.0', '1.1.0', () => {
+        expect(spawnStub.called).to.be.false;
+        done();
+      });
+    });
+
+    it('does nothing when the binary mtime is in the future (clock moved back) — no restart loop', (done) => {
+      binaryChangedAt(25 * 60 * 60 * 1000); // a day after "now"
+
+      compareVersionsDaemon('1.1.0', '1.1.0', (err) => {
+        expect(err).to.equal('New version < old version');
+        expect(spawnStub.called).to.be.false;
+        done();
+      });
+    });
+
+    it('does not restart a daemon younger than the minimum uptime, even if stale', (done) => {
+      binaryChangedAt(10 * 1000);
+      nowAt(30 * 1000); // started 30 s ago, binary replaced 20 s ago
+
+      compareVersionsDaemon('1.1.0', '1.1.0', () => {
+        expect(spawnStub.called).to.be.false;
+        done();
+      });
+    });
+
+    it('restarts a stale daemon once it is past the minimum uptime', (done) => {
+      binaryChangedAt(10 * 1000);
+      nowAt(2 * 60 * 1000);
+
+      compareVersionsDaemon('1.1.0', '1.1.0', () => {
+        expect(spawnStub.calledOnce).to.be.true;
+        done();
+      });
+    });
+
+    it('does nothing when the daemon is not running', (done) => {
+      binaryChangedAt(3 * 60 * 1000);
+      execStub.callsFake(makeExecFake([
+        ['/bin/ps', (cb) => cb(null, 'Fri Nov 20 18:50:00 2026     /usr/sbin/cron\n')],
+      ]));
+
+      compareVersionsDaemon('1.1.0', '1.1.0', (err) => {
+        expect(err).to.equal('New version < old version');
+        expect(spawnStub.called).to.be.false;
+        done();
+      });
+    });
+
+    it('does nothing when ps fails', (done) => {
+      execStub.callsFake(makeExecFake([
+        ['/bin/ps', (cb) => cb(new Error('ps: not permitted'), '')],
+      ]));
+
+      compareVersionsDaemon('1.1.0', '1.1.0', (err) => {
+        expect(err).to.equal('New version < old version');
+        expect(spawnStub.called).to.be.false;
+        done();
+      });
+    });
+
+    it('does nothing when the binary cannot be stat-ed', (done) => {
+      // default fsStub.stat fails with ENOENT
+      compareVersionsDaemon('1.1.0', '1.1.0', (err) => {
+        expect(err).to.equal('New version < old version');
+        expect(spawnStub.called).to.be.false;
+        done();
+      });
+    });
+
+    it('runs the upgrade path, not the stale check, when current/bin is newer', (done) => {
+      const testExistingConfigurationsStub = sinon.stub().callsFake((cb) => cb(null));
+      prey_owl.__set__('testExistingConfigurations', testExistingConfigurationsStub);
+
+      compareVersionsDaemon('1.0.11', '1.1.0', (err) => {
+        expect(err).to.equal(null);
+        expect(testExistingConfigurationsStub.calledOnce).to.be.true;
+        expect(execStub.calledWithMatch('/bin/ps')).to.be.false;
+        done();
+      });
+    });
+  });
+
+  // ─── daemon.set_watcher → prey_owl (adapter path) ───────────────────────────
+  // `prey config set_watcher` reaches prey_owl through daemon.set_watcher; this
+  // exercises that path end to end with the real prey_owl module.
+  // ────────────────────────────────────────────────────────────────────────────
+
+  describe('daemon.set_watcher → prey_owl upgrade path', () => {
+    it('replaces versions/prey-user and schedules the detached restart when current/bin is newer', (done) => {
+      const daemon = rewire('../../../../lib/conf/tasks/daemon');
+      daemon.__set__('fs', { appendFileSync: sinon.stub() });
+      daemon.__set__('prey_owl', prey_owl);
+
+      const cmds = [];
+      execStub.callsFake((cmd, optsOrCb, cb) => {
+        const callback = resolveCb(optsOrCb, cb);
+        cmds.push(cmd);
+        if (cmd === prey_owl.cmdExistsCurrentBinPreyUser) return callback(null, 'exists');
+        if (cmd === prey_owl.cmdCurrentBinPreyUserVersion) return callback(null, '1.1.0\n');
+        if (cmd === prey_owl.cmdExistsInstallVersionPreyUser) return callback(null, 'exists');
+        if (cmd === prey_owl.cmdInstallVersionsreyUserVersion) return callback(null, '1.0.11\n');
+        if (cmd === prey_owl.existsNewPath) return callback(null, 'exists');
+        return callback(null, '');
+      });
+
+      daemon.set_watcher((err) => {
+        expect(err).to.equal(null);
+        expect(cmds).to.include(prey_owl.copyCurrentToInstallVersionPath);
+        expect(spawnStub.calledOnce).to.be.true;
+        expect(spawnStub.args[0][2].detached).to.be.true;
         done();
       });
     });
