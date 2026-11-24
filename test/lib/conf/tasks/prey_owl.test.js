@@ -354,7 +354,7 @@ describe('prey_owl', () => {
       binaryChangedAt(3 * 60 * 1000);
 
       compareVersionsDaemon('1.1.0', '1.1.0', (err) => {
-        expect(err).to.equal('New version < old version');
+        expect(err).to.equal(null);
         expect(spawnStub.calledOnce).to.be.true;
         expect(spawnStub.args[0][1][1]).to.include('kickstart -k system/com.prey.new_owl');
         done();
@@ -365,7 +365,7 @@ describe('prey_owl', () => {
       binaryChangedAt(-60 * 1000);
 
       compareVersionsDaemon('1.1.0', '1.1.0', (err) => {
-        expect(err).to.equal('New version < old version');
+        expect(err).to.equal(null);
         expect(spawnStub.called).to.be.false;
         done();
       });
@@ -384,7 +384,7 @@ describe('prey_owl', () => {
       binaryChangedAt(25 * 60 * 60 * 1000); // a day after "now"
 
       compareVersionsDaemon('1.1.0', '1.1.0', (err) => {
-        expect(err).to.equal('New version < old version');
+        expect(err).to.equal(null);
         expect(spawnStub.called).to.be.false;
         done();
       });
@@ -417,7 +417,7 @@ describe('prey_owl', () => {
       ]));
 
       compareVersionsDaemon('1.1.0', '1.1.0', (err) => {
-        expect(err).to.equal('New version < old version');
+        expect(err).to.equal(null);
         expect(spawnStub.called).to.be.false;
         done();
       });
@@ -429,7 +429,7 @@ describe('prey_owl', () => {
       ]));
 
       compareVersionsDaemon('1.1.0', '1.1.0', (err) => {
-        expect(err).to.equal('New version < old version');
+        expect(err).to.equal(null);
         expect(spawnStub.called).to.be.false;
         done();
       });
@@ -438,7 +438,7 @@ describe('prey_owl', () => {
     it('does nothing when the binary cannot be stat-ed', (done) => {
       // default fsStub.stat fails with ENOENT
       compareVersionsDaemon('1.1.0', '1.1.0', (err) => {
-        expect(err).to.equal('New version < old version');
+        expect(err).to.equal(null);
         expect(spawnStub.called).to.be.false;
         done();
       });
@@ -452,6 +452,54 @@ describe('prey_owl', () => {
         expect(err).to.equal(null);
         expect(testExistingConfigurationsStub.calledOnce).to.be.true;
         expect(execStub.calledWithMatch('/bin/ps')).to.be.false;
+        done();
+      });
+    });
+  });
+
+  // ─── compareVersionsDaemon: already up to date is a success ─────────────────
+  // It used to call cb('New version < old version'), so `prey config hooks
+  // set_watcher` printed "Error! undefined" and exited 1 every hour on every Mac.
+  // ────────────────────────────────────────────────────────────────────────────
+
+  describe('compareVersionsDaemon (version comparison)', () => {
+    let compareVersionsDaemon;
+    let testExistingConfigurationsStub;
+
+    beforeEach(() => {
+      compareVersionsDaemon = prey_owl.__get__('compareVersionsDaemon');
+      testExistingConfigurationsStub = sinon.stub().callsFake((cb) => cb(null));
+      prey_owl.__set__('testExistingConfigurations', testExistingConfigurationsStub);
+    });
+
+    it('calls cb(null) without upgrading when the versions are equal', (done) => {
+      compareVersionsDaemon('1.1.0\n', '1.1.0\n', (err) => {
+        expect(err).to.equal(null);
+        expect(testExistingConfigurationsStub.called).to.be.false;
+        done();
+      });
+    });
+
+    it('calls cb(null) without upgrading when the installed version is newer', (done) => {
+      compareVersionsDaemon('1.2.0', '1.1.0', (err) => {
+        expect(err).to.equal(null);
+        expect(testExistingConfigurationsStub.called).to.be.false;
+        done();
+      });
+    });
+
+    it('runs the upgrade path when the installed version is older', (done) => {
+      compareVersionsDaemon('1.0.11', '1.1.0', (err) => {
+        expect(err).to.equal(null);
+        expect(testExistingConfigurationsStub.calledOnce).to.be.true;
+        done();
+      });
+    });
+
+    it('writes an "already up to date" line to the installation log', (done) => {
+      compareVersionsDaemon('1.1.0\n', '1.1.0\n', () => {
+        const lines = fsStub.appendFileSync.args.map((a) => a[1]);
+        expect(lines.some((l) => l.includes('prey-user already up to date (1.1.0 >= 1.1.0)'))).to.be.true;
         done();
       });
     });
@@ -485,6 +533,30 @@ describe('prey_owl', () => {
         expect(cmds).to.include(prey_owl.copyCurrentToInstallVersionPath);
         expect(spawnStub.calledOnce).to.be.true;
         expect(spawnStub.args[0][2].detached).to.be.true;
+        done();
+      });
+    });
+
+    it('succeeds without copying or restarting when both prey-user binaries are the same version', (done) => {
+      const daemon = rewire('../../../../lib/conf/tasks/daemon');
+      daemon.__set__('fs', { appendFileSync: sinon.stub() });
+      daemon.__set__('prey_owl', prey_owl);
+
+      const cmds = [];
+      execStub.callsFake((cmd, optsOrCb, cb) => {
+        const callback = resolveCb(optsOrCb, cb);
+        cmds.push(cmd);
+        if (cmd === prey_owl.cmdExistsCurrentBinPreyUser) return callback(null, 'exists');
+        if (cmd === prey_owl.cmdCurrentBinPreyUserVersion) return callback(null, '1.1.0\n');
+        if (cmd === prey_owl.cmdExistsInstallVersionPreyUser) return callback(null, 'exists');
+        if (cmd === prey_owl.cmdInstallVersionsreyUserVersion) return callback(null, '1.1.0\n');
+        return callback(null, '');
+      });
+
+      daemon.set_watcher((err) => {
+        expect(err).to.equal(null);
+        expect(cmds).to.not.include(prey_owl.copyCurrentToInstallVersionPath);
+        expect(spawnStub.called).to.be.false;
         done();
       });
     });
