@@ -15,6 +15,12 @@
 
 - Fix: The macOS `prey-user` helper no longer writes location or network identifiers (coordinates, SSID, BSSID, IP and MAC addresses) to `/var/log/prey.log`, which any local user can read. Failed commands now log only their size or error text, and Wi-Fi lookups log only failures and requests slower than 3.5 s. ([SoraKenji](https://github.com/SoraKenji))
 
+- Fix: After a macOS upgrade, the `prey-user` daemon is now restarted so it runs the new binary right away instead of keeping the old one until a reboot. Devices left on the old daemon by an earlier upgrade recover on their own. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Stopped `prey-user` from being restarted over and over when its binary has a modification time in the future (for example, after the system clock moved back). A daemon less than 60 seconds old is never restarted as out of date. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: `prey config hooks set_watcher` no longer fails every hour with "Error! undefined" when `prey-user` is already up to date. ([SoraKenji](https://github.com/SoraKenji))
+
 - Chore: Bumped the bundled Node.js to 26.13.1 and dropped Windows x86 packaging, since Node no longer ships win-x86 binaries. The build now fails on bad Node downloads. ([SoraKenji](https://github.com/SoraKenji))
 
 - Chore: Updated wpxsvc to version 2.0.37 and the macOS `prey-user` helper to 1.1.0. ([SoraKenji](https://github.com/SoraKenji))
