@@ -199,4 +199,97 @@ describe('exceptions', () => {
       );
     });
   });
+
+  // The in-memory keys are only set by the agent's control panel: processes like the
+  // conf CLI must still report which device the exception came from.
+  describe('deviceKey resolution', () => {
+    const DK_KEY = 'control-panel.device_key';
+    let savedConfigKey;
+
+    // Quota read returns empty, quota write succeeds; `preyconfRows` answers the preyconf query.
+    const stubStorage = (preyconfRows) => {
+      storageDoStub.callsFake((op, opts, cb) => {
+        if (op === 'query' && opts.data === 'preyconf') return cb(null, preyconfRows);
+        if (op === 'query') return cb(null, []);
+        return cb(null);
+      });
+    };
+    const sentDeviceKey = () => needlePostStub.firstCall.args[1].deviceKey;
+
+    beforeEach(() => {
+      // configfile exports a frozen instance, so set the value on its (unfrozen) data object.
+      savedConfigKey = config.all()[DK_KEY];
+      config.all()[DK_KEY] = null;
+      keys.get.returns({});
+    });
+
+    afterEach(() => {
+      config.all()[DK_KEY] = savedConfigKey;
+    });
+
+    it('uses the in-memory key when the agent has set it', (done) => {
+      keys.get.returns({ device: 'memory-key' });
+      config.all()[DK_KEY] = 'config-key';
+      stubStorage(null);
+
+      exceptionsModule.send(new Error('from agent'), () => {
+        expect(sentDeviceKey()).to.equal('memory-key');
+        done();
+      });
+    });
+
+    it('falls back to the loaded config when the in-memory keys are empty (conf CLI)', (done) => {
+      config.all()[DK_KEY] = 'config-key';
+      stubStorage(null);
+
+      exceptionsModule.send(new Error('from cli'), () => {
+        expect(sentDeviceKey()).to.equal('config-key');
+        expect(storageDoStub.calledWith('query', sinon.match({ data: 'preyconf' }))).to.be.false;
+        done();
+      });
+    });
+
+    it('reads the preyconf row when the config has not loaded yet', (done) => {
+      stubStorage([{ value: JSON.stringify({ [DK_KEY]: 'db-key' }) }]);
+
+      exceptionsModule.send(new Error('cli crashed early'), () => {
+        expect(sentDeviceKey()).to.equal('db-key');
+        done();
+      });
+    });
+
+    it('still sends with a null key when the preyconf row is missing', (done) => {
+      stubStorage(null);
+
+      exceptionsModule.send(new Error('no row'), () => {
+        expect(needlePostStub.calledOnce).to.be.true;
+        expect(sentDeviceKey()).to.be.null;
+        done();
+      });
+    });
+
+    it('still sends with a null key when the preyconf row is not valid JSON', (done) => {
+      stubStorage([{ value: '{not json' }]);
+
+      exceptionsModule.send(new Error('bad row'), () => {
+        expect(needlePostStub.calledOnce).to.be.true;
+        expect(sentDeviceKey()).to.be.null;
+        done();
+      });
+    });
+
+    it('still sends with a null key when reading commands.db fails', (done) => {
+      storageDoStub.callsFake((op, opts, cb) => {
+        if (op === 'query' && opts.data === 'preyconf') return cb(new Error('SQLITE_BUSY'));
+        if (op === 'query') return cb(null, []);
+        return cb(null);
+      });
+
+      exceptionsModule.send(new Error('db busy'), () => {
+        expect(needlePostStub.calledOnce).to.be.true;
+        expect(sentDeviceKey()).to.be.null;
+        done();
+      });
+    });
+  });
 });

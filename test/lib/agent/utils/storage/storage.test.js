@@ -1,5 +1,6 @@
 /* eslint-disable no-unused-expressions */
 /* eslint-disable no-undef */
+/* eslint-disable no-underscore-dangle */
 const rewire = require('rewire');
 const sinon = require('sinon');
 const path = require('path');
@@ -21,7 +22,7 @@ describe('storage_fns', () => {
       this.configure = sinon.stub();
       this.close = sinon.stub().callsFake((c) => c && c());
       dbInstance = this;
-      // Async to ensure dbComm assignment completes before the callback fires.
+      // Async, like real sqlite3: the open callback fires after the constructor returns.
       process.nextTick(() => cb && cb(openErr));
     },
   });
@@ -419,6 +420,106 @@ describe('storage_fns', () => {
         expect(rows).to.be.an('array');
         done();
       });
+    });
+  });
+
+  // ─── concurrent connections (SQLITE_MISUSE race) ────────────────────────────
+  // Reproduces the conf CLI race: ensureAndCreateDb calls storage.init() outside
+  // the queue while configfile's constructor runs a queued storage.do('query').
+  // Open callbacks are released by hand so the second open can complete first.
+  describe('concurrent connections', () => {
+    const misuse = () => Object.assign(new Error('SQLITE_MISUSE: Database is closed'), { code: 'SQLITE_MISUSE' });
+
+    const makeControlledSqlite3 = () => {
+      const instances = [];
+      const sqlite3 = {
+        Database: function ControlledDB(dbFile, cb) {
+          const self = this;
+          self.closed = false;
+          self.open = (err = null) => cb(err);
+          self.configure = sinon.stub().callsFake(() => {
+            // Real sqlite3 emits an unhandled 'error' event here, which crashes the process.
+            if (self.closed) throw misuse();
+          });
+          self.run = sinon.stub().callsFake((sql, c) => c && c(self.closed ? misuse() : null));
+          self.all = sinon.stub().callsFake((sql, c) => {
+            if (!c) return;
+            if (self.closed) c(misuse());
+            else c(null, []);
+          });
+          self.close = sinon.stub().callsFake((c) => {
+            self.closed = true;
+            if (c) c();
+          });
+          instances.push(self);
+        },
+      };
+      return { instances, sqlite3 };
+    };
+
+    it('never touches a connection another caller already closed', () => {
+      const ctl = makeControlledSqlite3();
+      storage.__set__('sqlite3', ctl.sqlite3);
+
+      const results = {};
+      storage.init(null, null, (err, db) => {
+        results.init = { err, db };
+        if (db) db.close();
+      });
+      storage.storage_fns.query({ type: 'keys', column: 'id', data: 'preyconf' }, (err, rows) => {
+        results.query = { err, rows };
+      });
+
+      const [initDb, queryDb] = ctl.instances;
+      // The later open completes first and closes its connection...
+      queryDb.open();
+      // ...then the earlier open completes: it must still use its own connection.
+      expect(() => initDb.open()).to.not.throw();
+
+      expect(results.query.err).to.be.null;
+      expect(results.query.rows).to.deep.equal([]);
+      expect(results.init.err).to.be.null;
+      expect(results.init.db).to.equal(initDb);
+      expect(initDb.configure.calledWith('busyTimeout')).to.be.true;
+      expect(queryDb.all.calledOnce).to.be.true;
+      expect(initDb.all.called).to.be.false;
+    });
+
+    it('runs each operation on the connection it opened', () => {
+      const ctl = makeControlledSqlite3();
+      storage.__set__('sqlite3', ctl.sqlite3);
+
+      const errors = [];
+      storage.storage_fns.set({ type: 'keys', id: 'a', data: { value: '1' } }, (err) => errors.push(err));
+      storage.storage_fns.all({ type: 'keys' }, (err) => errors.push(err));
+
+      const [setDb, allDb] = ctl.instances;
+      // The first open completes last, after the second connection is closed.
+      allDb.open();
+      setDb.open();
+
+      expect(errors).to.deep.equal([null, null]);
+      expect(setDb.run.secondCall.args[0]).to.match(/^INSERT OR REPLACE INTO keys/);
+      expect(allDb.all.calledOnce).to.be.true;
+      expect(setDb.close.calledOnce).to.be.true;
+      expect(allDb.close.calledOnce).to.be.true;
+    });
+
+    it('closes the connection when the type is not allowed', (done) => {
+      storage.init('not_a_table', null, (err) => {
+        expect(err).to.be.an('error');
+        expect(dbInstance.close.calledOnce).to.be.true;
+        done();
+      });
+    });
+
+    it('closes the connection when CREATE TABLE fails', (done) => {
+      storage.init('keys', null, (err) => {
+        expect(err).to.be.an('error');
+        expect(dbInstance.close.calledOnce).to.be.true;
+        done();
+      });
+      dbInstance.run.callsFake((sql, c) => c(new Error('disk I/O error')));
     });
   });
 
