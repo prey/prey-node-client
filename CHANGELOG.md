@@ -1,5 +1,12 @@
 # Change Log
 
+## [v1.13.44](https://github.com/prey/prey-node-client/tree/v1.13.44) (2026-11-26)
+[Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.43..v1.13.44)
+
+- Fix: `prey config` commands no longer crash with "SQLITE_MISUSE: Database is closed" or "Database handle is closed" when the local database opens slowly (for example, while an antivirus scans it). Each storage operation now uses its own database connection. This failure stopped the Windows service from reading the device key and could make an automatic upgrade fail; the agent kept running on the previous version and retried later. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: Errors reported from `prey config` commands now include the device key, read from the configuration or the local database, so they can be traced to the affected device. They also include the command that failed (for example `config settings read` or `config upgrade 1.13.44`), which was previously cut to just `config`. Flags and their values are never reported, so credentials stay out of the reports. ([SoraKenji](https://github.com/SoraKenji))
+
 ## [v1.13.43](https://github.com/prey/prey-node-client/tree/v1.13.43) (2026-11-25)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.42..v1.13.43)
 

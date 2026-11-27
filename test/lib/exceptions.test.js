@@ -199,4 +199,150 @@ describe('exceptions', () => {
       );
     });
   });
+
+  // The in-memory keys are only set by the agent's control panel: processes like the
+  // conf CLI must still report which device the exception came from.
+  describe('deviceKey resolution', () => {
+    const DK_KEY = 'control-panel.device_key';
+    let savedConfigKey;
+
+    // Quota read returns empty, quota write succeeds; `preyconfRows` answers the preyconf query.
+    const stubStorage = (preyconfRows) => {
+      storageDoStub.callsFake((op, opts, cb) => {
+        if (op === 'query' && opts.data === 'preyconf') return cb(null, preyconfRows);
+        if (op === 'query') return cb(null, []);
+        return cb(null);
+      });
+    };
+    const sentDeviceKey = () => needlePostStub.firstCall.args[1].deviceKey;
+
+    beforeEach(() => {
+      // configfile exports a frozen instance, so set the value on its (unfrozen) data object.
+      savedConfigKey = config.all()[DK_KEY];
+      config.all()[DK_KEY] = null;
+      keys.get.returns({});
+    });
+
+    afterEach(() => {
+      config.all()[DK_KEY] = savedConfigKey;
+    });
+
+    it('uses the in-memory key when the agent has set it', (done) => {
+      keys.get.returns({ device: 'memory-key' });
+      config.all()[DK_KEY] = 'config-key';
+      stubStorage(null);
+
+      exceptionsModule.send(new Error('from agent'), () => {
+        expect(sentDeviceKey()).to.equal('memory-key');
+        done();
+      });
+    });
+
+    it('falls back to the loaded config when the in-memory keys are empty (conf CLI)', (done) => {
+      config.all()[DK_KEY] = 'config-key';
+      stubStorage(null);
+
+      exceptionsModule.send(new Error('from cli'), () => {
+        expect(sentDeviceKey()).to.equal('config-key');
+        expect(storageDoStub.calledWith('query', sinon.match({ data: 'preyconf' }))).to.be.false;
+        done();
+      });
+    });
+
+    it('reads the preyconf row when the config has not loaded yet', (done) => {
+      stubStorage([{ value: JSON.stringify({ [DK_KEY]: 'db-key' }) }]);
+
+      exceptionsModule.send(new Error('cli crashed early'), () => {
+        expect(sentDeviceKey()).to.equal('db-key');
+        done();
+      });
+    });
+
+    it('still sends with a null key when the preyconf row is missing', (done) => {
+      stubStorage(null);
+
+      exceptionsModule.send(new Error('no row'), () => {
+        expect(needlePostStub.calledOnce).to.be.true;
+        expect(sentDeviceKey()).to.be.null;
+        done();
+      });
+    });
+
+    it('still sends with a null key when the preyconf row is not valid JSON', (done) => {
+      stubStorage([{ value: '{not json' }]);
+
+      exceptionsModule.send(new Error('bad row'), () => {
+        expect(needlePostStub.calledOnce).to.be.true;
+        expect(sentDeviceKey()).to.be.null;
+        done();
+      });
+    });
+
+    it('still sends with a null key when reading commands.db fails', (done) => {
+      storageDoStub.callsFake((op, opts, cb) => {
+        if (op === 'query' && opts.data === 'preyconf') return cb(new Error('SQLITE_BUSY'));
+        if (op === 'query') return cb(null, []);
+        return cb(null);
+      });
+
+      exceptionsModule.send(new Error('db busy'), () => {
+        expect(needlePostStub.calledOnce).to.be.true;
+        expect(sentDeviceKey()).to.be.null;
+        done();
+      });
+    });
+  });
+
+  describe('reported args', () => {
+    const NODE = 'C:\\Windows\\Prey\\current\\bin\\node.exe';
+    const CLI = 'C:\\Windows\\Prey\\current\\lib\\conf\\cli.js';
+    let savedArgv;
+
+    beforeEach(() => {
+      savedArgv = process.argv;
+    });
+
+    afterEach(() => {
+      process.argv = savedArgv;
+    });
+
+    it('keeps the subcommand that lib/conf/cli.js splices out of process.argv', (done) => {
+      storageDoStub.callsFake((op, opts, cb) => cb(null, []));
+      process.argv = [NODE, CLI, 'config', 'settings', 'read', 'control-panel.device_key'];
+      delete require.cache[require.resolve('../../lib/exceptions')];
+      exceptionsModule = require('../../lib/exceptions');
+      process.argv.splice(3); // what cli.js does on startup
+
+      exceptionsModule.send(new Error('from cli'), () => {
+        expect(needlePostStub.firstCall.args[1].args)
+          .to.deep.equal([NODE, CLI, 'config', 'settings', 'read', 'control-panel.device_key']);
+        done();
+      });
+    });
+
+    it('keeps the command words and the version argument', () => {
+      expect(exceptionsModule.reportedArgs([NODE, CLI, 'config', 'upgrade', '1.13.44']))
+        .to.deep.equal([NODE, CLI, 'config', 'upgrade', '1.13.44']);
+    });
+
+    it('stops at the first flag, so credentials are never reported', () => {
+      const argv = [NODE, CLI, 'config', 'account', 'authorize', '-e', 'me@example.com', '-p', 'secret'];
+      expect(exceptionsModule.reportedArgs(argv))
+        .to.deep.equal([NODE, CLI, 'config', 'account', 'authorize']);
+      expect(exceptionsModule.reportedArgs([NODE, CLI, 'config', 'account', 'setup', '--api-key=abc']))
+        .to.deep.equal([NODE, CLI, 'config', 'account', 'setup']);
+    });
+
+    it('reports at most four command words', () => {
+      const argv = [NODE, CLI, 'config', 'settings', 'update', 'some.key', 'some-value'];
+      expect(exceptionsModule.reportedArgs(argv))
+        .to.deep.equal([NODE, CLI, 'config', 'settings', 'update', 'some.key']);
+    });
+
+    it('handles an argv with no command words', () => {
+      expect(exceptionsModule.reportedArgs([NODE])).to.deep.equal([NODE]);
+      expect(exceptionsModule.reportedArgs([NODE, '/usr/lib/prey/bin/prey', '-d']))
+        .to.deep.equal([NODE, '/usr/lib/prey/bin/prey']);
+    });
+  });
 });
