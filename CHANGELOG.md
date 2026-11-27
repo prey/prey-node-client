@@ -7,6 +7,12 @@
 
 - Fix: Errors reported from `prey config` commands now include the device key, read from the configuration or the local database, so they can be traced to the affected device. They also include the command that failed (for example `config settings read` or `config upgrade 1.13.44`), which was previously cut to just `config`. Flags and their values are never reported, so credentials stay out of the reports. ([SoraKenji](https://github.com/SoraKenji))
 
+- Fix: The agent no longer stops working, while still appearing to run, after an error in a local database operation, and `prey config` commands no longer hang when reporting an error: every later database operation now runs, and error reports finish within 10 seconds. ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: An error message containing quotes (for example `unknown option '--force'`) can no longer overwrite the configuration saved in the local database and make the agent restart repeatedly on every boot. If a saved value can't be read at startup, the agent now logs a warning and rebuilds it instead of crashing (configuration and permissions from their current values, and a new security key pair if the stored one is unreadable). ([SoraKenji](https://github.com/SoraKenji))
+
+- Fix: When the configuration saved in the local database can't be read (for example on a device damaged by the issue above), the agent now rebuilds it from `prey.conf`, keeping its keys, its control panel host and every other setting, instead of resetting it to the defaults. Before, a device pointed at another host or with custom settings lost them for good, since the defaults were later written over `prey.conf` too. ([SoraKenji](https://github.com/SoraKenji))
+
 ## [v1.13.43](https://github.com/prey/prey-node-client/tree/v1.13.43) (2026-11-25)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.42..v1.13.43)
 
