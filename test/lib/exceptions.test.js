@@ -293,6 +293,147 @@ describe('exceptions', () => {
     });
   });
 
+  // send's callback is what lets uncaughtException handlers exit or shut down, so it
+  // must fire even when commands.db or the exceptions server never answers.
+  describe('timeouts', () => {
+    let clock;
+
+    beforeEach(() => {
+      clock = sinon.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+      keys.get.returns({});
+    });
+
+    afterEach(() => {
+      clock.restore();
+    });
+
+    it('sends with a null device key when the preyconf lookup never answers', () => {
+      const savedConfigKey = config.all()['control-panel.device_key'];
+      config.all()['control-panel.device_key'] = null;
+      storageDoStub.callsFake((op, opts, cb) => {
+        if (op === 'query' && opts.data === 'preyconf') return undefined; // stuck queue
+        if (op === 'query') return cb(null, []);
+        return cb(null);
+      });
+      const cb = sinon.spy();
+
+      exceptionsModule.send(new Error('stuck lookup'), cb);
+      expect(needlePostStub.called).to.be.false;
+      clock.tick(3000);
+      config.all()['control-panel.device_key'] = savedConfigKey;
+
+      expect(needlePostStub.calledOnce).to.be.true;
+      expect(needlePostStub.firstCall.args[1].deviceKey).to.be.null;
+      expect(cb.calledOnce).to.be.true;
+    });
+
+    it('calls back once with a timeout error when the report never completes', () => {
+      keys.get.returns({ device: 'test-device-key' });
+      storageDoStub.callsFake((op, opts, cb) => (op === 'query' ? cb(null, []) : cb(null)));
+      needlePostStub.callsFake(() => {}); // server never answers
+      const cb = sinon.spy();
+
+      exceptionsModule.send(new Error('slow server'), cb);
+      clock.tick(9999);
+      expect(cb.called).to.be.false;
+      clock.tick(1);
+      expect(cb.calledOnce).to.be.true;
+      expect(cb.firstCall.args[0]).to.be.an('error');
+      expect(cb.firstCall.args[0].message).to.equal('Exception report timed out');
+      clock.tick(20000);
+      expect(cb.calledOnce).to.be.true;
+    });
+
+    it('calls back once with a timeout error when the storage queue never answers', () => {
+      storageDoStub.callsFake(() => {}); // quota read stuck
+      const cb = sinon.spy();
+
+      exceptionsModule.send(new Error('stuck queue'), cb);
+      clock.tick(10000);
+      expect(cb.calledOnce).to.be.true;
+      expect(needlePostStub.called).to.be.false;
+    });
+
+    it('does not keep a deadline timer when there is no callback', () => {
+      storageDoStub.callsFake(() => {});
+      exceptionsModule.send(new Error('fire and forget'));
+      expect(clock.countTimers()).to.equal(0);
+    });
+  });
+
+  describe('quota persistence', () => {
+    it('inserts the quota row again when the first insert failed', (done) => {
+      storageDoStub.callsFake((op, opts, cb) => {
+        if (op === 'query') return cb(null, []);
+        if (op === 'set') return cb(new Error('SQLITE_BUSY'));
+        return cb(null);
+      });
+
+      exceptionsModule.send(new Error('first'), () => {
+        exceptionsModule.send(new Error('second'), () => {
+          const ops = storageDoStub.getCalls().map((c) => c.args[0]).filter((op) => op !== 'query');
+          expect(ops).to.deep.equal(['set', 'set']);
+          done();
+        });
+      });
+    });
+
+    it('updates the quota row once the insert succeeded', (done) => {
+      storageDoStub.callsFake((op, opts, cb) => (op === 'query' ? cb(null, []) : cb(null)));
+
+      exceptionsModule.send(new Error('first'), () => {
+        exceptionsModule.send(new Error('second'), () => {
+          const ops = storageDoStub.getCalls().map((c) => c.args[0]).filter((op) => op !== 'query');
+          expect(ops).to.deep.equal(['set', 'update']);
+          done();
+        });
+      });
+    });
+
+    // Real sqlite: the quota keys are error messages, and one quoting a flag (`'--`)
+    // used to comment out the UPDATE's WHERE and overwrite every keys row.
+    it('keeps the other keys rows intact when the message holds a quoted flag', function (done) {
+      this.timeout(10000);
+      const fs = require('fs');
+      const os = require('os');
+      const path = require('path');
+      const rewire = require('rewire');
+      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'prey-exceptions-'));
+      const realStorage = rewire('../../lib/agent/utils/storage');
+      realStorage.__set__('dbExists', () => dir);
+      storageDoStub.callsFake((op, opts, cb) => realStorage.do(op, opts, cb));
+
+      const preyconf = '{"control-panel.device_key":"abc"}';
+      const message = "unknown option '--force'";
+      const finish = (e) => {
+        fs.rmSync(dir, { recursive: true, force: true });
+        done(e);
+      };
+      realStorage.do('set', { type: 'keys', id: 'preyconf', data: { value: preyconf } }, () => {});
+      realStorage.do('set', {
+        type: 'keys',
+        id: 'exception_quota',
+        data: { value: JSON.stringify({ date: today, total: 0, errors: {} }) },
+      }, () => {});
+      realStorage.do('all', { type: 'keys' }, () => {
+        exceptionsModule.send(new Error(message), () => {
+          // The quota UPDATE was queued before send called back, so this read follows it.
+          realStorage.do('all', { type: 'keys' }, (err, rows) => {
+            try {
+              expect(err).to.be.null;
+              const byId = Object.fromEntries(rows.map((r) => [r.id, r.value]));
+              expect(byId.preyconf).to.equal(preyconf);
+              expect(JSON.parse(byId.exception_quota).errors).to.deep.equal({ [message]: 1 });
+              finish();
+            } catch (e) {
+              finish(e);
+            }
+          });
+        });
+      });
+    });
+  });
+
   describe('reported args', () => {
     const NODE = 'C:\\Windows\\Prey\\current\\bin\\node.exe';
     const CLI = 'C:\\Windows\\Prey\\current\\lib\\conf\\cli.js';
@@ -337,6 +478,11 @@ describe('exceptions', () => {
       const argv = [NODE, CLI, 'config', 'settings', 'update', 'some.key', 'some-value'];
       expect(exceptionsModule.reportedArgs(argv))
         .to.deep.equal([NODE, CLI, 'config', 'settings', 'update', 'some.key']);
+    });
+
+    it('never reports a setting value passed to `settings update`', () => {
+      const argv = [NODE, CLI, 'config', 'settings', 'update', 'control-panel.api_key', 'SECRET'];
+      expect(exceptionsModule.reportedArgs(argv)).to.not.include('SECRET');
     });
 
     it('handles an argv with no command words', () => {

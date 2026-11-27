@@ -53,4 +53,29 @@ describe('permissionfile', () => {
       });
     });
   });
+
+  // load() runs when the module is first required (agent boot): a corrupt row used to
+  // throw from the storage callback and crash-loop the agent.
+  describe('load with an unreadable row', () => {
+    let storageStub;
+
+    afterEach(() => {
+      storageStub.restore();
+    });
+
+    it('rewrites the row with the defaults instead of throwing', (done) => {
+      storageStub = sinon.stub(storage, 'do').callsFake((method, params, cb) => {
+        if (method === 'query') return cb(null, [{ id: 'permissions', value: '{"nativeLocation":"' }]);
+        return cb(null);
+      });
+
+      permissionFile.load(() => {
+        const set = storageStub.getCalls().find((c) => c.args[0] === 'set');
+        expect(set, 'row rewritten').to.exist;
+        expect(set.args[1].id).to.equal('permissions');
+        expect(JSON.parse(set.args[1].data.value)).to.have.keys('nativeLocation', 'wifiLocation');
+        done();
+      });
+    });
+  });
 });

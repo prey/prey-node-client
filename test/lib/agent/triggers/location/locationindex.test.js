@@ -542,6 +542,22 @@ describe('sendLocation - force type', () => {
 });
 
 describe('writeStorage - no entry case', () => {
+  it('treats an unreadable row as no entry instead of throwing', () => {
+    const storageDoStub = sinon.stub(storage, 'do');
+    storageDoStub.callsFake((operation, query, callback) => {
+      callback(null, [{ value: '{"localDateTime":"2026-08-03' }]); // truncated JSON
+    });
+
+    let result;
+    expect(() => locationIndex.writeStorage('2026-08-04T10:00:00.000Z', (canSend, isFirstTime) => {
+      result = { canSend, isFirstTime };
+    })).to.not.throw();
+    // isFirstTime makes the caller 'set' the row after a confirmed send, replacing it.
+    expect(result).to.deep.equal({ canSend: true, isFirstTime: true });
+
+    storageDoStub.restore();
+  });
+
   it('calls cb(true, true) when no entry exists and does not write to storage', () => {
     const storageDoStub = sinon.stub(storage, 'do');
     storageDoStub.callsFake((operation, query, callback) => {

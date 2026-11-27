@@ -437,4 +437,28 @@ describe('Hardware_Provider - partial firmware reads', () => {
       expect(baseline.bios_vendor).to.equal(completeFirmware.bios_vendor);
     });
   });
+
+  describe('unreadable hardware_changed row', () => {
+    const CORRUPT = '{"hardwareData":[{"time":"2026-11-27T10:00:00.000Z","dataTrack":{"proc';
+
+    it('starts a new history instead of throwing', (done) => {
+      exp.storedComparisonDataHardwareChanged([{ value: CORRUPT }], { a: 1 }, (err, storedData) => {
+        expect(err).to.be.null;
+        expect(storedData.hardwareData).to.have.lengthOf(1);
+        expect(storedData.hardwareData[0].dataTrack).to.deep.equal({ a: 1 });
+        done();
+      });
+    });
+
+    it('rewrites the row through updateDataHardwareChanged', () => {
+      // updateDataDbKey is already stubbed by this block's beforeEach.
+      const updateStub = /** @type {any} */ (utilStorage.updateDataDbKey);
+      getDataDbKeyStub.callsFake((key, cb) => cb(null, [{ value: CORRUPT }]));
+      expect(() => exp.updateDataHardwareChanged({ a: 1 })).to.not.throw();
+      expect(updateStub.calledOnce).to.be.true;
+      const [, id, , value] = updateStub.firstCall.args;
+      expect(id).to.equal('hardware_changed');
+      expect(JSON.parse(value).hardwareData).to.have.lengthOf(1);
+    });
+  });
 });

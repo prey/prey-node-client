@@ -75,4 +75,63 @@ describe('storage concurrency (real sqlite3)', () => {
       });
     }
   });
+
+  // Error text like "unknown option '--force'" reaches the keys table through the
+  // exceptions quota. Unescaped, its `'--` commented out the WHERE and the UPDATE
+  // rewrote every row (preyconf included), which crash-looped the agent on boot.
+  describe('quoted values (through storage.do)', () => {
+    const PREYCONF = '{"control-panel.device_key":"abc"}';
+
+    it('updates one row with a quoted value and leaves the other rows intact', (done) => {
+      const evil = `{"errors":{"unknown option '--force'":1}}`;
+      storage.do('set', { type: 'keys', id: 'preyconf', data: { value: PREYCONF } }, () => {});
+      storage.do('set', { type: 'keys', id: 'exception_quota', data: { value: '{}' } }, () => {});
+      storage.do('update', {
+        type: 'keys', id: 'exception_quota', columns: 'value', values: evil,
+      }, (err) => {
+        storage.do('all', { type: 'keys' }, (err2, rows) => {
+          try {
+            expect(err).to.not.exist;
+            expect(err2).to.be.null;
+            const byId = Object.fromEntries(rows.map((r) => [r.id, r.value]));
+            expect(byId).to.deep.equal({ preyconf: PREYCONF, exception_quota: evil });
+            done();
+          } catch (e) {
+            done(e);
+          }
+        });
+      });
+    });
+
+    it('round-trips an id and a value holding quotes through set and query', (done) => {
+      const id = "it's";
+      const value = "Cannot read properties of undefined (reading 'foo')";
+      storage.do('set', { type: 'keys', id, data: { value } }, () => {});
+      storage.do('query', { type: 'keys', column: 'id', data: id }, (err, rows) => {
+        try {
+          expect(err).to.be.null;
+          expect(rows).to.deep.equal([{ id, value }]);
+          done();
+        } catch (e) {
+          done(e);
+        }
+      });
+    });
+
+    it('deletes only the row whose id holds a quote', (done) => {
+      storage.do('set', { type: 'keys', id: "o'k", data: { value: '1' } }, () => {});
+      storage.do('set', { type: 'keys', id: 'other', data: { value: '2' } }, () => {});
+      storage.do('del', { type: 'keys', id: "o'k" }, (err) => {
+        storage.do('all', { type: 'keys' }, (err2, rows) => {
+          try {
+            expect(err).to.not.exist;
+            expect(rows.map((r) => r.id)).to.deep.equal(['other']);
+            done();
+          } catch (e) {
+            done(e);
+          }
+        });
+      });
+    });
+  });
 });

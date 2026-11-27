@@ -21,7 +21,7 @@ describe('ConfigFile', () => {
       .callsFake((key, cb) => {
         if (key === 'preyconf') {
           if (dbData !== null) {
-            cb(null, [{ value: JSON.stringify(dbData) }]);
+            cb(null, [{ value: typeof dbData === 'string' ? dbData : JSON.stringify(dbData) }]);
           } else {
             cb(null, null);
           }
@@ -96,6 +96,49 @@ describe('ConfigFile', () => {
       const config = loadFresh(null, { 'control-panel.scan_hardware': true });
 
       expect(config.getData('control-panel.send_encryption_keys')).to.equal(true);
+    });
+  });
+
+  describe('load() — unreadable preyconf row', () => {
+    // What the 1.13.43 quote bug leaves in every keys row: a cut JSON prefix.
+    const corrupt = '{"errors":{"unknown option ';
+
+    it('restores keys, host and settings from prey.conf instead of the defaults', () => {
+      const config = loadFresh(corrupt, {
+        'control-panel.api_key': 'abc123',
+        'control-panel.device_key': 'dev1',
+        'control-panel.host': 'solid.preyhq.com',
+        send_crash_reports: true,
+      });
+
+      expect(config.getData('control-panel.api_key')).to.equal('abc123');
+      expect(config.getData('control-panel.device_key')).to.equal('dev1');
+      expect(config.getData('control-panel.host')).to.equal('solid.preyhq.com');
+      expect(config.getData('send_crash_reports')).to.equal(true);
+    });
+
+    it('saves the restored configuration to the database', () => {
+      loadFresh(corrupt, { 'control-panel.host': 'solid.preyhq.com' });
+
+      const saved = preyconfModule.saveDataToDb.lastCall.args[0];
+      expect(saved['control-panel.host']).to.equal('solid.preyhq.com');
+    });
+
+    it('replaces the corrupted shouldPreyCFile row', () => {
+      loadFresh(corrupt, { 'control-panel.api_key': 'a', 'control-panel.device_key': 'd' });
+
+      const update = storageModule.do.getCalls()
+        .find((c) => c.args[0] === 'update' && c.args[1].id === 'shouldPreyCFile');
+      expect(update).to.exist;
+      expect(update.args[1].values).to.equal('true');
+    });
+
+    it('falls back to the defaults when prey.conf cannot be read', () => {
+      const config = loadFresh(corrupt, null);
+
+      expect(config.getData('control-panel.host')).to.equal('solid.preyproject.com');
+      expect(config.getData('control-panel.api_key')).to.equal(null);
+      expect(preyconfModule.saveDataToDb.called).to.equal(true);
     });
   });
 
