@@ -13,7 +13,7 @@
 
 - Fix: When the configuration saved in the local database can't be read (for example on a device damaged by the issue above), the agent now rebuilds it from `prey.conf`, keeping its keys, its control panel host and every other setting, instead of resetting it to the defaults. Before, a device pointed at another host or with custom settings lost them for good, since the defaults were later written over `prey.conf` too. ([SoraKenji](https://github.com/SoraKenji))
 
-- Fix: Rebuilding that configuration no longer links the device again as a new device. `prey.conf` doesn't hold the device key, so the agent now recovers it from the identification data saved when the device was linked. ([SoraKenji](https://github.com/SoraKenji))
+- Fix: Rebuilding that configuration no longer links the device again as a new device. `prey.conf` only gets the device key once the agent has run for 5 minutes after linking, so a device that kept restarting had none there; the agent now recovers it from the identification data saved when the device was linked. ([SoraKenji](https://github.com/SoraKenji))
 
 ## [v1.13.43](https://github.com/prey/prey-node-client/tree/v1.13.43) (2026-11-25)
 [Full Changelog](https://github.com/prey/prey-node-client/compare/v1.13.42..v1.13.43)

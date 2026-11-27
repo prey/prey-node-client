@@ -144,7 +144,7 @@ describe('ConfigFile', () => {
       expect(preyconfModule.saveDataToDb.called).to.equal(true);
     });
 
-    describe('device key (prey.conf never has it)', () => {
+    describe('device key (missing from prey.conf until correctPreyConf runs)', () => {
       const ident = JSON.stringify({ device_key: 'dk-linked', payload: {}, created_at: 1 });
       const prey = { 'control-panel.api_key': 'abc123', 'control-panel.device_key': '' };
 
