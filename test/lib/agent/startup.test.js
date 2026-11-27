@@ -4,6 +4,7 @@ const { expect } = require('chai');
 const sinon = require('sinon');
 const fs = require('fs');
 const storage = require('../../../lib/agent/utils/storage');
+const common = require('../../../lib/agent/common');
 const { ensureAndCreateDb } = require('../../../lib/agent/startup');
 
 describe('startup.ensureAndCreateDb', () => {
@@ -42,6 +43,16 @@ describe('startup.ensureAndCreateDb', () => {
     ensureAndCreateDb((err) => {
       expect(err).to.not.be.an('error');
       expect(order).to.deep.equal(['migrate']);
+      done();
+    });
+  });
+
+  it('logs a warning when storage.init fails instead of failing silently', (done) => {
+    const warn = sinon.stub(common.logger, 'warn');
+    sinon.stub(storage, 'init').callsFake((type, path, cb) => cb(new Error('cannot open')));
+
+    ensureAndCreateDb(() => {
+      expect(warn.calledWithMatch('Unable to open commands.db: cannot open')).to.be.true;
       done();
     });
   });

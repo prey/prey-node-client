@@ -523,6 +523,131 @@ describe('storage_fns', () => {
     });
   });
 
+  // ─── queue guard ─────────────────────────────────────────────────────────────
+  // The storage queue runs one task at a time. A task that throws inside its
+  // connection callback used to never call back, blocking every later storage
+  // operation of the process (and the reads exceptions.send needs to report it).
+  describe('queue guard (through storage.do)', () => {
+    it('calls back with an error and closes the connection when an operation throws', (done) => {
+      // set with an id but no data: `opts.data.id = ...` throws a TypeError.
+      storage.do('set', { type: 'keys', id: 'k1' }, (err) => {
+        expect(err).to.be.instanceOf(TypeError);
+        expect(dbInstance.close.calledOnce).to.be.true;
+        done();
+      });
+    });
+
+    it('keeps running later operations after one throws', (done) => {
+      storage.do('set', { type: 'keys', id: 'k1' }, () => {});
+      storage.do('all', { type: 'keys' }, (err, rows) => {
+        expect(err).to.be.null;
+        expect(rows).to.deep.equal([]);
+        done();
+      });
+    });
+
+    it('calls back with an error when building the query throws (commands without options)', (done) => {
+      // JSON.stringify(undefined).replace(...) throws inside types.commands.values.
+      storage.do('set', { type: 'commands', id: 'c1', data: { command: 'start', target: 'alarm' } }, (err) => {
+        expect(err).to.be.instanceOf(TypeError);
+        storage.do('all', { type: 'commands' }, (err2) => {
+          expect(err2).to.be.null;
+          done();
+        });
+      });
+    });
+
+    it('calls back with an error for an unknown operation and keeps the queue running', (done) => {
+      storage.do('nope', { type: 'keys' }, (err) => {
+        expect(err).to.be.an('error');
+        expect(err.message).to.match(/Unknown storage operation: nope/);
+        storage.do('all', { type: 'keys' }, (err2) => {
+          expect(err2).to.be.null;
+          done();
+        });
+      });
+    });
+
+    it('calls back only once when the statement answers after a throw', (done) => {
+      const cb = sinon.spy();
+      storage.__set__('sqlite3', {
+        Database: function FakeDB(p, openCb) {
+          // run answers synchronously, then the caller throws on the next line.
+          this.run = sinon.stub().callsFake((sql, c) => {
+            if (/^INSERT/.test(sql)) { c(null); throw new Error('boom after run'); }
+            return c && c(null);
+          });
+          this.configure = sinon.stub();
+          this.close = sinon.stub().callsFake((c) => c && c());
+          dbInstance = this;
+          process.nextTick(() => openCb(null));
+        },
+      });
+      storage.storage_fns.set({ type: 'keys', id: 'k1', data: { value: 'v' } }, cb);
+      setTimeout(() => {
+        expect(cb.calledOnce).to.be.true;
+        expect(dbInstance.close.calledOnce).to.be.true;
+        done();
+      }, 20);
+    });
+  });
+
+  // A raw `'` in a value ends the SQL literal early, and `'--` comments out the WHERE
+  // so an UPDATE rewrites every row of the table: quotes must be escaped as ''.
+  describe('quote escaping', () => {
+    it('escapes quotes in keys values on set', (done) => {
+      storage.storage_fns.set(
+        { type: 'keys', id: "it's", data: { value: "unknown option '--force'" } },
+        (err) => {
+          expect(err).to.be.null;
+          expect(dbInstance.run.secondCall.args[0])
+            .to.include("VALUES ('it''s', 'unknown option ''--force''')");
+          done();
+        },
+      );
+    });
+
+    it('escapes quotes in the value and the id on update', (done) => {
+      storage.storage_fns.update(
+        { type: 'keys', id: "q'id", columns: 'value', values: "x' --" },
+        (err) => {
+          expect(err).to.be.null;
+          const sql = dbInstance.run.secondCall.args[0];
+          expect(sql).to.include("value = 'x'' --'");
+          expect(sql).to.include("WHERE id = 'q''id'");
+          done();
+        },
+      );
+    });
+
+    it('escapes quotes in each value of a multi-column update', (done) => {
+      storage.storage_fns.update(
+        { type: 'keys', id: 'k', columns: ['id', 'value'], values: ['k', "a'b"] },
+        (err) => {
+          expect(err).to.be.null;
+          expect(dbInstance.run.secondCall.args[0]).to.include("id = 'k', value = 'a''b'");
+          done();
+        },
+      );
+    });
+
+    it('escapes quotes in the id on del', (done) => {
+      storage.storage_fns.del({ type: 'keys', id: "o'k" }, (err) => {
+        expect(err).to.be.null;
+        expect(dbInstance.run.secondCall.args[0]).to.include("WHERE id = 'o''k'");
+        done();
+      });
+    });
+
+    it('escapes quotes in the searched value on query', (done) => {
+      storage.storage_fns.query({ type: 'keys', column: 'id', data: "o'k" }, (err) => {
+        expect(err).to.be.null;
+        expect(dbInstance.all.firstCall.args[0]).to.include("WHERE id = 'o''k'");
+        done();
+      });
+    });
+  });
+
   // ─── dbPath (unified resolver) ───────────────────────────────────────────────
   describe('dbPath', () => {
     it('returns commands.db under the resolved directory', () => {
