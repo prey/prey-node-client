@@ -292,4 +292,57 @@ describe('exceptions', () => {
       });
     });
   });
+
+  describe('reported args', () => {
+    const NODE = 'C:\\Windows\\Prey\\current\\bin\\node.exe';
+    const CLI = 'C:\\Windows\\Prey\\current\\lib\\conf\\cli.js';
+    let savedArgv;
+
+    beforeEach(() => {
+      savedArgv = process.argv;
+    });
+
+    afterEach(() => {
+      process.argv = savedArgv;
+    });
+
+    it('keeps the subcommand that lib/conf/cli.js splices out of process.argv', (done) => {
+      storageDoStub.callsFake((op, opts, cb) => cb(null, []));
+      process.argv = [NODE, CLI, 'config', 'settings', 'read', 'control-panel.device_key'];
+      delete require.cache[require.resolve('../../lib/exceptions')];
+      exceptionsModule = require('../../lib/exceptions');
+      process.argv.splice(3); // what cli.js does on startup
+
+      exceptionsModule.send(new Error('from cli'), () => {
+        expect(needlePostStub.firstCall.args[1].args)
+          .to.deep.equal([NODE, CLI, 'config', 'settings', 'read', 'control-panel.device_key']);
+        done();
+      });
+    });
+
+    it('keeps the command words and the version argument', () => {
+      expect(exceptionsModule.reportedArgs([NODE, CLI, 'config', 'upgrade', '1.13.44']))
+        .to.deep.equal([NODE, CLI, 'config', 'upgrade', '1.13.44']);
+    });
+
+    it('stops at the first flag, so credentials are never reported', () => {
+      const argv = [NODE, CLI, 'config', 'account', 'authorize', '-e', 'me@example.com', '-p', 'secret'];
+      expect(exceptionsModule.reportedArgs(argv))
+        .to.deep.equal([NODE, CLI, 'config', 'account', 'authorize']);
+      expect(exceptionsModule.reportedArgs([NODE, CLI, 'config', 'account', 'setup', '--api-key=abc']))
+        .to.deep.equal([NODE, CLI, 'config', 'account', 'setup']);
+    });
+
+    it('reports at most four command words', () => {
+      const argv = [NODE, CLI, 'config', 'settings', 'update', 'some.key', 'some-value'];
+      expect(exceptionsModule.reportedArgs(argv))
+        .to.deep.equal([NODE, CLI, 'config', 'settings', 'update', 'some.key']);
+    });
+
+    it('handles an argv with no command words', () => {
+      expect(exceptionsModule.reportedArgs([NODE])).to.deep.equal([NODE]);
+      expect(exceptionsModule.reportedArgs([NODE, '/usr/lib/prey/bin/prey', '-d']))
+        .to.deep.equal([NODE, '/usr/lib/prey/bin/prey']);
+    });
+  });
 });
